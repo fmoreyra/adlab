@@ -348,3 +348,69 @@ class VeterinaryUserTestCase(TestCase):
         self.assertContains(response, 'Registrarse')
         self.assertContains(response, 'Usuario:')
         self.assertContains(response, 'Nro. Matrícula:')
+
+    def test_registration_invalid_phone_number(self):
+        """Test registration fails with invalid phone number containing letters"""
+        invalid_data = self.vet_data.copy()
+        invalid_data['phone'] = '+123abc456'
+        
+        response = self.client.post(self.registration_url, invalid_data)
+        
+        # Should not redirect
+        self.assertEqual(response.status_code, 200)
+        
+        # Check error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('solo puede contener números' in str(message) for message in messages))
+
+    def test_registration_valid_phone_formats(self):
+        """Test registration accepts valid phone number formats"""
+        valid_phones = [
+            '+1234567890',
+            '123-456-7890',
+            '(123) 456-7890',
+            '123 456 7890',
+            '+54 9 11 1234-5678',
+            '1234567890'
+        ]
+        
+        for i, phone in enumerate(valid_phones):
+            valid_data = self.vet_data.copy()
+            valid_data.update({
+                'username': f'drtest{i}',
+                'email': f'test{i}@example.com',
+                'license_number': f'VET{i}2345',
+                'phone': phone
+            })
+            
+            response = self.client.post(self.registration_url, valid_data)
+            
+            # Should redirect to login (successful registration)
+            self.assertRedirects(response, self.login_url)
+            
+            # Check that user was created
+            self.assertTrue(User.objects.filter(username=f'drtest{i}').exists())
+
+    def test_registration_invalid_phone_special_chars(self):
+        """Test registration fails with phone number containing invalid special characters"""
+        invalid_phones = [
+            '+123#456',
+            '123*456*7890',
+            '123@456.com',
+            'abc-def-ghij',
+            '123.456.7890',  # dots not allowed
+            '123_456_7890'   # underscores not allowed
+        ]
+        
+        for phone in invalid_phones:
+            invalid_data = self.vet_data.copy()
+            invalid_data['phone'] = phone
+            
+            response = self.client.post(self.registration_url, invalid_data)
+            
+            # Should not redirect (stays on registration page)
+            self.assertEqual(response.status_code, 200)
+            
+            # Check error message appears
+            messages = list(get_messages(response.wsgi_request))
+            self.assertTrue(any('solo puede contener números' in str(message) for message in messages))

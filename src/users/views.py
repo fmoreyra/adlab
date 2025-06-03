@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
@@ -61,6 +62,12 @@ def veterinary_register(request):
         
         if len(password) < 6:
             errors.append('La contraseña debe tener al menos 6 caracteres.')
+        
+        # Validate phone number (only numbers, spaces, hyphens, plus signs, and parentheses)
+        if phone:  # Only validate if phone is provided
+            phone_pattern = r'^[\d\s\-\+\(\)]+$'
+            if not re.match(phone_pattern, phone):
+                errors.append('El número de teléfono solo puede contener números, espacios, guiones, paréntesis y el signo +.')
         
         if User.objects.filter(username=username).exists():
             errors.append('El nombre de usuario ya existe.')
