@@ -21,6 +21,9 @@ def veterinary_login(request):
             # Check if user has a veterinarian profile
             try:
                 veterinarian = Veterinarian.objects.get(user=user)
+                if not veterinarian.is_approved:
+                    messages.error(request, 'Tu cuenta está pendiente de aprobación por un administrador. Por favor, espera a que tu cuenta sea activada.')
+                    return render(request, 'users/veterinary_login.html')
                 login(request, user)
                 messages.success(request, f'Bienvenido, Dr. {veterinarian.first_name} {veterinarian.last_name}')
                 return redirect('veterinary_dashboard')
@@ -114,7 +117,7 @@ def veterinary_register(request):
                     address=address
                 )
                 
-                messages.success(request, f'¡Registro exitoso! Bienvenido Dr. {first_name} {last_name}. Ya puedes iniciar sesión.')
+                messages.success(request, f'¡Registro exitoso! Dr. {first_name} {last_name}, tu cuenta ha sido creada y está pendiente de aprobación por un administrador. Te notificaremos cuando esté activada.')
                 return redirect('veterinary_login')
                 
             except Exception as e:
@@ -129,6 +132,9 @@ def veterinary_dashboard(request):
     
     try:
         veterinarian = Veterinarian.objects.get(user=request.user)
+        if not veterinarian.is_approved:
+            messages.error(request, 'Tu cuenta no ha sido aprobada aún. Contacta al administrador.')
+            return redirect('veterinary_login')
         return render(request, 'users/dashboard.html', {'veterinarian': veterinarian})
     except Veterinarian.DoesNotExist:
         messages.error(request, 'Acceso denegado.')

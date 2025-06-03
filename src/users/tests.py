@@ -195,6 +195,11 @@ class VeterinaryUserTestCase(TestCase):
         # First register a user
         self.client.post(self.registration_url, self.vet_data)
         
+        # Approve the user
+        vet = Veterinarian.objects.get(license_number='VET12345')
+        vet.is_approved = True
+        vet.save()
+        
         # Then try to log in
         login_data = {
             'username': 'drsmith',
@@ -255,8 +260,13 @@ class VeterinaryUserTestCase(TestCase):
 
     def test_dashboard_access_authenticated(self):
         """Test dashboard access for authenticated veterinary user"""
-        # Register and login user
+        # Register and approve user
         self.client.post(self.registration_url, self.vet_data)
+        vet = Veterinarian.objects.get(license_number='VET12345')
+        vet.is_approved = True
+        vet.save()
+        
+        # Login user
         self.client.post(self.login_url, {
             'username': 'drsmith',
             'password': 'secure123'
@@ -414,3 +424,150 @@ class VeterinaryUserTestCase(TestCase):
             # Check error message appears
             messages = list(get_messages(response.wsgi_request))
             self.assertTrue(any('solo puede contener números' in str(message) for message in messages))
+
+    def test_registration_creates_unapproved_user(self):
+        """Test that new registrations create unapproved users by default"""
+        response = self.client.post(self.registration_url, self.vet_data)
+        
+        # Should redirect to login
+        self.assertRedirects(response, self.login_url)
+        
+        # Check that veterinarian was created as unapproved
+        vet = Veterinarian.objects.get(license_number='VET12345')
+        self.assertFalse(vet.is_approved)
+        
+        # Check success message mentions approval
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('pendiente de aprobación' in str(message) for message in messages))
+
+    def test_login_unapproved_user(self):
+        """Test that unapproved users cannot log in"""
+        # Register a user (will be unapproved by default)
+        self.client.post(self.registration_url, self.vet_data)
+        
+        # Try to log in
+        login_data = {
+            'username': 'drsmith',
+            'password': 'secure123'
+        }
+        
+        response = self.client.post(self.login_url, login_data)
+        
+        # Should not redirect (stays on login page)
+        self.assertEqual(response.status_code, 200)
+        
+        # Check error message about pending approval
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('pendiente de aprobación' in str(message) for message in messages))
+
+    def test_login_approved_user(self):
+        """Test that approved users can log in successfully"""
+        # Register a user
+        self.client.post(self.registration_url, self.vet_data)
+        
+        # Approve the user
+        vet = Veterinarian.objects.get(license_number='VET12345')
+        vet.is_approved = True
+        vet.save()
+        
+        # Try to log in
+        login_data = {
+            'username': 'drsmith',
+            'password': 'secure123'
+        }
+        
+        response = self.client.post(self.login_url, login_data)
+        
+        # Should redirect to dashboard
+        self.assertRedirects(response, self.dashboard_url)
+        
+        # Check success message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('Bienvenido, Dr. John Smith' in str(message) for message in messages))
+
+    def test_dashboard_access_unapproved_user(self):
+        """Test dashboard access denied for unapproved users"""
+        # Register a user
+        self.client.post(self.registration_url, self.vet_data)
+        
+        # Force login the user (bypassing our login check)
+        user = User.objects.get(username='drsmith')
+        self.client.force_login(user)
+        
+        # Try to access dashboard
+        response = self.client.get(self.dashboard_url)
+        
+        # Should redirect to login
+        self.assertRedirects(response, self.login_url)
+        
+        # Check error message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('no ha sido aprobada' in str(message) for message in messages))
+
+    def test_dashboard_access_approved_user(self):
+        """Test dashboard access works for approved users"""
+        # Register and approve a user
+        self.client.post(self.registration_url, self.vet_data)
+        vet = Veterinarian.objects.get(license_number='VET12345')
+        vet.is_approved = True
+        vet.save()
+        
+        # Login the user
+        self.client.post(self.login_url, {
+            'username': 'drsmith',
+            'password': 'secure123'
+        })
+        
+        # Access dashboard
+        response = self.client.get(self.dashboard_url)
+        
+        # Should be successful
+        self.assertEqual(response.status_code, 200)
+        
+        # Should contain user information
+        self.assertContains(response, 'John Smith')
+        self.assertContains(response, 'dr.smith@example.com')
+
+    def test_veterinarian_str_method_shows_approval_status(self):
+        """Test that the __str__ method shows approval status with icons"""
+        # Create unapproved veterinarian
+        self.client.post(self.registration_url, self.vet_data)
+        vet = Veterinarian.objects.get(license_number='VET12345')
+        
+        # Check unapproved status
+        self.assertIn('⏳', str(vet))
+        self.assertIn('John Smith', str(vet))
+        
+        # Approve and check approved status
+        vet.is_approved = True
+        vet.save()
+        self.assertIn('✓', str(vet))
+        self.assertIn('John Smith', str(vet))
+
+    def test_admin_approval_workflow(self):
+        """Test that approval field works correctly in the model"""
+        # Create veterinarian
+        user = User.objects.create_user(
+            username='testvet',
+            password='testpass',
+            first_name='Test',
+            last_name='Vet',
+            email='test@vet.com'
+        )
+        
+        vet = Veterinarian.objects.create(
+            user=user,
+            phone='+1234567890',
+            license_number='TEST123'
+        )
+        
+        # Should be unapproved by default
+        self.assertFalse(vet.is_approved)
+        
+        # Approve
+        vet.is_approved = True
+        vet.save()
+        
+        # Verify approval
+        vet.refresh_from_db()
+        self.assertTrue(vet.is_approved)

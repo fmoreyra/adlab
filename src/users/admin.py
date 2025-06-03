@@ -20,11 +20,29 @@ class CustomUserAdmin(UserAdmin):
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 
+def approve_veterinarians(modeladmin, request, queryset):
+    """Admin action to approve selected veterinarians"""
+    updated = queryset.update(is_approved=True)
+    modeladmin.message_user(request, f'{updated} veterinarian(s) approved successfully.')
+approve_veterinarians.short_description = 'Approve selected veterinarians'
+
+def unapprove_veterinarians(modeladmin, request, queryset):
+    """Admin action to unapprove selected veterinarians"""
+    updated = queryset.update(is_approved=False)
+    modeladmin.message_user(request, f'{updated} veterinarian(s) unapproved.')
+unapprove_veterinarians.short_description = 'Unapprove selected veterinarians'
+
 @admin.register(Veterinarian)
 class VeterinarianAdmin(admin.ModelAdmin):
-    list_display = ("user", "phone", "license_number", "address")
+    list_display = ("user", "phone", "license_number", "is_approved", "address")
     search_fields = ("user__first_name", "user__last_name", "user__email", "license_number")
-    list_filter = ("license_number",)
+    list_filter = ("is_approved", "license_number")
+    actions = [approve_veterinarians, unapprove_veterinarians]
+    
+    def get_queryset(self, request):
+        """Order by approval status (pending first) then by name"""
+        qs = super().get_queryset(request)
+        return qs.order_by('is_approved', 'user__first_name')
 
 @admin.register(Histopathologist)
 class HistopathologistAdmin(admin.ModelAdmin):

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuenta Pendiente de Aprobación - Laboratorio de Anatomía Patológica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #8B4F9D;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            color: #8B4F9D;
+            font-size: 18px;
+        }
+
+        .header-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .content-wrapper {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .status-icon {
+            font-size: 80px;
+            color: #ffa726;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            background: #fff3e0;
+            border: 1px solid #ffb74d;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+
+        .info-text {
+            color: #bf360c;
+            line-height: 1.6;
+        }
+
+        .steps {
+            text-align: left;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .steps h3 {
+            color: #8B4F9D;
+            margin-bottom: 15px;
+        }
+
+        .steps ol {
+            color: #555;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+
+        .steps li {
+            margin-bottom: 8px;
+        }
+
+        .back-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #B49BC8 0%, #9D7DB6 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(157, 125, 182, 0.4);
+        }
+
+        .contact-info {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .contact-info h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .contact-info p {
+            color: #0d47a1;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 40px 30px;
+                margin: 20px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .status-icon {
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">FCV</div>
+        <div class="header-text">UNL • FACULTAD DE CIENCIAS VETERINARIAS</div>
+    </header>
+
+    <div class="main-container">
+        <div class="content-wrapper">
+            <div class="status-icon">⏳</div>
+            
+            <h1 class="title">Cuenta Pendiente de Aprobación</h1>
+            <p class="subtitle">Tu registro ha sido exitoso y está siendo revisado por nuestro equipo</p>
+
+            <div class="info-box">
+                <div class="info-title">🔍 Estado Actual</div>
+                <div class="info-text">
+                    Tu cuenta ha sido creada exitosamente, pero requiere aprobación de un administrador 
+                    antes de que puedas acceder al sistema del Laboratorio de Anatomía Patológica.
+                </div>
+            </div>
+
+            <div class="steps">
+                <h3>📋 Qué sucede ahora:</h3>
+                <ol>
+                    <li>Nuestro equipo administrativo revisará tu solicitud</li>
+                    <li>Verificaremos tu información profesional y matrícula</li>
+                    <li>Te notificaremos por email cuando tu cuenta sea aprobada</li>
+                    <li>Podrás acceder al sistema una vez que recibas la confirmación</li>
+                </ol>
+            </div>
+
+            <div class="contact-info">
+                <h4>💬 ¿Necesitas ayuda?</h4>
+                <p>Si tienes alguna consulta sobre tu registro, contacta al administrador del sistema.</p>
+            </div>
+
+            <a href="{% url 'veterinary_login' %}" class="back-button">Volver al Inicio de Sesión</a>
+        </div>
+    </div>
+</body>
+</html> 

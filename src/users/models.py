@@ -18,9 +18,11 @@ class Veterinarian(models.Model):
     phone = models.CharField(max_length=20, unique=True)
     license_number = models.CharField(max_length=50, unique=True)
     address = models.OneToOneField(Address, on_delete=models.CASCADE, related_name='veterinarian', null=True, blank=True)
+    is_approved = models.BooleanField(default=False, help_text='Designates whether this veterinarian has been approved by an admin.')
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name} (Veterinarian)"
+        status = "✓" if self.is_approved else "⏳"
+        return f"{status} {self.user.first_name} {self.user.last_name} (Veterinarian)"
     
     @property
     def first_name(self):
