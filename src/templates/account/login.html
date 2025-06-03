@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 {% load socialaccount %}
+{% load account %}
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratorio de Anatomía Patológica - Login Veterinarios</title>
+    <title>Laboratorio de Anatomía Patológica - Acceso</title>
     <style>
         * {
             margin: 0;
@@ -217,6 +218,8 @@
         .google-login:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-decoration: none;
+            color: #333;
         }
 
         .google-icon {
@@ -241,6 +244,23 @@
             text-decoration: underline;
         }
 
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .signup-link a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .signup-link a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
         .messages {
             margin-bottom: 20px;
         }
@@ -252,15 +272,30 @@
         }
 
         .alert-error {
-            background-color: rgba(220, 53, 69, 0.1);
+            background-color: rgba(220, 53, 69, 0.9);
             border: 1px solid rgba(220, 53, 69, 0.3);
-            color: #721c24;
+            color: white;
         }
 
         .alert-success {
-            background-color: rgba(25, 135, 84, 0.1);
+            background-color: rgba(25, 135, 84, 0.9);
             border: 1px solid rgba(25, 135, 84, 0.3);
-            color: #0f5132;
+            color: white;
+        }
+
+        .errorlist {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .errorlist li {
+            background-color: rgba(220, 53, 69, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            font-size: 14px;
         }
 
         @media (max-width: 768px) {
@@ -299,15 +334,21 @@
             <div class="login-section">
                 <h2 class="login-title">
                     <span class="login-icon">👤</span>
-                    Log in
+                    Acceso al Sistema
                 </h2>
 
-                {% if messages %}
+                {% if form.errors %}
                     <div class="messages">
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">
-                                {{ message }}
-                            </div>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <div class="alert alert-error">
+                                    {% if field == '__all__' %}
+                                        {{ error }}
+                                    {% else %}
+                                        {{ field|title }}: {{ error }}
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -334,30 +375,74 @@
                     </div>
                 {% endif %}
 
-                <form method="post">
+                <form method="post" action="{% url 'account_login' %}">
                     {% csrf_token %}
+                    
                     <div class="form-group">
-                        <label for="username" class="form-label">Usuario:</label>
-                        <input type="text" id="username" name="username" class="form-input" placeholder="Usuario" required>
+                        <label for="{{ form.login.id_for_label }}" class="form-label">
+                            {% if ACCOUNT_AUTHENTICATION_METHOD != "email" %}Usuario o Email:{% else %}Email:{% endif %}
+                        </label>
+                        <input type="text" 
+                               id="{{ form.login.id_for_label }}" 
+                               name="{{ form.login.name }}" 
+                               class="form-input" 
+                               placeholder="{% if ACCOUNT_AUTHENTICATION_METHOD != 'email' %}Usuario o Email{% else %}Email{% endif %}" 
+                               required
+                               value="{{ form.login.value|default:'' }}">
+                        {% if form.login.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.login.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
                     </div>
 
                     <div class="form-group">
-                        <label for="password" class="form-label">Contraseña:</label>
-                        <input type="password" id="password" name="password" class="form-input" placeholder="Contraseña" required>
+                        <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña:</label>
+                        <input type="password" 
+                               id="{{ form.password.id_for_label }}" 
+                               name="{{ form.password.name }}" 
+                               class="form-input" 
+                               placeholder="Contraseña" 
+                               required>
+                        {% if form.password.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.password.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
                     </div>
+
+                    {% if form.remember %}
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                            <input type="checkbox" 
+                                   id="{{ form.remember.id_for_label }}" 
+                                   name="{{ form.remember.name }}"
+                                   {% if form.remember.value %}checked{% endif %}>
+                            <label for="{{ form.remember.id_for_label }}" style="margin: 0; font-size: 14px;">
+                                Recordarme
+                            </label>
+                        </div>
+                    {% endif %}
+
+                    {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                    {% endif %}
 
                     <button type="submit" class="login-button">Ingresar</button>
                 </form>
 
                 <div class="forgot-password">
-                    <a href="#">¿Olvidaste tu contraseña?</a>
+                    <a href="{% url 'account_reset_password' %}">¿Olvidaste tu contraseña?</a>
                 </div>
 
-                <div class="login-link" style="text-align: center; margin-top: 20px;">
-                    <a href="{% url 'veterinary_register' %}" style="color: rgba(255, 255, 255, 0.8); text-decoration: none; font-size: 14px; transition: color 0.3s ease;">
-                        ¿No tienes cuenta? Registrarse
-                    </a>
-                </div>
+                {% if ACCOUNT_ALLOW_REGISTRATION %}
+                    <div class="signup-link">
+                        <a href="{% url 'account_signup' %}">¿No tienes cuenta? Registrarse</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -2,6 +2,9 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
+from allauth.socialaccount.models import SocialApp, SocialAccount
+from allauth.account.models import EmailAddress
+from django.contrib.sites.models import Site
 from .models import Veterinarian, Address
 
 
@@ -12,6 +15,7 @@ class VeterinaryUserTestCase(TestCase):
         self.registration_url = reverse('veterinary_register')
         self.login_url = reverse('veterinary_login')
         self.dashboard_url = reverse('veterinary_dashboard')
+        self.complete_profile_url = reverse('complete_profile')
         
         # Sample veterinary user data
         self.vet_data = {
@@ -571,3 +575,203 @@ class VeterinaryUserTestCase(TestCase):
         # Verify approval
         vet.refresh_from_db()
         self.assertTrue(vet.is_approved)
+
+
+class CompleteProfileTestCase(TestCase):
+    """Test cases for the complete_profile view for Google OAuth users"""
+    
+    def setUp(self):
+        self.client = Client()
+        self.complete_profile_url = reverse('complete_profile')
+        self.login_url = reverse('veterinary_login')
+        self.dashboard_url = reverse('veterinary_dashboard')
+        
+        # Create a social user (Google OAuth)
+        self.social_user = User.objects.create_user(
+            username='googlesocialuser',
+            email='google.user@gmail.com',
+            first_name='Google',
+            last_name='User'
+        )
+        
+        # Create an EmailAddress for the social user
+        EmailAddress.objects.create(
+            user=self.social_user,
+            email='google.user@gmail.com',
+            verified=True,
+            primary=True
+        )
+    
+    def test_complete_profile_get_unauthenticated(self):
+        """Test that unauthenticated users are redirected to login"""
+        response = self.client.get(self.complete_profile_url)
+        self.assertRedirects(response, '/accounts/login/?next=/users/complete-profile/')
+    
+    def test_complete_profile_get_authenticated_no_profile(self):
+        """Test GET request for authenticated user without veterinarian profile"""
+        self.client.force_login(self.social_user)
+        response = self.client.get(self.complete_profile_url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Google User')
+        self.assertContains(response, 'google.user@gmail.com')
+        self.assertContains(response, 'Completar Perfil')
+    
+    def test_complete_profile_post_success(self):
+        """Test successful profile completion"""
+        self.client.force_login(self.social_user)
+        
+        profile_data = {
+            'phone': '+54911234567',
+            'license_number': 'GOOGLE123',
+            'province': 'Buenos Aires',
+            'city': 'CABA',
+            'street': 'Av. Corrientes',
+            'number': '1234',
+            'postal_code': '1001'
+        }
+        
+        response = self.client.post(self.complete_profile_url, profile_data)
+        
+        # Should show pending approval template
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that veterinarian profile was created
+        vet = Veterinarian.objects.get(user=self.social_user)
+        self.assertEqual(vet.phone, '+54911234567')
+        self.assertEqual(vet.license_number, 'GOOGLE123')
+        self.assertFalse(vet.is_approved)  # Should be unapproved by default
+        
+        # Check that address was created
+        self.assertIsNotNone(vet.address)
+        self.assertEqual(vet.address.city, 'CABA')
+    
+    def test_complete_profile_post_missing_required_fields(self):
+        """Test profile completion fails with missing required fields"""
+        self.client.force_login(self.social_user)
+        
+        incomplete_data = {
+            'phone': '+54911234567',
+            # Missing license_number
+        }
+        
+        response = self.client.post(self.complete_profile_url, incomplete_data)
+        
+        self.assertEqual(response.status_code, 200)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('teléfono y número de matrícula son obligatorios' in str(message) for message in messages))
+        
+        # Should not create veterinarian profile
+        self.assertFalse(Veterinarian.objects.filter(user=self.social_user).exists())
+    
+    def test_complete_profile_post_duplicate_license(self):
+        """Test profile completion fails with duplicate license number"""
+        # Create existing veterinarian with license
+        existing_user = User.objects.create_user(username='existing', email='existing@test.com')
+        Veterinarian.objects.create(
+            user=existing_user,
+            phone='+5499999999',
+            license_number='DUPLICATE123'
+        )
+        
+        self.client.force_login(self.social_user)
+        
+        duplicate_data = {
+            'phone': '+54911234567',
+            'license_number': 'DUPLICATE123'
+        }
+        
+        response = self.client.post(self.complete_profile_url, duplicate_data)
+        
+        self.assertEqual(response.status_code, 200)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('matrícula ya está registrado' in str(message) for message in messages))
+    
+    def test_complete_profile_post_duplicate_phone(self):
+        """Test profile completion fails with duplicate phone number"""
+        # Create existing veterinarian with phone
+        existing_user = User.objects.create_user(username='existing', email='existing@test.com')
+        Veterinarian.objects.create(
+            user=existing_user,
+            phone='+54911234567',
+            license_number='EXISTING123'
+        )
+        
+        self.client.force_login(self.social_user)
+        
+        duplicate_data = {
+            'phone': '+54911234567',
+            'license_number': 'GOOGLE123'
+        }
+        
+        response = self.client.post(self.complete_profile_url, duplicate_data)
+        
+        self.assertEqual(response.status_code, 200)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('teléfono ya está registrado' in str(message) for message in messages))
+    
+    def test_complete_profile_post_invalid_phone(self):
+        """Test profile completion fails with invalid phone format"""
+        self.client.force_login(self.social_user)
+        
+        invalid_data = {
+            'phone': 'invalid_phone_123@',
+            'license_number': 'GOOGLE123'
+        }
+        
+        response = self.client.post(self.complete_profile_url, invalid_data)
+        
+        self.assertEqual(response.status_code, 200)
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any('solo puede contener números' in str(message) for message in messages))
+    
+    def test_complete_profile_already_has_approved_profile(self):
+        """Test user with approved profile is redirected to dashboard"""
+        # Create approved veterinarian profile
+        vet = Veterinarian.objects.create(
+            user=self.social_user,
+            phone='+54911111111',
+            license_number='APPROVED123',
+            is_approved=True
+        )
+        
+        self.client.force_login(self.social_user)
+        response = self.client.get(self.complete_profile_url)
+        
+        self.assertRedirects(response, self.dashboard_url)
+    
+    def test_complete_profile_already_has_unapproved_profile(self):
+        """Test user with unapproved profile sees pending approval"""
+        # Create unapproved veterinarian profile
+        vet = Veterinarian.objects.create(
+            user=self.social_user,
+            phone='+54911111111',
+            license_number='PENDING123',
+            is_approved=False
+        )
+        
+        self.client.force_login(self.social_user)
+        response = self.client.get(self.complete_profile_url)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Cuenta Pendiente de Aprobación')
+    
+    def test_complete_profile_without_address(self):
+        """Test profile completion works without address information"""
+        self.client.force_login(self.social_user)
+        
+        minimal_data = {
+            'phone': '+54911234567',
+            'license_number': 'MINIMAL123'
+        }
+        
+        response = self.client.post(self.complete_profile_url, minimal_data)
+        
+        # Should show pending approval template
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that veterinarian profile was created without address
+        vet = Veterinarian.objects.get(user=self.social_user)
+        self.assertEqual(vet.phone, '+54911234567')
+        self.assertEqual(vet.license_number, 'MINIMAL123')
+        self.assertIsNone(vet.address)
