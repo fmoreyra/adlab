@@ -11,6 +11,36 @@ from protocols.tasks import send_email
 logger = logging.getLogger(__name__)
 
 
+def _serialize_context_for_celery(context):
+    """
+    Serialize context for Celery by converting Django model instances to IDs.
+    
+    Args:
+        context: Template context dict that may contain Django model instances
+        
+    Returns:
+        dict: Serialized context safe for Celery JSON serialization
+    """
+    serialized_context = {}
+    
+    for key, value in context.items():
+        if hasattr(value, 'pk'):  # Django model instance
+            # Convert model instance to a dict with basic info
+            serialized_context[key] = {
+                'id': value.pk,
+                'model': value.__class__.__name__,
+                'str': str(value)
+            }
+        elif isinstance(value, dict):
+            # Recursively serialize nested dicts
+            serialized_context[key] = _serialize_context_for_celery(value)
+        else:
+            # Keep primitive types as-is
+            serialized_context[key] = value
+    
+    return serialized_context
+
+
 def queue_email(
     email_type,
     recipient_email,
@@ -52,12 +82,15 @@ def queue_email(
         has_attachment=bool(attachment_path),
     )
 
+    # Serialize context for Celery
+    serialized_context = _serialize_context_for_celery(context)
+    
     # Dispatch Celery task
     task = send_email.delay(
         email_type=email_type,
         recipient_email=recipient_email,
         subject=subject,
-        context=context,
+        context=serialized_context,
         template_name=template_name,
         attachment_path=attachment_path,
         email_log_id=email_log.id,

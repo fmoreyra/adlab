@@ -12,9 +12,51 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
 
-from protocols.models import EmailLog
+from protocols.models import EmailLog, Protocol, WorkOrder
 
 logger = logging.getLogger(__name__)
+
+
+def _deserialize_context_for_templates(context):
+    """
+    Deserialize context for templates by reconstructing Django model instances.
+    
+    Args:
+        context: Serialized context dict from Celery
+        
+    Returns:
+        dict: Context with reconstructed model instances for templates
+    """
+    deserialized_context = {}
+    
+    for key, value in context.items():
+        if isinstance(value, dict) and 'id' in value and 'model' in value:
+            # Reconstruct model instance
+            model_name = value['model']
+            model_id = value['id']
+            
+            try:
+                if model_name == 'Protocol':
+                    model_instance = Protocol.objects.get(id=model_id)
+                elif model_name == 'WorkOrder':
+                    model_instance = WorkOrder.objects.get(id=model_id)
+                else:
+                    # For other models, just use the string representation
+                    model_instance = value['str']
+                
+                deserialized_context[key] = model_instance
+            except Exception as e:
+                logger.warning(f"Could not reconstruct {model_name} with id {model_id}: {e}")
+                # Fallback to string representation
+                deserialized_context[key] = value['str']
+        elif isinstance(value, dict):
+            # Recursively deserialize nested dicts
+            deserialized_context[key] = _deserialize_context_for_templates(value)
+        else:
+            # Keep primitive types as-is
+            deserialized_context[key] = value
+    
+    return deserialized_context
 
 
 @shared_task(
@@ -66,8 +108,11 @@ def send_email(
             }
             template_name = template_map.get(email_type, "emails/default.html")
 
+        # Deserialize context for templates
+        template_context = _deserialize_context_for_templates(context)
+        
         # Render email HTML
-        html_content = render_to_string(template_name, context)
+        html_content = render_to_string(template_name, template_context)
         plain_content = strip_tags(html_content)
 
         # Create email
