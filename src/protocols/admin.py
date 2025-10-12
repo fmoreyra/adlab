@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from protocols.emails import (
@@ -1012,13 +1012,10 @@ class ProtocolCounterAdmin(admin.ModelAdmin):
             else "HP"
         )
         year_short = str(obj.year)[-2:]
-        next_num = int(obj.last_number) + 1
-        return format_html(
-            "<strong>Next number: {} {}/{:03d}</strong>",
-            prefix,
-            year_short,
-            next_num,
-        )
+        next_num = obj.last_number + 1
+        # Use regular string formatting to avoid SafeString issues
+        formatted_text = f"<strong>Next number: {prefix} {year_short}/{next_num:03d}</strong>"
+        return mark_safe(formatted_text)
 
     get_formatted_display.short_description = _("Preview")
 
