@@ -234,7 +234,7 @@ class ProtocolsAdminTest(TestCase):
             "/admin/protocols/protocol/?analysis_type=cytology"
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "C 25/001")
+        self.assertContains(response, "C 25/006")
         self.assertNotContains(response, "HP 25/006")
 
     def test_protocol_admin_mark_as_received_action(self):
@@ -307,13 +307,13 @@ class ProtocolsAdminTest(TestCase):
 
         # Test with protocol number
         code = admin.get_protocol_code(self.cytology_protocol)
-        self.assertIn("C 25/001", code)
+        self.assertIn("C 25/006", code)
 
         # Test with temporary code only
         self.cytology_protocol.protocol_number = None
         self.cytology_protocol.save()
         code = admin.get_protocol_code(self.cytology_protocol)
-        self.assertIn("C 25/001", code)
+        self.assertIn("C 25/006", code)
 
     def test_protocol_admin_get_editable_status_display(self):
         """Test protocol admin editable status display method."""
@@ -338,7 +338,7 @@ class ProtocolsAdminTest(TestCase):
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get("/admin/protocols/cytologysample/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "C 25/001")
+        self.assertContains(response, "C 25/006")
 
     def test_cytology_sample_admin_detail_view(self):
         """Test cytology sample admin detail view."""
@@ -354,13 +354,13 @@ class ProtocolsAdminTest(TestCase):
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get("/admin/protocols/cytologysample/?q=Mama")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "C 25/001")
+        self.assertContains(response, "C 25/006")
 
     def test_cytology_sample_admin_get_protocol_code(self):
         """Test cytology sample admin protocol code display method."""
         admin = CytologySampleAdmin(CytologySample, AdminSite())
         code = admin.get_protocol_code(self.cytology_sample)
-        self.assertEqual(code, "C 25/001")
+        self.assertEqual(code, "C 25/006")
 
     # ============================================================================
     # HISTOPATHOLOGY SAMPLE ADMIN TESTS
@@ -371,7 +371,7 @@ class ProtocolsAdminTest(TestCase):
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get("/admin/protocols/histopathologysample/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "HP 25/002")
+        self.assertContains(response, "HP 25/006")
 
     def test_histopathology_sample_admin_detail_view(self):
         """Test histopathology sample admin detail view."""
@@ -389,7 +389,7 @@ class ProtocolsAdminTest(TestCase):
             "/admin/protocols/histopathologysample/?q=Formol"
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "HP 25/002")
+        self.assertContains(response, "HP 25/006")
 
     # ============================================================================
     # WORK ORDER ADMIN TESTS

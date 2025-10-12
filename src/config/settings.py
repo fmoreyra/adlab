@@ -106,6 +106,9 @@ DATABASES = {
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "password"),
         "HOST": os.getenv("POSTGRES_HOST", "postgres"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        "TEST": {
+            "NAME": f"test_{os.getenv('POSTGRES_DB', 'adlab')}",
+        },
     }
 }
 
