@@ -91,13 +91,13 @@ class ProtocolsAdminTest(TestCase):
             specialty="Patología Veterinaria",
         )
 
-        # Create test protocols
+        # Create test protocols with unique codes
         self.cytology_protocol = Protocol.objects.create(
             veterinarian=self.veterinarian,
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             status=Protocol.Status.SUBMITTED,
-            temporary_code="C 25/002",
-            protocol_number="C 25/002",
+            temporary_code="C 25/006",
+            protocol_number="C 25/006",
             submission_date=date.today(),
             species="Canino",
             animal_identification="Max",
@@ -108,8 +108,8 @@ class ProtocolsAdminTest(TestCase):
             veterinarian=self.veterinarian,
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             status=Protocol.Status.SUBMITTED,
-            temporary_code="HP 25/002",
-            protocol_number="HP 25/002",
+            temporary_code="HP 25/006",
+            protocol_number="HP 25/006",
             submission_date=date.today(),
             species="Felino",
             animal_identification="Luna",
@@ -197,8 +197,8 @@ class ProtocolsAdminTest(TestCase):
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get("/admin/protocols/protocol/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "C 25/001")
-        self.assertContains(response, "HP 25/002")
+        self.assertContains(response, "C 25/006")
+        self.assertContains(response, "HP 25/006")
 
     def test_protocol_admin_detail_view(self):
         """Test protocol admin detail view."""
@@ -207,15 +207,15 @@ class ProtocolsAdminTest(TestCase):
             f"/admin/protocols/protocol/{self.cytology_protocol.id}/change/"
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "C 25/001")
+        self.assertContains(response, "C 25/006")
 
     def test_protocol_admin_search(self):
         """Test protocol admin search functionality."""
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get("/admin/protocols/protocol/?q=Max")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "C 25/001")
-        self.assertNotContains(response, "HP 25/002")
+        self.assertContains(response, "C 25/006")
+        self.assertNotContains(response, "HP 25/006")
 
     def test_protocol_admin_filter_by_status(self):
         """Test protocol admin filtering by status."""
@@ -224,8 +224,8 @@ class ProtocolsAdminTest(TestCase):
             "/admin/protocols/protocol/?status=submitted"
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "C 25/001")
-        self.assertContains(response, "HP 25/002")
+        self.assertContains(response, "C 25/006")
+        self.assertContains(response, "HP 25/006")
 
     def test_protocol_admin_filter_by_analysis_type(self):
         """Test protocol admin filtering by analysis type."""
@@ -235,7 +235,7 @@ class ProtocolsAdminTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "C 25/001")
-        self.assertNotContains(response, "HP 25/002")
+        self.assertNotContains(response, "HP 25/006")
 
     def test_protocol_admin_mark_as_received_action(self):
         """Test protocol admin mark as received action."""
