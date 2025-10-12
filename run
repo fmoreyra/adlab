@@ -49,8 +49,8 @@ test() {
   echo "📋 Test modules: accounts, protocols, pages, up"
   echo ""
 
-  # Run all tests
-  manage test --parallel=1 accounts.tests protocols.tests protocols.tests_reports protocols.tests_workorder pages.tests up.tests
+  # Run all tests (without parallel flag to ensure sequential execution)
+  manage test accounts.tests protocols.tests protocols.tests_reports protocols.tests_workorder pages.tests up.tests
 
   local exit_code=$?
 
@@ -396,7 +396,7 @@ ci:test() {
   lint "${@}"
   format --check --diff
   manage migrate
-  manage test --parallel=1
+  manage test
 }
 
 help() {
