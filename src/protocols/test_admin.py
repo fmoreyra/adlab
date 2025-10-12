@@ -427,8 +427,8 @@ class ProtocolsAdminTest(TestCase):
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get("/admin/protocols/protocolcounter/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Cytology")
-        self.assertContains(response, "Histopathology")
+        self.assertContains(response, "Citología")
+        self.assertContains(response, "Histopatología")
 
     def test_protocol_counter_admin_get_formatted_display(self):
         """Test protocol counter admin formatted display method."""
@@ -441,8 +441,9 @@ class ProtocolsAdminTest(TestCase):
 
     def test_protocol_counter_admin_delete_permission(self):
         """Test protocol counter admin delete permission."""
-        from protocols.admin import ProtocolCounterAdmin
         from unittest.mock import Mock
+
+        from protocols.admin import ProtocolCounterAdmin
 
         admin = ProtocolCounterAdmin(ProtocolCounter, AdminSite())
 
