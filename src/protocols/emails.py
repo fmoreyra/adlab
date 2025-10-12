@@ -14,30 +14,30 @@ logger = logging.getLogger(__name__)
 def _serialize_context_for_celery(context):
     """
     Serialize context for Celery by converting Django model instances to IDs.
-    
+
     Args:
         context: Template context dict that may contain Django model instances
-        
+
     Returns:
         dict: Serialized context safe for Celery JSON serialization
     """
     serialized_context = {}
-    
+
     for key, value in context.items():
-        if hasattr(value, 'pk'):  # Django model instance
+        if hasattr(value, "pk"):  # Django model instance
             # Convert model instance to a dict with basic info
             serialized_context[key] = {
-                'id': value.pk,
-                'model': value.__class__.__name__,
-                'str': str(value)
+                "id": value.pk,
+                "model": value.__class__.__name__,
+                "str": str(value),
             }
-        elif hasattr(value, 'model'):  # Django QuerySet
+        elif hasattr(value, "model"):  # Django QuerySet
             # Convert QuerySet to list of serialized objects
             serialized_context[key] = [
                 {
-                    'id': obj.pk,
-                    'model': obj.__class__.__name__,
-                    'str': str(obj)
+                    "id": obj.pk,
+                    "model": obj.__class__.__name__,
+                    "str": str(obj),
                 }
                 for obj in value
             ]
@@ -47,7 +47,7 @@ def _serialize_context_for_celery(context):
         else:
             # Keep primitive types as-is
             serialized_context[key] = value
-    
+
     return serialized_context
 
 
@@ -94,7 +94,7 @@ def queue_email(
 
     # Serialize context for Celery
     serialized_context = _serialize_context_for_celery(context)
-    
+
     # Dispatch Celery task
     task = send_email.delay(
         email_type=email_type,

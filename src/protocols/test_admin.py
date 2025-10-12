@@ -450,7 +450,7 @@ class ProtocolsAdminTest(TestCase):
         # Create mock request objects
         superuser_request = Mock()
         superuser_request.user = self.admin_user
-        
+
         staff_request = Mock()
         staff_request.user = self.staff_user
 
