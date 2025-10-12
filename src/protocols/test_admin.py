@@ -716,8 +716,8 @@ class ProtocolsAdminTest(TestCase):
 
     def test_admin_list_view_performance(self):
         """Test admin list view performance with multiple objects."""
-        # Create multiple protocols
-        for i in range(10):
+        # Create multiple protocols (starting from 200 to avoid conflicts)
+        for i in range(200, 210):
             Protocol.objects.create(
                 veterinarian=self.veterinarian,
                 analysis_type=Protocol.AnalysisType.CYTOLOGY,

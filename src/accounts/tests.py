@@ -937,7 +937,7 @@ class VeterinarianFormTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-            "license_number": "MP-12345-ACCOUNTS-TESTS-2",
+            "license_number": "MP-99999",
             "phone": "+54 342 1234567",
             "email": "vet@example.com",
         }
@@ -966,7 +966,7 @@ class VeterinarianFormTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-            "license_number": "MP-12345-ACCOUNTS-TESTS-2",
+            "license_number": "MP-99998",
             "phone": "123456",  # Invalid format
             "email": "vet@example.com",
         }
@@ -1038,7 +1038,7 @@ class CompleteProfileViewTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-            "license_number": "MP-12345-ACCOUNTS-TESTS-2",
+            "license_number": "MP-88888",
             "phone": "+54 342 1234567",
             "province": "Santa Fe",
             "locality": "Esperanza",
@@ -1053,7 +1053,7 @@ class CompleteProfileViewTest(TestCase):
         self.assertTrue(hasattr(self.user, "veterinarian_profile"))
         self.assertEqual(
             self.user.veterinarian_profile.license_number,
-            "MP-12345-ACCOUNTS-TESTS",
+            "MP-88888",
         )
 
         # Check address was created
@@ -1167,7 +1167,7 @@ class VeterinarianProfileEditViewTest(TestCase):
             user=self.user,
             first_name="Juan",
             last_name="Pérez",
-            license_number="MP-12345-ACCOUNTS-TESTS",
+            license_number="MP-77777",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -1196,7 +1196,7 @@ class VeterinarianProfileEditViewTest(TestCase):
         data = {
             "first_name": "Juan Carlos",  # Changed
             "last_name": "Pérez",
-            "license_number": "MP-12345-ACCOUNTS-TESTS-2",
+            "license_number": "MP-77777",  # Keep same license number (editing)
             "phone": "+54 342 9999999",  # Changed
             "email": "vet@example.com",
             "province": "Santa Fe",
