@@ -1,0 +1,79 @@
+{% extends "accounts/base_auth.html" %}
+
+{% block title %}Reenviar Verificación{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h3 class="text-lg font-medium text-gray-900">
+        Reenviar Email de Verificación
+    </h3>
+    <p class="mt-1 text-sm text-gray-600">
+        Ingrese su email y le enviaremos un nuevo enlace de verificación
+    </p>
+</div>
+
+<form method="post" action="{% url 'accounts:resend_verification' %}" class="space-y-6">
+    {% csrf_token %}
+    
+    <div>
+        <label for="email" class="block text-sm font-medium text-gray-700">
+            Email
+        </label>
+        <div class="mt-1">
+            <input 
+                type="email" 
+                name="email" 
+                id="email" 
+                required
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="correo@ejemplo.com"
+                autofocus
+            >
+        </div>
+    </div>
+
+    <div>
+        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Reenviar Email de Verificación
+        </button>
+    </div>
+</form>
+
+<div class="mt-6 text-center">
+    <a href="{% url 'accounts:login' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+        ← Volver al inicio de sesión
+    </a>
+</div>
+
+<div class="mt-6">
+    <div class="relative">
+        <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-white text-gray-500">
+                Consejos
+            </span>
+        </div>
+    </div>
+    
+    <div class="mt-4 bg-blue-50 border-l-4 border-blue-400 p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-blue-700">
+                    <strong>Revise su carpeta de spam:</strong> A veces los emails de verificación pueden llegar a la carpeta de correo no deseado.
+                </p>
+                <p class="mt-2 text-sm text-blue-700">
+                    <strong>Espere unos minutos:</strong> El email puede tardar unos minutos en llegar.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

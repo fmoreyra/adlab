@@ -1,0 +1,208 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Confirmar Recepción - {{ protocol.temporary_code }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <a href="{% url 'protocols:reception_search' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium mb-2 inline-block">
+                ← Volver a búsqueda
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">Confirmar Recepción de Muestra</h1>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Protocol Information (Sidebar) -->
+            <div class="lg:col-span-1">
+                <div class="bg-white shadow-md rounded-lg overflow-hidden sticky top-4">
+                    <div class="bg-blue-600 px-4 py-3">
+                        <h2 class="text-lg font-semibold text-white">Información del Protocolo</h2>
+                    </div>
+                    <div class="p-4 space-y-4">
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 uppercase">Código Temporal</p>
+                            <p class="mt-1 text-sm font-mono font-semibold text-gray-900">{{ protocol.temporary_code }}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 uppercase">Tipo</p>
+                            <p class="mt-1 text-sm text-gray-900">{{ protocol.get_analysis_type_display }}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 uppercase">Animal</p>
+                            <p class="mt-1 text-sm text-gray-900">{{ protocol.animal_identification }}</p>
+                            <p class="text-xs text-gray-600">{{ protocol.species }}{% if protocol.breed %}, {{ protocol.breed }}{% endif %}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 uppercase">Veterinario</p>
+                            <p class="mt-1 text-sm text-gray-900">{{ protocol.veterinarian.get_full_name }}</p>
+                            <p class="text-xs text-gray-600">{{ protocol.veterinarian.license_number }}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 uppercase">Fecha de Remisión</p>
+                            <p class="mt-1 text-sm text-gray-900">{{ protocol.submission_date|date:"d/m/Y" }}</p>
+                        </div>
+
+                        {% if protocol.analysis_type == 'cytology' and protocol.cytology_sample %}
+                        <div class="pt-3 border-t">
+                            <p class="text-xs font-medium text-gray-500 uppercase">Detalles de Muestra</p>
+                            <p class="mt-1 text-sm text-gray-900">Técnica: {{ protocol.cytology_sample.technique_used }}</p>
+                            <p class="text-sm text-gray-900">Sitio: {{ protocol.cytology_sample.sampling_site }}</p>
+                            <p class="mt-2 text-sm font-semibold text-blue-600">
+                                Portaobjetos esperados: {{ protocol.cytology_sample.number_of_slides }}
+                            </p>
+                        </div>
+                        {% elif protocol.analysis_type == 'histopathology' and protocol.histopathology_sample %}
+                        <div class="pt-3 border-t">
+                            <p class="text-xs font-medium text-gray-500 uppercase">Detalles de Muestra</p>
+                            <p class="mt-1 text-sm text-gray-900">Material: {{ protocol.histopathology_sample.material_submitted|truncatewords:10 }}</p>
+                            <p class="text-sm text-gray-900">Conservación: {{ protocol.histopathology_sample.preservation }}</p>
+                            <p class="mt-2 text-sm font-semibold text-blue-600">
+                                Frascos esperados: {{ protocol.histopathology_sample.number_of_containers }}
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reception Form (Main) -->
+            <div class="lg:col-span-2">
+                <form method="post" class="bg-white shadow-md rounded-lg overflow-hidden">
+                    {% csrf_token %}
+                    
+                    <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900">Datos de Recepción</h2>
+                    </div>
+
+                    <div class="p-6 space-y-6">
+                        <!-- Sample Condition -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                {{ form.sample_condition.label }} *
+                            </label>
+                            <div class="space-y-2">
+                                {% for radio in form.sample_condition %}
+                                    <div class="flex items-center">
+                                        {{ radio.tag }}
+                                        <label for="{{ radio.id_for_label }}" class="ml-3 block text-sm text-gray-700">
+                                            {{ radio.choice_label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.sample_condition.help_text %}
+                            <p class="mt-2 text-sm text-gray-500">{{ form.sample_condition.help_text }}</p>
+                            {% endif %}
+                            {% if form.sample_condition.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {{ form.sample_condition.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Quantity Received (dynamic based on type) -->
+                        {% if form.number_slides_received %}
+                        <div>
+                            <label for="{{ form.number_slides_received.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.number_slides_received.label }}
+                            </label>
+                            {{ form.number_slides_received }}
+                            {% if form.number_slides_received.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.number_slides_received.help_text }}</p>
+                            {% endif %}
+                            {% if form.number_slides_received.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {{ form.number_slides_received.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if form.number_jars_received %}
+                        <div>
+                            <label for="{{ form.number_jars_received.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.number_jars_received.label }}
+                            </label>
+                            {{ form.number_jars_received }}
+                            {% if form.number_jars_received.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.number_jars_received.help_text }}</p>
+                            {% endif %}
+                            {% if form.number_jars_received.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {{ form.number_jars_received.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Reception Notes -->
+                        <div>
+                            <label for="{{ form.reception_notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.reception_notes.label }}
+                            </label>
+                            {{ form.reception_notes }}
+                            {% if form.reception_notes.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {{ form.reception_notes.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Discrepancies -->
+                        <div>
+                            <label for="{{ form.discrepancies.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.discrepancies.label }}
+                            </label>
+                            {{ form.discrepancies }}
+                            {% if form.discrepancies.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.discrepancies.help_text }}</p>
+                            {% endif %}
+                            {% if form.discrepancies.errors %}
+                            <div class="mt-2 text-sm text-red-600">
+                                {{ form.discrepancies.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Non-field errors -->
+                        {% if form.non_field_errors %}
+                        <div class="rounded-md bg-red-50 border border-red-200 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <div class="text-sm text-red-800">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between">
+                        <a href="{% url 'protocols:reception_search' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded-lg transition duration-200">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">
+                            Confirmar Recepción
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

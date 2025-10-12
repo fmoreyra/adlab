@@ -1,0 +1,495 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Anatomía Patológica - FCV UNL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'fcv-purple': '#5c2d91',
+                        'fcv-light-purple': '#d4b6d5',
+                        'fcv-purple-hover': '#4a2474',
+                        'fcv-light-purple-hover': '#c19fc3'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth scrolling for the entire page */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Ensure the scroll container allows normal scrolling */
+        .scroll-container {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Full height sections on desktop */
+        @media (min-width: 768px) {
+            .full-height-section {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+        
+        /* Scroll snap for section locking */
+        .scroll-container {
+            scroll-snap-type: y proximity;
+            overflow-y: scroll;
+            height: 100vh;
+        }
+        
+        .scroll-section {
+            scroll-snap-align: start;
+            scroll-snap-stop: normal;
+        }
+        
+        /* Ensure sections take full viewport height minus navbar */
+        .hero-section {
+            min-height: calc(100vh - 4rem); /* 4rem = 64px navbar height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding-top: 4rem; /* Account for fixed navbar */
+        }
+        
+        .features-section {
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .about-section {
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .cta-section {
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Ensure container divs take full width and height */
+        .section-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* Mobile adjustments */
+        @media (max-width: 767px) {
+            .scroll-container {
+                scroll-snap-type: none;
+                height: auto;
+            }
+            
+            .hero-section {
+                min-height: auto;
+                padding: 5rem 0 3rem 0; /* Extra top padding for navbar */
+                align-items: stretch;
+            }
+            
+            .features-section,
+            .about-section,
+            .cta-section {
+                min-height: auto;
+                padding: 3rem 0;
+                align-items: stretch;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-white">
+    <!-- Header -->
+    <header class="px-4 lg:px-6 h-16 flex items-center border-b bg-gray-100 fixed top-0 left-0 right-0 z-50">
+        <div class="flex items-center space-x-3">
+            <img
+                src="{% static 'images/logo-unl-fcv.png' %}"
+                alt="FCV UNL Logo"
+                class="h-12 w-auto"
+            />
+            <div class="flex flex-col hidden sm:flex">
+                <span class="text-sm font-bold text-gray-800">Laboratorio de Anatomía Patológica</span>
+                <span class="text-xs font-medium text-gray-600">Plataforma de gestión</span>
+            </div>
+        </div>
+        <nav class="ml-auto flex gap-6 items-center">
+            <a href="#hero" class="hidden md:block text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+                Inicio
+            </a>
+            <a href="#features" class="hidden md:block text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+                Características
+            </a>
+            <a href="#about" class="hidden md:block text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+                Acerca de
+            </a>
+            <a href="#contact" class="hidden md:block text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+                Contacto
+            </a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'protocols:processing_dashboard' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-600 text-gray-600 hover:bg-gray-600 hover:text-white h-9 px-3">
+                    Dashboard
+                </a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-600 text-gray-600 hover:bg-gray-600 hover:text-white h-9 px-3">
+                    Ingresar
+                </a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main class="scroll-container">
+        <!-- Hero Section -->
+        <section id="hero" class="scroll-section hero-section w-full">
+            <div class="section-container container mx-auto px-4 md:px-6">
+                <div class="grid gap-6 lg:grid-cols-2 lg:gap-12">
+                    <div class="flex flex-col justify-center space-y-4">
+                        <div class="space-y-2">
+                            <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-fcv-light-purple text-fcv-purple w-fit">
+                                Universidad Nacional • Facultad de Ciencias Veterinarias
+                            </span>
+                            <h1 class="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl uppercase">
+                                Laboratorio de <br />
+                                Anatomía Patológica
+                            </h1>
+                            <h2 class="text-2xl font-medium">Hospital de Salud Animal</h2>
+                            <p class="max-w-2xl text-gray-600 md:text-xl mt-4">
+                                Sistema de gestión integral para el Laboratorio de Anatomía Patológica de la Facultad de Ciencias
+                                Veterinarias. Diseñado para estudiantes, docentes e investigadores.
+                            </p>
+                        </div>
+                        <div class="flex flex-col gap-3 sm:flex-row mt-4">
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'protocols:processing_dashboard' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-fcv-light-purple hover:bg-fcv-light-purple-hover text-fcv-purple h-11 px-8 w-full sm:w-auto">
+                                    <i data-lucide="log-in" class="mr-2 h-4 w-4"></i>
+                                    Ir al Dashboard
+                                </a>
+                                <a href="{% url 'protocols:protocol_select_type' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-fcv-light-purple text-fcv-purple hover:bg-fcv-light-purple hover:text-fcv-purple h-11 px-8 w-full sm:w-auto">
+                                    <i data-lucide="user-plus" class="mr-2 h-4 w-4"></i>
+                                    Nuevo Protocolo
+                                </a>
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-fcv-light-purple hover:bg-fcv-light-purple-hover text-fcv-purple h-11 px-8 w-full sm:w-auto">
+                                    <i data-lucide="log-in" class="mr-2 h-4 w-4"></i>
+                                    Ingresar
+                                </a>
+                                <a href="{% url 'accounts:register' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-fcv-light-purple text-fcv-purple hover:bg-fcv-light-purple hover:text-fcv-purple h-11 px-8 w-full sm:w-auto">
+                                    <i data-lucide="user-plus" class="mr-2 h-4 w-4"></i>
+                                    Registrarse
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'admin:index' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-fcv-purple hover:bg-fcv-purple-hover text-white h-11 px-8 w-full sm:w-auto mt-3 sm:mt-0">
+                                <i data-lucide="microscope" class="mr-2 h-4 w-4"></i>
+                                Ingreso Patólogos
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <div class="relative">
+                            <img
+                                src="{% static 'images/ceyda-ciftci-GGD9KgalPkY-unsplash.jpg' %}"
+                                alt="Gato del Hospital de Salud Animal"
+                                class="mx-auto aspect-auto overflow-hidden rounded-xl object-cover max-w-full max-h-[75vh] h-auto"
+                                title="Photo by Ceyda Çiftci on Unsplash"
+                            />
+                            <div class="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded opacity-75 hover:opacity-100 transition-opacity">
+                                Photo by <a href="https://unsplash.com/@ceydaciftci?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash" class="underline hover:text-gray-300">Ceyda Çiftci</a> on <a href="https://unsplash.com/photos/orange-tabby-cat-in-close-up-photography-GGD9KgalPkY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash" class="underline hover:text-gray-300">Unsplash</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="scroll-section features-section w-full bg-gray-50">
+            <div class="section-container container mx-auto px-4 md:px-6">
+                <div class="flex flex-col items-center justify-center space-y-4 text-center">
+                    <div class="space-y-2">
+                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-fcv-light-purple text-fcv-purple">
+                            Características
+                        </span>
+                        <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl">
+                            Herramientas para la educación e investigación veterinaria
+                        </h2>
+                        <p class="max-w-4xl text-gray-600 md:text-xl">
+                            Nuestra plataforma proporciona todas las herramientas necesarias para optimizar las operaciones del
+                            laboratorio y mejorar la experiencia educativa de los estudiantes.
+                        </p>
+                    </div>
+                </div>
+                <div class="mx-auto grid max-w-5xl items-start gap-6 py-12 lg:grid-cols-3 lg:gap-12">
+                    <!-- Feature Cards -->
+                    <div class="relative overflow-hidden rounded-lg border border-fcv-light-purple bg-white shadow-sm">
+                        <div class="p-6">
+                            <i data-lucide="test-tube" class="h-12 w-12 text-fcv-purple mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2">Seguimiento de Muestras</h3>
+                            <p class="text-gray-600">
+                                Seguimiento de muestras desde la recolección hasta los resultados con escaneo de códigos de barras y
+                                flujos de trabajo automatizados.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden rounded-lg border border-fcv-light-purple bg-white shadow-sm">
+                        <div class="p-6">
+                            <i data-lucide="file-text" class="h-12 w-12 text-fcv-purple mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2">Informes Digitales</h3>
+                            <p class="text-gray-600">
+                                Generación de informes de laboratorio profesionales con plantillas personalizables y firmas
+                                digitales para docentes.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden rounded-lg border border-fcv-light-purple bg-white shadow-sm">
+                        <div class="p-6">
+                            <i data-lucide="bar-chart-3" class="h-12 w-12 text-fcv-purple mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2">Panel de Análisis</h3>
+                            <p class="text-gray-600">
+                                Monitoreo del rendimiento del laboratorio con análisis en tiempo real y herramientas de informes
+                                para investigación.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden rounded-lg border border-fcv-light-purple bg-white shadow-sm">
+                        <div class="p-6">
+                            <i data-lucide="shield" class="h-12 w-12 text-fcv-purple mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2">Seguridad de Datos</h3>
+                            <p class="text-gray-600">
+                                Protección de datos de pacientes con seguridad de nivel empresarial y cumplimiento de normativas
+                                universitarias.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden rounded-lg border border-fcv-light-purple bg-white shadow-sm">
+                        <div class="p-6">
+                            <i data-lucide="clock" class="h-12 w-12 text-fcv-purple mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2">Procesamiento Rápido</h3>
+                            <p class="text-gray-600">
+                                Reducción del tiempo de procesamiento con flujos de trabajo automatizados y manejo prioritario de
+                                muestras urgentes.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden rounded-lg border border-fcv-light-purple bg-white shadow-sm">
+                        <div class="p-6">
+                            <i data-lucide="check-circle" class="h-12 w-12 text-fcv-purple mb-4"></i>
+                            <h3 class="text-xl font-bold mb-2">Control de Calidad</h3>
+                            <p class="text-gray-600">
+                                Mantenimiento de altos estándares con controles de calidad integrados y protocolos de validación
+                                para fines académicos.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="scroll-section about-section w-full">
+            <div class="section-container container mx-auto px-4 md:px-6">
+                <div class="grid gap-6 lg:grid-cols-2 lg:gap-12">
+                    <div class="flex flex-col justify-center space-y-4">
+                        <div class="space-y-2">
+                            <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-fcv-light-purple text-fcv-purple">
+                                Acerca del Laboratorio
+                            </span>
+                            <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl">
+                                Diseñado específicamente para la comunidad universitaria
+                            </h2>
+                            <p class="max-w-2xl text-gray-600 md:text-xl">
+                                Nuestra plataforma comprende los desafíos únicos de la gestión de laboratorios veterinarios
+                                universitarios y proporciona soluciones adaptadas a sus necesidades específicas.
+                            </p>
+                        </div>
+                        <ul class="grid gap-4 py-4">
+                            <li class="flex items-center space-x-3">
+                                <i data-lucide="check-circle" class="h-5 w-5 text-fcv-purple"></i>
+                                <span>Facilita la enseñanza práctica para estudiantes de veterinaria</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <i data-lucide="check-circle" class="h-5 w-5 text-fcv-purple"></i>
+                                <span>Optimiza la gestión de casos clínicos para docentes</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <i data-lucide="check-circle" class="h-5 w-5 text-fcv-purple"></i>
+                                <span>Mejora la comunicación entre departamentos del Hospital de Salud Animal</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <i data-lucide="check-circle" class="h-5 w-5 text-fcv-purple"></i>
+                                <span>Integración perfecta con los sistemas existentes de la universidad</span>
+                            </li>
+                        </ul>
+                        <div class="flex flex-col gap-2 min-[400px]:flex-row">
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'protocols:processing_dashboard' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-fcv-purple hover:bg-fcv-purple-hover text-white h-11 px-8">
+                                    Acceder al Sistema
+                                </a>
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-fcv-purple hover:bg-fcv-purple-hover text-white h-11 px-8">
+                                    Acceder al Sistema
+                                </a>
+                            {% endif %}
+                            <button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-fcv-purple text-fcv-purple hover:bg-fcv-purple hover:text-white h-11 px-8">
+                                Solicitar Demostración
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <div class="relative">
+                            <img
+                                src="{% static 'images/dog-oscar-sutton.png' %}"
+                                alt="Laboratorio de Anatomía Patológica"
+                                class="mx-auto aspect-[3/2] overflow-hidden rounded-xl object-cover shadow-xl max-w-full h-auto"
+                                title="Photo by Oscar Sutton on Unsplash"
+                            />
+                            <div class="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded opacity-75 hover:opacity-100 transition-opacity">
+                                Photo by <a href="https://unsplash.com/@o5ky?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash" class="underline hover:text-gray-300">Oscar Sutton</a> on <a href="https://unsplash.com/photos/dog-running-on-beach-during-daytime-yihlaRCCvd4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash" class="underline hover:text-gray-300">Unsplash</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section id="contact" class="scroll-section cta-section w-full bg-fcv-purple">
+            <div class="section-container container mx-auto px-4 md:px-6">
+                <div class="flex flex-col items-center justify-center space-y-4 text-center">
+                    <div class="space-y-2">
+                        <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">
+                            ¿Listo para transformar la experiencia educativa?
+                        </h2>
+                        <p class="mx-auto max-w-2xl text-fcv-light-purple md:text-xl">
+                            Únase a la comunidad académica que confía en nuestro sistema para gestionar sus operaciones de
+                            laboratorio. Solicite acceso hoy mismo.
+                        </p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'protocols:processing_dashboard' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-fcv-light-purple hover:bg-fcv-light-purple-hover text-fcv-purple h-11 px-8">
+                                Acceder al Sistema
+                                <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-fcv-light-purple hover:bg-fcv-light-purple-hover text-fcv-purple h-11 px-8">
+                                Acceder al Sistema
+                                <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
+                            </a>
+                        {% endif %}
+                        <button class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-white text-white hover:bg-fcv-light-purple hover:text-fcv-purple hover:border-fcv-light-purple h-11 px-8">
+                            Contactar Soporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t bg-gray-50">
+        <p class="text-xs text-gray-600">
+            © 2024 Facultad de Ciencias Veterinarias - UNL. Todos los derechos reservados.
+        </p>
+        <nav class="sm:ml-auto flex gap-4 sm:gap-6">
+            <a href="#" class="text-xs hover:underline underline-offset-4 text-gray-600">
+                Términos de Servicio
+            </a>
+            <a href="#" class="text-xs hover:underline underline-offset-4 text-gray-600">
+                Política de Privacidad
+            </a>
+            <a href="#" class="text-xs hover:underline underline-offset-4 text-gray-600">
+                Soporte
+            </a>
+        </nav>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Enhanced smooth scrolling for anchor links with scroll snap
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    // Use scrollIntoView with smooth behavior
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Add scroll snap behavior for better section locking
+        const scrollContainer = document.querySelector('.scroll-container');
+        if (scrollContainer) {
+            // Enable scroll snap on desktop
+            if (window.innerWidth >= 768) {
+                scrollContainer.style.scrollSnapType = 'y proximity';
+            }
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    scrollContainer.style.scrollSnapType = 'y proximity';
+                } else {
+                    scrollContainer.style.scrollSnapType = 'none';
+                }
+            });
+        }
+        
+        // Add keyboard navigation support
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const sections = document.querySelectorAll('.scroll-section');
+                const currentSection = document.querySelector('.scroll-section:target');
+                let currentIndex = 0;
+                
+                if (currentSection) {
+                    currentIndex = Array.from(sections).indexOf(currentSection);
+                }
+                
+                let nextIndex;
+                if (e.key === 'ArrowDown') {
+                    nextIndex = Math.min(currentIndex + 1, sections.length - 1);
+                } else {
+                    nextIndex = Math.max(currentIndex - 1, 0);
+                }
+                
+                sections[nextIndex].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    </script>
+</body>
+</html>

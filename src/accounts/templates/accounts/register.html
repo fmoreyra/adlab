@@ -1,0 +1,107 @@
+{% extends "accounts/base_auth.html" %}
+
+{% block title %}Registro de Veterinario{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h3 class="text-lg font-medium text-gray-900">
+        Registro de Veterinario Cliente
+    </h3>
+    <p class="mt-1 text-sm text-gray-600">
+        Cree su cuenta para enviar protocolos al laboratorio
+    </p>
+</div>
+
+<form method="post" action="{% url 'accounts:register' %}" class="space-y-6">
+    {% csrf_token %}
+    
+    <div>
+        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+            Email *
+        </label>
+        <div class="mt-1">
+            {{ form.email }}
+        </div>
+        {% if form.email.errors %}
+            <p class="mt-2 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+        {% endif %}
+        <p class="mt-1 text-xs text-gray-500">Usará este email para iniciar sesión</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div>
+            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Nombre *
+            </label>
+            <div class="mt-1">
+                {{ form.first_name }}
+            </div>
+            {% if form.first_name.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Apellido *
+            </label>
+            <div class="mt-1">
+                {{ form.last_name }}
+            </div>
+            {% if form.last_name.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div>
+        <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">
+            Contraseña *
+        </label>
+        <div class="mt-1">
+            {{ form.password1 }}
+        </div>
+        {% if form.password1.errors %}
+            <p class="mt-2 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
+        {% else %}
+            <p class="mt-1 text-xs text-gray-500">{{ form.password1.help_text }}</p>
+        {% endif %}
+    </div>
+
+    <div>
+        <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">
+            Confirmar Contraseña *
+        </label>
+        <div class="mt-1">
+            {{ form.password2 }}
+        </div>
+        {% if form.password2.errors %}
+            <p class="mt-2 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
+        {% endif %}
+    </div>
+
+    <div>
+        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Crear Cuenta
+        </button>
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="rounded-md bg-red-50 p-4">
+            <p class="text-sm text-red-800">
+                {{ form.non_field_errors.0 }}
+            </p>
+        </div>
+    {% endif %}
+</form>
+
+<div class="mt-6 text-center">
+    <p class="text-sm text-gray-600">
+        ¿Ya tiene una cuenta?
+        <a href="{% url 'accounts:login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+            Iniciar sesión
+        </a>
+    </p>
+</div>
+{% endblock %}
+

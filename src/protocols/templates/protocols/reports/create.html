@@ -1,0 +1,128 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ title }}</h1>
+        <p class="text-gray-600">Complete los campos del informe histopatológico</p>
+    </div>
+
+    <!-- Protocol Information Card -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Información del Protocolo</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <span class="text-sm text-gray-600">Protocolo:</span>
+                <span class="text-sm font-medium">{{ protocol.protocol_number }}</span>
+            </div>
+            <div>
+                <span class="text-sm text-gray-600">Tipo:</span>
+                <span class="text-sm font-medium">{{ protocol.get_analysis_type_display }}</span>
+            </div>
+            <div>
+                <span class="text-sm text-gray-600">Paciente:</span>
+                <span class="text-sm font-medium">{{ protocol.animal_identification|default:"Sin ID" }} ({{ protocol.species }})</span>
+            </div>
+            <div>
+                <span class="text-sm text-gray-600">Veterinario:</span>
+                <span class="text-sm font-medium">{{ protocol.veterinarian.get_full_name }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Form -->
+    <form method="post" class="bg-white rounded-lg shadow-md p-6">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="space-y-6">
+            <!-- Histopathologist -->
+            <div>
+                <label for="{{ form.histopathologist.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.histopathologist.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.histopathologist }}
+                {% if form.histopathologist.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.histopathologist.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Macroscopic Observations -->
+            <div>
+                <label for="{{ form.macroscopic_observations.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.macroscopic_observations.label }}
+                </label>
+                {{ form.macroscopic_observations }}
+                {% if form.macroscopic_observations.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.macroscopic_observations.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Microscopic Observations -->
+            <div>
+                <label for="{{ form.microscopic_observations.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.microscopic_observations.label }}
+                </label>
+                {{ form.microscopic_observations }}
+                <p class="mt-1 text-sm text-gray-500">Observaciones microscópicas generales. Puede agregar observaciones específicas por cassette después.</p>
+                {% if form.microscopic_observations.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.microscopic_observations.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Diagnosis -->
+            <div>
+                <label for="{{ form.diagnosis.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.diagnosis.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.diagnosis }}
+                {% if form.diagnosis.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.diagnosis.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Comments -->
+            <div>
+                <label for="{{ form.comments.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.comments.label }}
+                </label>
+                {{ form.comments }}
+                {% if form.comments.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.comments.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Recommendations -->
+            <div>
+                <label for="{{ form.recommendations.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.recommendations.label }}
+                </label>
+                {{ form.recommendations }}
+                {% if form.recommendations.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.recommendations.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-3">
+            <a href="{% url 'protocols:report_pending_list' %}" 
+               class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancelar
+            </a>
+            <button type="submit" 
+                    class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                Crear Informe
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

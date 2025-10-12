@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo en Procesamiento</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .status-icon {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .info-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .protocol-details {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .protocol-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .protocol-details td {
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .protocol-details td:first-child {
+            font-weight: 600;
+            color: #6b7280;
+            width: 40%;
+        }
+        .protocol-details tr:last-child td {
+            border-bottom: none;
+        }
+        .timeline {
+            margin: 30px 0;
+            padding-left: 30px;
+            border-left: 3px solid #3b82f6;
+        }
+        .timeline-item {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '●';
+            position: absolute;
+            left: -38px;
+            color: #3b82f6;
+            font-size: 20px;
+        }
+        .timeline-item.completed::before {
+            color: #10b981;
+        }
+        .timeline-item.current::before {
+            color: #3b82f6;
+            animation: pulse 2s infinite;
+        }
+        .timeline-item.pending::before {
+            color: #d1d5db;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        .timeline-item h4 {
+            margin: 0 0 5px 0;
+            color: #1f2937;
+            font-size: 16px;
+        }
+        .timeline-item p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .estimated-time {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .estimated-time h3 {
+            margin-top: 0;
+            color: #d97706;
+            font-size: 16px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Protocolo en Procesamiento</h1>
+        </div>
+        
+        <div class="content">
+            <div class="status-icon">⚙️</div>
+            
+            <p>Estimado/a <strong>{{ veterinarian.get_full_name }}</strong>,</p>
+            
+            <p>Le informamos que su protocolo <strong>{{ protocol.protocol_number }}</strong> ha ingresado a la fase de procesamiento en nuestro laboratorio.</p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <span class="status-badge">📊 EN PROCESAMIENTO</span>
+            </div>
+            
+            <div class="info-box">
+                <p style="margin: 0;"><strong>¿Qué significa esto?</strong></p>
+                <p style="margin: 10px 0 0 0;">Su muestra está siendo procesada por nuestros técnicos especializados. Esto incluye preparación, tinción y montaje de las muestras para análisis microscópico.</p>
+            </div>
+            
+            <div class="protocol-details">
+                <h3 style="color: #3b82f6; margin-top: 0;">Detalles del Protocolo</h3>
+                <table>
+                    <tr>
+                        <td>Número de Protocolo:</td>
+                        <td><strong>{{ protocol.protocol_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Tipo de Análisis:</td>
+                        <td>{{ protocol.get_analysis_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <td>Animal:</td>
+                        <td>{{ protocol.animal_identification }}</td>
+                    </tr>
+                    <tr>
+                        <td>Especie:</td>
+                        <td>{{ protocol.get_animal_species_display }}</td>
+                    </tr>
+                    <tr>
+                        <td>Fecha de Recepción:</td>
+                        <td>{{ protocol.reception_date|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Estado Actual:</td>
+                        <td><strong>{{ protocol.get_status_display }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <h3 style="color: #3b82f6;">Progreso del Procesamiento</h3>
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <h4>✓ Muestra Recibida</h4>
+                    <p>Su muestra fue recibida y registrada en nuestro sistema</p>
+                </div>
+                <div class="timeline-item current">
+                    <h4>⚙️ Procesamiento en Curso</h4>
+                    <p>Preparación, tinción y montaje de las muestras</p>
+                </div>
+                <div class="timeline-item pending">
+                    <h4>🔍 Análisis Microscópico</h4>
+                    <p>Evaluación por histopatólogo especializado</p>
+                </div>
+                <div class="timeline-item pending">
+                    <h4>📄 Informe Final</h4>
+                    <p>Generación y envío del informe diagnóstico</p>
+                </div>
+            </div>
+            
+            <div class="estimated-time">
+                <h3>⏱️ Tiempo Estimado</h3>
+                <p style="margin: 5px 0;">El procesamiento y análisis completo suele tomar entre <strong>3-7 días hábiles</strong>, dependiendo de la complejidad de la muestra.</p>
+                <p style="margin: 10px 0 0 0; font-size: 13px; color: #92400e;">
+                    <em>Este es un tiempo estimado y puede variar según la carga de trabajo del laboratorio.</em>
+                </p>
+            </div>
+            
+            <div style="background-color: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <h4 style="margin: 0 0 10px 0; color: #166534;">📬 Próximas Notificaciones</h4>
+                <p style="margin: 0; color: #15803d; font-size: 14px;">
+                    Le enviaremos un correo electrónico automáticamente cuando:
+                </p>
+                <ul style="margin: 10px 0 0 0; color: #15803d; font-size: 14px;">
+                    <li>El procesamiento esté completo y la muestra lista para análisis</li>
+                    <li>El informe final esté disponible para su descarga</li>
+                </ul>
+            </div>
+            
+            <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
+                Si tiene alguna pregunta sobre el estado de su protocolo, no dude en contactarnos.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p style="margin: 5px 0;"><strong>AdLab - Laboratorio de Anatomía Patológica Veterinaria</strong></p>
+            <p style="margin: 5px 0;">Este es un mensaje automático, por favor no responda a este correo.</p>
+            <p style="margin: 5px 0;">Puede configurar sus preferencias de notificación en su perfil.</p>
+        </div>
+    </div>
+</body>
+</html>
+

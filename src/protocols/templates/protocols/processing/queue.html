@@ -1,0 +1,121 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Cola de Procesamiento{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Cola de Procesamiento</h1>
+    <a href="{% url 'protocols:processing_dashboard' %}" 
+       class="text-purple-600 hover:text-purple-800">
+      ← Volver al Dashboard
+    </a>
+  </div>
+
+  <!-- Filters -->
+  {% include 'components/ui/filter_form.html' with filters=filter_fields clear_url='protocols:processing_queue' results_count=protocols.count %}
+
+  <!-- Protocols Queue -->
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    {% if protocols %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Protocolo</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Animal</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Veterinario</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recepción</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for protocol in protocols %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">
+                  {{ protocol.protocol_number }}
+                </div>
+                <div class="text-xs text-gray-500">
+                  {{ protocol.days_in_process }} día{{ protocol.days_in_process|pluralize }} en proceso
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if protocol.analysis_type == 'cytology' %}bg-blue-100 text-blue-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                  {{ protocol.get_analysis_type_display }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">{{ protocol.animal_identification }}</div>
+                <div class="text-xs text-gray-500">{{ protocol.species }}</div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">{{ protocol.veterinarian.get_full_name }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ protocol.reception_date|date:"d/m/Y" }}
+              </td>
+              <td class="px-6 py-4">
+                {% if protocol.analysis_type == 'histopathology' %}
+                  <div class="text-xs">
+                    <div>Cassettes: {{ protocol.cassettes_completed }}/{{ protocol.cassettes_count }}</div>
+                    <div>Slides: {{ protocol.slides_ready }}/{{ protocol.slides_count }}</div>
+                    {% if protocol.needs_cassettes %}
+                      <span class="text-red-600">⚠️ Sin cassettes</span>
+                    {% elif protocol.needs_slides %}
+                      <span class="text-orange-600">⚠️ Sin slides</span>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <div class="text-xs">
+                    <div>Slides: {{ protocol.slides_ready }}/{{ protocol.slides_count }}</div>
+                    {% if protocol.needs_slides %}
+                      <span class="text-red-600">⚠️ Sin slides</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <div class="flex gap-2">
+                  <a href="{% url 'protocols:processing_status' protocol.pk %}" 
+                     class="text-purple-600 hover:text-purple-800">
+                    Ver
+                  </a>
+                  {% if protocol.analysis_type == 'histopathology' and protocol.needs_cassettes %}
+                    <a href="{% url 'protocols:cassette_create' protocol.pk %}" 
+                       class="text-blue-600 hover:text-blue-800">
+                      Cassettes
+                    </a>
+                  {% endif %}
+                  {% if protocol.needs_slides %}
+                    <a href="{% url 'protocols:slide_register' protocol.pk %}" 
+                       class="text-green-600 hover:text-green-800">
+                      Slides
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No hay protocolos pendientes</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          Todos los protocolos han sido procesados.
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

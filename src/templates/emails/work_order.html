@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orden de Trabajo - AdLab</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+        <h2 style="color: #7c3aed; margin-top: 0;">Orden de Trabajo</h2>
+        
+        <p>Estimado/a Dr./Dra. {{ veterinarian.get_full_name }},</p>
+        
+        <p>Adjunto encontrará la orden de trabajo correspondiente a sus muestras procesadas:</p>
+        
+        <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold; width: 50%;">Número de Orden:</td>
+                    <td style="padding: 8px 0;">{{ work_order.work_order_number }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Fecha de Emisión:</td>
+                    <td style="padding: 8px 0;">{{ work_order.created_at|date:"d/m/Y" }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; font-weight: bold;">Cantidad de Protocolos:</td>
+                    <td style="padding: 8px 0;">{{ protocols.count }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 0 0 10px 0; font-weight: bold;">Protocolos incluidos:</p>
+            <ul style="margin: 0; padding-left: 20px;">
+                {% for protocol in protocols %}
+                <li style="margin: 5px 0;">
+                    {{ protocol.protocol_number }} - {{ protocol.animal_identification }} ({{ protocol.get_analysis_type_display }})
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        {% if has_attachment %}
+        <div style="background-color: #dbeafe; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #2563eb;">
+            <p style="margin: 0;"><strong>📄 La orden de trabajo está adjunta a este email en formato PDF.</strong></p>
+        </div>
+        {% endif %}
+        
+        <p>También puede descargar la orden de trabajo desde su panel de control.</p>
+        
+        <p>Si tiene alguna consulta sobre esta orden, no dude en contactarnos.</p>
+        
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+        
+        <p style="font-size: 12px; color: #6b7280;">
+            Este es un mensaje automático del Sistema de Laboratorio de Anatomía Patológica AdLab.<br>
+            Por favor no responda a este email.
+        </p>
+    </div>
+</body>
+</html>
+

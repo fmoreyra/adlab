@@ -1,0 +1,78 @@
+{% comment %}
+Modern Filter Form Component
+Usage: {% include 'components/ui/filter_form.html' with filters=filter_fields %}
+{% endcomment %}
+
+<div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Filtros</h3>
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+            </svg>
+            <span class="text-sm text-gray-500">Filtrar resultados</span>
+        </div>
+    </div>
+    
+    <form method="get" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {% for filter in filters %}
+                <div class="space-y-1">
+                    <label for="{{ filter.name }}" class="block text-sm font-medium text-gray-700">
+                        {{ filter.label }}
+                    </label>
+                    
+                    {% if filter.type == "select" %}
+                        <select 
+                            name="{{ filter.name }}" 
+                            id="{{ filter.name }}"
+                            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                        >
+                            <option value="">{{ filter.placeholder|default:"Seleccionar..." }}</option>
+                            {% for choice in filter.choices %}
+                                <option value="{{ choice.0 }}" {% if filter.value == choice.0 %}selected{% endif %}>
+                                    {{ choice.1 }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    {% elif filter.type == "date" %}
+                        <input 
+                            type="date" 
+                            name="{{ filter.name }}" 
+                            id="{{ filter.name }}"
+                            value="{{ filter.value|default:'' }}"
+                            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        >
+                    {% elif filter.type == "text" %}
+                        <input 
+                            type="text" 
+                            name="{{ filter.name }}" 
+                            id="{{ filter.name }}"
+                            value="{{ filter.value|default:'' }}"
+                            placeholder="{{ filter.placeholder|default:'' }}"
+                            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        >
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="flex items-center justify-between pt-6 pb-2 border-t border-gray-200 mt-6">
+            <div class="flex items-center space-x-2">
+                {% include 'components/ui/button.html' with text="Aplicar Filtros" type="submit" variant="primary" icon="filter" %}
+                <a href="{{ clear_url|default:'#' }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Limpiar
+                </a>
+            </div>
+            
+            {% if results_count %}
+                <div class="text-sm text-gray-500">
+                    <span class="font-medium">{{ results_count }}</span> resultados encontrados
+                </div>
+            {% endif %}
+        </div>
+    </form>
+</div>

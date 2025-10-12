@@ -1,0 +1,196 @@
+{% extends "layouts/index.html" %}
+
+{% block title %}Complete su Perfil{% endblock %}
+
+{% block body %}
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">Complete su Perfil Profesional</h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Por favor complete la siguiente información para poder enviar protocolos al laboratorio.
+                Todos los campos marcados con <span class="text-red-600">*</span> son obligatorios.
+            </p>
+        </div>
+
+        <!-- Form -->
+        <form method="post" class="space-y-8" novalidate>
+            {% csrf_token %}
+            
+            <!-- Professional Information Section -->
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">
+                        Información Profesional
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- First Name -->
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.first_name.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Name -->
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.last_name.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- License Number -->
+                        <div>
+                            <label for="{{ form.license_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.license_number.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.license_number }}
+                            {% if form.license_number.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ form.license_number.help_text }}</p>
+                            {% endif %}
+                            {% if form.license_number.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.license_number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phone -->
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.phone.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ form.phone.help_text }}</p>
+                            {% endif %}
+                            {% if form.phone.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Information Section -->
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">
+                        Domicilio
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- Province -->
+                        <div>
+                            <label for="{{ form.province.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.province.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.province }}
+                            {% if form.province.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.province.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Locality -->
+                        <div>
+                            <label for="{{ form.locality.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.locality.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.locality }}
+                            {% if form.locality.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.locality.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Street -->
+                        <div>
+                            <label for="{{ form.street.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.street.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.street }}
+                            {% if form.street.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.street.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Number -->
+                        <div>
+                            <label for="{{ form.number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.number.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.number }}
+                            {% if form.number.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Floor -->
+                        <div>
+                            <label for="{{ form.floor.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.floor.label }}
+                            </label>
+                            {{ form.floor }}
+                            {% if form.floor.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.floor.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Apartment -->
+                        <div>
+                            <label for="{{ form.apartment.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.apartment.label }}
+                            </label>
+                            {{ form.apartment }}
+                            {% if form.apartment.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.apartment.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Postal Code -->
+                        <div>
+                            <label for="{{ form.postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.postal_code.label }}
+                            </label>
+                            {{ form.postal_code }}
+                            {% if form.postal_code.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.postal_code.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.notes.label }}
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-3">
+                <a href="/" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Guardar Perfil
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

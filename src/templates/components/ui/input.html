@@ -1,0 +1,75 @@
+{% comment %}
+Modern Input Component
+Usage: {% include 'components/ui/input.html' with field=form.field_name label="Custom Label" placeholder="Placeholder text" %}
+{% endcomment %}
+
+<div class="space-y-1">
+    {% if label %}
+        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+            {{ label }}
+            {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+        </label>
+    {% endif %}
+    
+    {% if field.field.widget.input_type == 'textarea' %}
+        <textarea 
+            name="{{ field.name }}" 
+            id="{{ field.id_for_label }}"
+            {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+            {% if field.field.required %}required{% endif %}
+            class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+            rows="{% if rows %}{{ rows }}{% else %}4{% endif %}"
+        >{{ field.value|default:"" }}</textarea>
+    {% elif field.field.widget.input_type == 'checkbox' %}
+        <div class="flex items-center space-x-2">
+            <input 
+                type="checkbox" 
+                name="{{ field.name }}" 
+                id="{{ field.id_for_label }}"
+                {% if field.value %}checked{% endif %}
+                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+            >
+            <label for="{{ field.id_for_label }}" class="text-sm text-gray-700">
+                {{ label|default:field.label }}
+            </label>
+        </div>
+    {% elif field.field.widget.input_type == 'select' %}
+        <select 
+            name="{{ field.name }}" 
+            id="{{ field.id_for_label }}"
+            {% if field.field.required %}required{% endif %}
+            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+        >
+            {% if placeholder %}
+                <option value="">{{ placeholder }}</option>
+            {% endif %}
+            {% for choice in field.field.choices %}
+                <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>
+                    {{ choice.1 }}
+                </option>
+            {% endfor %}
+        </select>
+    {% else %}
+        <input 
+            type="{{ field.field.widget.input_type|default:'text' }}" 
+            name="{{ field.name }}" 
+            id="{{ field.id_for_label }}"
+            {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+            {% if field.value %}value="{{ field.value }}"{% endif %}
+            {% if field.field.required %}required{% endif %}
+            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+        >
+    {% endif %}
+    
+    {% if field.help_text %}
+        <p class="text-sm text-gray-500">{{ field.help_text }}</p>
+    {% endif %}
+    
+    {% if field.errors %}
+        <div class="text-sm text-red-600 space-y-1">
+            {% for error in field.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

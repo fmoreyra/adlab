@@ -1,0 +1,203 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Editar Protocolo - Sistema de Laboratorio{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">
+                Editar Protocolo: {% if protocol.protocol_number %}{{ protocol.protocol_number }}{% elif protocol.temporary_code %}{{ protocol.temporary_code }}{% else %}#{{ protocol.id }}{% endif %}
+            </h1>
+            <p class="mt-2 text-sm text-gray-600">
+                {{ protocol.get_analysis_type_display }} - Solo los protocolos en borrador pueden ser editados
+            </p>
+        </div>
+
+        <!-- Form -->
+        <form method="post" class="bg-white shadow-md rounded-lg p-6">
+            {% csrf_token %}
+
+            <!-- Display form errors -->
+            {% if protocol_form.errors or sample_form.errors %}
+                <div class="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+                    <h3 class="font-semibold mb-2">Por favor corrija los siguientes errores:</h3>
+                    <ul class="list-disc list-inside">
+                        {% for field in protocol_form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for field in sample_form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <!-- Animal Information Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información del Animal</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ protocol_form.species.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Especie <span class="text-red-500">*</span>
+                        </label>
+                        {{ protocol_form.species }}
+                    </div>
+                    <div>
+                        <label for="{{ protocol_form.breed.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Raza
+                        </label>
+                        {{ protocol_form.breed }}
+                    </div>
+                    <div>
+                        <label for="{{ protocol_form.sex.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Sexo
+                        </label>
+                        {{ protocol_form.sex }}
+                    </div>
+                    <div>
+                        <label for="{{ protocol_form.age.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Edad
+                        </label>
+                        {{ protocol_form.age }}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="{{ protocol_form.animal_identification.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Identificación del Animal <span class="text-red-500">*</span>
+                        </label>
+                        {{ protocol_form.animal_identification }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Owner Information Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información del Propietario</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ protocol_form.owner_first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre
+                        </label>
+                        {{ protocol_form.owner_first_name }}
+                    </div>
+                    <div>
+                        <label for="{{ protocol_form.owner_last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Apellido
+                        </label>
+                        {{ protocol_form.owner_last_name }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Information Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información Clínica</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ protocol_form.presumptive_diagnosis.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Diagnóstico Presuntivo <span class="text-red-500">*</span>
+                        </label>
+                        {{ protocol_form.presumptive_diagnosis }}
+                    </div>
+                    <div>
+                        <label for="{{ protocol_form.clinical_history.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Historia Clínica
+                        </label>
+                        {{ protocol_form.clinical_history }}
+                    </div>
+                    <div>
+                        <label for="{{ protocol_form.submission_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Fecha de Remisión <span class="text-red-500">*</span>
+                        </label>
+                        {{ protocol_form.submission_date }}
+                    </div>
+                    <div class="flex items-center">
+                        {{ protocol_form.academic_interest }}
+                        <label for="{{ protocol_form.academic_interest.id_for_label }}" class="ml-2 text-sm text-gray-700">
+                            Permitir uso con fines académicos/investigación
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Information Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información de la Muestra</h2>
+                {% if analysis_type == 'cytology' %}
+                    <div class="space-y-4">
+                        <div>
+                            <label for="{{ sample_form.technique_used.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Técnica Utilizada <span class="text-red-500">*</span>
+                            </label>
+                            {{ sample_form.technique_used }}
+                        </div>
+                        <div>
+                            <label for="{{ sample_form.sampling_site.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Sitio de Muestreo <span class="text-red-500">*</span>
+                            </label>
+                            {{ sample_form.sampling_site }}
+                            <p class="mt-1 text-sm text-gray-500">Ubicación anatómica de la muestra</p>
+                        </div>
+                        <div>
+                            <label for="{{ sample_form.number_of_slides.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Número de Portaobjetos <span class="text-red-500">*</span>
+                            </label>
+                            {{ sample_form.number_of_slides }}
+                        </div>
+                        <div>
+                            <label for="{{ sample_form.observations.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Observaciones
+                            </label>
+                            {{ sample_form.observations }}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="space-y-4">
+                        <div>
+                            <label for="{{ sample_form.material_submitted.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Material Remitido <span class="text-red-500">*</span>
+                            </label>
+                            {{ sample_form.material_submitted }}
+                            <p class="mt-1 text-sm text-gray-500">Descripción de las muestras de tejido/órganos</p>
+                        </div>
+                        <div>
+                            <label for="{{ sample_form.number_of_containers.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Número de Frascos <span class="text-red-500">*</span>
+                            </label>
+                            {{ sample_form.number_of_containers }}
+                        </div>
+                        <div>
+                            <label for="{{ sample_form.preservation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Conservación <span class="text-red-500">*</span>
+                            </label>
+                            {{ sample_form.preservation }}
+                        </div>
+                        <div>
+                            <label for="{{ sample_form.observations.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Observaciones
+                            </label>
+                            {{ sample_form.observations }}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-between pt-6 border-t">
+                <a href="{% url 'protocols:protocol_detail' protocol.pk %}" class="text-gray-600 hover:text-gray-800">
+                    ← Cancelar
+                </a>
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

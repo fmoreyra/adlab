@@ -1,0 +1,214 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Recepción Confirmada - {{ protocol.protocol_number }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Success Header -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4 flex-1">
+                    <h1 class="text-2xl font-bold text-green-900">¡Muestra Recibida Exitosamente!</h1>
+                    <p class="mt-1 text-green-700">El protocolo ha sido registrado en el sistema</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protocol Number Card -->
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden mb-6 border-2 border-green-500">
+            <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+                <h2 class="text-xl font-semibold text-white">Número de Protocolo Asignado</h2>
+            </div>
+            <div class="p-8 text-center">
+                <div class="inline-block bg-gray-100 px-8 py-6 rounded-lg">
+                    <p class="text-sm text-gray-600 mb-2">Número de Protocolo</p>
+                    <p class="text-5xl font-bold text-green-600 font-mono">{{ protocol.protocol_number }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reception Information -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Información de Recepción</h2>
+            </div>
+            <div class="p-6">
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Código Temporal</dt>
+                        <dd class="mt-1 text-sm font-mono text-gray-900">{{ protocol.temporary_code }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Fecha y Hora de Recepción</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ protocol.reception_date|date:"d/m/Y H:i" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Recepcionado Por</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ protocol.received_by.get_full_name|default:"Sistema" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Condición de la Muestra</dt>
+                        <dd class="mt-1">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if protocol.sample_condition == 'optimal' %}bg-green-100 text-green-800
+                                {% elif protocol.sample_condition == 'acceptable' %}bg-yellow-100 text-yellow-800
+                                {% elif protocol.sample_condition == 'suboptimal' %}bg-orange-100 text-orange-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ protocol.get_sample_condition_display }}
+                            </span>
+                        </dd>
+                    </div>
+                    
+                    {% if protocol.analysis_type == 'cytology' and protocol.cytology_sample %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Portaobjetos</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            Esperados: {{ protocol.cytology_sample.number_of_slides }} | 
+                            Recibidos: {{ protocol.cytology_sample.number_slides_received|default:"No registrado" }}
+                        </dd>
+                    </div>
+                    {% elif protocol.analysis_type == 'histopathology' and protocol.histopathology_sample %}
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Frascos</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            Esperados: {{ protocol.histopathology_sample.number_of_containers }} | 
+                            Recibidos: {{ protocol.histopathology_sample.number_jars_received|default:"No registrado" }}
+                        </dd>
+                    </div>
+                    {% endif %}
+
+                    {% if protocol.reception_notes %}
+                    <div class="md:col-span-2">
+                        <dt class="text-sm font-medium text-gray-500">Observaciones de Recepción</dt>
+                        <dd class="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded">{{ protocol.reception_notes }}</dd>
+                    </div>
+                    {% endif %}
+
+                    {% if protocol.discrepancies %}
+                    <div class="md:col-span-2">
+                        <dt class="text-sm font-medium text-red-600">Discrepancias Reportadas</dt>
+                        <dd class="mt-1 text-sm text-gray-900 bg-red-50 border border-red-200 p-3 rounded">{{ protocol.discrepancies }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+
+        <!-- Animal and Veterinarian Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Animal Info -->
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Información del Animal</h2>
+                </div>
+                <div class="p-6">
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Identificación</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ protocol.animal_identification }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Especie / Raza</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ protocol.species }}{% if protocol.breed %} - {{ protocol.breed }}{% endif %}</dd>
+                        </div>
+                        {% if protocol.sex %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Sexo</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ protocol.get_sex_display }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if protocol.age %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Edad</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ protocol.age }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Veterinarian Info -->
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Veterinario Remitente</h2>
+                </div>
+                <div class="p-6">
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Nombre</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ protocol.veterinarian.get_full_name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Matrícula</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ protocol.veterinarian.license_number }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Email</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ protocol.veterinarian.user.email }}</dd>
+                        </div>
+                        {% if protocol.veterinarian.phone_number %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Teléfono</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ protocol.veterinarian.phone_number }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Acciones</h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <a href="{% url 'protocols:reception_label' protocol.pk %}" target="_blank" class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                        </svg>
+                        Imprimir Etiqueta (39×20mm)
+                    </a>
+                    <a href="{% url 'protocols:protocol_detail' protocol.pk %}" class="flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Ver Protocolo Completo
+                    </a>
+                    <a href="{% url 'protocols:reception_search' %}" class="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Recepcionar Otra Muestra
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-800">
+                        Se ha enviado un email de confirmación al veterinario con los detalles de la recepción. El protocolo queda disponible para procesamiento.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

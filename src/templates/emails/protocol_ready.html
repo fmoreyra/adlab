@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muestra Lista para Diagnóstico</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .success-icon {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .highlight-box h3 {
+            margin-top: 0;
+            color: #065f46;
+            font-size: 18px;
+        }
+        .highlight-box p {
+            margin: 10px 0 0 0;
+            color: #047857;
+        }
+        .protocol-details {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .protocol-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .protocol-details td {
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .protocol-details td:first-child {
+            font-weight: 600;
+            color: #6b7280;
+            width: 40%;
+        }
+        .protocol-details tr:last-child td {
+            border-bottom: none;
+        }
+        .progress-container {
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 10px;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            height: 100%;
+            width: 75%;
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            text-align: center;
+            color: #059669;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .next-steps {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .next-steps h3 {
+            margin-top: 0;
+            color: #1e40af;
+            font-size: 16px;
+        }
+        .next-steps ul {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #1e40af;
+        }
+        .timeline {
+            margin: 30px 0;
+            padding-left: 30px;
+            border-left: 3px solid #d1d5db;
+        }
+        .timeline-item {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '✓';
+            position: absolute;
+            left: -38px;
+            background-color: #10b981;
+            color: #ffffff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .timeline-item.current::before {
+            content: '●';
+            background-color: #3b82f6;
+            animation: pulse 2s infinite;
+        }
+        .timeline-item.pending::before {
+            content: '○';
+            background-color: #d1d5db;
+            color: #9ca3af;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+        .timeline-item h4 {
+            margin: 0 0 5px 0;
+            color: #1f2937;
+            font-size: 16px;
+        }
+        .timeline-item p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Muestra Lista para Diagnóstico</h1>
+        </div>
+        
+        <div class="content">
+            <div class="success-icon">🎯</div>
+            
+            <p>Estimado/a <strong>{{ veterinarian.get_full_name }}</strong>,</p>
+            
+            <p>Nos complace informarle que el procesamiento de su protocolo <strong>{{ protocol.protocol_number }}</strong> ha sido completado exitosamente.</p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <span class="status-badge">✓ LISTA PARA DIAGNÓSTICO</span>
+            </div>
+            
+            <div class="highlight-box">
+                <h3>🔬 Procesamiento Completo</h3>
+                <p>Las preparaciones histológicas están listas y han sido enviadas al histopatólogo para su evaluación diagnóstica.</p>
+            </div>
+            
+            <h3 style="color: #10b981;">Progreso del Protocolo</h3>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="progress-text">75% Completado</div>
+            
+            <div class="timeline" style="margin-top: 30px;">
+                <div class="timeline-item">
+                    <h4>Muestra Recibida</h4>
+                    <p>{{ protocol.reception_date|date:"d/m/Y" }}</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>Procesamiento Completado</h4>
+                    <p>Preparación, tinción y montaje finalizados</p>
+                </div>
+                <div class="timeline-item current">
+                    <h4>Análisis en Curso</h4>
+                    <p>Evaluación microscópica por histopatólogo especializado</p>
+                </div>
+                <div class="timeline-item pending">
+                    <h4>Informe Final</h4>
+                    <p>Generación y envío del informe diagnóstico</p>
+                </div>
+            </div>
+            
+            <div class="protocol-details">
+                <h3 style="color: #10b981; margin-top: 0;">Información del Protocolo</h3>
+                <table>
+                    <tr>
+                        <td>Número de Protocolo:</td>
+                        <td><strong>{{ protocol.protocol_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Tipo de Análisis:</td>
+                        <td>{{ protocol.get_analysis_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <td>Animal:</td>
+                        <td>{{ protocol.animal_identification }}</td>
+                    </tr>
+                    <tr>
+                        <td>Especie:</td>
+                        <td>{{ protocol.get_animal_species_display }}</td>
+                    </tr>
+                    <tr>
+                        <td>Estado Actual:</td>
+                        <td><strong style="color: #10b981;">{{ protocol.get_status_display }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="next-steps">
+                <h3>📋 Próximos Pasos</h3>
+                <ul>
+                    <li><strong>Análisis Microscópico:</strong> Un histopatólogo especializado evaluará las preparaciones</li>
+                    <li><strong>Diagnóstico:</strong> Se elaborará un diagnóstico detallado basado en los hallazgos</li>
+                    <li><strong>Informe Final:</strong> Recibirá el informe completo por email con el diagnóstico y recomendaciones</li>
+                </ul>
+            </div>
+            
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                <h4 style="margin: 0 0 10px 0; color: #d97706;">⏱️ Tiempo Estimado</h4>
+                <p style="margin: 0; color: #92400e; font-size: 14px;">
+                    El análisis y generación del informe final suele completarse en <strong>2-3 días hábiles</strong>. Le notificaremos inmediatamente cuando el informe esté disponible.
+                </p>
+            </div>
+            
+            <div style="background-color: #f0fdf4; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <p style="margin: 0; color: #166534; font-size: 14px;">
+                    <strong>📧 Notificación Automática:</strong> Recibirá un correo electrónico con el informe en PDF adjunto tan pronto como esté finalizado.
+                </p>
+            </div>
+            
+            <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
+                Agradecemos su paciencia durante el proceso. Si tiene alguna pregunta, no dude en contactarnos.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p style="margin: 5px 0;"><strong>AdLab - Laboratorio de Anatomía Patológica Veterinaria</strong></p>
+            <p style="margin: 5px 0;">Este es un mensaje automático, por favor no responda a este correo.</p>
+            <p style="margin: 5px 0;">Puede configurar sus preferencias de notificación en su perfil.</p>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,222 @@
+{% extends 'layouts/index.html' %}
+{% load static %}
+
+{% block title %}Panel de Administración - AdLab{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Welcome Section -->
+        <div class="mb-8 bg-gradient-to-r from-gray-700 to-gray-900 rounded-lg shadow-lg p-8 text-white">
+            <h1 class="text-3xl font-bold mb-2">Panel de Administración</h1>
+            <p class="text-gray-300">Gestión del sistema y configuración</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Acciones Rápidas</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <a href="{% url 'admin:index' %}" class="block bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black text-white rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-2">Administración</h3>
+                    <p class="text-center text-gray-300 text-sm">Panel de administración Django</p>
+                </a>
+                
+                <a href="{% url 'protocols:report_history' %}" class="block bg-white hover:bg-gray-50 border-2 border-gray-300 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-gray-700">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-2 text-gray-800">Analíticas</h3>
+                    <p class="text-center text-gray-600 text-sm">Reportes y estadísticas</p>
+                </a>
+                
+                <a href="{% url 'admin:accounts_user_changelist' %}" class="block bg-white hover:bg-gray-50 border-2 border-gray-300 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-gray-700">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-2 text-gray-800">Usuarios</h3>
+                    <p class="text-center text-gray-600 text-sm">Gestionar usuarios</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Estado del Sistema</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="flex items-center justify-center mb-4 text-green-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Base de Datos</h3>
+                    <span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">Operativa</span>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="flex items-center justify-center mb-4 text-green-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Email</h3>
+                    <span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">Configurado</span>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Almacenamiento</h3>
+                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">Disponible</span>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="flex items-center justify-center mb-4 text-green-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Usuarios Activos</h3>
+                    <span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">{{ active_users_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Resumen del Sistema</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Protocolos Totales</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ total_protocols_count }}</div>
+                    <p class="text-gray-500 text-sm">Este año</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Reportes Completados</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ completed_reports_count }}</div>
+                    <p class="text-gray-500 text-sm">Este mes</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Usuarios Registrados</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ total_users_count }}</div>
+                    <p class="text-gray-500 text-sm">En el sistema</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-orange-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Tiempo Promedio</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ avg_tat_days }}</div>
+                    <p class="text-gray-500 text-sm">Días TAT</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Actividad Reciente</h2>
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                {% if recent_activities %}
+                    <div class="divide-y divide-gray-200">
+                        {% for activity in recent_activities %}
+                            <div class="p-6 hover:bg-gray-50 transition-colors duration-150">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-lg font-semibold text-gray-800">{{ activity.title }}</h4>
+                                        <p class="text-gray-600">{{ activity.description }}</p>
+                                        <span class="text-sm text-gray-500">{{ activity.timestamp|timesince }} atrás</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="p-8 text-center text-gray-500">
+                        <p>No hay actividad reciente</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Feature Discovery -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Herramientas de Administración</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-gray-700">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Gestionar Usuarios</h3>
+                    <p class="text-gray-600 text-sm mb-4">Crear y administrar cuentas de usuario</p>
+                    <a href="{% url 'admin:accounts_user_changelist' %}" class="inline-block bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Gestionar
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-gray-700">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Configuración</h3>
+                    <p class="text-gray-600 text-sm mb-4">Configurar parámetros del sistema</p>
+                    <a href="{% url 'admin:index' %}" class="inline-block bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Configurar
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-gray-700">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Analíticas</h3>
+                    <p class="text-gray-600 text-sm mb-4">Ver reportes y estadísticas del sistema</p>
+                    <a href="{% url 'protocols:report_history' %}" class="inline-block bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Ver Analíticas
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-gray-700">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Seguridad</h3>
+                    <p class="text-gray-600 text-sm mb-4">Monitorear seguridad y auditoría</p>
+                    <a href="{% url 'admin:accounts_authauditlog_changelist' %}" class="inline-block bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Monitorear
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

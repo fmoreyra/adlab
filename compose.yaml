@@ -1,0 +1,138 @@
+x-app: &default-app
+  build:
+    context: "."
+    target: "app"
+    args:
+      - "UID=${UID:-1000}"
+      - "GID=${GID:-1000}"
+      - "DEBUG=${DEBUG:-false}"
+      - "NODE_ENV=${NODE_ENV:-production}"
+  depends_on:
+    postgres:
+      condition: "service_started"
+      required: false
+    redis:
+      condition: "service_started"
+      required: false
+  env_file:
+    - ".env"
+  restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+  stop_grace_period: "3s"
+  tty: true
+  volumes:
+    - "${DOCKER_WEB_VOLUME:-./public_collected:/app/public_collected}"
+
+x-assets: &default-assets
+  build:
+    context: "."
+    target: "assets"
+    args:
+      - "UID=${UID:-1000}"
+      - "GID=${GID:-1000}"
+      - "NODE_ENV=${NODE_ENV:-production}"
+  env_file:
+    - ".env"
+  profiles: ["assets"]
+  restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+  stop_grace_period: "0"
+  tty: true
+  volumes:
+    - ".:/app"
+
+services:
+  postgres:
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKER_POSTGRES_CPUS:-0}"
+          memory: "${DOCKER_POSTGRES_MEMORY:-0}"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    image: "postgres:18.0-trixie"
+    profiles: ["postgres"]
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    stop_grace_period: "3s"
+    volumes:
+      - "postgres:/var/lib/postgresql/data"
+
+  redis:
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKER_REDIS_CPUS:-0}"
+          memory: "${DOCKER_REDIS_MEMORY:-0}"
+    image: "redis:8.2.2-bookworm"
+    profiles: ["redis"]
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    stop_grace_period: "3s"
+    volumes:
+      - "redis:/data"
+
+  web:
+    <<: *default-app
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKER_WEB_CPUS:-0}"
+          memory: "${DOCKER_WEB_MEMORY:-0}"
+    healthcheck:
+      test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
+      interval: "60s"
+      timeout: "3s"
+      start_period: "5s"
+      retries: 3
+    ports:
+      - "${DOCKER_WEB_PORT_FORWARD:-127.0.0.1:8000}:${PORT:-8000}"
+    profiles: ["web"]
+
+  worker:
+    <<: *default-app
+    command: celery -A config worker -l "${CELERY_LOG_LEVEL:-info}"
+    entrypoint: []
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKER_WORKER_CPUS:-0}"
+          memory: "${DOCKER_WORKER_MEMORY:-0}"
+    profiles: ["worker"]
+
+  beat:
+    <<: *default-app
+    command: celery -A config beat -l "${CELERY_LOG_LEVEL:-info}"
+    entrypoint: []
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKER_BEAT_CPUS:-0}"
+          memory: "${DOCKER_BEAT_MEMORY:-0}"
+    profiles: ["beat"]
+    volumes:
+      - "celerybeat:/app/src"
+
+  flower:
+    <<: *default-app
+    command: celery -A config flower --port=5555 --broker=redis://redis:6379/0
+    entrypoint: []
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKER_FLOWER_CPUS:-0}"
+          memory: "${DOCKER_FLOWER_MEMORY:-0}"
+    ports:
+      - "${DOCKER_FLOWER_PORT_FORWARD:-127.0.0.1:5555}:5555"
+    profiles: ["flower"]
+
+  js:
+    <<: *default-assets
+    command: "../run yarn:build:js"
+
+  css:
+    <<: *default-assets
+    command: "../run yarn:build:css"
+
+volumes:
+  postgres: {}
+  redis: {}
+  celerybeat: {}

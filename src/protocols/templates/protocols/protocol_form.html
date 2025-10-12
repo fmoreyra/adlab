@@ -1,0 +1,194 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}{% if analysis_type == 'cytology' %}Crear Protocolo de Citología{% else %}Crear Protocolo de Histopatología{% endif %} - Sistema de Laboratorio{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">
+                {% if analysis_type == 'cytology' %}
+                    Nuevo Protocolo de Citología
+                {% else %}
+                    Nuevo Protocolo de Histopatología
+                {% endif %}
+            </h1>
+            <p class="mt-2 text-sm text-gray-600">
+                Complete todos los campos requeridos para crear su protocolo. Puede guardarlo como borrador y enviarlo más tarde.
+            </p>
+        </div>
+
+        <!-- Form -->
+        <form method="post" class="bg-white shadow-md rounded-lg p-6">
+            {% csrf_token %}
+
+            <!-- Display form errors -->
+            {% if form.errors %}
+                <div class="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+                    <h3 class="font-semibold mb-2">Por favor corrija los siguientes errores:</h3>
+                    <ul class="list-disc list-inside">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <!-- Animal Information Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información del Animal</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.species.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Especie <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.species }}
+                    </div>
+                    <div>
+                        <label for="{{ form.breed.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Raza
+                        </label>
+                        {{ form.breed }}
+                    </div>
+                    <div>
+                        <label for="{{ form.sex.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Sexo
+                        </label>
+                        {{ form.sex }}
+                    </div>
+                    <div>
+                        <label for="{{ form.age.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Edad
+                        </label>
+                        {{ form.age }}
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="{{ form.animal_identification.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Identificación del Animal <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.animal_identification }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Owner Information Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información del Propietario</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.owner_first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre
+                        </label>
+                        {{ form.owner_first_name }}
+                    </div>
+                    <div>
+                        <label for="{{ form.owner_last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Apellido
+                        </label>
+                        {{ form.owner_last_name }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Information Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información Clínica</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.presumptive_diagnosis.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Diagnóstico Presuntivo <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.presumptive_diagnosis }}
+                    </div>
+                    <div>
+                        {% include 'components/ui/input.html' with field=form.clinical_history label="Historia Clínica" %}
+                    </div>
+                    <div>
+                        {% include 'components/ui/input.html' with field=form.submission_date label="Fecha de Remisión" %}
+                    </div>
+                    <div>
+                        {% include 'components/ui/input.html' with field=form.academic_interest label="Permitir uso con fines académicos/investigación" %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Information Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información de la Muestra</h2>
+                {% if analysis_type == 'cytology' %}
+                    <div class="space-y-4">
+                        <div>
+                            <label for="{{ form.technique_used.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Técnica Utilizada <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.technique_used }}
+                        </div>
+                        <div>
+                            <label for="{{ form.sampling_site.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Sitio de Muestreo <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.sampling_site }}
+                            <p class="mt-1 text-sm text-gray-500">Ubicación anatómica de la muestra</p>
+                        </div>
+                        <div>
+                            <label for="{{ form.number_of_slides.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Número de Portaobjetos <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.number_of_slides }}
+                        </div>
+                        <div>
+                            <label for="{{ form.observations.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Observaciones
+                            </label>
+                            {{ form.observations }}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="space-y-4">
+                        <div>
+                            <label for="{{ form.material_submitted.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Material Remitido <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.material_submitted }}
+                            <p class="mt-1 text-sm text-gray-500">Descripción de las muestras de tejido/órganos</p>
+                        </div>
+                        <div>
+                            <label for="{{ form.number_of_containers.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Número de Frascos <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.number_of_containers }}
+                        </div>
+                        <div>
+                            <label for="{{ form.preservation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Conservación <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.preservation }}
+                        </div>
+                        <div>
+                            <label for="{{ form.observations.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                Observaciones
+                            </label>
+                            {{ form.observations }}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-between pt-6 border-t">
+                <a href="{% url 'protocols:protocol_list' %}" class="text-gray-600 hover:text-gray-800">
+                    ← Cancelar
+                </a>
+                {% include 'components/ui/button.html' with text="Guardar como Borrador" type="submit" variant="primary" %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

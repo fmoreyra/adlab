@@ -1,0 +1,229 @@
+{% extends "layouts/index.html" %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block body %}
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">Editar Perfil Profesional</h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Actualice su información profesional y de contacto.
+                Los campos marcados con <span class="text-red-600">*</span> son obligatorios.
+            </p>
+        </div>
+
+        <!-- Form -->
+        <form method="post" class="space-y-8" novalidate>
+            {% csrf_token %}
+            
+            <!-- Professional Information Section -->
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">
+                        Información Profesional
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- First Name -->
+                        <div>
+                            <label for="{{ vet_form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.first_name.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ vet_form.first_name }}
+                            {% if vet_form.first_name.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.first_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Name -->
+                        <div>
+                            <label for="{{ vet_form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.last_name.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ vet_form.last_name }}
+                            {% if vet_form.last_name.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.last_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- License Number -->
+                        <div>
+                            <label for="{{ vet_form.license_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.license_number.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ vet_form.license_number }}
+                            {% if vet_form.license_number.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ vet_form.license_number.help_text }}</p>
+                            {% endif %}
+                            {% if vet_form.license_number.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.license_number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phone -->
+                        <div>
+                            <label for="{{ vet_form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.phone.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ vet_form.phone }}
+                            {% if vet_form.phone.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ vet_form.phone.help_text }}</p>
+                            {% endif %}
+                            {% if vet_form.phone.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email (Read-only) -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ vet_form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.email.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ vet_form.email }}
+                            <p class="mt-2 text-sm text-gray-500">
+                                El email está sincronizado con su cuenta de usuario
+                            </p>
+                            {% if vet_form.email.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Information Section -->
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">
+                        Domicilio
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- Province -->
+                        <div>
+                            <label for="{{ address_form.province.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ address_form.province.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ address_form.province }}
+                            {% if address_form.province.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ address_form.province.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Locality -->
+                        <div>
+                            <label for="{{ address_form.locality.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ address_form.locality.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ address_form.locality }}
+                            {% if address_form.locality.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ address_form.locality.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Street -->
+                        <div>
+                            <label for="{{ address_form.street.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ address_form.street.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ address_form.street }}
+                            {% if address_form.street.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ address_form.street.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Number -->
+                        <div>
+                            <label for="{{ address_form.number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ address_form.number.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ address_form.number }}
+                            {% if address_form.number.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ address_form.number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Floor -->
+                        <div>
+                            <label for="{{ address_form.floor.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ address_form.floor.label }}
+                            </label>
+                            {{ address_form.floor }}
+                            {% if address_form.floor.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ address_form.floor.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Apartment -->
+                        <div>
+                            <label for="{{ address_form.apartment.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ address_form.apartment.label }}
+                            </label>
+                            {{ address_form.apartment }}
+                            {% if address_form.apartment.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ address_form.apartment.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Postal Code -->
+                        <div>
+                            <label for="{{ address_form.postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ address_form.postal_code.label }}
+                            </label>
+                            {{ address_form.postal_code }}
+                            {% if address_form.postal_code.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ address_form.postal_code.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="sm:col-span-2">
+                            <label for="{{ address_form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ address_form.notes.label }}
+                            </label>
+                            {{ address_form.notes }}
+                            {% if address_form.notes.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ address_form.notes.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'accounts:veterinarian_profile_detail' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+
+        <!-- Warning Note -->
+        <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">
+                        Nota Importante
+                    </h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                        <p>Todos los cambios realizados en su perfil quedan registrados en el historial para fines de auditoría y cumplimiento normativo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

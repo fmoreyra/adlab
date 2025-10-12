@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discrepancias en Recepción</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .alert-icon {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .alert-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .alert-box h3 {
+            margin-top: 0;
+            color: #d97706;
+            font-size: 18px;
+        }
+        .discrepancy-details {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .discrepancy-details h4 {
+            margin-top: 0;
+            color: #dc2626;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .discrepancy-details p {
+            margin: 5px 0;
+            color: #991b1b;
+            white-space: pre-wrap;
+        }
+        .protocol-info {
+            background-color: #f0f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .protocol-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .protocol-info td {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .protocol-info td:first-child {
+            font-weight: 600;
+            color: #6b7280;
+            width: 40%;
+        }
+        .protocol-info tr:last-child td {
+            border-bottom: none;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-optimal {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-acceptable {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .status-suboptimal {
+            background-color: #fecaca;
+            color: #991b1b;
+        }
+        .action-needed {
+            background-color: #ede9fe;
+            border-left: 4px solid #7c3aed;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .action-needed h3 {
+            margin-top: 0;
+            color: #7c3aed;
+            font-size: 16px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .contact-box {
+            background-color: #e0e7ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .contact-box strong {
+            color: #4338ca;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ Discrepancias en Recepción de Muestra</h1>
+        </div>
+        
+        <div class="content">
+            <div class="alert-icon">🔍</div>
+            
+            <p>Estimado/a <strong>{{ veterinarian.get_full_name }}</strong>,</p>
+            
+            <div class="alert-box">
+                <h3>Atención Requerida</h3>
+                <p>Hemos recibido su muestra para el protocolo <strong>{{ protocol.protocol_number }}</strong>, pero se han detectado algunas discrepancias que requieren su atención.</p>
+            </div>
+            
+            <div class="discrepancy-details">
+                <h4>📋 Discrepancias Encontradas</h4>
+                <p>{{ discrepancies }}</p>
+            </div>
+            
+            <div class="protocol-info">
+                <h3 style="color: #667eea; margin-top: 0;">Información del Protocolo</h3>
+                <table>
+                    <tr>
+                        <td>Número de Protocolo:</td>
+                        <td><strong>{{ protocol.protocol_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Código Temporal:</td>
+                        <td>{{ protocol.temporary_code|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Tipo de Análisis:</td>
+                        <td>{{ protocol.get_analysis_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <td>Animal:</td>
+                        <td>{{ protocol.animal_identification }}</td>
+                    </tr>
+                    <tr>
+                        <td>Fecha de Recepción:</td>
+                        <td>{{ protocol.reception_date|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Condición de la Muestra:</td>
+                        <td>
+                            {% if protocol.sample_condition == 'optimal' %}
+                                <span class="status-badge status-optimal">{{ sample_condition }}</span>
+                            {% elif protocol.sample_condition == 'acceptable' %}
+                                <span class="status-badge status-acceptable">{{ sample_condition }}</span>
+                            {% else %}
+                                <span class="status-badge status-suboptimal">{{ sample_condition }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            {% if protocol.reception_notes %}
+            <div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <h4 style="margin-top: 0; color: #6b7280;">Notas de Recepción</h4>
+                <p style="color: #4b5563; margin: 5px 0; white-space: pre-wrap;">{{ protocol.reception_notes }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="action-needed">
+                <h3>🔔 Acción Requerida</h3>
+                <p style="margin: 10px 0;">Por favor, revise estas discrepancias y contacte a nuestro laboratorio si:</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>La información descrita no coincide con lo esperado</li>
+                    <li>Necesita aclarar algún detalle de la muestra</li>
+                    <li>Desea proporcionar información adicional</li>
+                    <li>Tiene alguna pregunta sobre el procesamiento</li>
+                </ul>
+            </div>
+            
+            <div class="contact-box">
+                <p style="margin: 5px 0;"><strong>📞 Contacto Inmediato</strong></p>
+                <p style="margin: 10px 0; color: #4338ca;">
+                    Si necesita asistencia urgente, no dude en comunicarse<br>
+                    con nuestro equipo de laboratorio.
+                </p>
+            </div>
+            
+            <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
+                <strong>Nota:</strong> A pesar de estas discrepancias, su muestra ha sido recibida y será procesada según los procedimientos estándar. Le mantendremos informado del progreso.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p style="margin: 5px 0;"><strong>AdLab - Laboratorio de Anatomía Patológica Veterinaria</strong></p>
+            <p style="margin: 5px 0;">Este es un mensaje automático, por favor no responda a este correo.</p>
+            <p style="margin: 5px 0;">Para consultas, contacte a nuestro equipo de soporte.</p>
+        </div>
+    </div>
+</body>
+</html>
+

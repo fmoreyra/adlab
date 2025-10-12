@@ -1,0 +1,671 @@
+Test ID,Step,Feature Area,Test Scenario,Test Steps,Expected Result,Status,Tester,Date,Notes
+S03-001,Step 03,Protocol Type Selection,Access protocol type selection page,"1. Login as veterinarian with complete profile
+2. Navigate to /protocols/select-type/","- Page displays two options: Cytology and Histopathology
+- Each option has description and icon
+- Both options are clickable
+- Clean Tailwind-styled interface",,,
+S03-002,Step 03,Protocol Type Selection,Select cytology protocol type,"1. Go to /protocols/select-type/
+2. Click 'Citología' button","- Redirected to /protocols/create/cytology/
+- Cytology protocol form displayed
+- Form shows cytology-specific fields",,,
+S03-003,Step 03,Protocol Type Selection,Select histopathology protocol type,"1. Go to /protocols/select-type/
+2. Click 'Histopatología' button","- Redirected to /protocols/create/histopathology/
+- Histopathology protocol form displayed
+- Form shows histopathology-specific fields",,,
+S03-004,Step 03,Cytology Protocol,Create cytology protocol draft with valid data,"1. Navigate to /protocols/create/cytology/
+2. Fill Species: Canino
+3. Fill Animal ID: Max
+4. Fill Diagnosis: Suspected lymphoma
+5. Fill Technique Used: PAAF
+6. Fill Sampling Site: Left submandibular lymph node
+7. Fill Number of Slides: 2
+8. Fill Submission Date: Today
+9. Click 'Guardar Borrador'","- Protocol created successfully
+- Status: DRAFT
+- No temporary code assigned yet
+- Redirected to protocol detail page
+- Success message shown
+- Can edit or delete protocol",,,
+S03-005,Step 03,Cytology Protocol,Create cytology with missing required fields,"1. Go to /protocols/create/cytology/
+2. Fill only Species: Canino
+3. Leave other required fields empty
+4. Click 'Guardar Borrador'","- Form validation errors shown
+- Required fields highlighted:
+  * Animal Identification
+  * Presumptive Diagnosis
+  * Technique Used
+  * Sampling Site
+  * Number of Slides
+  * Submission Date
+- Protocol NOT created",,,
+S03-006,Step 03,Cytology Protocol,Create cytology with optional fields,"1. Create cytology protocol
+2. Include optional fields:
+   - Breed: Golden Retriever
+   - Sex: Hembra
+   - Age: 7 años
+   - Owner Last Name: García
+   - Owner First Name: Ana
+   - Clinical History: (text)
+   - Academic Interest: Yes
+   - Observations: (text)
+3. Save as draft","- All optional fields accepted
+- All data saved correctly
+- Fields displayed in protocol detail view",,,
+S03-007,Step 03,Cytology Protocol,Submit cytology protocol,"1. Create cytology protocol draft
+2. View protocol detail page
+3. Click 'Enviar Protocolo' button
+4. Confirm submission","- Status changed to SUBMITTED
+- Temporary code generated (format: TMP-CT-YYYYMMDD-###)
+- Temporary code displayed prominently
+- Protocol locked (no edit/delete buttons)
+- Success message with temporary code
+- Status history logged",,,
+S03-008,Step 03,Histopathology Protocol,Create histopathology protocol draft with valid data,"1. Navigate to /protocols/create/histopathology/
+2. Fill Species: Felino
+3. Fill Animal ID: Luna
+4. Fill Diagnosis: Mammary tumor
+5. Fill Material Submitted: Mass from left mammary chain 3x2cm
+6. Fill Number of Containers: 1
+7. Fill Preservation: Formol 10%
+8. Fill Submission Date: Today
+9. Click 'Guardar Borrador'","- Protocol created successfully
+- Status: DRAFT
+- No temporary code assigned yet
+- Redirected to protocol detail page
+- Success message shown
+- Can edit or delete protocol",,,
+S03-009,Step 03,Histopathology Protocol,Create histopathology with missing required fields,"1. Go to /protocols/create/histopathology/
+2. Fill only Species: Bovino
+3. Leave other required fields empty
+4. Click 'Guardar Borrador'","- Form validation errors shown
+- Required fields highlighted:
+  * Animal Identification
+  * Presumptive Diagnosis
+  * Material Submitted
+  * Number of Containers
+  * Submission Date
+- Protocol NOT created",,,
+S03-010,Step 03,Histopathology Protocol,Submit histopathology protocol,"1. Create histopathology protocol draft
+2. View protocol detail page
+3. Click 'Enviar Protocolo' button
+4. Confirm submission","- Status changed to SUBMITTED
+- Temporary code generated (format: TMP-HP-YYYYMMDD-###)
+- Temporary code displayed prominently
+- Protocol locked (no edit/delete buttons)
+- Success message with temporary code
+- Status history logged",,,
+S03-011,Step 03,Protocol List,View protocol list,"1. Login as veterinarian
+2. Navigate to /protocols/","- List of all veterinarian's protocols displayed
+- Shows: type, animal ID, species, diagnosis, status, date
+- Pagination (20 per page)
+- Filter options visible
+- Search bar available",,,
+S03-012,Step 03,Protocol List,Filter by status - Draft,"1. Go to /protocols/
+2. Select 'Borrador' from status filter
+3. Click filter/search","- Only draft protocols displayed
+- No submitted or received protocols shown
+- Count matches filter",,,
+S03-013,Step 03,Protocol List,Filter by status - Submitted,"1. Go to /protocols/
+2. Select 'Enviado' from status filter
+3. Click filter/search","- Only submitted protocols displayed
+- Shows temporary codes
+- No protocol numbers yet (not received)",,,
+S03-014,Step 03,Protocol List,Filter by analysis type - Cytology,"1. Go to /protocols/
+2. Select 'Citología' from type filter
+3. Click filter/search","- Only cytology protocols displayed
+- No histopathology protocols shown",,,
+S03-015,Step 03,Protocol List,Filter by analysis type - Histopathology,"1. Go to /protocols/
+2. Select 'Histopatología' from type filter
+3. Click filter/search","- Only histopathology protocols displayed
+- No cytology protocols shown",,,
+S03-016,Step 03,Protocol List,Filter by date range,"1. Go to /protocols/
+2. Select date range (last 30 days)
+3. Click filter/search","- Only protocols within date range shown
+- Older protocols excluded",,,
+S03-017,Step 03,Protocol List,Search by animal ID,"1. Go to /protocols/
+2. Enter 'Max' in search box
+3. Submit search","- Protocols with animal ID matching 'Max' displayed
+- Other protocols excluded",,,
+S03-018,Step 03,Protocol List,Pagination,"1. Create 25+ protocols
+2. Go to /protocols/","- First 20 protocols shown on page 1
+- Pagination controls displayed
+- Page numbers visible
+- Next/Previous buttons available",,,
+S03-019,Step 03,Protocol Detail,View draft protocol detail,"1. Create draft protocol
+2. Click on protocol in list
+3. View detail page","- All protocol information displayed
+- Animal/patient data section
+- Clinical information section
+- Sample details section
+- Status: DRAFT badge
+- Edit button visible
+- Delete button visible
+- Submit button visible",,,
+S03-020,Step 03,Protocol Detail,View submitted protocol detail,"1. Submit a protocol
+2. Click on protocol in list
+3. View detail page","- All protocol information displayed
+- Temporary code prominently shown
+- Status: ENVIADO badge
+- Edit button NOT visible
+- Delete button NOT visible
+- Status timeline visible at bottom
+- Shows submission event",,,
+S03-021,Step 03,Protocol Detail,View status timeline,"1. Submit a protocol
+2. View protocol detail
+3. Scroll to status timeline section","- Status history displayed chronologically
+- Shows status changes
+- Shows who made each change
+- Shows timestamps
+- Shows optional descriptions",,,
+S03-022,Step 03,Protocol Edit,Edit draft cytology protocol,"1. Create draft cytology protocol
+2. Click 'Editar' button on detail page
+3. Modify: Animal ID: Changed name
+4. Modify: Diagnosis: Updated text
+5. Save changes","- Edit form pre-filled with existing data
+- Changes saved successfully
+- Redirected to detail page
+- Updated information displayed
+- Status remains DRAFT",,,
+S03-023,Step 03,Protocol Edit,Edit draft histopathology protocol,"1. Create draft histopathology protocol
+2. Click 'Editar' button
+3. Modify: Material Submitted
+4. Modify: Number of Containers: 2
+5. Save changes","- Edit form pre-filled with existing data
+- Changes saved successfully
+- Updated information displayed
+- Status remains DRAFT",,,
+S03-024,Step 03,Protocol Edit,Attempt to edit submitted protocol,"1. Submit a protocol
+2. Try to access edit URL directly
+3. Or verify edit button is hidden","- Edit button not visible on detail page
+- If URL accessed directly: error message
+- Message: Cannot edit submitted protocols
+- Redirected to detail page",,,
+S03-025,Step 03,Protocol Edit,Edit with invalid data,"1. Edit draft protocol
+2. Clear required field (e.g. Species)
+3. Try to save","- Form validation error
+- Required field highlighted
+- Changes NOT saved
+- Original data preserved",,,
+S03-026,Step 03,Protocol Delete,Delete draft protocol,"1. Create draft protocol
+2. View protocol detail
+3. Click 'Eliminar' button
+4. Confirm deletion","- Confirmation dialog shown
+- Upon confirmation:
+  * Protocol deleted from database
+  * Associated sample deleted (cascade)
+  * Redirected to protocol list
+  * Success message shown
+  * Protocol no longer in list",,,
+S03-027,Step 03,Protocol Delete,Cancel protocol deletion,"1. Create draft protocol
+2. Click 'Eliminar' button
+3. Click 'Cancel' on confirmation","- Confirmation dialog closed
+- Protocol NOT deleted
+- Still on detail page
+- Protocol data unchanged",,,
+S03-028,Step 03,Protocol Delete,Attempt to delete submitted protocol,"1. Submit a protocol
+2. Try to access delete URL directly
+3. Or verify delete button is hidden","- Delete button not visible on detail page
+- If URL accessed directly: error message
+- Message: Cannot delete submitted protocols
+- Redirected to detail page",,,
+S03-029,Step 03,Protocol Submit,Submit draft protocol,"1. Create draft protocol
+2. Click 'Enviar Protocolo' button
+3. Confirm submission","- Status changed from DRAFT to SUBMITTED
+- Temporary code generated and displayed
+- Success message with code
+- Instructions to write code on sample
+- Status history entry created
+- Protocol locked (no edit/delete)",,,
+S03-030,Step 03,Protocol Submit,Temporary code format - Cytology,"1. Create and submit cytology protocol
+2. Check temporary code format","- Format: TMP-CT-YYYYMMDD-###
+- Example: TMP-CT-20241011-001
+- CT = Cytology
+- Date = submission date
+- Number = sequential ID",,,
+S03-031,Step 03,Protocol Submit,Temporary code format - Histopathology,"1. Create and submit histopathology protocol
+2. Check temporary code format","- Format: TMP-HP-YYYYMMDD-###
+- Example: TMP-HP-20241011-002
+- HP = Histopathology
+- Date = submission date
+- Number = sequential ID",,,
+S03-032,Step 03,Protocol Submit,Temporary code uniqueness,"1. Submit multiple protocols
+2. Check all temporary codes","- All temporary codes are unique
+- No duplicates exist
+- Database enforces uniqueness",,,
+S03-033,Step 03,Access Control,Veterinarian sees only own protocols,"1. Login as veterinarian A
+2. Create protocol
+3. Logout
+4. Login as veterinarian B
+5. View protocol list","- Veterinarian B does NOT see A's protocols
+- Only sees own protocols
+- Access control enforced",,,
+S03-034,Step 03,Access Control,Cannot access other veterinarian's protocol detail,"1. Login as veterinarian A
+2. Note a protocol ID
+3. Logout
+4. Login as veterinarian B
+5. Try to access /protocols/<A's protocol ID>/","- Access denied
+- Error message or redirect
+- Cannot view other's protocol",,,
+S03-035,Step 03,Access Control,Veterinarian profile required,"1. Create veterinarian user without profile
+2. Try to access /protocols/select-type/","- Redirected to complete profile page
+- Message: Must complete profile first
+- Cannot create protocols without profile",,,
+S03-036,Step 03,Admin Interface,Admin can view all protocols,"1. Login to Django admin as admin
+2. Navigate to Protocols section","- All protocols from all veterinarians visible
+- Can search and filter
+- Can view details
+- Can edit if needed",,,
+S03-037,Step 03,Admin Interface,Admin change protocol status,"1. Login to Django admin
+2. Open a submitted protocol
+3. Select action 'Mark as received'
+4. Execute action","- Status changed to RECEIVED
+- Protocol number assigned (CT 24/### or HP 24/###)
+- Reception date set to today
+- Status history entry created",,,
+S03-038,Step 03,Admin Interface,View status history inline,"1. Login to Django admin
+2. Open any protocol
+3. Scroll to Status History inline","- All status changes listed
+- Shows status, changed_by, date, description
+- Read-only (cannot edit)
+- Chronological order",,,
+S03-039,Step 03,Admin Interface,View sample data inline,"1. Login to Django admin
+2. Open cytology protocol
+3. Check inline sections","- CytologySample inline visible
+- Shows technique, site, slides
+- Can edit sample details
+- One-to-one relationship enforced",,,
+S03-040,Step 03,Species Validation,Valid species accepted,"1. Create protocol
+2. Fill Species: Canino, Felino, Bovino, Equino, Ovino, Caprino, Porcino, Aviar, Otro
+3. Save","- All listed species accepted
+- No validation errors",,,
+S03-041,Step 03,Species Validation,Free text species entry,"1. Create protocol
+2. Fill Species: Any text (e.g., 'Reptil')
+3. Save","- Species accepted (free text field)
+- No dropdown restriction
+- Flexibility for unusual species",,,
+S03-042,Step 03,Multiple Protocols,Create multiple protocols for same animal,"1. Create protocol 1: Animal 'Max', mass on leg
+2. Create protocol 2: Animal 'Max', mass on neck
+3. Submit both","- Both protocols created independently
+- Each gets unique temporary code
+- Each gets unique protocol number (when received)
+- No linking between protocols (as per design)",,,
+S03-043,Step 03,Draft Management,Save incomplete protocol as draft,"1. Start creating protocol
+2. Fill only some required fields
+3. Try to save as draft","- If browser supports draft functionality: saved
+- If validation required: error shown
+- Design decision: Drafts also validate required fields",,,
+S03-044,Step 03,Edge Cases,Protocol with very long text fields,"1. Create protocol
+2. Fill Clinical History: 5000+ characters
+3. Fill Observations: 5000+ characters
+4. Save","- Long text accepted (TEXT fields)
+- No character limit errors
+- All text saved and retrieved correctly",,,
+S03-045,Step 03,Edge Cases,Create protocol on leap year,"1. Set date to February 29 (leap year)
+2. Create and submit protocol","- Date accepted
+- Temporary code includes correct date
+- No date validation errors",,,
+S03-046,Step 03,Edge Cases,Create protocol on year boundary,"1. Create protocol on December 31
+2. Create protocol on January 1 (next year)","- Both protocols created successfully
+- Temporary codes reflect correct dates
+- Counter continues sequentially (no reset yet)",,,
+S04-001,Step 04,Reception Search,Search by valid temporary code - Submitted protocol,"1. Login as lab staff
+2. Navigate to /protocols/reception/
+3. Enter temporary code: TMP-CT-20241011-001
+4. Click search","- Protocol found and displayed
+- Shows status: SUBMITTED
+- Shows veterinarian info
+- Shows animal info
+- Shows sample details
+- 'Receive' button visible
+- Redirected to confirm reception page",,,
+S04-002,Step 04,Reception Search,Search by invalid temporary code,"1. Go to /protocols/reception/
+2. Enter invalid code: INVALID-CODE-123
+3. Click search","- Error message shown
+- Message: 'Protocol not found with that temporary code'
+- No results displayed
+- Search form remains visible",,,
+S04-003,Step 04,Reception Search,Search by temporary code - Already received,"1. Go to /protocols/reception/
+2. Enter code of already received protocol
+3. Click search","- Protocol found
+- Status shown as RECEIVED
+- Protocol number displayed
+- Message: 'Already received'
+- No 'Receive' button (already processed)
+- Shows reception details instead",,,
+S04-004,Step 04,Reception Search,Search by temporary code - Draft status,"1. Go to /protocols/reception/
+2. Enter temporary code of draft protocol
+3. Click search","- Error or warning message
+- Message: 'Protocol not submitted yet'
+- Cannot receive draft protocols
+- Must be SUBMITTED first",,,
+S04-005,Step 04,Reception Confirm,Confirm cytology reception - Optimal condition,"1. Search and find submitted cytology protocol
+2. Expected slides: 2
+3. Click to confirm reception
+4. Select condition: Óptima
+5. Enter slides received: 2
+6. Add notes: 'Slides in perfect condition'
+7. Submit","- Protocol status changed to RECEIVED
+- Protocol number assigned: CT 24/###
+- Reception date/time recorded (now)
+- Received by: current user
+- Sample condition: Óptima
+- Slides received: 2
+- Notes saved
+- Success message with protocol number
+- Email sent to veterinarian
+- ReceptionLog entry created (RECEIVED)",,,
+S04-006,Step 04,Reception Confirm,Confirm histopathology reception - Optimal condition,"1. Search submitted histopathology protocol
+2. Expected jars: 1
+3. Confirm reception
+4. Select condition: Óptima
+5. Enter jars received: 1
+6. Add notes: 'Sample in formol, good condition'
+7. Submit","- Protocol status changed to RECEIVED
+- Protocol number assigned: HP 24/###
+- Reception date/time recorded
+- Received by: current user
+- Sample condition: Óptima
+- Jars received: 1
+- Notes saved
+- Success message with protocol number
+- Email sent to veterinarian
+- ReceptionLog entry created",,,
+S04-007,Step 04,Reception Confirm,Reception with quantity discrepancy,"1. Search submitted protocol (expected 2 slides)
+2. Confirm reception
+3. Select condition: Aceptable
+4. Enter slides received: 1 (different from expected 2)
+5. Add discrepancy note: 'Only 1 slide received instead of 2'
+6. Submit","- System detects discrepancy
+- Discrepancy warning shown
+- Discrepancy note field required/visible
+- Reception proceeds after confirmation
+- Discrepancies field populated in protocol
+- Email includes discrepancy info
+- ReceptionLog entry: DISCREPANCY_REPORTED",,,
+S04-008,Step 04,Reception Confirm,Reception with suboptimal condition,"1. Search submitted protocol
+2. Confirm reception
+3. Select condition: Subóptima
+4. Add notes: 'Formol level low, tissue partially exposed'
+5. Submit","- Protocol received
+- Condition recorded as Subóptima
+- Notes saved
+- Warning/alert shown about condition
+- Veterinarian notified in email
+- May affect analysis quality",,,
+S04-009,Step 04,Reception Confirm,Reception with rejected condition,"1. Search submitted protocol
+2. Confirm reception
+3. Select condition: Rechazada
+4. Add notes: 'Sample damaged in transit, cannot process'
+5. Submit","- Protocol status may change to special state
+- Rejection logged
+- Veterinarian notified immediately
+- Clear indication sample cannot be processed
+- ReceptionLog entry: REJECTED",,,
+S04-010,Step 04,Protocol Numbering,First cytology protocol of year,"1. New year (or reset counter)
+2. Receive first cytology protocol","- Protocol number assigned: CT YY/001
+- Example: CT 24/001
+- Counter starts at 001",,,
+S04-011,Step 04,Protocol Numbering,Sequential cytology numbering,"1. Receive CT 24/001
+2. Receive another cytology
+3. Receive another cytology","- Second: CT 24/002
+- Third: CT 24/003
+- Sequential, no gaps
+- Counter increments properly",,,
+S04-012,Step 04,Protocol Numbering,First histopathology protocol of year,"1. New year (or reset counter)
+2. Receive first histopathology protocol","- Protocol number assigned: HP YY/001
+- Example: HP 24/001
+- Separate counter from cytology",,,
+S04-013,Step 04,Protocol Numbering,Sequential histopathology numbering,"1. Receive HP 24/001
+2. Receive another histopathology
+3. Receive another histopathology","- Second: HP 24/002
+- Third: HP 24/003
+- Sequential, no gaps
+- Independent of cytology counter",,,
+S04-014,Step 04,Protocol Numbering,Separate counters for each type,"1. Receive cytology: CT 24/001
+2. Receive histopathology: HP 24/001
+3. Receive cytology: CT 24/002
+4. Receive histopathology: HP 24/002","- Both types start at /001
+- Both increment independently
+- CT and HP can have same number (different type)
+- Two separate ProtocolCounter records",,,
+S04-015,Step 04,Protocol Numbering,No duplicate protocol numbers,"1. Receive 10 protocols
+2. Check all protocol numbers
+3. Try concurrent reception (if possible)","- All protocol numbers unique
+- No duplicates across types
+- Database constraint enforced
+- Atomic counter updates prevent race conditions",,,
+S04-016,Step 04,Protocol Numbering,Year boundary - Counter reset,"1. Receive protocol on Dec 31, 2024 → HP 24/050
+2. Receive protocol on Jan 1, 2025 → HP 25/001","- Counter resets to 001 for new year
+- Year changes in protocol number (24→25)
+- Separate counters per year in database",,,
+S04-017,Step 04,Label Generation,Generate and view PDF label,"1. Receive protocol (gets protocol number)
+2. Click 'Generate Labels' or 'Print Labels'
+3. View PDF","- PDF generated successfully
+- Opens in browser
+- Label dimensions: 100mm x 50mm
+- Contains all required elements",,,
+S04-018,Step 04,Label Generation,Label content - Protocol number,"1. Generate label for protocol
+2. Check PDF content","- Protocol number displayed prominently
+- Large, bold font
+- Easy to read (CT 24/001 or HP 24/123)
+- Center or top of label",,,
+S04-019,Step 04,Label Generation,Label content - QR code,"1. Generate label
+2. Check QR code","- QR code present on label
+- Readable size
+- Contains protocol number
+- Can be scanned with QR reader
+- Position: likely right side or bottom",,,
+S04-020,Step 04,Label Generation,Label content - Animal identification,"1. Generate label
+2. Check animal info","- Animal identification shown
+- Example: 'Max - Canino'
+- Species included",,,
+S04-021,Step 04,Label Generation,Label content - Reception date,"1. Generate label
+2. Check date","- Reception date displayed
+- Format: DD/MM/YYYY or similar
+- Matches actual reception date",,,
+S04-022,Step 04,Label Generation,Label content - Analysis type,"1. Generate label
+2. Check analysis type","- Shows Citología or Histopatología
+- Clear indication of sample type
+- Helps with routing in lab",,,
+S04-023,Step 04,Label Generation,Label content - Laboratory header,"1. Generate label
+2. Check header","- Lab name/logo at top
+- Professional appearance
+- Laboratory branding present",,,
+S04-024,Step 04,Label Generation,Print multiple labels,"1. Receive protocol
+2. Generate labels multiple times
+3. Print 3 copies","- Can generate labels multiple times
+- Each generation produces same content
+- Useful for multiple containers/slides",,,
+S04-025,Step 04,Email Notification,Reception confirmation email sent,"1. Receive protocol
+2. Check email (console or mailbox)","- Email sent to veterinarian
+- To: veterinarian email from profile
+- Subject: 'Muestra recibida - Protocolo [NUMBER]'
+- Professional HTML template
+- Spanish language",,,
+S04-026,Step 04,Email Notification,Email content - Protocol number,"1. Check reception email
+2. Verify protocol number","- Email clearly shows assigned protocol number
+- Prominently displayed
+- Example: HP 24/123",,,
+S04-027,Step 04,Email Notification,Email content - Temporary code,"1. Check reception email
+2. Verify temporary code","- Email includes original temporary code
+- For veterinarian reference
+- Links submitted protocol to received protocol",,,
+S04-028,Step 04,Email Notification,Email content - Reception details,"1. Check reception email
+2. Verify reception information","- Animal identification shown
+- Species shown
+- Reception date and time
+- Sample condition status
+- Quantity received",,,
+S04-029,Step 04,Email Notification,Email content - Discrepancy information,"1. Receive protocol with discrepancy
+2. Check email","- Email includes discrepancy note
+- Clear indication of issue
+- Description of what was expected vs received",,,
+S04-030,Step 04,Email Notification,Email content - Portal link,"1. Check reception email
+2. Verify link","- Email includes link to veterinarian portal
+- Link to track protocol status
+- Clickable URL
+- Direct link to protocol detail",,,
+S04-031,Step 04,Pending Queue,View pending protocols list,"1. Login as lab staff
+2. Navigate to /protocols/reception/pending/","- List of all SUBMITTED protocols displayed
+- Shows protocols awaiting reception
+- Columns: temporary code, vet name, animal, submission date, days pending
+- Quick access to receive button",,,
+S04-032,Step 04,Pending Queue,Days pending calculation - Same day,"1. Submit protocol today
+2. View pending queue
+3. Check days pending","- Shows: 0 days pending
+- Green indicator (fresh)
+- Recently submitted",,,
+S04-033,Step 04,Pending Queue,Days pending calculation - 3 days,"1. Create protocol with submission date 3 days ago
+2. View pending queue
+3. Check days pending","- Shows: 3 days pending
+- Yellow indicator (moderate wait)
+- Attention needed",,,
+S04-034,Step 04,Pending Queue,Days pending calculation - 7+ days,"1. Create protocol with submission date 7+ days ago
+2. View pending queue
+3. Check days pending","- Shows: 7+ days pending
+- Red indicator (urgent)
+- Requires immediate attention",,,
+S04-035,Step 04,Pending Queue,Filter pending by type,"1. Go to pending queue
+2. Filter by Cytology
+3. Filter by Histopathology","- Filtering works
+- Shows only selected type
+- Counts update accordingly",,,
+S04-036,Step 04,Pending Queue,Quick receive from pending list,"1. View pending queue
+2. Click 'Receive' button on a protocol
+3. Redirected to reception confirm page","- Direct access to reception form
+- Protocol pre-selected
+- Quick workflow",,,
+S04-037,Step 04,Pending Queue,Empty pending queue,"1. Receive all pending protocols
+2. View pending queue","- Message: 'No pending receptions'
+- Empty state displayed
+- No protocols in queue",,,
+S04-038,Step 04,Reception History,View reception history,"1. Login as lab staff
+2. Navigate to /protocols/reception/history/","- List of recent receptions (last 100)
+- Shows: protocol number, animal, reception date, received by, condition
+- Chronological order (newest first)
+- Audit trail visible",,,
+S04-039,Step 04,Reception History,History shows received protocols,"1. Receive 3 protocols
+2. View reception history","- All 3 receptions shown
+- Each with complete details
+- Shows who received each
+- Timestamps accurate",,,
+S04-040,Step 04,Reception History,History shows discrepancies,"1. Receive protocol with discrepancy
+2. View reception history
+3. Check for discrepancy indicator","- Discrepancy flagged in history
+- Icon or badge indicates issue
+- Details visible on click/hover",,,
+S04-041,Step 04,Reception History,Filter history by date range,"1. Go to reception history
+2. Filter by last 7 days
+3. Filter by last 30 days
+4. Filter custom date range","- Filtering works correctly
+- Shows only protocols in range
+- Counts update",,,
+S04-042,Step 04,Reception History,Search history by protocol number,"1. Go to reception history
+2. Search for specific protocol number
+3. Example: HP 24/001","- Search finds matching protocol
+- Details displayed
+- Quick lookup for reference",,,
+S04-043,Step 04,Access Control,Lab staff can access reception,"1. Login as user with is_staff=True
+2. Navigate to /protocols/reception/","- Access granted
+- Reception interface displayed
+- All features accessible",,,
+S04-044,Step 04,Access Control,Veterinarian cannot access reception,"1. Login as veterinarian (is_staff=False)
+2. Try to access /protocols/reception/","- Access denied
+- Error message: Staff only
+- Redirected to appropriate page",,,
+S04-045,Step 04,Access Control,Admin can access reception,"1. Login as admin (is_superuser=True)
+2. Navigate to /protocols/reception/","- Access granted
+- All reception features available
+- Can receive samples",,,
+S04-046,Step 04,Admin Interface,View ReceptionLog in admin,"1. Login to Django admin
+2. Navigate to Reception Logs","- List of all reception actions
+- Shows: protocol, action type, user, timestamp
+- Read-only (cannot edit)
+- Filterable by action type
+- Searchable",,,
+S04-047,Step 04,Admin Interface,View ProtocolCounter in admin,"1. Login to Django admin
+2. Navigate to Protocol Counters","- Shows counters per type and year
+- Displays: type, year, last number
+- Can manually adjust if needed (admin only)
+- Shows current count",,,
+S04-048,Step 04,Admin Interface,Reception fields in Protocol admin,"1. Login to Django admin
+2. Open received protocol
+3. Check reception fields","- reception_date shown
+- received_by shown
+- sample_condition displayed
+- reception_notes visible
+- discrepancies field visible
+- Read-only for audit fields",,,
+S04-049,Step 04,Admin Interface,Slides/Jars received in sample admin,"1. Login to Django admin
+2. Open CytologySample
+3. Check slides received field
+4. Open HistopathologySample
+5. Check jars received field","- Cytology: number_slides_received visible
+- Histopathology: number_jars_received visible
+- Can compare expected vs received",,,
+S04-050,Step 04,Edge Cases,Receive protocol at midnight,"1. Receive protocol exactly at 00:00:00
+2. Check date/time","- Reception timestamp accurate
+- Date correct
+- No timezone issues",,,
+S04-051,Step 04,Edge Cases,Concurrent receptions,"1. Two staff members search same protocol
+2. Both try to receive simultaneously","- Only one reception succeeds
+- Other gets error: Already received
+- Database locking prevents duplicate reception
+- No duplicate protocol numbers",,,
+S04-052,Step 04,Edge Cases,Search with extra spaces,"1. Enter temporary code with spaces
+2. Example: ' TMP-CT-20241011-001 '
+3. Search","- System trims whitespace
+- Protocol found successfully
+- User-friendly handling",,,
+S04-053,Step 04,Edge Cases,Search with different case,"1. Enter temporary code in lowercase
+2. Example: 'tmp-ct-20241011-001'
+3. Search","- Case-insensitive search
+- Protocol found
+- User-friendly",,,
+S04-054,Step 04,Edge Cases,Receive 100+ protocols in one day,"1. Submit 150 protocols
+2. Receive all on same day
+3. Check protocol numbers","- All receive unique sequential numbers
+- CT 24/001 through CT 24/150 (if all cytology)
+- Counter handles large numbers
+- No performance issues",,,
+S04-055,Step 04,Reception Detail,View reception success page,"1. Receive protocol
+2. After submission, view reception detail page","- Large display of protocol number
+- Success message
+- Complete reception information shown
+- Links to: print labels, view protocol, back to pending
+- Green success indicator",,,
+S04-056,Step 04,Reception Detail,Print labels from detail page,"1. On reception detail page
+2. Click 'Imprimir Etiquetas' button","- PDF labels open in new tab
+- Ready to print
+- Quick access",,,
+S04-057,Step 04,Reception Detail,View full protocol from detail,"1. On reception detail page
+2. Click 'Ver Protocolo Completo' button","- Redirected to full protocol detail page
+- Shows all protocol information
+- Status now RECEIVED
+- Protocol number visible",,,
+S04-058,Step 04,Integration,Full workflow - Submit to receive,"1. Veterinarian creates protocol
+2. Veterinarian submits protocol (gets temp code)
+3. Lab staff searches by temp code
+4. Lab staff receives sample (gets protocol number)
+5. Label generated
+6. Email sent
+7. Veterinarian checks email
+8. Veterinarian views protocol in portal","- Complete workflow functions smoothly
+- All steps work together
+- Data flows correctly
+- Status updates properly
+- Email received
+- Protocol number matches everywhere",,,
+S04-059,Step 04,Integration,Protocol status visible to veterinarian,"1. Veterinarian submits protocol (SUBMITTED)
+2. Lab receives protocol (RECEIVED)
+3. Veterinarian views protocol in their list","- Status shown as RECEIVED
+- Protocol number visible
+- Reception date visible
+- Status timeline shows both events",,,
+S04-060,Step 04,Integration,Cannot receive same protocol twice,"1. Receive protocol (assign protocol number)
+2. Search same temporary code again
+3. Try to receive again","- System prevents duplicate reception
+- Shows 'Already received' message
+- Protocol number already assigned
+- Reception date already set
+- Cannot change",,,

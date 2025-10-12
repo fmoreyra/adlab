@@ -1,0 +1,414 @@
+Test ID,Step,Feature Area,Test Scenario,Test Steps,Expected Result,Status,Tester,Date,Notes
+S01-001,Step 01,Registration,New veterinarian registration with valid data,"1. Go to /accounts/register/
+2. Fill email: newvet@example.com
+3. Fill password: TestPass123!
+4. Fill password confirmation: TestPass123!
+5. Select role: Veterinario
+6. Click 'Registrar'","- Registration successful
+- Success message shown in Spanish
+- Redirected appropriately
+- User created in database",,,
+S01-002,Step 01,Registration,Registration with existing email,"1. Go to /accounts/register/
+2. Use email from previous test
+3. Fill password fields
+4. Click 'Registrar'","- Error message shown
+- 'Email already exists' error in Spanish
+- No duplicate user created",,,
+S01-003,Step 01,Registration,Registration with weak password,"1. Go to /accounts/register/
+2. Fill valid email
+3. Fill password: 123
+4. Fill confirmation: 123
+5. Click 'Registrar'","- Form validation error
+- Password complexity requirement message
+- Registration blocked",,,
+S01-004,Step 01,Registration,Registration with mismatched passwords,"1. Go to /accounts/register/
+2. Fill valid email
+3. Fill password: TestPass123!
+4. Fill confirmation: DifferentPass123!
+5. Click 'Registrar'","- Form validation error
+- Passwords don't match error
+- Registration blocked",,,
+S01-005,Step 01,Login,Login with valid credentials,"1. Go to /accounts/login/
+2. Enter email of verified user
+3. Enter correct password
+4. Click 'Iniciar sesión'","- Login successful
+- Redirected to home/dashboard
+- Session created
+- AuthAuditLog entry created (login_success)",,,
+S01-006,Step 01,Login,Login with invalid password,"1. Go to /accounts/login/
+2. Enter valid email
+3. Enter wrong password
+4. Click 'Iniciar sesión'","- Login failed
+- Error message shown
+- failed_login_attempts incremented
+- AuthAuditLog entry created (login_failed)",,,
+S01-007,Step 01,Login,Account lockout after 5 failed attempts,"1. Go to /accounts/login/
+2. Enter valid email
+3. Enter wrong password 5 times","- After 5th attempt: account locked
+- Clear lockout message shown
+- User cannot login even with correct password
+- AuthAuditLog entries for all attempts",,,
+S01-008,Step 01,Login,Login attempt on locked account,"1. Try to login with locked account
+2. Enter correct credentials","- Login blocked
+- Account locked message shown
+- Told to contact administrator",,,
+S01-009,Step 01,Login,Remember me functionality,"1. Go to /accounts/login/
+2. Enter valid credentials
+3. Check 'Remember me' checkbox
+4. Login successfully
+5. Close browser
+6. Reopen browser
+7. Visit site","- Session persists after browser close
+- Still logged in",,,
+S01-010,Step 01,Login,Login without remember me,"1. Login without checking 'Remember me'
+2. Check session timeout","- Session expires after 2 hours
+- User logged out automatically",,,
+S01-011,Step 01,Logout,User logout,"1. Login successfully
+2. Click 'Logout' or visit /accounts/logout/","- User logged out
+- Session terminated
+- Redirected to login page
+- AuthAuditLog entry created (logout)",,,
+S01-012,Step 01,Password Reset,Request password reset,"1. Go to /accounts/password-reset/
+2. Enter registered email
+3. Click submit","- Success message shown (generic)
+- Email sent with reset link
+- PasswordResetToken created
+- Token expires in 1 hour",,,
+S01-013,Step 01,Password Reset,Reset password with valid token,"1. Click link from reset email
+2. Enter new password
+3. Confirm new password
+4. Submit","- Password changed successfully
+- Token marked as used
+- Success message shown
+- Can login with new password
+- AuthAuditLog entry created",,,
+S01-014,Step 01,Password Reset,Reset with expired token,"1. Wait 1+ hours after requesting reset
+2. Click reset link
+3. Try to set new password","- Token expired error
+- Cannot reset password
+- Prompted to request new token",,,
+S01-015,Step 01,Password Reset,Reset with already-used token,"1. Request password reset
+2. Use token to reset password
+3. Try to use same token again","- Token already used error
+- Cannot reset password again
+- Must request new token",,,
+S01-016,Step 01,Password Reset,Request reset for non-existent email,"1. Go to /accounts/password-reset/
+2. Enter email not in system
+3. Submit","- Generic success message (security)
+- No email sent
+- No error revealing email doesn't exist",,,
+S01-017,Step 01,Profile,View own profile,"1. Login as any user
+2. Go to /accounts/profile/","- Profile page shown
+- Shows user information
+- Email, role, last login displayed",,,
+S01-018,Step 01,Session Security,Session cookie security,"1. Login successfully
+2. Inspect browser cookies","- Session cookie is HttpOnly
+- Session cookie is Secure
+- SameSite attribute set",,,
+S01-019,Step 01,Audit Log,Verify audit logging,"1. Perform various actions (login, logout, reset)
+2. Admin checks AuthAuditLog in Django admin","- All actions logged
+- IP address captured
+- User agent captured
+- Timestamps accurate",,,
+S01-020,Step 01,Admin,Admin unlock account,"1. Lock account (5 failed logins)
+2. Admin goes to Django admin
+3. Admin resets failed_login_attempts to 0
+4. User tries to login again","- Account unlocked
+- User can login successfully",,,
+S01.1-001,Step 01.1,Email Verification,New veterinarian receives verification email,"1. Register as veterinarian
+2. Check email/console logs","- Verification email sent
+- Email contains clickable link
+- Link format: /accounts/verify-email/<token>/
+- Token is 43 characters (urlsafe)",,,
+S01.1-002,Step 01.1,Email Verification,Verify email with valid token,"1. Register as veterinarian
+2. Click verification link from email
+3. Observe result","- Email verified successfully
+- email_verified set to True
+- Token cleared
+- Success message shown
+- Can now login",,,
+S01.1-003,Step 01.1,Email Verification,Login attempt before verification,"1. Register as veterinarian (unverified)
+2. Go to /accounts/login/
+3. Enter correct credentials
+4. Try to login","- Authentication succeeds but login blocked
+- Message: 'Please verify email before logging in'
+- Link to resend verification shown",,,
+S01.1-004,Step 01.1,Email Verification,Verify with expired token (>24 hours),"1. Register as veterinarian
+2. Wait 24+ hours (or manually expire token in DB)
+3. Click verification link","- Token expired error
+- email_verified still False
+- Prompted to request new verification",,,
+S01.1-005,Step 01.1,Email Verification,Verify with invalid token,"1. Visit /accounts/verify-email/invalidtoken123/
+2. Observe result","- Invalid token error
+- Generic error message
+- No information disclosure",,,
+S01.1-006,Step 01.1,Email Verification,Resend verification email,"1. Go to /accounts/resend-verification/
+2. Enter registered unverified email
+3. Submit","- Success message shown
+- New verification email sent
+- New token generated (old token invalidated)
+- Can verify with new token",,,
+S01.1-007,Step 01.1,Email Verification,Resend for non-existent email,"1. Go to /accounts/resend-verification/
+2. Enter email not in system
+3. Submit","- Generic success message (security)
+- No email sent
+- No error revealing email doesn't exist",,,
+S01.1-008,Step 01.1,Email Verification,Resend for already verified email,"1. Go to /accounts/resend-verification/
+2. Enter email of verified user
+3. Submit","- Generic success message
+- No email sent (already verified)
+- No error revealing status",,,
+S01.1-009,Step 01.1,Email Verification,Internal user (lab staff) bypass verification,"1. Admin creates lab staff user
+2. Lab staff user tries to login immediately","- Login successful without verification
+- No email verification required
+- can_login() returns True for internal users",,,
+S01.1-010,Step 01.1,Email Verification,Internal user (admin) bypass verification,"1. Admin creates admin user
+2. Admin user tries to login immediately","- Login successful without verification
+- No email verification required",,,
+S01.1-011,Step 01.1,Email Verification,Internal user (histopathologist) bypass verification,"1. Admin creates histopathologist user
+2. Histopathologist tries to login immediately","- Login successful without verification
+- No email verification required",,,
+S01.1-012,Step 01.1,Email Verification,Admin manually verify email,"1. Admin goes to Django admin
+2. Selects unverified veterinarian
+3. Uses 'Mark email as verified' action
+4. Veterinarian tries to login","- Email marked as verified
+- Veterinarian can login successfully",,,
+S01.1-013,Step 01.1,Email Verification,Admin resend verification email,"1. Admin goes to Django admin
+2. Selects unverified veterinarian
+3. Uses 'Resend verification email' action","- New verification email sent
+- New token generated
+- Success message shown",,,
+S01.1-014,Step 01.1,Audit Log,Email verification events logged,"1. Register, verify, resend
+2. Check AuthAuditLog in admin","- EMAIL_VERIFICATION_SENT logged
+- EMAIL_VERIFIED logged
+- EMAIL_VERIFICATION_FAILED logged (if applicable)
+- All with timestamps and IP",,,
+S02-001,Step 02,Profile Completion,First-time profile completion prompt,"1. Register and verify as veterinarian
+2. Login for first time
+3. Check if prompted","- Redirected to complete profile page
+- Message explaining profile completion needed
+- Form displayed",,,
+S02-002,Step 02,Profile Completion,Complete profile with valid data,"1. Navigate to /accounts/veterinarian/complete-profile/
+2. Fill first name: Juan
+3. Fill last name: Pérez
+4. Fill license number: MP-12345
+5. Fill phone: +54 342 1234567
+6. Fill email: (auto-filled from user)
+7. Fill province: Santa Fe
+8. Fill locality: Santa Fe
+9. Fill street: San Martín
+10. Fill number: 1234
+11. Submit","- Profile created successfully
+- Veterinarian record created
+- Address record created
+- Redirected to profile view
+- Success message shown",,,
+S02-003,Step 02,Profile Completion,Invalid license number format,"1. Go to complete profile
+2. Fill license number: 12345 (wrong format)
+3. Submit","- Form validation error
+- Message: 'Format must be XX-XXXXX or XXX-XXXXX'
+- Profile not created",,,
+S02-004,Step 02,Profile Completion,Valid license number formats,"1. Test format: MP-12345
+2. Test format: MVT-123456
+3. Test format: AA-1234","- MP-12345: Valid ✓
+- MVT-123456: Valid ✓
+- AA-1234: Valid ✓
+- Uppercase conversion automatic",,,
+S02-005,Step 02,Profile Completion,Duplicate license number,"1. Create profile with license MP-12345
+2. Create another profile with same license
+3. Submit","- Error: 'License number already exists'
+- Profile not created
+- Uniqueness enforced",,,
+S02-006,Step 02,Profile Completion,Invalid phone format,"1. Go to complete profile
+2. Fill phone: 123456 (wrong format)
+3. Submit","- Form validation error
+- Message shows required format
+- Profile not created",,,
+S02-007,Step 02,Profile Completion,Valid phone format,"1. Go to complete profile
+2. Fill phone: +54 342 1234567
+3. Submit","- Phone accepted
+- Format validated successfully",,,
+S02-008,Step 02,Profile Completion,Complete profile without address,"1. Fill only veterinarian fields
+2. Leave address fields empty
+3. Submit","- Form validation error
+- Required address fields highlighted
+- Cannot submit without address",,,
+S02-009,Step 02,Profile Completion,Attempt to complete profile twice,"1. Complete profile once
+2. Try to access /accounts/veterinarian/complete-profile/ again","- Redirected away
+- Message: Profile already complete
+- Cannot duplicate profile",,,
+S02-010,Step 02,Profile Completion,Non-veterinarian access profile completion,"1. Login as lab staff or admin
+2. Try to access /accounts/veterinarian/complete-profile/","- Access denied
+- Error message
+- Redirected appropriately",,,
+S02-011,Step 02,Profile View,View complete profile,"1. Login as veterinarian with profile
+2. Go to /accounts/veterinarian/profile/","- Profile information displayed
+- Shows professional info
+- Shows address
+- Shows verification status
+- Shows profile completeness (100%)",,,
+S02-012,Step 02,Profile View,Profile without completion redirect,"1. Login as veterinarian without profile
+2. Try to access /accounts/veterinarian/profile/","- Redirected to complete-profile page
+- Message prompting completion",,,
+S02-013,Step 02,Profile View,Profile completeness calculation,"1. View profile with all fields filled
+2. Check completeness percentage","- Shows 100% complete
+- All 9 required fields counted",,,
+S02-014,Step 02,Profile View,Verification status badge,"1. View profile as unverified veterinarian
+2. Check verification badge","- Shows 'No Verificado' or similar
+- Red/warning badge color
+- Clear indication of status",,,
+S02-015,Step 02,Profile View,Verified status badge,"1. Admin verifies veterinarian
+2. Veterinarian views profile
+3. Check verification badge","- Shows 'Verificado' or similar
+- Green/success badge color
+- Shows verified date if visible",,,
+S02-016,Step 02,Profile Edit,Edit profile with valid data,"1. Go to /accounts/veterinarian/profile/edit/
+2. Change phone to +54 342 9999999
+3. Change locality to Rosario
+4. Submit","- Changes saved successfully
+- VeterinarianChangeLog entries created
+- Shows updated information
+- Success message displayed",,,
+S02-017,Step 02,Profile Edit,Edit with invalid license format,"1. Go to profile edit
+2. Change license to invalid format
+3. Submit","- Form validation error
+- Changes not saved
+- Original data preserved",,,
+S02-018,Step 02,Profile Edit,Edit with duplicate license,"1. Go to profile edit
+2. Change license to another user's license
+3. Submit","- Error: License already exists
+- Changes not saved",,,
+S02-019,Step 02,Profile Edit,Change log creation on edit,"1. Edit profile (change phone)
+2. View profile history
+3. Check Django admin change log","- Change logged in VeterinarianChangeLog
+- Shows field: phone
+- Shows old value
+- Shows new value
+- Shows who changed (user)
+- Shows IP address
+- Shows timestamp",,,
+S02-020,Step 02,Profile Edit,Edit email synchronization,"1. Go to profile edit
+2. Change email address
+3. Submit
+4. Check User model","- Email changed in Veterinarian
+- Email also changed in User model
+- Kept in sync",,,
+S02-021,Step 02,Profile History,View change history,"1. Edit profile multiple times
+2. Go to /accounts/veterinarian/profile/history/","- Shows list of changes (last 50)
+- Shows old → new values
+- Shows field names
+- Shows timestamps
+- Shows who made changes
+- Shows IP addresses
+- Chronological order (newest first)",,,
+S02-022,Step 02,Profile History,History shows multiple field changes,"1. Edit profile changing 3 fields
+2. View history","- Shows 3 separate change log entries
+- One entry per field changed
+- All from same edit session",,,
+S02-023,Step 02,Profile History,Empty history for new profile,"1. Complete new profile
+2. View history immediately","- History shows profile creation
+- Or shows empty/no changes yet",,,
+S02-024,Step 02,Address,Complete address display,"1. Create profile with full address (including optional fields)
+2. View profile","- Shows full address formatted properly
+- Street Number, Floor Apt
+- Locality, Province (Postal Code)
+- Shows notes if provided",,,
+S02-025,Step 02,Address,Partial address display,"1. Create profile with only required address fields
+2. View profile","- Shows address with required fields only
+- Optional fields not shown/blank
+- Still properly formatted",,,
+S02-026,Step 02,Admin,Search veterinarians,"1. Login to Django admin
+2. Go to Veterinarians
+3. Search by name
+4. Search by email
+5. Search by license","- Search works for all fields
+- Results filtered correctly
+- Quick lookup by any field",,,
+S02-027,Step 02,Admin,Filter by verification status,"1. Login to Django admin
+2. Go to Veterinarians
+3. Filter by 'is_verified'","- Shows only verified/unverified
+- Filter works correctly
+- Can separate verified from unverified",,,
+S02-028,Step 02,Admin,Bulk verify veterinarians,"1. Login to Django admin
+2. Go to Veterinarians
+3. Select multiple unverified vets
+4. Choose 'Verify veterinarians' action
+5. Execute","- All selected vets verified
+- is_verified set to True
+- verified_by set to admin
+- verified_at set to now",,,
+S02-029,Step 02,Admin,Bulk unverify veterinarians,"1. Login to Django admin
+2. Select verified vets
+3. Choose 'Unverify veterinarians' action
+4. Execute","- All selected vets unverified
+- is_verified set to False
+- Verification metadata cleared",,,
+S02-030,Step 02,Admin,View veterinarian with inline address,"1. Login to Django admin
+2. Open specific veterinarian record","- Shows veterinarian fields
+- Shows address inline
+- Can edit address from same page",,,
+S02-031,Step 02,Admin,View veterinarian change log inline,"1. Login to Django admin
+2. Open veterinarian with history
+3. Scroll to change logs section","- Shows change log entries inline
+- All fields read-only
+- Cannot edit history
+- Shows last N changes",,,
+S02-032,Step 02,Admin,Prevent manual veterinarian creation,"1. Login to Django admin
+2. Try to add new veterinarian manually","- Add button disabled or hidden
+- Error if attempted
+- Must register via UI",,,
+S02-033,Step 02,Admin,Prevent change log manipulation,"1. Login to Django admin
+2. Go to VeterinarianChangeLogs
+3. Try to edit or delete entry","- All entries read-only
+- Cannot edit
+- Cannot delete
+- Audit log immutable",,,
+S02-034,Step 02,Validation,License number case insensitive,"1. Create profile with license: mp-12345
+2. Check database","- Stored as: MP-12345
+- Automatically uppercased
+- Case insensitive uniqueness",,,
+S02-035,Step 02,Validation,Required fields enforcement,"1. Try to submit profile with missing required fields
+2. Test each required field","- All 9 required fields enforced:
+  * first_name
+  * last_name
+  * license_number
+  * phone
+  * email
+  * province
+  * locality
+  * street
+  * number
+- Submission blocked if any missing",,,
+S02-036,Step 02,Validation,Optional fields acceptance,"1. Submit profile without optional fields:
+   - floor
+   - apartment
+   - postal_code
+   - address notes","- Profile accepted
+- Optional fields can be blank
+- No validation errors",,,
+S02-037,Step 02,Security,Veterinarian can only edit own profile,"1. Login as veterinarian A
+2. Try to access profile of veterinarian B","- Access denied
+- Cannot view other profiles
+- Cannot edit other profiles
+- Proper isolation",,,
+S02-038,Step 02,Security,Lab staff view-only access,"1. Login as lab staff
+2. Access Django admin
+3. View veterinarians
+4. Try to edit","- Can view veterinarian list
+- Can search/filter
+- Cannot edit (view-only)
+- Proper permission control",,,
+S02-039,Step 02,Security,Change log IP capture,"1. Edit profile
+2. Check change log entry
+3. Verify IP address","- IP address captured correctly
+- Shows actual client IP
+- Logged for audit trail",,,
+S02-040,Step 02,Integration,Profile completion after registration flow,"1. Complete full registration flow:
+   - Register account
+   - Verify email
+   - Login
+   - Complete profile
+2. Verify entire flow","- Smooth progression through steps
+- No errors at any stage
+- All data persists correctly
+- User ends at functional profile",,,

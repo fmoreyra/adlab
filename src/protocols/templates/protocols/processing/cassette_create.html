@@ -1,0 +1,160 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Crear Cassettes - {{ protocol.protocol_number }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Crear Cassettes</h1>
+    <a href="{% url 'protocols:processing_status' protocol.pk %}" 
+       class="text-purple-600 hover:text-purple-800">
+      ← Volver al Estado
+    </a>
+  </div>
+
+  <!-- Protocol Info Card -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-500">Protocolo</label>
+        <div class="text-lg font-semibold text-gray-900">{{ protocol.protocol_number }}</div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-500">Tipo</label>
+        <div class="text-lg">{{ protocol.get_analysis_type_display }}</div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-500">Animal</label>
+        <div class="text-lg">{{ protocol.animal_identification }}</div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-500">Veterinario</label>
+        <div class="text-lg">{{ protocol.veterinarian.get_full_name }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Existing Cassettes -->
+  {% if existing_cassettes %}
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Cassettes Existentes</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Color</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for cassette in existing_cassettes %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              {{ cassette.codigo_cassette }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ cassette.material_incluido }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ cassette.get_tipo_cassette_display }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ cassette.get_color_cassette_display }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ cassette.get_estado_display }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Create Cassettes Form -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Crear Nuevos Cassettes</h2>
+    <form method="post">
+      {% csrf_token %}
+      
+      <div class="mb-6">
+        <label for="cassette_count" class="block text-sm font-medium text-gray-700 mb-2">
+          Número de Cassettes
+        </label>
+        <select name="cassette_count" id="cassette_count" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+          {% for i in "12345678901234567890"|make_list %}
+          <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="cassette-fields" class="space-y-4">
+        <!-- Cassette fields will be dynamically added here -->
+      </div>
+
+      <div class="flex justify-end space-x-4 mt-6">
+        <a href="{% url 'protocols:processing_status' protocol.pk %}" 
+           class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+          Cancelar
+        </a>
+        <button type="submit" 
+                class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+          Crear Cassettes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Simple JavaScript to handle dynamic cassette fields
+document.getElementById('cassette_count').addEventListener('change', function() {
+  const count = parseInt(this.value);
+  const container = document.getElementById('cassette-fields');
+  container.innerHTML = '';
+  
+  for (let i = 0; i < count; i++) {
+    const fieldHtml = `
+      <div class="border border-gray-200 rounded-lg p-4">
+        <h3 class="text-lg font-medium text-gray-800 mb-3">Cassette ${i + 1}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Material Incluido</label>
+            <input type="text" name="material_${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+            <select name="tipo_${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+              <option value="normal">Normal</option>
+              <option value="biopsia">Biopsia</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+            <select name="color_${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+              <option value="blanco">Blanco</option>
+              <option value="azul">Azul</option>
+              <option value="verde">Verde</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+            <input type="text" name="observaciones_${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+          </div>
+        </div>
+      </div>
+    `;
+    container.innerHTML += fieldHtml;
+  }
+});
+
+// Initialize with default count
+document.getElementById('cassette_count').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}

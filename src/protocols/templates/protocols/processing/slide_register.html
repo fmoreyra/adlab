@@ -1,0 +1,425 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Registrar Slides - {{ protocol.protocol_number }}{% endblock %}
+
+{% block body %}
+<div id="app" class="min-h-screen bg-gray-100">
+  <!-- Header -->
+  <header class="bg-purple-300 p-4 flex items-center gap-2 text-purple-900">
+    <a href="{% url 'protocols:processing_status' protocol.pk %}" class="p-2 bg-purple-900 text-white rounded-full hover:bg-purple-800">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+    </a>
+    <h1 class="text-xl font-bold">Registrar slides</h1>
+  </header>
+
+  <!-- Protocol Information Card -->
+  <div class="p-6 bg-gray-200 mx-4 my-4 rounded-md">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex flex-col">
+        <label class="text-purple-700 font-medium">Número de protocolo:</label>
+        <div class="p-2 rounded bg-white border border-gray-200">{{ protocol.protocol_number }}</div>
+      </div>
+      <div class="flex flex-col">
+        <label class="text-purple-700 font-medium">Veterinario remitente:</label>
+        <div class="p-2 rounded bg-white border border-gray-200">
+          {{ protocol.veterinarian.get_full_name }}
+        </div>
+      </div>
+      <div class="flex flex-col">
+        <label class="text-purple-700 font-medium">Nombre/id del paciente:</label>
+        <div class="p-2 rounded bg-white border border-gray-200">{{ protocol.animal_identification }}</div>
+      </div>
+      <div class="flex flex-col">
+        <label class="text-purple-700 font-medium">Fecha de ingreso de muestra:</label>
+        <div class="p-2 rounded bg-white border border-gray-200">
+          {% if protocol.reception_date %}
+            {{ protocol.reception_date|date:"d/m/Y" }}
+          {% else %}
+            -
+          {% endif %}
+        </div>
+      </div>
+      <div class="flex flex-col">
+        <label class="text-purple-700 font-medium">Propietario:</label>
+        <div class="p-2 rounded bg-white border border-gray-200">
+          {{ protocol.get_owner_full_name|default:"-" }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="mx-4 my-8">
+    {% if is_cytology %}
+      <!-- Cytology: Simplified slide creation -->
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-lg font-medium text-gray-700 mb-4">Crear slides de citología</h2>
+        <p class="text-gray-600 mb-4">
+          Para citología, simplemente cree los slides y especifique la técnica de coloración.
+        </p>
+        
+        <form method="post">
+          {% csrf_token %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Número de slides a crear:
+              </label>
+              <input type="number" name="slide_count" value="1" min="1" max="10" 
+                     class="w-full p-2 border border-gray-300 rounded-md">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Técnica de coloración:
+              </label>
+              <input type="text" name="staining_technique" value="Diff-Quick" 
+                     class="w-full p-2 border border-gray-300 rounded-md">
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Comentarios:
+            </label>
+            <textarea name="comments" rows="3" 
+                      class="w-full p-2 border border-gray-300 rounded-md"></textarea>
+          </div>
+          
+          <button type="submit" class="bg-purple-700 hover:bg-purple-800 text-white px-6 py-3 rounded-md">
+            Crear Slides
+          </button>
+        </form>
+      </div>
+    {% else %}
+      <!-- Histopathology: Interactive Cassette-Slide Relationship UI -->
+      <h2 class="text-lg text-gray-600 mb-4">Cassettes del protocolo:</h2>
+      
+      <!-- Cassette Selection Buttons -->
+      <div class="flex flex-wrap gap-2 mb-6">
+        {% for cassette in cassettes %}
+        <button 
+          type="button"
+          :class="[
+            'w-14 h-14 rounded-md font-bold transition-all',
+            'bg-gray-500 text-white',
+            selectedCassette === {{ cassette.id }} ? 'ring-4 ring-purple-500 shadow-lg' : ''
+          ]"
+          @click="selectCassette({{ cassette.id }})"
+        >
+          C{{ forloop.counter }}
+        </button>
+        {% empty %}
+        <p class="text-gray-500">No hay cassettes creados aún. 
+          <a href="{% url 'protocols:cassette_create' protocol.pk %}" class="text-purple-700 underline">
+            Crear cassettes primero
+          </a>
+        </p>
+        {% endfor %}
+      </div>
+
+      {% if cassettes %}
+      <!-- Cassette Info -->
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div class="flex flex-col">
+          <label class="text-purple-700 font-medium">Cantidad de cassettes:</label>
+          <div class="p-2 rounded bg-white border border-gray-200">{{ cassettes|length }}</div>
+        </div>
+        <div class="flex flex-col md:col-span-2">
+          <label class="text-purple-700 font-medium">Comentarios:</label>
+          <textarea v-model="comments" class="p-2 rounded bg-gray-100 h-24"></textarea>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div v-if="selectedCassette" class="bg-purple-100 p-3 rounded-md mb-4 flex items-center">
+        <svg class="w-5 h-5 text-purple-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-purple-700">
+          Cassette seleccionado. Haga clic en una posición de slide para relacionarla con este cassette.
+        </p>
+      </div>
+      <div v-else class="bg-blue-100 p-3 rounded-md mb-4 flex items-center">
+        <svg class="w-5 h-5 text-blue-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="text-blue-700">
+          Seleccione un cassette para relacionarlo con una posición en un slide.
+        </p>
+      </div>
+
+      <!-- Slide Visualization (Interactive) -->
+      <div class="flex flex-wrap gap-4 mb-4 justify-center">
+        <div 
+          v-for="slideNumber in slides" 
+          :key="`slide-${slideNumber}`" 
+          class="w-24 h-64 bg-purple-300 flex flex-col rounded-md overflow-hidden shadow-md"
+        >
+          <div class="h-12 flex items-center justify-center font-bold bg-purple-400">
+            S[[slideNumber]]
+          </div>
+          <div class="flex-1 flex flex-col items-center justify-around p-2">
+            <!-- Position 1 (Superior) -->
+            <div 
+              :class="[
+                'w-16 h-16 border-2 border-dashed border-purple-700 rounded-md flex items-center justify-center transition-all',
+                isSlideMarked(slideNumber, 1) ? 'bg-purple-400' : 'hover:bg-purple-200',
+                selectedCassette && !isSlideMarked(slideNumber, 1) ? 'cursor-pointer animate-pulse' : ''
+              ]"
+              @click="toggleSlideMarking(slideNumber, 1)"
+            >
+              <span v-if="isSlideMarked(slideNumber, 1)" class="text-xs font-bold">
+                C[[getSlideMarking(slideNumber, 1)]]
+              </span>
+            </div>
+            <!-- Position 2 (Inferior) -->
+            <div 
+              :class="[
+                'w-16 h-16 border-2 border-dashed border-purple-700 rounded-md flex items-center justify-center transition-all',
+                isSlideMarked(slideNumber, 2) ? 'bg-purple-400' : 'hover:bg-purple-200',
+                selectedCassette && !isSlideMarked(slideNumber, 2) ? 'cursor-pointer animate-pulse' : ''
+              ]"
+              @click="toggleSlideMarking(slideNumber, 2)"
+            >
+              <span v-if="isSlideMarked(slideNumber, 2)" class="text-xs font-bold">
+                C[[getSlideMarking(slideNumber, 2)]]
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Slide Button -->
+      <div class="flex justify-center mb-6">
+        <button 
+          @click="addNewSlide" 
+          type="button"
+          class="bg-purple-200 hover:bg-purple-300 text-purple-800 px-4 py-2 rounded-full flex items-center gap-2 transition-all shadow hover:shadow-md"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Nuevo Slide</span>
+        </button>
+      </div>
+
+      <!-- Relationship Summary -->
+      <div v-if="hasAnyRelationships" class="bg-gray-100 p-4 rounded-md mb-6">
+        <h3 class="font-medium text-gray-700 mb-2">Relaciones Slide-Cassette:</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div 
+            v-for="(positions, cassetteId) in relationshipsByCassette" 
+            :key="cassetteId"
+            class="bg-white p-2 rounded-md shadow-sm"
+          >
+            <span class="font-bold text-purple-700">Cassette [[cassetteId]]:</span>
+            <div class="ml-2">
+              <div v-for="(position, index) in positions" :key="index">
+                Slide [[position.slide]], Posición [[position.position]]
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex justify-center">
+        <button 
+          @click="saveSlides"
+          type="button"
+          class="bg-purple-700 hover:bg-purple-800 text-white px-6 py-3 rounded-md flex items-center gap-2 transition-all shadow-md"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+          </svg>
+          <span>Registrar Slides</span>
+        </button>
+      </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- Toast Notification -->
+  <div 
+    v-if="showNotification" 
+    class="fixed bottom-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-md transition-opacity duration-500"
+    :class="{ 'opacity-100': showNotification, 'opacity-0': !showNotification }"
+  >
+    <div class="flex items-center">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p>[[notificationMessage]]</p>
+    </div>
+  </div>
+</div>
+
+<!-- Vue 3 CDN -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+<script>
+const { createApp, ref, computed } = Vue;
+
+createApp({
+  delimiters: ['[[', ']]'],  // Use [[ ]] to avoid conflict with Django template syntax
+  setup() {
+    // State
+    const selectedCassette = ref(null);
+    const slides = ref([1, 2, 3]);  // Initial slides
+    const slideMarkings = ref({
+      {% if existing_relationships %}
+        {% for key, cassette_id in existing_relationships.items %}
+        "{{ key|escapejs }}": {{ cassette_id }},
+        {% endfor %}
+      {% endif %}
+    });
+    const comments = ref("");
+    const showNotification = ref(false);
+    const notificationMessage = ref("");
+
+    // Methods
+    function selectCassette(cassetteId) {
+      selectedCassette.value = selectedCassette.value === cassetteId ? null : cassetteId;
+    }
+
+    function isSlideMarked(slideNumber, position) {
+      const key = `${slideNumber}-${position}`;
+      return key in slideMarkings.value;
+    }
+
+    function getSlideMarking(slideNumber, position) {
+      const key = `${slideNumber}-${position}`;
+      // Return cassette number (find in cassettes array)
+      const cassetteId = slideMarkings.value[key];
+      const cassettes = {{ cassettes|default:"[]"|escapejs }};
+      const index = cassettes.findIndex(c => c.id === cassetteId);
+      return index + 1;  // Display as C1, C2, etc.
+    }
+
+    function toggleSlideMarking(slideNumber, position) {
+      const key = `${slideNumber}-${position}`;
+      
+      if (selectedCassette.value) {
+        if (isSlideMarked(slideNumber, position) && slideMarkings.value[key] === selectedCassette.value) {
+          delete slideMarkings.value[key];
+        } else {
+          slideMarkings.value[key] = selectedCassette.value;
+        }
+      } else if (isSlideMarked(slideNumber, position)) {
+        delete slideMarkings.value[key];
+      }
+    }
+
+    function addNewSlide() {
+      const newSlideNumber = Math.max(...slides.value) + 1;
+      slides.value.push(newSlideNumber);
+      
+      notificationMessage.value = `Nuevo slide S${newSlideNumber} añadido`;
+      showNotification.value = true;
+      setTimeout(() => {
+        showNotification.value = false;
+      }, 3000);
+    }
+
+    const hasAnyRelationships = computed(() => {
+      return Object.keys(slideMarkings.value).length > 0;
+    });
+
+    const relationshipsByCassette = computed(() => {
+      const result = {};
+      
+      for (const [key, cassetteId] of Object.entries(slideMarkings.value)) {
+        const [slideNumber, position] = key.split("-").map(Number);
+        
+        if (!result[cassetteId]) {
+          result[cassetteId] = [];
+        }
+        
+        result[cassetteId].push({
+          slide: slideNumber,
+          position: position
+        });
+      }
+      
+      return result;
+    });
+
+    function saveSlides() {
+      // Create form and submit
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '';
+      
+      // CSRF token
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = '{{ csrf_token }}';
+      form.appendChild(csrfInput);
+      
+      // Slides data
+      const slidesInput = document.createElement('input');
+      slidesInput.type = 'hidden';
+      slidesInput.name = 'slides_data';
+      slidesInput.value = JSON.stringify(slides.value);
+      form.appendChild(slidesInput);
+      
+      // Relationships data
+      const relationshipsInput = document.createElement('input');
+      relationshipsInput.type = 'hidden';
+      relationshipsInput.name = 'relationships_data';
+      relationshipsInput.value = JSON.stringify(slideMarkings.value);
+      form.appendChild(relationshipsInput);
+      
+      // Comments
+      const commentsInput = document.createElement('input');
+      commentsInput.type = 'hidden';
+      commentsInput.name = 'comments';
+      commentsInput.value = comments.value;
+      form.appendChild(commentsInput);
+      
+      // Staining technique
+      const stainingInput = document.createElement('input');
+      stainingInput.type = 'hidden';
+      stainingInput.name = 'staining_technique';
+      stainingInput.value = 'Hematoxilina-Eosina';
+      form.appendChild(stainingInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    return {
+      selectedCassette,
+      slides,
+      slideMarkings,
+      comments,
+      showNotification,
+      notificationMessage,
+      selectCassette,
+      isSlideMarked,
+      getSlideMarking,
+      toggleSlideMarking,
+      addNewSlide,
+      hasAnyRelationships,
+      relationshipsByCassette,
+      saveSlides,
+    };
+  }
+}).mount('#app');
+</script>
+
+<style>
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>
+{% endblock %}
+

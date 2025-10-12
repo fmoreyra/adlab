@@ -1,0 +1,185 @@
+{% extends 'layouts/index.html' %}
+{% load static %}
+
+{% block title %}Panel de Laboratorio - AdLab{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Welcome Section -->
+        <div class="mb-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-8 text-white">
+            <h1 class="text-3xl font-bold mb-2">Panel de Laboratorio</h1>
+            <p class="text-blue-100">Gestión de recepción y procesamiento de muestras</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Acciones Rápidas</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <a href="{% url 'protocols:reception_search' %}" class="block bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-2">Recepción de Muestras</h3>
+                    <p class="text-center text-blue-100 text-sm">Confirmar recepción de muestras</p>
+                </a>
+                
+                <a href="{% url 'protocols:processing_dashboard' %}" class="block bg-white hover:bg-gray-50 border-2 border-blue-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-2 text-gray-800">Procesamiento</h3>
+                    <p class="text-center text-gray-600 text-sm">Gestionar procesamiento de muestras</p>
+                </a>
+                
+                <a href="{% url 'protocols:workorder_pending_protocols' %}" class="block bg-white hover:bg-gray-50 border-2 border-blue-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-2 text-gray-800">Órdenes de Trabajo</h3>
+                    <p class="text-center text-gray-600 text-sm">Crear órdenes de trabajo</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Statistics Widgets -->
+        <div class="mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-red-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Muestras Pendientes</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ pending_reception_count }}</div>
+                    <p class="text-gray-500 text-sm">Esperando recepción</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">En Procesamiento</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ processing_count }}</div>
+                    <p class="text-gray-500 text-sm">Muestras activas</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Hoy</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ today_received_count }}</div>
+                    <p class="text-gray-500 text-sm">Muestras recibidas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Queue -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Cola de Procesamiento</h2>
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                {% if processing_queue %}
+                    <div class="divide-y divide-gray-200">
+                        {% for protocol in processing_queue %}
+                            <div class="p-6 hover:bg-gray-50 transition-colors duration-150">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-4">
+                                            <div>
+                                                <h4 class="text-lg font-semibold text-gray-800">
+                                                    {{ protocol.protocol_number|default:protocol.temporary_code }}
+                                                </h4>
+                                                <p class="text-gray-600">
+                                                    {{ protocol.get_analysis_type_display }} - {{ protocol.veterinarian.get_full_name }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full
+                                            {% if protocol.status == 'submitted' %}bg-yellow-100 text-yellow-800
+                                            {% elif protocol.status == 'received' %}bg-blue-100 text-blue-800
+                                            {% elif protocol.status == 'processing' %}bg-purple-100 text-purple-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {{ protocol.get_status_display }}
+                                        </span>
+                                        <a href="{% url 'protocols:processing_status' protocol.pk %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                                            Procesar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="p-8 text-center text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <p>No hay protocolos en procesamiento</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Feature Discovery -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Herramientas de Laboratorio</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Buscar Protocolos</h3>
+                    <p class="text-gray-600 text-sm mb-4">Buscar protocolos por número o veterinario</p>
+                    <a href="{% url 'protocols:reception_search' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Buscar
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Generar Etiquetas</h3>
+                    <p class="text-gray-600 text-sm mb-4">Crear etiquetas para muestras</p>
+                    <a href="{% url 'protocols:reception_pending' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Generar
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Registrar Cassettes</h3>
+                    <p class="text-gray-600 text-sm mb-4">Registrar cassettes de procesamiento</p>
+                    <a href="{% url 'protocols:processing_queue' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Registrar
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Registrar Portaobjetos</h3>
+                    <p class="text-gray-600 text-sm mb-4">Registrar portaobjetos para análisis</p>
+                    <a href="{% url 'protocols:processing_queue' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Registrar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

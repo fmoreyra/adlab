@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifique su Email - AdLab</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+        <h2 style="color: #2563eb; margin-top: 0;">Bienvenido a AdLab</h2>
+        
+        <p>Hola {{ user.get_full_name }},</p>
+        
+        <p>Gracias por registrarse en el Sistema de Laboratorio de Anatomía Patológica.</p>
+        
+        <p>Para activar su cuenta y poder iniciar sesión, por favor verifique su dirección de email haciendo clic en el siguiente botón:</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ verification_url }}" 
+               style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                Verificar Email
+            </a>
+        </div>
+        
+        <p>O copie y pegue el siguiente enlace en su navegador:</p>
+        <p style="word-break: break-all; background-color: #e5e7eb; padding: 10px; border-radius: 3px;">
+            <a href="{{ verification_url }}" style="color: #2563eb;">{{ verification_url }}</a>
+        </p>
+        
+        <p><strong>Este enlace expirará en 24 horas.</strong></p>
+        
+        <p>Si no se registró en AdLab, puede ignorar este email de forma segura.</p>
+        
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+        
+        <p style="font-size: 12px; color: #6b7280;">
+            Este es un mensaje automático del Sistema de Laboratorio de Anatomía Patológica AdLab.<br>
+            Por favor no responda a este email.
+        </p>
+    </div>
+</body>
+</html>
+

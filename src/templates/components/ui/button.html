@@ -1,0 +1,77 @@
+{% comment %}
+Modern Button Component
+Usage: {% include 'components/ui/button.html' with text="Button Text" type="submit" variant="primary" size="md" %}
+Variants: primary, secondary, outline, ghost, danger
+Sizes: sm, md, lg
+{% endcomment %}
+
+{% load static %}
+
+{% if variant == "primary" %}
+    {% if size == "sm" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% elif size == "lg" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% else %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% endif %}
+{% elif variant == "secondary" %}
+    {% if size == "sm" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% elif size == "lg" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-6 py-3 text-base font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% else %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% endif %}
+{% elif variant == "outline" %}
+    {% if size == "sm" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-white border border-blue-600 rounded-md shadow-sm hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% elif size == "lg" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-6 py-3 text-base font-medium text-blue-600 bg-white border border-blue-600 rounded-lg shadow-sm hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% else %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-white border border-blue-600 rounded-md shadow-sm hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% endif %}
+{% elif variant == "ghost" %}
+    {% if size == "sm" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-transparent border border-transparent rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% elif size == "lg" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-6 py-3 text-base font-medium text-gray-600 bg-transparent border border-transparent rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% else %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-transparent border border-transparent rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% endif %}
+{% elif variant == "danger" %}
+    {% if size == "sm" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200">
+    {% elif size == "lg" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-red-600 border border-transparent rounded-lg shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200">
+    {% else %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200">
+    {% endif %}
+{% else %}
+    {% if size == "sm" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% elif size == "lg" %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% else %}
+        <button type="{{ type|default:'button' }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+    {% endif %}
+{% endif %}
+
+    {% if icon %}
+        <svg class="w-4 h-4 {% if text %}mr-2{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {% if icon == "plus" %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            {% elif icon == "search" %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            {% elif icon == "filter" %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+            {% elif icon == "x" %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            {% elif icon == "check" %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            {% endif %}
+        </svg>
+    {% endif %}
+    
+    {% if text %}{{ text }}{% endif %}
+</button>
