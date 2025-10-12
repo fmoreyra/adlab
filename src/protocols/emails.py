@@ -31,6 +31,16 @@ def _serialize_context_for_celery(context):
                 'model': value.__class__.__name__,
                 'str': str(value)
             }
+        elif hasattr(value, 'model'):  # Django QuerySet
+            # Convert QuerySet to list of serialized objects
+            serialized_context[key] = [
+                {
+                    'id': obj.pk,
+                    'model': obj.__class__.__name__,
+                    'str': str(obj)
+                }
+                for obj in value
+            ]
         elif isinstance(value, dict):
             # Recursively serialize nested dicts
             serialized_context[key] = _serialize_context_for_celery(value)

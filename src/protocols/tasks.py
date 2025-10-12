@@ -30,7 +30,30 @@ def _deserialize_context_for_templates(context):
     deserialized_context = {}
     
     for key, value in context.items():
-        if isinstance(value, dict) and 'id' in value and 'model' in value:
+        if isinstance(value, list) and value and isinstance(value[0], dict) and 'id' in value[0] and 'model' in value[0]:
+            # Reconstruct QuerySet from list of serialized objects
+            model_instances = []
+            for item in value:
+                model_name = item['model']
+                model_id = item['id']
+                
+                try:
+                    if model_name == 'Protocol':
+                        model_instance = Protocol.objects.get(id=model_id)
+                    elif model_name == 'WorkOrder':
+                        model_instance = WorkOrder.objects.get(id=model_id)
+                    else:
+                        # For other models, just use the string representation
+                        model_instance = item['str']
+                    
+                    model_instances.append(model_instance)
+                except Exception as e:
+                    logger.warning(f"Could not reconstruct {model_name} with id {model_id}: {e}")
+                    # Fallback to string representation
+                    model_instances.append(item['str'])
+            
+            deserialized_context[key] = model_instances
+        elif isinstance(value, dict) and 'id' in value and 'model' in value:
             # Reconstruct model instance
             model_name = value['model']
             model_id = value['id']
