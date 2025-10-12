@@ -125,7 +125,7 @@ class AccountsViewsTest(TestCase):
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("accounts:login"))
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/protocols/select-type/")
+        self.assertRedirects(response, "/")
 
     def test_logout_view(self):
         """Test logout view."""
