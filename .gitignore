@@ -8,6 +8,9 @@ public/*
 public_collected/*
 !public_collected/.keep
 
+# Database backups
+backups/
+
 .env*
 !.env.example
 docker-compose.override.yml
