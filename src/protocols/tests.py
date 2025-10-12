@@ -44,7 +44,7 @@ class ProtocolModelTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -221,7 +221,7 @@ class CytologySampleModelTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -276,7 +276,7 @@ class HistopathologySampleModelTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -331,7 +331,7 @@ class ProtocolStatusHistoryModelTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -374,7 +374,7 @@ class CytologyProtocolFormTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -457,7 +457,7 @@ class HistopathologyProtocolFormTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -527,7 +527,7 @@ class ProtocolViewsTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -807,7 +807,7 @@ class CassetteModelTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -955,7 +955,7 @@ class SlideModelTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -1082,7 +1082,7 @@ class CassetteSlideTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -1212,7 +1212,7 @@ class ProcessingLogTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -1317,7 +1317,7 @@ class ProcessingWorkflowTest(TestCase):
             user=self.user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -1478,7 +1478,7 @@ class ProcessingViewsTest(TestCase):
             user=self.vet_user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -2111,7 +2111,7 @@ class WorkOrderViewsTest(TestCase):
             user=self.vet_user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -2687,7 +2687,7 @@ class ReceptionViewsTest(TestCase):
             user=self.vet_user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -3140,7 +3140,7 @@ class ReportViewsTest(TestCase):
             user=self.vet_user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
         )

@@ -127,7 +127,7 @@ class WorkOrderModelTest(TestCase):
         )
         self.veterinarian = Veterinarian.objects.create(
             user=self.user,
-            license_number="MP-12345",
+            license_number="MP-12345-WORKORDER",
         )
 
         # Create work order
@@ -287,7 +287,7 @@ class WorkOrderServiceModelTest(TestCase):
         )
         self.veterinarian = Veterinarian.objects.create(
             user=self.user,
-            license_number="MP-12345",
+            license_number="MP-12345-WORKORDER",
         )
 
         # Create work order
@@ -381,7 +381,7 @@ class WorkOrderIntegrationTest(TestCase):
         )
         self.veterinarian = Veterinarian.objects.create(
             user=vet_user,
-            license_number="MP-12345",
+            license_number="MP-12345-WORKORDER",
         )
 
         # Create pricing

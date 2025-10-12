@@ -752,7 +752,7 @@ class VeterinarianModelTest(TestCase):
             user=self.user,
             first_name="Juan",
             last_name="Pérez",
-            license_number="MP-12345",
+            license_number="MP-12345-ACCOUNTS-TESTS",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -770,12 +770,12 @@ class VeterinarianModelTest(TestCase):
         """Test creating a veterinarian."""
         self.assertEqual(self.veterinarian.first_name, "Juan")
         self.assertEqual(self.veterinarian.last_name, "Pérez")
-        self.assertEqual(self.veterinarian.license_number, "MP-12345")
+        self.assertEqual(self.veterinarian.license_number, "MP-12345-ACCOUNTS-TESTS")
         self.assertFalse(self.veterinarian.is_verified)
 
     def test_veterinarian_str(self):
         """Test veterinarian string representation."""
-        expected = "Pérez, Juan (MP: MP-12345)"
+        expected = "Pérez, Juan (MP: MP-12345-ACCOUNTS-TESTS)"
         self.assertEqual(str(self.veterinarian), expected)
 
     def test_get_full_name(self):
@@ -827,7 +827,7 @@ class VeterinarianModelTest(TestCase):
                 user=user2,
                 first_name="María",
                 last_name="González",
-                license_number="MP-12345",  # Duplicate
+                license_number="MP-12345-ACCOUNTS-TESTS",  # Duplicate
                 phone="+54 342 9999999",
                 email="vet2@example.com",
             )
@@ -849,7 +849,7 @@ class AddressModelTest(TestCase):
             user=user,
             first_name="Juan",
             last_name="Pérez",
-            license_number="MP-12345",
+            license_number="MP-12345-ACCOUNTS-TESTS",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -901,7 +901,7 @@ class VeterinarianChangeLogTest(TestCase):
             user=user,
             first_name="Juan",
             last_name="Pérez",
-            license_number="MP-12345",
+            license_number="MP-12345-ACCOUNTS-TESTS",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -935,7 +935,7 @@ class VeterinarianFormTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-            "license_number": "MP-12345",
+                "license_number": "MP-12345-ACCOUNTS-TESTS-2",
             "phone": "+54 342 1234567",
             "email": "vet@example.com",
         }
@@ -964,7 +964,7 @@ class VeterinarianFormTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-            "license_number": "MP-12345",
+                "license_number": "MP-12345-ACCOUNTS-TESTS-2",
             "phone": "123456",  # Invalid format
             "email": "vet@example.com",
         }
@@ -987,7 +987,7 @@ class VeterinarianFormTest(TestCase):
             user=user,
             first_name="Existing",
             last_name="User",
-            license_number="MP-12345",
+            license_number="MP-12345-ACCOUNTS-TESTS",
             phone="+54 342 1111111",
             email="existing@example.com",
         )
@@ -996,7 +996,7 @@ class VeterinarianFormTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-            "license_number": "MP-12345",  # Duplicate
+                "license_number": "MP-12345-ACCOUNTS-TESTS-2",  # Duplicate
             "phone": "+54 342 1234567",
             "email": "vet@example.com",
         }
@@ -1036,7 +1036,7 @@ class CompleteProfileViewTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-            "license_number": "MP-12345",
+                "license_number": "MP-12345-ACCOUNTS-TESTS-2",
             "phone": "+54 342 1234567",
             "province": "Santa Fe",
             "locality": "Esperanza",
@@ -1050,7 +1050,7 @@ class CompleteProfileViewTest(TestCase):
         # Check veterinarian was created
         self.assertTrue(hasattr(self.user, "veterinarian_profile"))
         self.assertEqual(
-            self.user.veterinarian_profile.license_number, "MP-12345"
+            self.user.veterinarian_profile.license_number, "MP-12345-ACCOUNTS-TESTS"
         )
 
         # Check address was created
@@ -1075,7 +1075,7 @@ class CompleteProfileViewTest(TestCase):
             user=self.user,
             first_name="Juan",
             last_name="Pérez",
-            license_number="MP-12345",
+            license_number="MP-12345-ACCOUNTS-TESTS",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -1104,7 +1104,7 @@ class VeterinarianProfileDetailViewTest(TestCase):
             user=self.user,
             first_name="Juan",
             last_name="Pérez",
-            license_number="MP-12345",
+            license_number="MP-12345-ACCOUNTS-TESTS",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -1124,7 +1124,7 @@ class VeterinarianProfileDetailViewTest(TestCase):
         self.client.login(username="vet@example.com", password="testpass123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "MP-12345")
+        self.assertContains(response, "MP-12345-ACCOUNTS-TESTS")
         self.assertContains(response, "Juan")
 
     def test_profile_detail_without_profile(self):
@@ -1164,7 +1164,7 @@ class VeterinarianProfileEditViewTest(TestCase):
             user=self.user,
             first_name="Juan",
             last_name="Pérez",
-            license_number="MP-12345",
+            license_number="MP-12345-ACCOUNTS-TESTS",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -1193,7 +1193,7 @@ class VeterinarianProfileEditViewTest(TestCase):
         data = {
             "first_name": "Juan Carlos",  # Changed
             "last_name": "Pérez",
-            "license_number": "MP-12345",
+                "license_number": "MP-12345-ACCOUNTS-TESTS-2",
             "phone": "+54 342 9999999",  # Changed
             "email": "vet@example.com",
             "province": "Santa Fe",
@@ -1256,7 +1256,7 @@ class VeterinarianProfileHistoryViewTest(TestCase):
             user=self.user,
             first_name="Juan",
             last_name="Pérez",
-            license_number="MP-12345",
+            license_number="MP-12345-ACCOUNTS-TESTS",
             phone="+54 342 1234567",
             email="vet@example.com",
         )

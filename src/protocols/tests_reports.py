@@ -37,7 +37,7 @@ class ReportModelTest(TestCase):
             user=vet_user,
             first_name="Carlos",
             last_name="Rodríguez",
-            license_number="MP-12345",
+            license_number="MP-12345-REPORTS",
             email="vet@test.com",
             phone="+54 342 1234567",
         )
@@ -144,7 +144,7 @@ class CassetteObservationModelTest(TestCase):
             user=vet_user,
             first_name="Carlos",
             last_name="Rodríguez",
-            license_number="MP-12345",
+            license_number="MP-12345-REPORTS",
             email="vet@test.com",
         )
 
@@ -238,7 +238,7 @@ class ReportViewsTest(TestCase):
             user=vet_user,
             first_name="Carlos",
             last_name="Rodríguez",
-            license_number="MP-12345",
+            license_number="MP-12345-REPORTS",
             email="vet@test.com",
         )
 
@@ -340,7 +340,7 @@ class ReportPDFGenerationTest(TestCase):
             user=vet_user,
             first_name="Carlos",
             last_name="Rodríguez",
-            license_number="MP-12345",
+            license_number="MP-12345-REPORTS",
             email="vet@test.com",
         )
 
@@ -429,7 +429,7 @@ class ReportEmailTest(TestCase):
             user=vet_user,
             first_name="Carlos",
             last_name="Rodríguez",
-            license_number="MP-12345",
+            license_number="MP-12345-REPORTS",
             email="vet@test.com",
         )
 

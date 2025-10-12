@@ -67,7 +67,7 @@ class ProtocolsAdminTest(TestCase):
             user=self.vet_user,
             first_name="John",
             last_name="Doe",
-            license_number="MP-12345",
+            license_number="MP-12345-ADMIN",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
