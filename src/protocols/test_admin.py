@@ -735,8 +735,8 @@ class ProtocolsAdminTest(TestCase):
         response = self.client.get("/admin/protocols/protocol/")
         self.assertEqual(response.status_code, 200)
         # Should contain all protocols
-        self.assertContains(response, "C 25/100")
-        self.assertContains(response, "C 25/109")
+        self.assertContains(response, "C 25/200")
+        self.assertContains(response, "C 25/209")
 
     def test_admin_search_performance(self):
         """Test admin search performance."""
