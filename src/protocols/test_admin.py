@@ -13,20 +13,21 @@ This module tests:
 
 from datetime import date
 from decimal import Decimal
-from unittest.mock import patch
 
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
-from django.urls import reverse
-from django.utils import timezone
+from django.test import TestCase
 
-from accounts.models import Veterinarian, Histopathologist
-from protocols.admin import ProtocolAdmin, CytologySampleAdmin, HistopathologySampleAdmin
+from accounts.models import Histopathologist, Veterinarian
+from protocols.admin import CytologySampleAdmin, ProtocolAdmin
 from protocols.models import (
-    Protocol, CytologySample, HistopathologySample, 
-    Report, WorkOrder, WorkOrderService, Cassette, Slide,
-    ProtocolCounter, WorkOrderCounter, EmailLog, NotificationPreference
+    CytologySample,
+    EmailLog,
+    HistopathologySample,
+    NotificationPreference,
+    Protocol,
+    ProtocolCounter,
+    WorkOrder,
 )
 
 User = get_user_model()

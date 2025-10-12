@@ -10,18 +10,14 @@ This module tests:
 6. User management functionality
 """
 
-from datetime import date
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.core import mail
-from django.test import Client, TestCase
+from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from accounts.models import (
-    Address, AuthAuditLog, PasswordResetToken, Veterinarian, VeterinarianChangeLog
-)
+from accounts.models import AuthAuditLog, PasswordResetToken, Veterinarian
 
 User = get_user_model()
 
@@ -321,7 +317,7 @@ class AccountsViewsTest(TestCase):
     def test_resend_verification_view_post_valid_email(self):
         """Test POST request with valid email."""
         # Create unverified user
-        unverified_user = User.objects.create_user(
+        User.objects.create_user(
             email="unverified@example.com",
             username="unverified",
             password="testpass123",

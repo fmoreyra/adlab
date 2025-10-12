@@ -11,19 +11,19 @@ This module tests:
 
 from datetime import date
 from decimal import Decimal
-from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseForbidden
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.utils import timezone
 
-from accounts.models import Veterinarian, Histopathologist
+from accounts.models import Histopathologist, Veterinarian
 from protocols.models import (
-    Protocol, CytologySample, HistopathologySample, 
-    Report, WorkOrder, WorkOrderService, Cassette, Slide
+    CytologySample,
+    HistopathologySample,
+    Protocol,
+    Report,
+    WorkOrder,
+    WorkOrderService,
 )
 
 User = get_user_model()
@@ -367,7 +367,7 @@ class SecurityTest(TestCase):
         self.vet_user.save()
         
         # Try to login
-        response = self.client.post(
+        self.client.post(
             reverse("accounts:login"),
             {"email": "vet@example.com", "password": "testpass123"}
         )
@@ -382,7 +382,7 @@ class SecurityTest(TestCase):
         self.vet_user.save()
         
         # Try to login
-        response = self.client.post(
+        self.client.post(
             reverse("accounts:login"),
             {"email": "vet@example.com", "password": "testpass123"}
         )
@@ -596,7 +596,7 @@ class SecurityTest(TestCase):
         self.client.login(email="staff@example.com", password="testpass123")
         
         # Try directory traversal in filename
-        malicious_filename = "../../../etc/passwd"
+        # malicious_filename = "../../../etc/passwd"  # Would be used in file upload tests
         
         # This would be tested in file upload views if they exist
         # For now, we'll test that the system doesn't crash with malicious input

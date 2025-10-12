@@ -260,8 +260,25 @@
 <!-- Vue 3 CDN -->
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
+<!-- Django template data -->
+<script type="application/json" id="django-data">
+{
+  "existingRelationships": {
+    {% if existing_relationships %}
+      {% for key, cassette_id in existing_relationships.items %}
+      "{{ key|escapejs }}": {{ cassette_id }}{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    {% endif %}
+  },
+  "cassettes": {{ cassettes|default:"[]"|escapejs }}
+}
+</script>
+
 <script>
 const { createApp, ref, computed } = Vue;
+
+// Load Django data from JSON script tag
+const djangoData = JSON.parse(document.getElementById('django-data').textContent);
 
 createApp({
   delimiters: ['[[', ']]'],  // Use [[ ]] to avoid conflict with Django template syntax
@@ -269,16 +286,11 @@ createApp({
     // State
     const selectedCassette = ref(null);
     const slides = ref([1, 2, 3]);  // Initial slides
-    const slideMarkings = ref({
-      {% if existing_relationships %}
-        {% for key, cassette_id in existing_relationships.items %}
-        "{{ key|escapejs }}": {{ cassette_id }},
-        {% endfor %}
-      {% endif %}
-    });
+    const slideMarkings = ref(djangoData.existingRelationships);
     const comments = ref("");
     const showNotification = ref(false);
     const notificationMessage = ref("");
+    const cassettes = djangoData.cassettes;
 
     // Methods
     function selectCassette(cassetteId) {
@@ -294,7 +306,6 @@ createApp({
       const key = `${slideNumber}-${position}`;
       // Return cassette number (find in cassettes array)
       const cassetteId = slideMarkings.value[key];
-      const cassettes = {{ cassettes|default:"[]"|escapejs }};
       const index = cassettes.findIndex(c => c.id === cassetteId);
       return index + 1;  // Display as C1, C2, etc.
     }

@@ -1,24 +1,35 @@
-# 🐳 An example Django + Docker app
+# 🧪 Laboratory Management System
 
-You could use this example app as a base for your new project or as a guide to
-Dockerize your existing Django app.
+A comprehensive Django-based laboratory management system for handling veterinary pathology protocols, sample processing, and report generation. This system provides a complete workflow for managing laboratory operations from protocol submission to final report delivery.
 
-The example app is minimal but it wires up a number of things you might use in
-a real world Django app, but at the same time it's not loaded up with a million
-personal opinions.
+## 🏥 System Overview
 
-For the Docker bits, everything included is an accumulation of [Docker best
-practices](https://nickjanetakis.com/blog/best-practices-around-production-ready-web-apps-with-docker-compose)
-based on building and deploying dozens of assorted Dockerized web apps since
-late 2014.
+This laboratory management system is designed to streamline veterinary pathology laboratory operations, providing:
 
-**This app is using Django 5.2.7 and Python 3.14.0**. The screenshot shows
-`X.X.X` since they get updated regularly:
+- **Protocol Management**: Complete workflow for protocol submission, review, and approval
+- **Sample Processing**: Track samples through reception, processing, and analysis stages
+- **Report Generation**: Automated report creation with PDF generation and email delivery
+- **User Management**: Role-based access control for veterinarians, histopathologists, and staff
+- **Work Orders**: Comprehensive work order management and tracking
+- **Email Notifications**: Automated email system for status updates and notifications
 
-[![Screenshot](.github/docs/screenshot.jpg)](https://github.com/nickjj/docker-django-example/blob/main/.github/docs/screenshot.jpg?raw=true)
+## 🛠 Technical Foundation
+
+This system is built on top of a robust Django + Docker foundation that provides:
+
+- **Docker-based Development**: Complete containerized development environment
+- **Modern Tech Stack**: PostgreSQL, Redis, Celery for background tasks
+- **Frontend Assets**: esbuild + TailwindCSS for modern UI development
+- **Code Quality**: Ruff for linting and formatting
+- **Production Ready**: Gunicorn, WhiteNoise, and comprehensive configuration
+
+**Built with Django 5.2.7 and Python 3.14.0**
+
+> **Note**: This project is based on the excellent [Docker Django Example](https://github.com/nickjj/docker-django-example) by [Nick Janetakis](https://nickjanetakis.com). The original template provides the Docker infrastructure, development workflow, and best practices that make this laboratory system possible.
 
 ## 🧾 Table of contents
 
+- [Laboratory System Features](#laboratory-system-features)
 - [Tech stack](#tech-stack)
 - [Notable opinions and extensions](#notable-opinions-and-extensions)
 - [Running this app](#running-this-app)
@@ -33,6 +44,73 @@ late 2014.
   - [Deploy to production](#deploy-to-production)
 - [About the author](#about-the-author)
 
+## 🧪 Laboratory System Features
+
+### Core Functionality
+
+- **🔐 Authentication & Authorization**
+  - Email verification system for veterinarians
+  - Role-based access control (Veterinarian, Histopathologist, Staff)
+  - Secure password reset functionality
+  - Session management and audit logging
+
+- **📋 Protocol Management**
+  - Protocol submission and review workflow
+  - Support for Cytology and Histopathology analysis types
+  - Protocol editing and status tracking
+  - Automatic protocol numbering system
+
+- **🧬 Sample Processing**
+  - Sample reception and registration
+  - Cassette and slide management
+  - Sample tracking through processing stages
+  - Visual slide registration interface with Vue.js
+
+- **📊 Report Generation**
+  - Automated PDF report generation using ReportLab
+  - Report templates for different analysis types
+  - Report finalization and approval workflow
+  - Email delivery of completed reports
+
+- **📦 Work Order Management**
+  - Work order creation and tracking
+  - Service management and pricing
+  - Work order status updates
+  - PDF work order generation
+
+- **📧 Email System**
+  - Automated email notifications
+  - Email verification for new users
+  - Report delivery via email
+  - Configurable email templates
+
+### Advanced Features
+
+- **📈 Dashboard & Analytics**
+  - User-specific dashboards
+  - Protocol and report statistics
+  - System performance metrics
+  - Data visualization
+
+- **🔍 Search & Filtering**
+  - Advanced search capabilities
+  - Filter protocols by status, type, and date
+  - Quick access to recent activities
+  - Export functionality
+
+- **🛡️ Security Features**
+  - CSRF protection
+  - XSS prevention
+  - SQL injection protection
+  - Secure file handling
+  - Permission-based access control
+
+- **📱 Modern UI/UX**
+  - Responsive design with TailwindCSS
+  - Interactive components with Vue.js
+  - Real-time notifications
+  - Intuitive navigation
+
 ## 🧬 Tech stack
 
 If you don't like some of these choices that's no problem, you can swap them
@@ -40,15 +118,22 @@ out for something else on your own.
 
 ### Back-end
 
-- [PostgreSQL](https://www.postgresql.org/)
-- [Redis](https://redis.io/)
-- [Celery](https://github.com/celery/celery)
+- [PostgreSQL](https://www.postgresql.org/) - Primary database
+- [Redis](https://redis.io/) - Caching and session storage
+- [Celery](https://github.com/celery/celery) - Background task processing
+- [ReportLab](https://www.reportlab.com/) - PDF generation for reports and work orders
+- [qrcode](https://github.com/lincolnloop/python-qrcode) - QR code generation for samples
+- [Django](https://www.djangoproject.com/) - Web framework
+- [Gunicorn](https://gunicorn.org/) - WSGI HTTP server
+- [WhiteNoise](https://github.com/evansd/whitenoise) - Static file serving
 
 ### Front-end
 
-- [esbuild](https://esbuild.github.io/)
-- [TailwindCSS](https://tailwindcss.com/)
-- [Heroicons](https://heroicons.com/)
+- [esbuild](https://esbuild.github.io/) - JavaScript bundler
+- [TailwindCSS](https://tailwindcss.com/) - CSS framework
+- [Heroicons](https://heroicons.com/) - Icon library
+- [Vue.js 3](https://vuejs.org/) - Interactive UI components
+- [Alpine.js](https://alpinejs.dev/) - Lightweight JavaScript framework
 
 #### But what about JavaScript?!
 
@@ -110,7 +195,9 @@ Besides the Django app itself:
   its name
 - GitHub Actions have been set up
 
-## 🚀 Running this app
+## 🚀 Running the Laboratory System
+
+### Prerequisites
 
 You'll need to have [Docker installed](https://docs.docker.com/get-docker/).
 It's available on Windows, macOS and most distros of Linux. If you're new to
@@ -131,13 +218,13 @@ of [WSL or WSL
 That's because we're going to be running shell commands. You can always modify
 these commands for PowerShell if you want.
 
-#### Clone this repo anywhere you want and move into the directory:
+### Quick Start
+
+#### Clone this repository:
 
 ```sh
-git clone https://github.com/nickjj/docker-django-example adlab
-cd adlab
-
-# Optionally checkout a specific tag, such as: git checkout 0.11.0
+git clone <your-repository-url> laboratory-system
+cd laboratory-system
 ```
 
 #### Copy an example .env file because the real one is git ignored:
@@ -184,6 +271,15 @@ variables to fix this.
 #### Check it out in a browser:
 
 Visit <http://localhost:8000> in your favorite browser.
+
+The laboratory system will be available with the following default access:
+
+- **Home Page**: <http://localhost:8000> - System overview and navigation
+- **Admin Interface**: <http://localhost:8000/admin> - Django admin for system management
+- **User Registration**: <http://localhost:8000/accounts/register> - Create new user accounts
+- **Login**: <http://localhost:8000/accounts/login> - User authentication
+
+> **Note**: Check the `TEST_CREDENTIALS.md` file for test user credentials and the `LABORATORY_SETUP.md` file for detailed setup instructions.
 
 #### Linting the code base:
 
@@ -417,15 +513,25 @@ you want to get notified when it launches with a discount and potentially get
 free videos while the course is being developed then [sign up here to get
 notified](https://nickjanetakis.com/courses/deploy-to-production).
 
-## 👀 About the author
+## 👀 About the authors
 
-- Nick Janetakis | <https://nickjanetakis.com> | [@nickjanetakis](https://twitter.com/nickjanetakis)
+### Laboratory System Developer
 
-I'm a self taught developer and have been freelancing for the last ~20 years.
-You can read about everything I've learned along the way on my site at
+This laboratory management system was developed to provide a comprehensive solution for veterinary pathology laboratories. The system implements modern web development practices and provides a complete workflow for managing laboratory operations.
+
+### Original Django Template Author
+
+- **Nick Janetakis** | <https://nickjanetakis.com> | [@nickjanetakis](https://twitter.com/nickjanetakis)
+
+Nick is a self taught developer and has been freelancing for the last ~20 years.
+You can read about everything he's learned along the way on his site at
 [https://nickjanetakis.com](https://nickjanetakis.com/).
 
 There's hundreds of [blog posts](https://nickjanetakis.com/) and a couple
 of [video courses](https://nickjanetakis.com/courses) on web development and
-deployment topics. I also have a [podcast](https://runninginproduction.com)
-where I talk with folks about running web apps in production.
+deployment topics. He also has a [podcast](https://runninginproduction.com)
+where he talks with folks about running web apps in production.
+
+### Acknowledgments
+
+This laboratory system is built on top of Nick's excellent [Docker Django Example](https://github.com/nickjj/docker-django-example) template, which provides the solid foundation of Docker infrastructure, development workflow, and best practices that make this system possible. The original template demonstrates modern Django development practices and production-ready deployment strategies.
