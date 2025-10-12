@@ -746,7 +746,7 @@ class ProtocolsAdminTest(TestCase):
                 veterinarian=self.veterinarian,
                 analysis_type=Protocol.AnalysisType.CYTOLOGY,
                 status=Protocol.Status.SUBMITTED,
-                temporary_code=f"C 25/{i+100:03d}",
+                temporary_code=f"C 25/{i + 100:03d}",
                 submission_date=date.today(),
                 species="Canino",
                 animal_identification=f"Searchable Dog {i}",

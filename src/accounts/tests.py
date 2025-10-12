@@ -770,7 +770,9 @@ class VeterinarianModelTest(TestCase):
         """Test creating a veterinarian."""
         self.assertEqual(self.veterinarian.first_name, "Juan")
         self.assertEqual(self.veterinarian.last_name, "Pérez")
-        self.assertEqual(self.veterinarian.license_number, "MP-12345-ACCOUNTS-TESTS")
+        self.assertEqual(
+            self.veterinarian.license_number, "MP-12345-ACCOUNTS-TESTS"
+        )
         self.assertFalse(self.veterinarian.is_verified)
 
     def test_veterinarian_str(self):
@@ -935,7 +937,7 @@ class VeterinarianFormTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-                "license_number": "MP-12345-ACCOUNTS-TESTS-2",
+            "license_number": "MP-12345-ACCOUNTS-TESTS-2",
             "phone": "+54 342 1234567",
             "email": "vet@example.com",
         }
@@ -964,7 +966,7 @@ class VeterinarianFormTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-                "license_number": "MP-12345-ACCOUNTS-TESTS-2",
+            "license_number": "MP-12345-ACCOUNTS-TESTS-2",
             "phone": "123456",  # Invalid format
             "email": "vet@example.com",
         }
@@ -996,7 +998,7 @@ class VeterinarianFormTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-                "license_number": "MP-12345-ACCOUNTS-TESTS-2",  # Duplicate
+            "license_number": "MP-12345-ACCOUNTS-TESTS-2",  # Duplicate
             "phone": "+54 342 1234567",
             "email": "vet@example.com",
         }
@@ -1036,7 +1038,7 @@ class CompleteProfileViewTest(TestCase):
         data = {
             "first_name": "Juan",
             "last_name": "Pérez",
-                "license_number": "MP-12345-ACCOUNTS-TESTS-2",
+            "license_number": "MP-12345-ACCOUNTS-TESTS-2",
             "phone": "+54 342 1234567",
             "province": "Santa Fe",
             "locality": "Esperanza",
@@ -1050,7 +1052,8 @@ class CompleteProfileViewTest(TestCase):
         # Check veterinarian was created
         self.assertTrue(hasattr(self.user, "veterinarian_profile"))
         self.assertEqual(
-            self.user.veterinarian_profile.license_number, "MP-12345-ACCOUNTS-TESTS"
+            self.user.veterinarian_profile.license_number,
+            "MP-12345-ACCOUNTS-TESTS",
         )
 
         # Check address was created
@@ -1193,7 +1196,7 @@ class VeterinarianProfileEditViewTest(TestCase):
         data = {
             "first_name": "Juan Carlos",  # Changed
             "last_name": "Pérez",
-                "license_number": "MP-12345-ACCOUNTS-TESTS-2",
+            "license_number": "MP-12345-ACCOUNTS-TESTS-2",
             "phone": "+54 342 9999999",  # Changed
             "email": "vet@example.com",
             "province": "Santa Fe",
