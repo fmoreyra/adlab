@@ -113,13 +113,15 @@ select_backup() {
     
     for i in "${!backups[@]}"; do
         local backup_file="${backups[$i]}"
-        local backup_name=$(basename "$backup_file")
-        local backup_date=$(stat -c %y "$backup_file" | cut -d' ' -f1-2)
+        local backup_name
+        backup_name=$(basename "$backup_file")
+        local backup_date
+        backup_date=$(stat -c %y "$backup_file" | cut -d' ' -f1-2)
         echo -e "  $((i+1)). $backup_name (${backup_date})"
     done
     
     echo
-    read -p "Enter backup number (1-${#backups[@]}): " selection
+    read -r -p "Enter backup number (1-${#backups[@]}): " selection
     
     if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le ${#backups[@]} ]]; then
         echo "${backups[$((selection-1))]}"
@@ -142,6 +144,7 @@ restore_database() {
     log_info "Backup file: $(basename "$backup_file")"
     
     # Load environment variables
+    # shellcheck disable=SC1091
     source .env
     
     # Stop services that use the database
@@ -238,14 +241,17 @@ verify_rollback() {
     fi
     
     # Show current commit
-    local current_commit=$(git rev-parse --short HEAD)
+    local current_commit
+    current_commit=$(git rev-parse --short HEAD)
     log_info "Current commit: $current_commit"
 }
 
 # Display rollback summary
 show_summary() {
-    local current_commit=$(git rev-parse --short HEAD)
-    local rollback_time=$(date)
+    local current_commit
+    current_commit=$(git rev-parse --short HEAD)
+    local rollback_time
+    rollback_time=$(date)
     
     echo
     echo -e "${GREEN}🔄 Rollback Summary${NC}"
@@ -351,7 +357,7 @@ main() {
         echo -e "${CYAN}Recent commits:${NC}"
         git log --oneline -10 --format="  %h  %s (%cr)"
         echo
-        read -p "Enter commit hash to rollback to (or press Enter to skip): " input_commit
+        read -r -p "Enter commit hash to rollback to (or press Enter to skip): " input_commit
         
         if [[ -n "$input_commit" ]]; then
             rollback_git "$input_commit"

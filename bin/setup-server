@@ -127,7 +127,7 @@ install_docker() {
     sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     
     # Add current user to docker group
-    sudo usermod -aG docker $USER
+    sudo usermod -aG docker "$USER"
     
     # Enable and start Docker service
     sudo systemctl enable docker
@@ -513,7 +513,8 @@ initial_deployment() {
 
 # Display setup summary
 show_summary() {
-    local setup_time=$(date)
+    local setup_time
+    setup_time=$(date)
     
     echo
     echo -e "${GREEN}🎉 Server Setup Complete!${NC}"

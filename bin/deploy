@@ -76,12 +76,14 @@ setup_backup_dir() {
 
 # Backup database
 backup_database() {
-    local timestamp=$(date +"%Y%m%d_%H%M%S")
+    local timestamp
+    timestamp=$(date +"%Y%m%d_%H%M%S")
     local backup_file="$BACKUP_DIR/db_backup_$timestamp.sql.gz"
     
     log_step "Creating database backup..."
     
     # Load environment variables
+    # shellcheck disable=SC1091
     source .env
     
     # Create database backup
@@ -121,7 +123,8 @@ check_git_status() {
     fi
     
     # Get current commit
-    local current_commit=$(git rev-parse --short HEAD)
+    local current_commit
+    current_commit=$(git rev-parse --short HEAD)
     log_info "Current commit: $current_commit"
     
     log_success "Git status verified"
@@ -135,8 +138,10 @@ pull_changes() {
     git fetch origin
     
     # Check if there are new commits
-    local current_commit=$(git rev-parse HEAD)
-    local remote_commit=$(git rev-parse origin/main)
+    local current_commit
+    current_commit=$(git rev-parse HEAD)
+    local remote_commit
+    remote_commit=$(git rev-parse origin/main)
     
     if [[ "$current_commit" == "$remote_commit" ]]; then
         log_info "Already up to date with origin/main"
@@ -146,7 +151,8 @@ pull_changes() {
     # Pull changes
     git pull origin main
     
-    local new_commit=$(git rev-parse --short HEAD)
+    local new_commit
+    new_commit=$(git rev-parse --short HEAD)
     log_success "Updated to commit: $new_commit"
 }
 
@@ -165,7 +171,8 @@ check_migrations() {
     log_step "Checking for pending migrations..."
     
     # Check if there are unapplied migrations
-    local pending_migrations=$(./run manage showmigrations --plan | grep -c "\[ \]" || true)
+    local pending_migrations
+    pending_migrations=$(./run manage showmigrations --plan | grep -c "\[ \]" || true)
     
     if [[ "$pending_migrations" -gt 0 ]]; then
         log_info "Found $pending_migrations pending migrations"
@@ -277,8 +284,10 @@ cleanup() {
 
 # Display deployment summary
 show_summary() {
-    local current_commit=$(git rev-parse --short HEAD)
-    local deployment_time=$(date)
+    local current_commit
+    current_commit=$(git rev-parse --short HEAD)
+    local deployment_time
+    deployment_time=$(date)
     
     echo
     echo -e "${GREEN}🎉 Deployment Summary${NC}"

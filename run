@@ -155,7 +155,8 @@ redis-cli() {
 
 db:dump() {
   # Generate a database dump
-  local timestamp=$(date +"%Y%m%d_%H%M%S")
+  local timestamp
+  timestamp=$(date +"%Y%m%d_%H%M%S")
   local backup_dir="./backups"
   local dump_file="${backup_dir}/adlab_dump_${timestamp}.sql"
   
@@ -192,7 +193,8 @@ db:dump() {
   _dc postgres rm -f "/tmp/dump_${timestamp}.sql"
   
   if [ -f "${dump_file}" ]; then
-    local file_size=$(du -h "${dump_file}" | cut -f1)
+    local file_size
+    file_size=$(du -h "${dump_file}" | cut -f1)
     echo ""
     echo "✅ Database dump created successfully!"
     echo "📊 File size: ${file_size}"
@@ -228,7 +230,8 @@ db:restore() {
   . .env
   
   # Copy the dump file to the container
-  local temp_dump="/tmp/restore_$(basename "${dump_file}")"
+  local temp_dump
+  temp_dump="/tmp/restore_$(basename "${dump_file}")"
   docker compose cp "${dump_file}" "postgres:${temp_dump}"
   
   # Restore the database
@@ -256,7 +259,8 @@ db:list-backups() {
     return 0
   fi
   
-  local backup_count=$(find "${backup_dir}" -name "adlab_dump_*.sql" | wc -l)
+  local backup_count
+  backup_count=$(find "${backup_dir}" -name "adlab_dump_*.sql" | wc -l)
   
   if [ "${backup_count}" -eq 0 ]; then
     echo "📁 No database backups found in ${backup_dir}"
