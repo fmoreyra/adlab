@@ -32,9 +32,6 @@ TESTING = "test" in sys.argv
 if TESTING:
     # Run tests sequentially to avoid database deadlocks
     TEST_RUNNER = "django.test.runner.DiscoverRunner"
-    # Disable parallel test execution to prevent deadlocks
-    import os
-    os.environ['DJANGO_TEST_PROCESSES'] = '1'
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#std:setting-ALLOWED_HOSTS
 allowed_hosts = os.getenv("ALLOWED_HOSTS", ".localhost,127.0.0.1,[::1]")
