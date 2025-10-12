@@ -21,331 +21,331 @@ MAX_BACKUPS=5
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+  echo -e "${BLUE}ℹ️  $1${NC}"
 }
 
 log_success() {
-    echo -e "${GREEN}✅ $1${NC}"
+  echo -e "${GREEN}✅ $1${NC}"
 }
 
 log_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+  echo -e "${YELLOW}⚠️  $1${NC}"
 }
 
 log_error() {
-    echo -e "${RED}❌ $1${NC}"
+  echo -e "${RED}❌ $1${NC}"
 }
 
 log_step() {
-    echo -e "${PURPLE}🔄 $1${NC}"
+  echo -e "${PURPLE}🔄 $1${NC}"
 }
 
 # Check if we're in the right directory
 check_project_directory() {
-    if [[ ! -f "compose.yaml" ]] || [[ ! -f "run" ]] || [[ ! -d "src" ]]; then
-        log_error "This doesn't appear to be the laboratory system directory."
-        log_error "Please run this script from the project root directory."
-        exit 1
-    fi
-    log_success "Project directory verified"
+  if [[ ! -f "compose.yaml" ]] || [[ ! -f "run" ]] || [[ ! -d "src" ]]; then
+    log_error "This doesn't appear to be the laboratory system directory."
+    log_error "Please run this script from the project root directory."
+    exit 1
+  fi
+  log_success "Project directory verified"
 }
 
 # Check if Docker is running
 check_docker() {
-    if ! docker info >/dev/null 2>&1; then
-        log_error "Docker is not running. Please start Docker and try again."
-        exit 1
-    fi
-    log_success "Docker is running"
+  if ! docker info >/dev/null 2>&1; then
+    log_error "Docker is not running. Please start Docker and try again."
+    exit 1
+  fi
+  log_success "Docker is running"
 }
 
 # Check if .env file exists
 check_environment() {
-    if [[ ! -f ".env" ]]; then
-        log_error ".env file not found. Please create it from .env.example"
-        exit 1
-    fi
-    log_success "Environment file found"
+  if [[ ! -f ".env" ]]; then
+    log_error ".env file not found. Please create it from .env.example"
+    exit 1
+  fi
+  log_success "Environment file found"
 }
 
 # Create backup directory
 setup_backup_dir() {
-    mkdir -p "$BACKUP_DIR"
-    log_success "Backup directory ready: $BACKUP_DIR"
+  mkdir -p "$BACKUP_DIR"
+  log_success "Backup directory ready: $BACKUP_DIR"
 }
 
 # Backup database
 backup_database() {
-    local timestamp
-    timestamp=$(date +"%Y%m%d_%H%M%S")
-    local backup_file="$BACKUP_DIR/db_backup_$timestamp.sql.gz"
-    
-    log_step "Creating database backup..."
-    
-    # Load environment variables
-    # shellcheck disable=SC1091
-    source .env
-    
-    # Create database backup
-    docker compose exec -T postgres pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > "$backup_file"
-    
-    if [[ -f "$backup_file" ]] && [[ -s "$backup_file" ]]; then
-        log_success "Database backed up to: $(basename "$backup_file")"
-        
-        # Clean up old backups
-        find "$BACKUP_DIR" -name "db_backup_*.sql.gz" -type f | sort -r | tail -n +$((MAX_BACKUPS + 1)) | xargs -r rm -f
-        log_info "Cleaned up old backups (keeping last $MAX_BACKUPS)"
-    else
-        log_error "Database backup failed"
-        exit 1
-    fi
+  local timestamp
+  timestamp=$(date +"%Y%m%d_%H%M%S")
+  local backup_file="$BACKUP_DIR/db_backup_$timestamp.sql.gz"
+
+  log_step "Creating database backup..."
+
+  # Load environment variables
+  # shellcheck disable=SC1091
+  source .env
+
+  # Create database backup
+  docker compose exec -T postgres pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip >"$backup_file"
+
+  if [[ -f "$backup_file" ]] && [[ -s "$backup_file" ]]; then
+    log_success "Database backed up to: $(basename "$backup_file")"
+
+    # Clean up old backups
+    find "$BACKUP_DIR" -name "db_backup_*.sql.gz" -type f | sort -r | tail -n +$((MAX_BACKUPS + 1)) | xargs -r rm -f
+    log_info "Cleaned up old backups (keeping last $MAX_BACKUPS)"
+  else
+    log_error "Database backup failed"
+    exit 1
+  fi
 }
 
 # Check git status
 check_git_status() {
-    log_step "Checking git status..."
-    
-    # Check if we're in a git repository
-    if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        log_error "Not in a git repository"
-        exit 1
+  log_step "Checking git status..."
+
+  # Check if we're in a git repository
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    log_error "Not in a git repository"
+    exit 1
+  fi
+
+  # Check for uncommitted changes
+  if ! git diff-index --quiet HEAD --; then
+    log_warning "You have uncommitted changes. Consider committing them first."
+    read -p "Continue anyway? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      log_info "Deployment cancelled"
+      exit 0
     fi
-    
-    # Check for uncommitted changes
-    if ! git diff-index --quiet HEAD --; then
-        log_warning "You have uncommitted changes. Consider committing them first."
-        read -p "Continue anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            log_info "Deployment cancelled"
-            exit 0
-        fi
-    fi
-    
-    # Get current commit
-    local current_commit
-    current_commit=$(git rev-parse --short HEAD)
-    log_info "Current commit: $current_commit"
-    
-    log_success "Git status verified"
+  fi
+
+  # Get current commit
+  local current_commit
+  current_commit=$(git rev-parse --short HEAD)
+  log_info "Current commit: $current_commit"
+
+  log_success "Git status verified"
 }
 
 # Pull latest changes
 pull_changes() {
-    log_step "Pulling latest changes from git..."
-    
-    # Fetch latest changes
-    git fetch origin
-    
-    # Check if there are new commits
-    local current_commit
-    current_commit=$(git rev-parse HEAD)
-    local remote_commit
-    remote_commit=$(git rev-parse origin/main)
-    
-    if [[ "$current_commit" == "$remote_commit" ]]; then
-        log_info "Already up to date with origin/main"
-        return 0
-    fi
-    
-    # Pull changes
-    git pull origin main
-    
-    local new_commit
-    new_commit=$(git rev-parse --short HEAD)
-    log_success "Updated to commit: $new_commit"
+  log_step "Pulling latest changes from git..."
+
+  # Fetch latest changes
+  git fetch origin
+
+  # Check if there are new commits
+  local current_commit
+  current_commit=$(git rev-parse HEAD)
+  local remote_commit
+  remote_commit=$(git rev-parse origin/main)
+
+  if [[ "$current_commit" == "$remote_commit" ]]; then
+    log_info "Already up to date with origin/main"
+    return 0
+  fi
+
+  # Pull changes
+  git pull origin main
+
+  local new_commit
+  new_commit=$(git rev-parse --short HEAD)
+  log_success "Updated to commit: $new_commit"
 }
 
 # Build Docker images
 build_images() {
-    log_step "Building Docker images..."
-    
-    # Build all images
-    docker compose build --no-cache
-    
-    log_success "Docker images built successfully"
+  log_step "Building Docker images..."
+
+  # Build all images
+  docker compose build --no-cache
+
+  log_success "Docker images built successfully"
 }
 
 # Check for pending migrations
 check_migrations() {
-    log_step "Checking for pending migrations..."
-    
-    # Check if there are unapplied migrations
-    local pending_migrations
-    pending_migrations=$(./run manage showmigrations --plan | grep -c "\[ \]" || true)
-    
-    if [[ "$pending_migrations" -gt 0 ]]; then
-        log_info "Found $pending_migrations pending migrations"
-        ./run manage showmigrations --plan | grep "\[ \]"
-        return 0
-    else
-        log_info "No pending migrations"
-        return 1
-    fi
+  log_step "Checking for pending migrations..."
+
+  # Check if there are unapplied migrations
+  local pending_migrations
+  pending_migrations=$(./run manage showmigrations --plan | grep -c "\[ \]" || true)
+
+  if [[ "$pending_migrations" -gt 0 ]]; then
+    log_info "Found $pending_migrations pending migrations"
+    ./run manage showmigrations --plan | grep "\[ \]"
+    return 0
+  else
+    log_info "No pending migrations"
+    return 1
+  fi
 }
 
 # Run migrations
 run_migrations() {
-    log_step "Running database migrations..."
-    
-    # First, check if migrations can be applied safely
-    if ! ./run manage migrate --check; then
-        log_error "Migration check failed. Aborting deployment."
-        exit 1
-    fi
-    
-    # Apply migrations
-    ./run manage migrate --no-input
-    
-    log_success "Migrations applied successfully"
+  log_step "Running database migrations..."
+
+  # First, check if migrations can be applied safely
+  if ! ./run manage migrate --check; then
+    log_error "Migration check failed. Aborting deployment."
+    exit 1
+  fi
+
+  # Apply migrations
+  ./run manage migrate --no-input
+
+  log_success "Migrations applied successfully"
 }
 
 # Restart services
 restart_services() {
-    log_step "Restarting services..."
-    
-    # Stop services gracefully
-    docker compose stop web worker beat
-    
-    # Start services one by one
-    log_info "Starting web service..."
-    docker compose up -d web
-    
-    # Wait for web service to be healthy
-    local max_attempts=30
-    local attempt=1
-    
-    while [[ $attempt -le $max_attempts ]]; do
-        if docker compose exec -T web curl -f http://localhost:8000/up >/dev/null 2>&1; then
-            log_success "Web service is healthy"
-            break
-        fi
-        
-        log_info "Waiting for web service... (attempt $attempt/$max_attempts)"
-        sleep 2
-        attempt=$((attempt + 1))
-    done
-    
-    if [[ $attempt -gt $max_attempts ]]; then
-        log_error "Web service failed to start properly"
-        exit 1
+  log_step "Restarting services..."
+
+  # Stop services gracefully
+  docker compose stop web worker beat
+
+  # Start services one by one
+  log_info "Starting web service..."
+  docker compose up -d web
+
+  # Wait for web service to be healthy
+  local max_attempts=30
+  local attempt=1
+
+  while [[ $attempt -le $max_attempts ]]; do
+    if docker compose exec -T web curl -f http://localhost:8000/up >/dev/null 2>&1; then
+      log_success "Web service is healthy"
+      break
     fi
-    
-    # Start worker and beat services
-    log_info "Starting worker service..."
-    docker compose up -d worker
-    
-    log_info "Starting beat service..."
-    docker compose up -d beat
-    
-    log_success "All services restarted successfully"
+
+    log_info "Waiting for web service... (attempt $attempt/$max_attempts)"
+    sleep 2
+    attempt=$((attempt + 1))
+  done
+
+  if [[ $attempt -gt $max_attempts ]]; then
+    log_error "Web service failed to start properly"
+    exit 1
+  fi
+
+  # Start worker and beat services
+  log_info "Starting worker service..."
+  docker compose up -d worker
+
+  log_info "Starting beat service..."
+  docker compose up -d beat
+
+  log_success "All services restarted successfully"
 }
 
 # Run health checks
 run_health_checks() {
-    log_step "Running health checks..."
-    
-    # Check web service
-    if ! docker compose exec -T web curl -f http://localhost:8000/up >/dev/null 2>&1; then
-        log_error "Web service health check failed"
-        return 1
-    fi
-    log_success "Web service is healthy"
-    
-    # Check database connectivity
-    if ! ./run manage check --database default >/dev/null 2>&1; then
-        log_error "Database connectivity check failed"
-        return 1
-    fi
-    log_success "Database is accessible"
-    
-    # Check Redis connectivity
-    if ! docker compose exec -T redis redis-cli ping >/dev/null 2>&1; then
-        log_error "Redis connectivity check failed"
-        return 1
-    fi
-    log_success "Redis is accessible"
-    
-    return 0
+  log_step "Running health checks..."
+
+  # Check web service
+  if ! docker compose exec -T web curl -f http://localhost:8000/up >/dev/null 2>&1; then
+    log_error "Web service health check failed"
+    return 1
+  fi
+  log_success "Web service is healthy"
+
+  # Check database connectivity
+  if ! ./run manage check --database default >/dev/null 2>&1; then
+    log_error "Database connectivity check failed"
+    return 1
+  fi
+  log_success "Database is accessible"
+
+  # Check Redis connectivity
+  if ! docker compose exec -T redis redis-cli ping >/dev/null 2>&1; then
+    log_error "Redis connectivity check failed"
+    return 1
+  fi
+  log_success "Redis is accessible"
+
+  return 0
 }
 
 # Clean up old Docker resources
 cleanup() {
-    log_step "Cleaning up old Docker resources..."
-    
-    # Remove unused images
-    docker image prune -f
-    
-    # Remove unused containers
-    docker container prune -f
-    
-    log_success "Cleanup completed"
+  log_step "Cleaning up old Docker resources..."
+
+  # Remove unused images
+  docker image prune -f
+
+  # Remove unused containers
+  docker container prune -f
+
+  log_success "Cleanup completed"
 }
 
 # Display deployment summary
 show_summary() {
-    local current_commit
-    current_commit=$(git rev-parse --short HEAD)
-    local deployment_time
-    deployment_time=$(date)
-    
-    echo
-    echo -e "${GREEN}🎉 Deployment Summary${NC}"
-    echo -e "${GREEN}===================${NC}"
-    echo -e "Project: $PROJECT_NAME"
-    echo -e "Commit: $current_commit"
-    echo -e "Time: $deployment_time"
-    echo -e "Status: ${GREEN}SUCCESS${NC}"
-    echo
-    echo -e "${CYAN}Services Status:${NC}"
-    docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
-    echo
-    echo -e "${CYAN}Next Steps:${NC}"
-    echo -e "• Monitor application logs: ${YELLOW}docker compose logs -f${NC}"
-    echo -e "• Check application: ${YELLOW}http://localhost:8000${NC}"
-    echo -e "• Run tests: ${YELLOW}./run test${NC}"
-    echo
+  local current_commit
+  current_commit=$(git rev-parse --short HEAD)
+  local deployment_time
+  deployment_time=$(date)
+
+  echo
+  echo -e "${GREEN}🎉 Deployment Summary${NC}"
+  echo -e "${GREEN}===================${NC}"
+  echo -e "Project: $PROJECT_NAME"
+  echo -e "Commit: $current_commit"
+  echo -e "Time: $deployment_time"
+  echo -e "Status: ${GREEN}SUCCESS${NC}"
+  echo
+  echo -e "${CYAN}Services Status:${NC}"
+  docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+  echo
+  echo -e "${CYAN}Next Steps:${NC}"
+  echo -e "• Monitor application logs: ${YELLOW}docker compose logs -f${NC}"
+  echo -e "• Check application: ${YELLOW}http://localhost:8000${NC}"
+  echo -e "• Run tests: ${YELLOW}./run test${NC}"
+  echo
 }
 
 # Main deployment function
 main() {
-    echo -e "${PURPLE}🚀 Starting deployment of $PROJECT_NAME${NC}"
-    echo -e "${PURPLE}=====================================${NC}"
-    echo
-    
-    # Pre-deployment checks
-    check_project_directory
-    check_docker
-    check_environment
-    setup_backup_dir
-    check_git_status
-    
-    # Backup and pull changes
-    backup_database
-    pull_changes
-    
-    # Build and migrate
-    build_images
-    
-    # Handle migrations
-    if check_migrations; then
-        run_migrations
-    else
-        log_info "No migrations to apply"
-    fi
-    
-    # Deploy
-    restart_services
-    
-    # Verify deployment
-    if run_health_checks; then
-        cleanup
-        show_summary
-    else
-        log_error "Health checks failed. Deployment may have issues."
-        log_warning "Check logs: docker compose logs"
-        exit 1
-    fi
+  echo -e "${PURPLE}🚀 Starting deployment of $PROJECT_NAME${NC}"
+  echo -e "${PURPLE}=====================================${NC}"
+  echo
+
+  # Pre-deployment checks
+  check_project_directory
+  check_docker
+  check_environment
+  setup_backup_dir
+  check_git_status
+
+  # Backup and pull changes
+  backup_database
+  pull_changes
+
+  # Build and migrate
+  build_images
+
+  # Handle migrations
+  if check_migrations; then
+    run_migrations
+  else
+    log_info "No migrations to apply"
+  fi
+
+  # Deploy
+  restart_services
+
+  # Verify deployment
+  if run_health_checks; then
+    cleanup
+    show_summary
+  else
+    log_error "Health checks failed. Deployment may have issues."
+    log_warning "Check logs: docker compose logs"
+    exit 1
+  fi
 }
 
 # Handle script interruption

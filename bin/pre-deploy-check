@@ -26,361 +26,361 @@ WARNINGS=0
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+  echo -e "${BLUE}ℹ️  $1${NC}"
 }
 
 log_success() {
-    echo -e "${GREEN}✅ $1${NC}"
-    ((CHECKS_PASSED++))
+  echo -e "${GREEN}✅ $1${NC}"
+  ((CHECKS_PASSED++))
 }
 
 log_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
-    ((WARNINGS++))
+  echo -e "${YELLOW}⚠️  $1${NC}"
+  ((WARNINGS++))
 }
 
 log_error() {
-    echo -e "${RED}❌ $1${NC}"
-    ((CHECKS_FAILED++))
+  echo -e "${RED}❌ $1${NC}"
+  ((CHECKS_FAILED++))
 }
 
 log_step() {
-    echo -e "${PURPLE}🔍 $1${NC}"
+  echo -e "${PURPLE}🔍 $1${NC}"
 }
 
 # Check if we're in the right directory
 check_project_directory() {
-    log_step "Checking project directory..."
-    
-    if [[ ! -f "compose.yaml" ]] || [[ ! -f "run" ]] || [[ ! -d "src" ]]; then
-        log_error "This doesn't appear to be the laboratory system directory."
-        log_error "Required files missing: compose.yaml, run, src/"
-        return 1
-    fi
-    log_success "Project directory structure verified"
+  log_step "Checking project directory..."
+
+  if [[ ! -f "compose.yaml" ]] || [[ ! -f "run" ]] || [[ ! -d "src" ]]; then
+    log_error "This doesn't appear to be the laboratory system directory."
+    log_error "Required files missing: compose.yaml, run, src/"
+    return 1
+  fi
+  log_success "Project directory structure verified"
 }
 
 # Check git repository status
 check_git_status() {
-    log_step "Checking git repository status..."
-    
-    # Check if we're in a git repository
-    if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        log_error "Not in a git repository"
-        return 1
-    fi
-    
-    # Check for uncommitted changes
-    if ! git diff-index --quiet HEAD --; then
-        log_warning "You have uncommitted changes"
-        git status --porcelain
-        log_info "Consider committing changes before deployment"
-    else
-        log_success "Working directory is clean"
-    fi
-    
-    # Check current branch
-    local current_branch
-    current_branch=$(git branch --show-current)
-    log_info "Current branch: $current_branch"
-    
-    # Check if we can fetch from remote
-    if git remote get-url origin >/dev/null 2>&1; then
-        log_info "Remote origin: $(git remote get-url origin)"
-        log_success "Git repository configured"
-    else
-        log_warning "No remote origin configured"
-    fi
+  log_step "Checking git repository status..."
+
+  # Check if we're in a git repository
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    log_error "Not in a git repository"
+    return 1
+  fi
+
+  # Check for uncommitted changes
+  if ! git diff-index --quiet HEAD --; then
+    log_warning "You have uncommitted changes"
+    git status --porcelain
+    log_info "Consider committing changes before deployment"
+  else
+    log_success "Working directory is clean"
+  fi
+
+  # Check current branch
+  local current_branch
+  current_branch=$(git branch --show-current)
+  log_info "Current branch: $current_branch"
+
+  # Check if we can fetch from remote
+  if git remote get-url origin >/dev/null 2>&1; then
+    log_info "Remote origin: $(git remote get-url origin)"
+    log_success "Git repository configured"
+  else
+    log_warning "No remote origin configured"
+  fi
 }
 
 # Check environment file
 check_environment() {
-    log_step "Checking environment configuration..."
-    
-    if [[ ! -f ".env" ]]; then
-        log_error ".env file not found"
-        log_info "Create .env from .env.example and configure for production"
-        return 1
+  log_step "Checking environment configuration..."
+
+  if [[ ! -f ".env" ]]; then
+    log_error ".env file not found"
+    log_info "Create .env from .env.example and configure for production"
+    return 1
+  fi
+
+  # Source environment file
+  # shellcheck disable=SC1091
+  source .env
+
+  # Check critical environment variables
+  local required_vars=(
+    "SECRET_KEY"
+    "POSTGRES_USER"
+    "POSTGRES_PASSWORD"
+    "POSTGRES_DB"
+    "DEBUG"
+  )
+
+  local missing_vars=()
+  for var in "${required_vars[@]}"; do
+    if [[ -z "${!var:-}" ]]; then
+      missing_vars+=("$var")
     fi
-    
-    # Source environment file
-    # shellcheck disable=SC1091
-    source .env
-    
-    # Check critical environment variables
-    local required_vars=(
-        "SECRET_KEY"
-        "POSTGRES_USER"
-        "POSTGRES_PASSWORD"
-        "POSTGRES_DB"
-        "DEBUG"
-    )
-    
-    local missing_vars=()
-    for var in "${required_vars[@]}"; do
-        if [[ -z "${!var:-}" ]]; then
-            missing_vars+=("$var")
-        fi
-    done
-    
-    if [[ ${#missing_vars[@]} -gt 0 ]]; then
-        log_error "Missing required environment variables:"
-        printf "  %s\n" "${missing_vars[@]}"
-        return 1
-    fi
-    
-    # Check DEBUG setting
-    if [[ "${DEBUG:-}" == "True" ]]; then
-        log_warning "DEBUG is set to True - should be False in production"
-    else
-        log_success "DEBUG setting is appropriate for production"
-    fi
-    
-    log_success "Environment configuration verified"
+  done
+
+  if [[ ${#missing_vars[@]} -gt 0 ]]; then
+    log_error "Missing required environment variables:"
+    printf "  %s\n" "${missing_vars[@]}"
+    return 1
+  fi
+
+  # Check DEBUG setting
+  if [[ "${DEBUG:-}" == "True" ]]; then
+    log_warning "DEBUG is set to True - should be False in production"
+  else
+    log_success "DEBUG setting is appropriate for production"
+  fi
+
+  log_success "Environment configuration verified"
 }
 
 # Check system resources
 check_system_resources() {
-    log_step "Checking system resources..."
-    
-    # Check disk space
-    local available_space_gb
-    available_space_gb=$(df . | awk 'NR==2 {print int($4/1024/1024)}')
-    if [[ $available_space_gb -lt $MIN_DISK_SPACE_GB ]]; then
-        log_error "Insufficient disk space: ${available_space_gb}GB available, ${MIN_DISK_SPACE_GB}GB required"
-        return 1
-    else
-        log_success "Disk space: ${available_space_gb}GB available"
-    fi
-    
-    # Check memory
-    local total_memory_gb
-    total_memory_gb=$(free -g | awk 'NR==2{print int($2)}')
-    if [[ $total_memory_gb -lt $MIN_MEMORY_GB ]]; then
-        log_warning "Low memory: ${total_memory_gb}GB total, ${MIN_MEMORY_GB}GB recommended"
-    else
-        log_success "Memory: ${total_memory_gb}GB total"
-    fi
-    
-    # Check CPU cores
-    local cpu_cores
-    cpu_cores=$(nproc)
-    log_info "CPU cores: $cpu_cores"
+  log_step "Checking system resources..."
+
+  # Check disk space
+  local available_space_gb
+  available_space_gb=$(df . | awk 'NR==2 {print int($4/1024/1024)}')
+  if [[ $available_space_gb -lt $MIN_DISK_SPACE_GB ]]; then
+    log_error "Insufficient disk space: ${available_space_gb}GB available, ${MIN_DISK_SPACE_GB}GB required"
+    return 1
+  else
+    log_success "Disk space: ${available_space_gb}GB available"
+  fi
+
+  # Check memory
+  local total_memory_gb
+  total_memory_gb=$(free -g | awk 'NR==2{print int($2)}')
+  if [[ $total_memory_gb -lt $MIN_MEMORY_GB ]]; then
+    log_warning "Low memory: ${total_memory_gb}GB total, ${MIN_MEMORY_GB}GB recommended"
+  else
+    log_success "Memory: ${total_memory_gb}GB total"
+  fi
+
+  # Check CPU cores
+  local cpu_cores
+  cpu_cores=$(nproc)
+  log_info "CPU cores: $cpu_cores"
 }
 
 # Check Docker installation and status
 check_docker() {
-    log_step "Checking Docker installation..."
-    
-    # Check if Docker is installed
-    if ! command -v docker >/dev/null 2>&1; then
-        log_error "Docker is not installed"
-        return 1
-    fi
-    
-    # Check if Docker is running
-    if ! docker info >/dev/null 2>&1; then
-        log_error "Docker is not running"
-        log_info "Start Docker service: sudo systemctl start docker"
-        return 1
-    fi
-    
-    # Check Docker Compose
-    if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
-        log_error "Docker Compose is not available"
-        return 1
-    fi
-    
-    local docker_version
-    docker_version=$(docker --version | cut -d' ' -f3 | cut -d',' -f1)
-    local compose_version
-    compose_version=$(docker compose version --short)
-    
-    log_success "Docker $docker_version is running"
-    log_success "Docker Compose $compose_version is available"
+  log_step "Checking Docker installation..."
+
+  # Check if Docker is installed
+  if ! command -v docker >/dev/null 2>&1; then
+    log_error "Docker is not installed"
+    return 1
+  fi
+
+  # Check if Docker is running
+  if ! docker info >/dev/null 2>&1; then
+    log_error "Docker is not running"
+    log_info "Start Docker service: sudo systemctl start docker"
+    return 1
+  fi
+
+  # Check Docker Compose
+  if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
+    log_error "Docker Compose is not available"
+    return 1
+  fi
+
+  local docker_version
+  docker_version=$(docker --version | cut -d' ' -f3 | cut -d',' -f1)
+  local compose_version
+  compose_version=$(docker compose version --short)
+
+  log_success "Docker $docker_version is running"
+  log_success "Docker Compose $compose_version is available"
 }
 
 # Check database connectivity
 check_database() {
-    log_step "Checking database connectivity..."
-    
-    # Load environment variables
-    # shellcheck disable=SC1091
-    source .env
-    
-    # Check if PostgreSQL container is running
-    if ! docker compose ps postgres | grep -q "Up"; then
-        log_warning "PostgreSQL container is not running"
-        log_info "Start with: docker compose up -d postgres"
-        return 1
-    fi
-    
-    # Test database connection
-    if docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" >/dev/null 2>&1; then
-        log_success "Database connection successful"
-        
-        # Check database size
-        local db_size
-        db_size=$(docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "SELECT pg_size_pretty(pg_database_size('$POSTGRES_DB'));" | xargs)
-        log_info "Database size: $db_size"
-    else
-        log_error "Cannot connect to database"
-        return 1
-    fi
+  log_step "Checking database connectivity..."
+
+  # Load environment variables
+  # shellcheck disable=SC1091
+  source .env
+
+  # Check if PostgreSQL container is running
+  if ! docker compose ps postgres | grep -q "Up"; then
+    log_warning "PostgreSQL container is not running"
+    log_info "Start with: docker compose up -d postgres"
+    return 1
+  fi
+
+  # Test database connection
+  if docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" >/dev/null 2>&1; then
+    log_success "Database connection successful"
+
+    # Check database size
+    local db_size
+    db_size=$(docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -c "SELECT pg_size_pretty(pg_database_size('$POSTGRES_DB'));" | xargs)
+    log_info "Database size: $db_size"
+  else
+    log_error "Cannot connect to database"
+    return 1
+  fi
 }
 
 # Check Redis connectivity
 check_redis() {
-    log_step "Checking Redis connectivity..."
-    
-    # Check if Redis container is running
-    if ! docker compose ps redis | grep -q "Up"; then
-        log_warning "Redis container is not running"
-        log_info "Start with: docker compose up -d redis"
-        return 1
-    fi
-    
-    # Test Redis connection
-    if docker compose exec -T redis redis-cli ping >/dev/null 2>&1; then
-        log_success "Redis connection successful"
-    else
-        log_error "Cannot connect to Redis"
-        return 1
-    fi
+  log_step "Checking Redis connectivity..."
+
+  # Check if Redis container is running
+  if ! docker compose ps redis | grep -q "Up"; then
+    log_warning "Redis container is not running"
+    log_info "Start with: docker compose up -d redis"
+    return 1
+  fi
+
+  # Test Redis connection
+  if docker compose exec -T redis redis-cli ping >/dev/null 2>&1; then
+    log_success "Redis connection successful"
+  else
+    log_error "Cannot connect to Redis"
+    return 1
+  fi
 }
 
 # Check for pending migrations
 check_migrations() {
-    log_step "Checking for pending migrations..."
-    
-    # Check if web container is running
-    if ! docker compose ps web | grep -q "Up"; then
-        log_warning "Web container is not running - cannot check migrations"
-        log_info "Start with: docker compose up -d web"
-        return 1
-    fi
-    
-    # Check for unapplied migrations
-    local pending_migrations
-    pending_migrations=$(./run manage showmigrations --plan | grep -c "\[ \]" || true)
-    
-    if [[ "$pending_migrations" -gt 0 ]]; then
-        log_info "Found $pending_migrations pending migrations:"
-        ./run manage showmigrations --plan | grep "\[ \]" | sed 's/^/  /'
-        log_success "Migration check completed"
-    else
-        log_success "No pending migrations"
-    fi
+  log_step "Checking for pending migrations..."
+
+  # Check if web container is running
+  if ! docker compose ps web | grep -q "Up"; then
+    log_warning "Web container is not running - cannot check migrations"
+    log_info "Start with: docker compose up -d web"
+    return 1
+  fi
+
+  # Check for unapplied migrations
+  local pending_migrations
+  pending_migrations=$(./run manage showmigrations --plan | grep -c "\[ \]" || true)
+
+  if [[ "$pending_migrations" -gt 0 ]]; then
+    log_info "Found $pending_migrations pending migrations:"
+    ./run manage showmigrations --plan | grep "\[ \]" | sed 's/^/  /'
+    log_success "Migration check completed"
+  else
+    log_success "No pending migrations"
+  fi
 }
 
 # Check application health
 check_application_health() {
-    log_step "Checking application health..."
-    
-    # Check if web container is running
-    if ! docker compose ps web | grep -q "Up"; then
-        log_warning "Web container is not running"
-        return 1
-    fi
-    
-    # Check if application responds
-    if docker compose exec -T web curl -f http://localhost:8000/up >/dev/null 2>&1; then
-        log_success "Application is responding"
-    else
-        log_warning "Application health check failed"
-        log_info "Check logs: docker compose logs web"
-    fi
+  log_step "Checking application health..."
+
+  # Check if web container is running
+  if ! docker compose ps web | grep -q "Up"; then
+    log_warning "Web container is not running"
+    return 1
+  fi
+
+  # Check if application responds
+  if docker compose exec -T web curl -f http://localhost:8000/up >/dev/null 2>&1; then
+    log_success "Application is responding"
+  else
+    log_warning "Application health check failed"
+    log_info "Check logs: docker compose logs web"
+  fi
 }
 
 # Check security settings
 check_security() {
-    log_step "Checking security settings..."
-    
-    # Load environment variables
-    # shellcheck disable=SC1091
-    source .env
-    
-    # Check DEBUG setting
-    if [[ "${DEBUG:-}" == "True" ]]; then
-        log_warning "DEBUG is enabled - disable in production"
-    fi
-    
-    # Check SECRET_KEY
-    if [[ "${SECRET_KEY:-}" == "your-secret-key-here-change-in-production" ]]; then
-        log_error "Default SECRET_KEY detected - change in production"
-        return 1
-    fi
-    
-    # Check ALLOWED_HOSTS
-    if [[ "${ALLOWED_HOSTS:-}" == "localhost,127.0.0.1" ]]; then
-        log_warning "ALLOWED_HOSTS is set to localhost only"
-        log_info "Configure for your production domain"
-    fi
-    
-    log_success "Security check completed"
+  log_step "Checking security settings..."
+
+  # Load environment variables
+  # shellcheck disable=SC1091
+  source .env
+
+  # Check DEBUG setting
+  if [[ "${DEBUG:-}" == "True" ]]; then
+    log_warning "DEBUG is enabled - disable in production"
+  fi
+
+  # Check SECRET_KEY
+  if [[ "${SECRET_KEY:-}" == "your-secret-key-here-change-in-production" ]]; then
+    log_error "Default SECRET_KEY detected - change in production"
+    return 1
+  fi
+
+  # Check ALLOWED_HOSTS
+  if [[ "${ALLOWED_HOSTS:-}" == "localhost,127.0.0.1" ]]; then
+    log_warning "ALLOWED_HOSTS is set to localhost only"
+    log_info "Configure for your production domain"
+  fi
+
+  log_success "Security check completed"
 }
 
 # Check backup directory
 check_backup_directory() {
-    log_step "Checking backup directory..."
-    
-    local backup_dir="/tmp/lab-backups"
-    
-    if [[ -d "$backup_dir" ]]; then
-        local backup_count
-        backup_count=$(find "$backup_dir" -name "db_backup_*.sql.gz" -type f | wc -l)
-        log_info "Backup directory exists with $backup_count backups"
-        log_success "Backup directory ready"
-    else
-        log_info "Backup directory will be created during deployment"
-        log_success "Backup directory check completed"
-    fi
+  log_step "Checking backup directory..."
+
+  local backup_dir="/tmp/lab-backups"
+
+  if [[ -d "$backup_dir" ]]; then
+    local backup_count
+    backup_count=$(find "$backup_dir" -name "db_backup_*.sql.gz" -type f | wc -l)
+    log_info "Backup directory exists with $backup_count backups"
+    log_success "Backup directory ready"
+  else
+    log_info "Backup directory will be created during deployment"
+    log_success "Backup directory check completed"
+  fi
 }
 
 # Display summary
 show_summary() {
-    echo
-    echo -e "${PURPLE}📋 Pre-deployment Check Summary${NC}"
-    echo -e "${PURPLE}==============================${NC}"
-    echo -e "Project: $PROJECT_NAME"
-    echo -e "Time: $(date)"
-    echo
-    echo -e "${GREEN}✅ Checks Passed: $CHECKS_PASSED${NC}"
-    echo -e "${YELLOW}⚠️  Warnings: $WARNINGS${NC}"
-    echo -e "${RED}❌ Checks Failed: $CHECKS_FAILED${NC}"
-    echo
-    
-    if [[ $CHECKS_FAILED -eq 0 ]]; then
-        echo -e "${GREEN}🎉 All critical checks passed! Ready for deployment.${NC}"
-        echo -e "${CYAN}Run: ${YELLOW}./bin/deploy${NC} ${CYAN}to start deployment${NC}"
-        return 0
-    else
-        echo -e "${RED}🚫 Critical issues found. Fix them before deployment.${NC}"
-        return 1
-    fi
+  echo
+  echo -e "${PURPLE}📋 Pre-deployment Check Summary${NC}"
+  echo -e "${PURPLE}==============================${NC}"
+  echo -e "Project: $PROJECT_NAME"
+  echo -e "Time: $(date)"
+  echo
+  echo -e "${GREEN}✅ Checks Passed: $CHECKS_PASSED${NC}"
+  echo -e "${YELLOW}⚠️  Warnings: $WARNINGS${NC}"
+  echo -e "${RED}❌ Checks Failed: $CHECKS_FAILED${NC}"
+  echo
+
+  if [[ $CHECKS_FAILED -eq 0 ]]; then
+    echo -e "${GREEN}🎉 All critical checks passed! Ready for deployment.${NC}"
+    echo -e "${CYAN}Run: ${YELLOW}./bin/deploy${NC} ${CYAN}to start deployment${NC}"
+    return 0
+  else
+    echo -e "${RED}🚫 Critical issues found. Fix them before deployment.${NC}"
+    return 1
+  fi
 }
 
 # Main function
 main() {
-    echo -e "${PURPLE}🔍 Pre-deployment Check for $PROJECT_NAME${NC}"
-    echo -e "${PURPLE}==========================================${NC}"
-    echo
-    
-    # Run all checks
-    check_project_directory
-    check_git_status
-    check_environment
-    check_system_resources
-    check_docker
-    check_database
-    check_redis
-    check_migrations
-    check_application_health
-    check_security
-    check_backup_directory
-    
-    # Show summary
-    show_summary
+  echo -e "${PURPLE}🔍 Pre-deployment Check for $PROJECT_NAME${NC}"
+  echo -e "${PURPLE}==========================================${NC}"
+  echo
+
+  # Run all checks
+  check_project_directory
+  check_git_status
+  check_environment
+  check_system_resources
+  check_docker
+  check_database
+  check_redis
+  check_migrations
+  check_application_health
+  check_security
+  check_backup_directory
+
+  # Show summary
+  show_summary
 }
 
 # Run main function

@@ -159,19 +159,19 @@ db:dump() {
   timestamp=$(date +"%Y%m%d_%H%M%S")
   local backup_dir="./backups"
   local dump_file="${backup_dir}/adlab_dump_${timestamp}.sql"
-  
+
   # Create backup directory if it doesn't exist
   mkdir -p "${backup_dir}"
-  
+
   echo "🗄️  Generating database dump..."
   echo "📁 Backup directory: ${backup_dir}"
   echo "📄 Dump file: $(basename "${dump_file}")"
   echo ""
-  
+
   # Load environment variables
   # shellcheck disable=SC1091
   . .env
-  
+
   # Generate the dump using pg_dump
   _dc postgres pg_dump \
     -U "${POSTGRES_USER}" \
@@ -185,13 +185,13 @@ db:dump() {
     --create \
     --format=plain \
     --file="/tmp/dump_${timestamp}.sql"
-  
+
   # Copy the dump file from the container to the host
   docker compose cp "postgres:/tmp/dump_${timestamp}.sql" "${dump_file}"
-  
+
   # Clean up the temporary file in the container
   _dc postgres rm -f "/tmp/dump_${timestamp}.sql"
-  
+
   if [ -f "${dump_file}" ]; then
     local file_size
     file_size=$(du -h "${dump_file}" | cut -f1)
@@ -209,31 +209,31 @@ db:dump() {
 db:restore() {
   # Restore a database from a dump file
   local dump_file="${1:-}"
-  
+
   if [ -z "${dump_file}" ]; then
     echo "❌ Please provide a dump file path"
     echo "Usage: $0 db:restore <path_to_dump_file>"
     return 1
   fi
-  
+
   if [ ! -f "${dump_file}" ]; then
     echo "❌ Dump file not found: ${dump_file}"
     return 1
   fi
-  
+
   echo "🗄️  Restoring database from dump..."
   echo "📄 Dump file: ${dump_file}"
   echo ""
-  
+
   # Load environment variables
   # shellcheck disable=SC1091
   . .env
-  
+
   # Copy the dump file to the container
   local temp_dump
   temp_dump="/tmp/restore_$(basename "${dump_file}")"
   docker compose cp "${dump_file}" "postgres:${temp_dump}"
-  
+
   # Restore the database
   _dc postgres psql \
     -U "${POSTGRES_USER}" \
@@ -242,10 +242,10 @@ db:restore() {
     -d postgres \
     --no-password \
     -f "${temp_dump}"
-  
+
   # Clean up the temporary file in the container
   _dc postgres rm -f "${temp_dump}"
-  
+
   echo ""
   echo "✅ Database restored successfully!"
 }
@@ -253,27 +253,27 @@ db:restore() {
 db:list-backups() {
   # List available database backups
   local backup_dir="./backups"
-  
+
   if [ ! -d "${backup_dir}" ]; then
     echo "📁 No backup directory found at ${backup_dir}"
     return 0
   fi
-  
+
   local backup_count
   backup_count=$(find "${backup_dir}" -name "adlab_dump_*.sql" | wc -l)
-  
+
   if [ "${backup_count}" -eq 0 ]; then
     echo "📁 No database backups found in ${backup_dir}"
     return 0
   fi
-  
+
   echo "🗄️  Available database backups:"
   echo "📁 Directory: ${backup_dir}"
   echo ""
-  
+
   # List backups with file size and date
-  find "${backup_dir}" -name "adlab_dump_*.sql" -type f -exec ls -lh {} \; | \
-    awk '{print "📄 " $9 " (" $5 ", " $6 " " $7 " " $8 ")"}' | \
+  find "${backup_dir}" -name "adlab_dump_*.sql" -type f -exec ls -lh {} \; |
+    awk '{print "📄 " $9 " (" $5 ", " $6 " " $7 " " $8 ")"}' |
     sort -r
 }
 
