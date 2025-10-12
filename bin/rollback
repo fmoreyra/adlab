@@ -1,0 +1,377 @@
+#!/usr/bin/env bash
+
+# Rollback Script for Laboratory System
+# This script provides quick recovery from failed deployments
+
+set -euo pipefail
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Configuration
+PROJECT_NAME="Laboratory System"
+BACKUP_DIR="/tmp/lab-backups"
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+log_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+log_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+log_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+log_step() {
+    echo -e "${PURPLE}🔄 $1${NC}"
+}
+
+# Show usage
+show_usage() {
+    echo -e "${CYAN}Usage: $0 [OPTIONS]${NC}"
+    echo
+    echo -e "${CYAN}Options:${NC}"
+    echo -e "  -h, --help              Show this help message"
+    echo -e "  -l, --list              List available backups"
+    echo -e "  -b, --backup FILE       Restore from specific backup file"
+    echo -e "  -c, --commit HASH       Rollback to specific git commit"
+    echo -e "  -f, --force             Skip confirmation prompts"
+    echo
+    echo -e "${CYAN}Examples:${NC}"
+    echo -e "  $0                      # Interactive rollback"
+    echo -e "  $0 --list               # List available backups"
+    echo -e "  $0 --backup db_backup_20241201_143022.sql.gz"
+    echo -e "  $0 --commit abc1234     # Rollback to specific commit"
+    echo
+}
+
+# Check if we're in the right directory
+check_project_directory() {
+    if [[ ! -f "compose.yaml" ]] || [[ ! -f "run" ]] || [[ ! -d "src" ]]; then
+        log_error "This doesn't appear to be the laboratory system directory."
+        log_error "Please run this script from the project root directory."
+        exit 1
+    fi
+    log_success "Project directory verified"
+}
+
+# List available backups
+list_backups() {
+    log_step "Available database backups:"
+    echo
+    
+    if [[ ! -d "$BACKUP_DIR" ]] || [[ -z "$(ls -A "$BACKUP_DIR" 2>/dev/null)" ]]; then
+        log_warning "No backups found in $BACKUP_DIR"
+        return 1
+    fi
+    
+    echo -e "${CYAN}Database Backups:${NC}"
+    find "$BACKUP_DIR" -name "db_backup_*.sql.gz" -type f -printf "  %TY-%Tm-%Td %TH:%TM  %p\n" | sort -r
+    echo
+    
+    echo -e "${CYAN}Git Commits (last 10):${NC}"
+    git log --oneline -10 --format="  %h  %s (%cr)"
+    echo
+}
+
+# Get latest backup
+get_latest_backup() {
+    if [[ ! -d "$BACKUP_DIR" ]]; then
+        return 1
+    fi
+    
+    find "$BACKUP_DIR" -name "db_backup_*.sql.gz" -type f -printf "%T@ %p\n" | sort -rn | head -1 | cut -d' ' -f2-
+}
+
+# Interactive backup selection
+select_backup() {
+    local backups=()
+    while IFS= read -r -d '' backup; do
+        backups+=("$backup")
+    done < <(find "$BACKUP_DIR" -name "db_backup_*.sql.gz" -type f -print0 | sort -rz)
+    
+    if [[ ${#backups[@]} -eq 0 ]]; then
+        log_error "No backups available"
+        return 1
+    fi
+    
+    echo -e "${CYAN}Select a backup to restore:${NC}"
+    echo
+    
+    for i in "${!backups[@]}"; do
+        local backup_file="${backups[$i]}"
+        local backup_name=$(basename "$backup_file")
+        local backup_date=$(stat -c %y "$backup_file" | cut -d' ' -f1-2)
+        echo -e "  $((i+1)). $backup_name (${backup_date})"
+    done
+    
+    echo
+    read -p "Enter backup number (1-${#backups[@]}): " selection
+    
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le ${#backups[@]} ]]; then
+        echo "${backups[$((selection-1))]}"
+    else
+        log_error "Invalid selection"
+        return 1
+    fi
+}
+
+# Restore database from backup
+restore_database() {
+    local backup_file="$1"
+    
+    if [[ ! -f "$backup_file" ]]; then
+        log_error "Backup file not found: $backup_file"
+        return 1
+    fi
+    
+    log_step "Restoring database from backup..."
+    log_info "Backup file: $(basename "$backup_file")"
+    
+    # Load environment variables
+    source .env
+    
+    # Stop services that use the database
+    log_info "Stopping services..."
+    docker compose stop web worker beat
+    
+    # Drop and recreate database
+    log_info "Recreating database..."
+    docker compose exec -T postgres psql -U "$POSTGRES_USER" -d postgres <<SQL
+DROP DATABASE IF EXISTS ${POSTGRES_DB};
+CREATE DATABASE ${POSTGRES_DB} OWNER ${POSTGRES_USER};
+SQL
+    
+    # Restore backup
+    log_info "Restoring backup..."
+    gunzip -c "$backup_file" | docker compose exec -T postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null
+    
+    log_success "Database restored successfully"
+}
+
+# Rollback git to specific commit
+rollback_git() {
+    local commit_hash="$1"
+    
+    log_step "Rolling back git to commit: $commit_hash"
+    
+    # Verify commit exists
+    if ! git cat-file -e "$commit_hash^{commit}" 2>/dev/null; then
+        log_error "Commit not found: $commit_hash"
+        return 1
+    fi
+    
+    # Check for uncommitted changes
+    if ! git diff-index --quiet HEAD --; then
+        log_warning "You have uncommitted changes. Stashing them..."
+        git stash push -m "Rollback stash $(date)"
+    fi
+    
+    # Reset to commit
+    git reset --hard "$commit_hash"
+    
+    log_success "Git rolled back to commit: $commit_hash"
+}
+
+# Rebuild and restart services
+restart_services() {
+    log_step "Rebuilding and restarting services..."
+    
+    # Build images
+    docker compose build --no-cache
+    
+    # Start services
+    docker compose up -d
+    
+    # Wait for services to be healthy
+    local max_attempts=30
+    local attempt=1
+    
+    while [[ $attempt -le $max_attempts ]]; do
+        if docker compose exec -T web curl -f http://localhost:8000/up >/dev/null 2>&1; then
+            log_success "Services are healthy"
+            break
+        fi
+        
+        log_info "Waiting for services... (attempt $attempt/$max_attempts)"
+        sleep 2
+        attempt=$((attempt + 1))
+    done
+    
+    if [[ $attempt -gt $max_attempts ]]; then
+        log_error "Services failed to start properly"
+        return 1
+    fi
+}
+
+# Verify rollback
+verify_rollback() {
+    log_step "Verifying rollback..."
+    
+    # Check application health
+    if docker compose exec -T web curl -f http://localhost:8000/up >/dev/null 2>&1; then
+        log_success "Application is responding"
+    else
+        log_error "Application health check failed"
+        return 1
+    fi
+    
+    # Check database connectivity
+    if ./run manage check --database default >/dev/null 2>&1; then
+        log_success "Database is accessible"
+    else
+        log_error "Database connectivity check failed"
+        return 1
+    fi
+    
+    # Show current commit
+    local current_commit=$(git rev-parse --short HEAD)
+    log_info "Current commit: $current_commit"
+}
+
+# Display rollback summary
+show_summary() {
+    local current_commit=$(git rev-parse --short HEAD)
+    local rollback_time=$(date)
+    
+    echo
+    echo -e "${GREEN}🔄 Rollback Summary${NC}"
+    echo -e "${GREEN}=================${NC}"
+    echo -e "Project: $PROJECT_NAME"
+    echo -e "Commit: $current_commit"
+    echo -e "Time: $rollback_time"
+    echo -e "Status: ${GREEN}SUCCESS${NC}"
+    echo
+    echo -e "${CYAN}Services Status:${NC}"
+    docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+    echo
+    echo -e "${CYAN}Next Steps:${NC}"
+    echo -e "• Monitor application logs: ${YELLOW}docker compose logs -f${NC}"
+    echo -e "• Check application: ${YELLOW}http://localhost:8000${NC}"
+    echo -e "• Run tests: ${YELLOW}./run test${NC}"
+    echo
+}
+
+# Main rollback function
+main() {
+    local backup_file=""
+    local commit_hash=""
+    local force=false
+    local list_only=false
+    
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_usage
+                exit 0
+                ;;
+            -l|--list)
+                list_only=true
+                shift
+                ;;
+            -b|--backup)
+                backup_file="$2"
+                shift 2
+                ;;
+            -c|--commit)
+                commit_hash="$2"
+                shift 2
+                ;;
+            -f|--force)
+                force=true
+                shift
+                ;;
+            *)
+                log_error "Unknown option: $1"
+                show_usage
+                exit 1
+                ;;
+        esac
+    done
+    
+    # Check project directory
+    check_project_directory
+    
+    # Handle list option
+    if [[ "$list_only" == true ]]; then
+        list_backups
+        exit 0
+    fi
+    
+    echo -e "${PURPLE}🔄 Starting rollback of $PROJECT_NAME${NC}"
+    echo -e "${PURPLE}====================================${NC}"
+    echo
+    
+    # Confirmation
+    if [[ "$force" != true ]]; then
+        log_warning "This will rollback the application to a previous state."
+        log_warning "Any uncommitted changes will be lost."
+        echo
+        read -p "Are you sure you want to continue? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_info "Rollback cancelled"
+            exit 0
+        fi
+    fi
+    
+    # Handle backup restoration
+    if [[ -n "$backup_file" ]]; then
+        restore_database "$backup_file"
+    else
+        # Interactive backup selection
+        local selected_backup
+        if selected_backup=$(select_backup); then
+            restore_database "$selected_backup"
+        else
+            log_error "No backup selected"
+            exit 1
+        fi
+    fi
+    
+    # Handle git rollback
+    if [[ -n "$commit_hash" ]]; then
+        rollback_git "$commit_hash"
+    else
+        # Interactive commit selection
+        echo -e "${CYAN}Recent commits:${NC}"
+        git log --oneline -10 --format="  %h  %s (%cr)"
+        echo
+        read -p "Enter commit hash to rollback to (or press Enter to skip): " input_commit
+        
+        if [[ -n "$input_commit" ]]; then
+            rollback_git "$input_commit"
+        fi
+    fi
+    
+    # Restart services
+    restart_services
+    
+    # Verify rollback
+    if verify_rollback; then
+        show_summary
+    else
+        log_error "Rollback verification failed"
+        exit 1
+    fi
+}
+
+# Handle script interruption
+trap 'log_error "Rollback interrupted"; exit 1' INT TERM
+
+# Run main function
+main "$@"
