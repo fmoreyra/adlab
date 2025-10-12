@@ -96,8 +96,8 @@ class ProtocolsAdminTest(TestCase):
             veterinarian=self.veterinarian,
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             status=Protocol.Status.SUBMITTED,
-            temporary_code="C 25/001",
-            protocol_number="C 25/001",
+            temporary_code="C 25/002",
+            protocol_number="C 25/002",
             submission_date=date.today(),
             species="Canino",
             animal_identification="Max",
@@ -442,14 +442,22 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_counter_admin_delete_permission(self):
         """Test protocol counter admin delete permission."""
         from protocols.admin import ProtocolCounterAdmin
+        from unittest.mock import Mock
 
         admin = ProtocolCounterAdmin(ProtocolCounter, AdminSite())
 
+        # Create mock request objects
+        superuser_request = Mock()
+        superuser_request.user = self.admin_user
+        
+        staff_request = Mock()
+        staff_request.user = self.staff_user
+
         # Test with superuser
-        self.assertTrue(admin.has_delete_permission(self.admin_user))
+        self.assertTrue(admin.has_delete_permission(superuser_request))
 
         # Test with staff user
-        self.assertFalse(admin.has_delete_permission(self.staff_user))
+        self.assertFalse(admin.has_delete_permission(staff_request))
 
     # ============================================================================
     # EMAIL LOG ADMIN TESTS

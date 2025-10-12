@@ -1012,7 +1012,7 @@ class ProtocolCounterAdmin(admin.ModelAdmin):
             else "HP"
         )
         year_short = str(obj.year)[-2:]
-        next_num = obj.last_number + 1
+        next_num = int(obj.last_number) + 1
         return format_html(
             "<strong>Next number: {} {}/{:03d}</strong>",
             prefix,

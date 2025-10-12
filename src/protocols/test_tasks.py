@@ -40,8 +40,8 @@ class CeleryTaskTest(TestCase):
             veterinarian=self.veterinarian,
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             status=Protocol.Status.SUBMITTED,
-            temporary_code="C 25/001",
-            protocol_number="C 25/001",
+            temporary_code="C 25/003",
+            protocol_number="C 25/003",
             submission_date=date.today(),
         )
 
