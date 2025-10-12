@@ -7,10 +7,10 @@ from django.db import migrations, models
 
 def generate_external_ids(apps, schema_editor):
     """Generate unique UUIDs for existing protocols."""
-    Protocol = apps.get_model('protocols', 'Protocol')
+    Protocol = apps.get_model("protocols", "Protocol")
     for protocol in Protocol.objects.all():
         protocol.external_id = uuid.uuid4()
-        protocol.save(update_fields=['external_id'])
+        protocol.save(update_fields=["external_id"])
 
 
 def reverse_generate_external_ids(apps, schema_editor):
@@ -19,21 +19,23 @@ def reverse_generate_external_ids(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('protocols', '0005_cassette_slide_processinglog_cassetteslide_and_more'),
+        (
+            "protocols",
+            "0005_cassette_slide_processinglog_cassetteslide_and_more",
+        ),
     ]
 
     operations = [
         # Step 1: Add field without unique constraint
         migrations.AddField(
-            model_name='protocol',
-            name='external_id',
+            model_name="protocol",
+            name="external_id",
             field=models.UUIDField(
-                db_index=True, 
-                default=uuid.uuid4, 
-                help_text='UUID único para acceso público al protocolo', 
-                verbose_name='ID externo',
+                db_index=True,
+                default=uuid.uuid4,
+                help_text="UUID único para acceso público al protocolo",
+                verbose_name="ID externo",
                 null=True,  # Allow null initially
                 blank=True,
             ),
@@ -45,14 +47,14 @@ class Migration(migrations.Migration):
         ),
         # Step 3: Make field non-nullable and unique
         migrations.AlterField(
-            model_name='protocol',
-            name='external_id',
+            model_name="protocol",
+            name="external_id",
             field=models.UUIDField(
-                db_index=True, 
-                default=uuid.uuid4, 
-                help_text='UUID único para acceso público al protocolo', 
+                db_index=True,
+                default=uuid.uuid4,
+                help_text="UUID único para acceso público al protocolo",
                 unique=True,
-                verbose_name='ID externo',
+                verbose_name="ID externo",
             ),
         ),
     ]

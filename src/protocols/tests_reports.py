@@ -1,6 +1,7 @@
 """
 Tests for report generation and management.
 """
+
 from datetime import date
 from unittest.mock import patch
 
@@ -388,6 +389,7 @@ class ReportPDFGenerationTest(TestCase):
         """Test that finalizing report generates PDF."""
         # Mock PDF generation
         from io import BytesIO
+
         mock_buffer = BytesIO(b"fake pdf content")
         mock_generate_pdf.return_value = (mock_buffer, "fakehash123")
 
@@ -527,4 +529,3 @@ class HistopathologistModelTest(TestCase):
         """Test string representation."""
         expected = "Ana López"
         self.assertEqual(str(self.histopathologist), expected)
-

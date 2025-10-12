@@ -251,7 +251,7 @@ def _handle_successful_login(request, user, form):
         else:
             # Default to home page
             next_url = settings.LOGIN_REDIRECT_URL
-    
+
     return redirect(next_url)
 
 

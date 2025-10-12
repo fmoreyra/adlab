@@ -47,7 +47,11 @@ class ProtocolForm(forms.ModelForm):
     species = forms.ChoiceField(
         label=_("Especie"),
         choices=SPECIES_CHOICES,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
 
     class Meta:
@@ -66,9 +70,21 @@ class ProtocolForm(forms.ModelForm):
             "submission_date",
         ]
         widgets = {
-            "species": forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
-            "breed": forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
-            "sex": forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+            "species": forms.Select(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                }
+            ),
+            "breed": forms.TextInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
+            ),
+            "sex": forms.Select(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                }
+            ),
             "age": forms.TextInput(
                 attrs={
                     "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
@@ -76,25 +92,42 @@ class ProtocolForm(forms.ModelForm):
                 }
             ),
             "animal_identification": forms.TextInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
             ),
             "owner_last_name": forms.TextInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
             ),
             "owner_first_name": forms.TextInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
             ),
             "presumptive_diagnosis": forms.Textarea(
-                attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}
+                attrs={
+                    "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                    "rows": 3,
+                }
             ),
             "clinical_history": forms.Textarea(
-                attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 4}
+                attrs={
+                    "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                    "rows": 4,
+                }
             ),
             "academic_interest": forms.CheckboxInput(
-                attrs={"class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"}
+                attrs={
+                    "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+                }
             ),
             "submission_date": forms.DateInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200", "type": "date"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                    "type": "date",
+                }
             ),
         }
 
@@ -114,19 +147,31 @@ class CytologyProtocolForm(forms.Form):
     species = forms.ChoiceField(
         label=_("Especie"),
         choices=SPECIES_CHOICES,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
     breed = forms.CharField(
         label=_("Raza"),
         max_length=100,
         required=False,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     sex = forms.ChoiceField(
         label=_("Sexo"),
         choices=[("", _("Seleccionar sexo"))] + list(Protocol.Sex.choices),
         required=False,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
     age = forms.CharField(
         label=_("Edad"),
@@ -142,40 +187,69 @@ class CytologyProtocolForm(forms.Form):
     animal_identification = forms.CharField(
         label=_("Identificación del Animal"),
         max_length=200,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     owner_last_name = forms.CharField(
         label=_("Apellido del Propietario"),
         max_length=100,
         required=False,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     owner_first_name = forms.CharField(
         label=_("Nombre del Propietario"),
         max_length=100,
         required=False,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     presumptive_diagnosis = forms.CharField(
         label=_("Diagnóstico Presuntivo"),
-        widget=forms.Textarea(attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}),
+        widget=forms.Textarea(
+            attrs={
+                "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                "rows": 3,
+            }
+        ),
     )
     clinical_history = forms.CharField(
         label=_("Historia Clínica"),
         required=False,
-        widget=forms.Textarea(attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 4}),
+        widget=forms.Textarea(
+            attrs={
+                "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                "rows": 4,
+            }
+        ),
     )
     academic_interest = forms.BooleanField(
         label=_("Interés Académico"),
         required=False,
-        widget=forms.CheckboxInput(attrs={"class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"}),
+        widget=forms.CheckboxInput(
+            attrs={
+                "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+            }
+        ),
         help_text=_("Permitir uso con fines académicos/investigación"),
     )
     submission_date = forms.DateField(
         label=_("Fecha de Remisión"),
         initial=date.today,
         widget=forms.DateInput(
-            attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200", "type": "date"}
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "type": "date",
+            }
         ),
     )
 
@@ -183,24 +257,41 @@ class CytologyProtocolForm(forms.Form):
     technique_used = forms.ChoiceField(
         label=_("Técnica Utilizada"),
         choices=CYTOLOGY_TECHNIQUE_CHOICES,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
     sampling_site = forms.CharField(
         label=_("Sitio de Muestreo"),
         max_length=200,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
         help_text=_("Ubicación anatómica de la muestra"),
     )
     number_of_slides = forms.IntegerField(
         label=_("Número de Portaobjetos"),
         initial=1,
         min_value=1,
-        widget=forms.NumberInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.NumberInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     observations = forms.CharField(
         label=_("Observaciones"),
         required=False,
-        widget=forms.Textarea(attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}),
+        widget=forms.Textarea(
+            attrs={
+                "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                "rows": 3,
+            }
+        ),
     )
 
     def clean_species(self):
@@ -273,19 +364,31 @@ class HistopathologyProtocolForm(forms.Form):
     species = forms.ChoiceField(
         label=_("Especie"),
         choices=SPECIES_CHOICES,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
     breed = forms.CharField(
         label=_("Raza"),
         max_length=100,
         required=False,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     sex = forms.ChoiceField(
         label=_("Sexo"),
         choices=[("", _("Seleccionar sexo"))] + list(Protocol.Sex.choices),
         required=False,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
     age = forms.CharField(
         label=_("Edad"),
@@ -301,65 +404,112 @@ class HistopathologyProtocolForm(forms.Form):
     animal_identification = forms.CharField(
         label=_("Identificación del Animal"),
         max_length=200,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     owner_last_name = forms.CharField(
         label=_("Apellido del Propietario"),
         max_length=100,
         required=False,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     owner_first_name = forms.CharField(
         label=_("Nombre del Propietario"),
         max_length=100,
         required=False,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     presumptive_diagnosis = forms.CharField(
         label=_("Diagnóstico Presuntivo"),
-        widget=forms.Textarea(attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}),
+        widget=forms.Textarea(
+            attrs={
+                "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                "rows": 3,
+            }
+        ),
     )
     clinical_history = forms.CharField(
         label=_("Historia Clínica"),
         required=False,
-        widget=forms.Textarea(attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 4}),
+        widget=forms.Textarea(
+            attrs={
+                "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                "rows": 4,
+            }
+        ),
     )
     academic_interest = forms.BooleanField(
         label=_("Interés Académico"),
         required=False,
-        widget=forms.CheckboxInput(attrs={"class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"}),
+        widget=forms.CheckboxInput(
+            attrs={
+                "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+            }
+        ),
         help_text=_("Permitir uso con fines académicos/investigación"),
     )
     submission_date = forms.DateField(
         label=_("Fecha de Remisión"),
         initial=date.today,
         widget=forms.DateInput(
-            attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200", "type": "date"}
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "type": "date",
+            }
         ),
     )
 
     # Histopathology sample fields
     material_submitted = forms.CharField(
         label=_("Material Remitido"),
-        widget=forms.Textarea(attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}),
+        widget=forms.Textarea(
+            attrs={
+                "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                "rows": 3,
+            }
+        ),
         help_text=_("Descripción de las muestras de tejido/órganos"),
     )
     number_of_containers = forms.IntegerField(
         label=_("Número de Frascos"),
         initial=1,
         min_value=1,
-        widget=forms.NumberInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.NumberInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     preservation = forms.CharField(
         label=_("Conservación"),
         max_length=100,
         initial="Formol 10%",
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
     )
     observations = forms.CharField(
         label=_("Observaciones"),
         required=False,
-        widget=forms.Textarea(attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}),
+        widget=forms.Textarea(
+            attrs={
+                "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                "rows": 3,
+            }
+        ),
     )
 
     def clean_species(self):
@@ -422,7 +572,11 @@ class ProtocolEditForm(forms.ModelForm):
     species = forms.ChoiceField(
         label=_("Especie"),
         choices=SPECIES_CHOICES,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
 
     class Meta:
@@ -441,29 +595,58 @@ class ProtocolEditForm(forms.ModelForm):
             "submission_date",
         ]
         widgets = {
-            "breed": forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
-            "sex": forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
-            "age": forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+            "breed": forms.TextInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
+            ),
+            "sex": forms.Select(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                }
+            ),
+            "age": forms.TextInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
+            ),
             "animal_identification": forms.TextInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
             ),
             "owner_last_name": forms.TextInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
             ),
             "owner_first_name": forms.TextInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
             ),
             "presumptive_diagnosis": forms.Textarea(
-                attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}
+                attrs={
+                    "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                    "rows": 3,
+                }
             ),
             "clinical_history": forms.Textarea(
-                attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 4}
+                attrs={
+                    "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                    "rows": 4,
+                }
             ),
             "academic_interest": forms.CheckboxInput(
-                attrs={"class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"}
+                attrs={
+                    "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+                }
             ),
             "submission_date": forms.DateInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200", "type": "date"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                    "type": "date",
+                }
             ),
         }
 
@@ -474,7 +657,11 @@ class CytologySampleEditForm(forms.ModelForm):
     technique_used = forms.ChoiceField(
         label=_("Técnica Utilizada"),
         choices=CYTOLOGY_TECHNIQUE_CHOICES,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
 
     class Meta:
@@ -486,12 +673,21 @@ class CytologySampleEditForm(forms.ModelForm):
             "observations",
         ]
         widgets = {
-            "sampling_site": forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+            "sampling_site": forms.TextInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
+            ),
             "number_of_slides": forms.NumberInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
             ),
             "observations": forms.Textarea(
-                attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}
+                attrs={
+                    "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                    "rows": 3,
+                }
             ),
         }
 
@@ -509,14 +705,26 @@ class HistopathologySampleEditForm(forms.ModelForm):
         ]
         widgets = {
             "material_submitted": forms.Textarea(
-                attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}
+                attrs={
+                    "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                    "rows": 3,
+                }
             ),
             "number_of_containers": forms.NumberInput(
-                attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
             ),
-            "preservation": forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+            "preservation": forms.TextInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
+            ),
             "observations": forms.Textarea(
-                attrs={"class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none", "rows": 3}
+                attrs={
+                    "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none",
+                    "rows": 3,
+                }
             ),
         }
 
@@ -560,7 +768,11 @@ class ReceptionForm(forms.Form):
         label=_("Condición de la muestra"),
         choices=Protocol.SampleCondition.choices,
         initial=Protocol.SampleCondition.OPTIMAL,
-        widget=forms.RadioSelect(attrs={"class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"}),
+        widget=forms.RadioSelect(
+            attrs={
+                "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+            }
+        ),
         help_text=_("Evalúe el estado de la muestra al recibirla"),
     )
 
@@ -606,7 +818,11 @@ class ReceptionForm(forms.Form):
                 self.fields["number_slides_received"] = forms.IntegerField(
                     label=_("Portaobjetos recibidos"),
                     min_value=0,
-                    widget=forms.NumberInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+                    widget=forms.NumberInput(
+                        attrs={
+                            "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        }
+                    ),
                     help_text=_("Cantidad de portaobjetos recibidos"),
                 )
                 # Set initial value from protocol
@@ -621,7 +837,11 @@ class ReceptionForm(forms.Form):
                 self.fields["number_jars_received"] = forms.IntegerField(
                     label=_("Frascos recibidos"),
                     min_value=0,
-                    widget=forms.NumberInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+                    widget=forms.NumberInput(
+                        attrs={
+                            "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        }
+                    ),
                     help_text=_("Cantidad de frascos recibidos"),
                 )
                 # Set initial value from protocol
@@ -716,20 +936,32 @@ class DiscrepancyReportForm(forms.Form):
     discrepancy_type = forms.ChoiceField(
         label=_("Tipo de discrepancia"),
         choices=DISCREPANCY_TYPE_CHOICES,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
 
     expected = forms.CharField(
         label=_("Esperado"),
         required=False,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
         help_text=_("Qué se esperaba según el protocolo"),
     )
 
     received = forms.CharField(
         label=_("Recibido"),
         required=False,
-        widget=forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
         help_text=_("Qué se recibió realmente"),
     )
 
@@ -751,7 +983,11 @@ class DiscrepancyReportForm(forms.Form):
             ("reject", _("Rechazar muestra")),
             ("pending", _("Pendiente de resolución")),
         ],
-        widget=forms.RadioSelect(attrs={"class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"}),
+        widget=forms.RadioSelect(
+            attrs={
+                "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+            }
+        ),
     )
 
     def clean(self):
@@ -799,8 +1035,16 @@ class CassetteForm(forms.ModelForm):
                     ),
                 }
             ),
-            "tipo_cassette": forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
-            "color_cassette": forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+            "tipo_cassette": forms.Select(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                }
+            ),
+            "color_cassette": forms.Select(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                }
+            ),
             "observaciones": forms.Textarea(
                 attrs={
                     "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
@@ -819,7 +1063,11 @@ class BulkCassetteForm(forms.Form):
         min_value=1,
         max_value=20,
         initial=1,
-        widget=forms.NumberInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.NumberInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
         help_text=_("Cantidad de cassettes a crear (máximo 20)"),
     )
 
@@ -837,7 +1085,11 @@ class CassetteStageUpdateForm(forms.Form):
     etapa = forms.ChoiceField(
         label=_("Etapa de procesamiento"),
         choices=STAGE_CHOICES,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
 
     observaciones = forms.CharField(
@@ -866,7 +1118,11 @@ class SlideForm(forms.ModelForm):
             "observaciones",
         ]
         widgets = {
-            "campo": forms.NumberInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+            "campo": forms.NumberInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
+            ),
             "tecnica_coloracion": forms.TextInput(
                 attrs={
                     "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
@@ -890,7 +1146,11 @@ class CytologySlideForm(forms.Form):
         min_value=1,
         max_value=10,
         initial=1,
-        widget=forms.NumberInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.NumberInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
         help_text=_("Cantidad de portaobjetos a crear"),
     )
 
@@ -924,7 +1184,9 @@ class HistopathologySlideForm(forms.Form):
     cassette_ids = forms.MultipleChoiceField(
         label=_("Cassettes a incluir"),
         widget=forms.CheckboxSelectMultiple(
-            attrs={"class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"}
+            attrs={
+                "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+            }
         ),
         help_text=_(
             "Seleccione uno o más cassettes para montar en este portaobjetos"
@@ -946,7 +1208,11 @@ class HistopathologySlideForm(forms.Form):
     campo = forms.IntegerField(
         label=_("Campo"),
         required=False,
-        widget=forms.NumberInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+        widget=forms.NumberInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            }
+        ),
         help_text=_("Número de campo del portaobjetos"),
     )
 
@@ -990,7 +1256,11 @@ class SlideStageUpdateForm(forms.Form):
     etapa = forms.ChoiceField(
         label=_("Etapa de procesamiento"),
         choices=STAGE_CHOICES,
-        widget=forms.Select(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"}),
+        widget=forms.Select(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            }
+        ),
     )
 
     observaciones = forms.CharField(
@@ -1014,7 +1284,11 @@ class SlideQualityForm(forms.Form):
     calidad = forms.ChoiceField(
         label=_("Calidad del portaobjetos"),
         choices=Slide.Quality.choices,
-        widget=forms.RadioSelect(attrs={"class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"}),
+        widget=forms.RadioSelect(
+            attrs={
+                "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+            }
+        ),
         help_text=_("Evalúe la calidad del corte y coloración"),
     )
 

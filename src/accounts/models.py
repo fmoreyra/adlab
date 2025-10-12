@@ -602,14 +602,14 @@ class Histopathologist(models.Model):
         blank=True,
         help_text=_("Número de teléfono de contacto"),
     )
-    
+
     # Professional info
     is_active = models.BooleanField(
         _("activo"),
         default=True,
         help_text=_("Si el histopatólogo está activo para firmar informes"),
     )
-    
+
     # Timestamps
     created_at = models.DateTimeField(_("creado el"), auto_now_add=True)
     updated_at = models.DateTimeField(_("actualizado el"), auto_now=True)

@@ -1,6 +1,7 @@
 """
 Views for work order generation and management.
 """
+
 import io
 import logging
 import os
@@ -51,17 +52,17 @@ logger = logging.getLogger(__name__)
 def _send_work_order_notification(work_order):
     """
     Send work order notification email to veterinarian.
-    
+
     Args:
         work_order: WorkOrder instance that was created
-    
+
     Returns:
         bool: True if email was queued successfully, False otherwise
     """
     try:
         email_log = send_work_order_notification(
             work_order=work_order,
-            work_order_pdf_path=None  # PDF generation can be added later
+            work_order_pdf_path=None,  # PDF generation can be added later
         )
         if email_log:
             logger.info(
@@ -93,18 +94,21 @@ def workorder_list_view(request):
     """List all work orders with filtering."""
     if not request.user.is_staff:
         messages.error(
-            request,
-            _("No tiene permisos para acceder a esta función.")
+            request, _("No tiene permisos para acceder a esta función.")
         )
         return redirect("protocols:protocol_list")
 
     # Base queryset
-    work_orders = WorkOrder.objects.select_related(
-        "veterinarian__user",
-        "created_by",
-    ).prefetch_related(
-        "services__protocol",
-    ).order_by("-created_at")
+    work_orders = (
+        WorkOrder.objects.select_related(
+            "veterinarian__user",
+            "created_by",
+        )
+        .prefetch_related(
+            "services__protocol",
+        )
+        .order_by("-created_at")
+    )
 
     # Apply filters
     filter_form = WorkOrderFilterForm(request.GET)
@@ -117,7 +121,9 @@ def workorder_list_view(request):
         date_to = filter_form.cleaned_data.get("date_to")
 
         if order_number:
-            work_orders = work_orders.filter(order_number__icontains=order_number)
+            work_orders = work_orders.filter(
+                order_number__icontains=order_number
+            )
 
         if veterinarian:
             work_orders = work_orders.filter(veterinarian=veterinarian)
@@ -148,18 +154,21 @@ def workorder_pending_protocols_view(request):
     """List protocols ready for work order generation."""
     if not request.user.is_staff:
         messages.error(
-            request,
-            _("No tiene permisos para acceder a esta función.")
+            request, _("No tiene permisos para acceder a esta función.")
         )
         return redirect("protocols:protocol_list")
 
     # Protocols that are READY or REPORT_SENT and don't have work orders
-    protocols = Protocol.objects.filter(
-        status__in=[Protocol.Status.READY, Protocol.Status.REPORT_SENT],
-        work_order__isnull=True,
-    ).select_related(
-        "veterinarian__user",
-    ).order_by("veterinarian", "-submission_date")
+    protocols = (
+        Protocol.objects.filter(
+            status__in=[Protocol.Status.READY, Protocol.Status.REPORT_SENT],
+            work_order__isnull=True,
+        )
+        .select_related(
+            "veterinarian__user",
+        )
+        .order_by("veterinarian", "-submission_date")
+    )
 
     # Group by veterinarian for easier processing
     protocols_by_vet = {}
@@ -176,7 +185,9 @@ def workorder_pending_protocols_view(request):
         "protocols_by_vet": protocols_by_vet.values(),
         "title": _("Protocolos sin Orden de Trabajo"),
     }
-    return render(request, "protocols/workorder/pending_protocols.html", context)
+    return render(
+        request, "protocols/workorder/pending_protocols.html", context
+    )
 
 
 # =============================================================================
@@ -190,12 +201,12 @@ def workorder_select_protocols_view(request, veterinarian_id):
     """Select protocols to include in a work order."""
     if not request.user.is_staff:
         messages.error(
-            request,
-            _("No tiene permisos para acceder a esta función.")
+            request, _("No tiene permisos para acceder a esta función.")
         )
         return redirect("protocols:protocol_list")
 
     from accounts.models import Veterinarian
+
     veterinarian = get_object_or_404(Veterinarian, pk=veterinarian_id)
 
     # Early return: GET request
@@ -208,7 +219,9 @@ def workorder_select_protocols_view(request, veterinarian_id):
                 veterinarian.user.get_full_name()
             ),
         }
-        return render(request, "protocols/workorder/select_protocols.html", context)
+        return render(
+            request, "protocols/workorder/select_protocols.html", context
+        )
 
     # POST: Process selection
     form = ProtocolSelectionForm(request.POST, veterinarian=veterinarian)
@@ -222,15 +235,16 @@ def workorder_select_protocols_view(request, veterinarian_id):
                 veterinarian.user.get_full_name()
             ),
         }
-        return render(request, "protocols/workorder/select_protocols.html", context)
+        return render(
+            request, "protocols/workorder/select_protocols.html", context
+        )
 
     # Success: redirect to work order creation with selected protocols
     protocols = form.cleaned_data["protocols"]
     protocol_ids = ",".join(str(p.id) for p in protocols)
 
     return redirect(
-        "protocols:workorder_create_with_protocols",
-        protocol_ids=protocol_ids
+        "protocols:workorder_create_with_protocols", protocol_ids=protocol_ids
     )
 
 
@@ -240,18 +254,19 @@ def workorder_create_view(request, protocol_ids):
     """Create a new work order for selected protocols."""
     if not request.user.is_staff:
         messages.error(
-            request,
-            _("No tiene permisos para acceder a esta función.")
+            request, _("No tiene permisos para acceder a esta función.")
         )
         return redirect("protocols:protocol_list")
 
     # Parse protocol IDs
     protocol_id_list = [int(pid) for pid in protocol_ids.split(",")]
-    protocols = Protocol.objects.filter(
-        id__in=protocol_id_list
-    ).select_related(
-        "veterinarian__user",
-    ).order_by("-submission_date")
+    protocols = (
+        Protocol.objects.filter(id__in=protocol_id_list)
+        .select_related(
+            "veterinarian__user",
+        )
+        .order_by("-submission_date")
+    )
 
     # Validate protocols
     if not protocols.exists():
@@ -262,8 +277,7 @@ def workorder_create_view(request, protocol_ids):
     veterinarians = set(p.veterinarian for p in protocols)
     if len(veterinarians) > 1:
         messages.error(
-            request,
-            _("Todos los protocolos deben ser del mismo veterinario.")
+            request, _("Todos los protocolos deben ser del mismo veterinario.")
         )
         return redirect("protocols:workorder_pending_protocols")
 
@@ -312,9 +326,9 @@ def workorder_create_view(request, protocol_ids):
 
         messages.success(
             request,
-            _("Orden de trabajo {} creada y enviada por email exitosamente.").format(
-                work_order.order_number
-            )
+            _(
+                "Orden de trabajo {} creada y enviada por email exitosamente."
+            ).format(work_order.order_number),
         )
         return redirect("protocols:workorder_detail", pk=work_order.pk)
 
@@ -322,7 +336,9 @@ def workorder_create_view(request, protocol_ids):
         logger.error(f"Error creating work order: {e}")
         messages.error(
             request,
-            _("Error al crear la orden de trabajo. Por favor intente nuevamente.")
+            _(
+                "Error al crear la orden de trabajo. Por favor intente nuevamente."
+            ),
         )
         context = {
             "form": form,
@@ -351,10 +367,14 @@ def _calculate_services(protocols):
         # Determine service type based on analysis type and sample details
         if protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY:
             service_type = "histopatologia_2a5_piezas"
-            description = f"Análisis histopatológico - {protocol.animal_identification}"
+            description = (
+                f"Análisis histopatológico - {protocol.animal_identification}"
+            )
         else:  # Cytology
             service_type = "citologia"
-            description = f"Análisis citopatológico - {protocol.animal_identification}"
+            description = (
+                f"Análisis citopatológico - {protocol.animal_identification}"
+            )
 
         # Get current price from catalog
         pricing = PricingCatalog.get_current_price(service_type)
@@ -363,19 +383,26 @@ def _calculate_services(protocols):
             unit_price = pricing.price
         else:
             # Default prices if not in catalog
-            unit_price = Decimal("14.04") if protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY else Decimal("5.40")
+            unit_price = (
+                Decimal("14.04")
+                if protocol.analysis_type
+                == Protocol.AnalysisType.HISTOPATHOLOGY
+                else Decimal("5.40")
+            )
 
         item_subtotal = unit_price * 1  # quantity = 1 per protocol
 
-        services.append({
-            "protocol": protocol,
-            "description": description,
-            "service_type": service_type,
-            "quantity": 1,
-            "unit_price": unit_price,
-            "subtotal": item_subtotal,
-            "discount": Decimal("0"),
-        })
+        services.append(
+            {
+                "protocol": protocol,
+                "description": description,
+                "service_type": service_type,
+                "quantity": 1,
+                "unit_price": unit_price,
+                "subtotal": item_subtotal,
+                "discount": Decimal("0"),
+            }
+        )
 
         subtotal += item_subtotal
 
@@ -387,7 +414,9 @@ def _calculate_services(protocols):
 
 
 @transaction.atomic
-def _create_work_order_with_services(form, protocols, services_data, created_by):
+def _create_work_order_with_services(
+    form, protocols, services_data, created_by
+):
     """
     Create work order and its service line items.
 
@@ -437,8 +466,7 @@ def workorder_detail_view(request, pk):
     """View work order details."""
     if not request.user.is_staff:
         messages.error(
-            request,
-            _("No tiene permisos para acceder a esta función.")
+            request, _("No tiene permisos para acceder a esta función.")
         )
         return redirect("protocols:protocol_list")
 
@@ -449,7 +477,7 @@ def workorder_detail_view(request, pk):
         ).prefetch_related(
             "services__protocol",
         ),
-        pk=pk
+        pk=pk,
     )
 
     context = {
@@ -466,8 +494,7 @@ def workorder_issue_view(request, pk):
     """Issue (finalize) a draft work order."""
     if not request.user.is_staff:
         messages.error(
-            request,
-            _("No tiene permisos para acceder a esta función.")
+            request, _("No tiene permisos para acceder a esta función.")
         )
         return redirect("protocols:protocol_list")
 
@@ -476,8 +503,7 @@ def workorder_issue_view(request, pk):
     # Early return: check if can be issued
     if work_order.status != WorkOrder.Status.DRAFT:
         messages.error(
-            request,
-            _("Solo las órdenes en borrador pueden ser emitidas.")
+            request, _("Solo las órdenes en borrador pueden ser emitidas.")
         )
         return redirect("protocols:workorder_detail", pk=work_order.pk)
 
@@ -487,14 +513,11 @@ def workorder_issue_view(request, pk):
             request,
             _("Orden de trabajo {} emitida correctamente.").format(
                 work_order.order_number
-            )
+            ),
         )
     except Exception as e:
         logger.error(f"Error issuing work order {work_order.pk}: {e}")
-        messages.error(
-            request,
-            _("Error al emitir la orden de trabajo.")
-        )
+        messages.error(request, _("Error al emitir la orden de trabajo."))
 
     return redirect("protocols:workorder_detail", pk=work_order.pk)
 
@@ -506,18 +529,20 @@ def workorder_send_view(request, pk):
     """Send work order to finance office."""
     if not request.user.is_staff:
         messages.error(
-            request,
-            _("No tiene permisos para acceder a esta función.")
+            request, _("No tiene permisos para acceder a esta función.")
         )
         return redirect("protocols:protocol_list")
 
     work_order = get_object_or_404(WorkOrder, pk=pk)
 
     # Early return: check if can be sent
-    if work_order.status not in [WorkOrder.Status.DRAFT, WorkOrder.Status.ISSUED]:
+    if work_order.status not in [
+        WorkOrder.Status.DRAFT,
+        WorkOrder.Status.ISSUED,
+    ]:
         messages.error(
             request,
-            _("Solo las órdenes en borrador o emitidas pueden ser enviadas.")
+            _("Solo las órdenes en borrador o emitidas pueden ser enviadas."),
         )
         return redirect("protocols:workorder_detail", pk=work_order.pk)
 
@@ -535,14 +560,11 @@ def workorder_send_view(request, pk):
             request,
             _("Orden de trabajo {} marcada como enviada.").format(
                 work_order.order_number
-            )
+            ),
         )
     except Exception as e:
         logger.error(f"Error sending work order {work_order.pk}: {e}")
-        messages.error(
-            request,
-            _("Error al enviar la orden de trabajo.")
-        )
+        messages.error(request, _("Error al enviar la orden de trabajo."))
 
     return redirect("protocols:workorder_detail", pk=work_order.pk)
 
@@ -557,8 +579,7 @@ def workorder_pdf_view(request, pk):
     """Generate and serve work order PDF."""
     if not request.user.is_staff:
         messages.error(
-            request,
-            _("No tiene permisos para acceder a esta función.")
+            request, _("No tiene permisos para acceder a esta función.")
         )
         return redirect("protocols:protocol_list")
 
@@ -568,22 +589,23 @@ def workorder_pdf_view(request, pk):
         ).prefetch_related(
             "services__protocol",
         ),
-        pk=pk
+        pk=pk,
     )
 
     try:
         pdf_buffer = _generate_workorder_pdf_buffer(work_order)
         filename = work_order.generate_pdf_filename()
 
-        response = HttpResponse(pdf_buffer.getvalue(), content_type="application/pdf")
+        response = HttpResponse(
+            pdf_buffer.getvalue(), content_type="application/pdf"
+        )
         response["Content-Disposition"] = f'inline; filename="{filename}"'
         return response
 
     except Exception as e:
         logger.error(f"Error generating work order PDF: {e}")
         messages.error(
-            request,
-            _("Error al generar el PDF de la orden de trabajo.")
+            request, _("Error al generar el PDF de la orden de trabajo.")
         )
         return redirect("protocols:workorder_detail", pk=work_order.pk)
 
@@ -630,20 +652,31 @@ def _generate_workorder_pdf_buffer(work_order):
     story.append(Spacer(1, 0.2 * inch))
 
     # Date and client info
-    story.append(Paragraph(f"<b>Fecha:</b> {work_order.issue_date.strftime('%d/%m/%Y')}", normal_style))
+    story.append(
+        Paragraph(
+            f"<b>Fecha:</b> {work_order.issue_date.strftime('%d/%m/%Y')}",
+            normal_style,
+        )
+    )
     story.append(Spacer(1, 0.1 * inch))
 
     story.append(Paragraph("<b>Cliente:</b>", heading_style))
     story.append(Paragraph(work_order.get_billing_name(), normal_style))
 
     if work_order.cuit_cuil:
-        story.append(Paragraph(f"<b>CUIT/CUIL:</b> {work_order.cuit_cuil}", normal_style))
+        story.append(
+            Paragraph(
+                f"<b>CUIT/CUIL:</b> {work_order.cuit_cuil}", normal_style
+            )
+        )
 
     if work_order.iva_condition:
-        story.append(Paragraph(
-            f"<b>Condición IVA:</b> {work_order.get_iva_condition_display()}",
-            normal_style
-        ))
+        story.append(
+            Paragraph(
+                f"<b>Condición IVA:</b> {work_order.get_iva_condition_display()}",
+                normal_style,
+            )
+        )
 
     story.append(Spacer(1, 0.3 * inch))
 
@@ -651,7 +684,9 @@ def _generate_workorder_pdf_buffer(work_order):
     story.append(Paragraph("<b>SERVICIOS:</b>", heading_style))
     story.append(Spacer(1, 0.1 * inch))
 
-    table_data = [["Protocolo", "Descripción", "Cantidad", "P. Unit.", "Subtotal"]]
+    table_data = [
+        ["Protocolo", "Descripción", "Cantidad", "P. Unit.", "Subtotal"]
+    ]
 
     for service in work_order.services.all():
         row = [
@@ -663,18 +698,25 @@ def _generate_workorder_pdf_buffer(work_order):
         ]
         table_data.append(row)
 
-    table = Table(table_data, colWidths=[1.2*inch, 3*inch, 0.8*inch, 1*inch, 1*inch])
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("ALIGN", (1, 0), (1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, 0), 10),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-        ("GRID", (0, 0), (-1, -1), 1, colors.black),
-    ]))
+    table = Table(
+        table_data,
+        colWidths=[1.2 * inch, 3 * inch, 0.8 * inch, 1 * inch, 1 * inch],
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("ALIGN", (1, 0), (1, -1), "LEFT"),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+            ]
+        )
+    )
 
     story.append(table)
     story.append(Spacer(1, 0.3 * inch))
@@ -686,14 +728,18 @@ def _generate_workorder_pdf_buffer(work_order):
         ["SALDO PENDIENTE:", f"${work_order.balance_due:.2f}"],
     ]
 
-    totals_table = Table(totals_data, colWidths=[4.5*inch, 1.5*inch])
-    totals_table.setStyle(TableStyle([
-        ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
-        ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 11),
-        ("LINEABOVE", (0, 0), (-1, 0), 1, colors.black),
-        ("LINEABOVE", (0, -1), (-1, -1), 2, colors.black),
-    ]))
+    totals_table = Table(totals_data, colWidths=[4.5 * inch, 1.5 * inch])
+    totals_table.setStyle(
+        TableStyle(
+            [
+                ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 11),
+                ("LINEABOVE", (0, 0), (-1, 0), 1, colors.black),
+                ("LINEABOVE", (0, -1), (-1, -1), 2, colors.black),
+            ]
+        )
+    )
 
     story.append(totals_table)
 
@@ -734,4 +780,3 @@ def _generate_workorder_pdf(work_order):
     work_order.save(update_fields=["pdf_path"])
 
     logger.info(f"Work order PDF generated: {filepath}")
-

@@ -34,7 +34,11 @@ class UserLoginForm(AuthenticationForm):
     remember_me = forms.BooleanField(
         label=_("Remember me"),
         required=False,
-        widget=forms.CheckboxInput(attrs={"class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"}),
+        widget=forms.CheckboxInput(
+            attrs={
+                "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+            }
+        ),
     )
 
 
@@ -195,9 +199,21 @@ class UserProfileForm(forms.ModelForm):
         model = User
         fields = ["first_name", "last_name", "email"]
         widgets = {
-            "first_name": forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
-            "last_name": forms.TextInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
-            "email": forms.EmailInput(attrs={"class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}),
+            "first_name": forms.TextInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
+            ),
+            "last_name": forms.TextInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
+            ),
+            "email": forms.EmailInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                }
+            ),
         }
 
     def clean_email(self):

@@ -24,7 +24,11 @@ urlpatterns = [
     ),
     # Detail, edit, delete
     path("<int:pk>/", views.protocol_detail_view, name="protocol_detail"),
-    path("public/<uuid:external_id>/", views.protocol_public_detail_view, name="protocol_public_detail"),
+    path(
+        "public/<uuid:external_id>/",
+        views.protocol_public_detail_view,
+        name="protocol_public_detail",
+    ),
     path("<int:pk>/edit/", views.protocol_edit_view, name="protocol_edit"),
     path(
         "<int:pk>/delete/", views.protocol_delete_view, name="protocol_delete"

@@ -38,7 +38,7 @@ class Protocol(models.Model):
         db_index=True,
         help_text=_("UUID único para acceso público al protocolo"),
     )
-    
+
     # Tracking codes
     temporary_code = models.CharField(
         _("código temporal"),
@@ -498,21 +498,26 @@ class PricingCatalog(models.Model):
             PricingCatalog instance or None
         """
         today = date.today()
-        return cls.objects.filter(
-            service_type=service_type,
-            valid_from__lte=today,
-        ).filter(
-            models.Q(valid_until__gte=today) | models.Q(valid_until__isnull=True)
-        ).first()
+        return (
+            cls.objects.filter(
+                service_type=service_type,
+                valid_from__lte=today,
+            )
+            .filter(
+                models.Q(valid_until__gte=today)
+                | models.Q(valid_until__isnull=True)
+            )
+            .first()
+        )
 
     def is_valid(self, check_date=None):
         """Check if price is valid on given date."""
         if check_date is None:
             check_date = date.today()
-        
+
         if check_date < self.valid_from:
             return False
-        
+
         return not (self.valid_until and check_date > self.valid_until)
 
 
@@ -594,7 +599,10 @@ class WorkOrder(models.Model):
         INVOICED = "invoiced", _("Facturada")
 
     class IVACondition(models.TextChoices):
-        RESPONSABLE_INSCRIPTO = "responsable_inscripto", _("Responsable Inscripto")
+        RESPONSABLE_INSCRIPTO = (
+            "responsable_inscripto",
+            _("Responsable Inscripto"),
+        )
         MONOTRIBUTISTA = "monotributista", _("Monotributista")
         EXENTO = "exento", _("Exento")
 
@@ -732,10 +740,10 @@ class WorkOrder(models.Model):
         # Generate order number if not set
         if not self.pk and not self.order_number:
             self.order_number = self.generate_order_number()
-        
+
         # Calculate balance due
         self.balance_due = self.total_amount - self.advance_payment
-        
+
         # Update payment status
         if self.balance_due <= 0:
             self.payment_status = self.PaymentStatus.PAID
@@ -743,7 +751,7 @@ class WorkOrder(models.Model):
             self.payment_status = self.PaymentStatus.PARTIAL
         else:
             self.payment_status = self.PaymentStatus.PENDING
-        
+
         super().save(*args, **kwargs)
 
     def generate_order_number(self):
@@ -828,7 +836,7 @@ class WorkOrderService(models.Model):
         related_name="work_order_services",
         verbose_name=_("protocolo"),
     )
-    
+
     # Service details
     description = models.CharField(
         _("descripción"),
@@ -1718,7 +1726,9 @@ class Report(models.Model):
 
     def generate_pdf_filename(self):
         """Generate standardized PDF filename."""
-        protocol_num = self.protocol.protocol_number.replace(" ", "_").replace("/", "_")
+        protocol_num = self.protocol.protocol_number.replace(" ", "_").replace(
+            "/", "_"
+        )
         return f"Informe_{protocol_num}_v{self.version}.pdf"
 
     def can_edit(self):
@@ -1742,7 +1752,14 @@ class Report(models.Model):
         self.sent_date = timezone.now()
         self.sent_to_email = email
         self.email_status = self.EmailStatus.SENT
-        self.save(update_fields=["status", "sent_date", "sent_to_email", "email_status"])
+        self.save(
+            update_fields=[
+                "status",
+                "sent_date",
+                "sent_to_email",
+                "email_status",
+            ]
+        )
 
 
 class CassetteObservation(models.Model):
@@ -2060,4 +2077,6 @@ class NotificationPreference(models.Model):
             "report_ready": self.notify_on_report_ready,
             "processing": self.notify_on_processing,
         }
-        return type_map.get(email_type, True)  # Default to True for other types
+        return type_map.get(
+            email_type, True
+        )  # Default to True for other types

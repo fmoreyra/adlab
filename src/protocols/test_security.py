@@ -78,7 +78,7 @@ class SecurityTest(TestCase):
             username="super",
             password="testpass123",
         )
-        
+
         # Create veterinarian profiles
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -96,7 +96,7 @@ class SecurityTest(TestCase):
             phone="+54 341 7654321",
             email="vet2@example.com",
         )
-        
+
         # Create histopathologist profile
         self.histopathologist = Histopathologist.objects.create(
             user=self.histopathologist_user,
@@ -106,7 +106,7 @@ class SecurityTest(TestCase):
             position="Profesor Titular",
             specialty="Patología Veterinaria",
         )
-        
+
         # Create test protocols
         self.protocol1 = Protocol.objects.create(
             veterinarian=self.veterinarian,
@@ -124,7 +124,7 @@ class SecurityTest(TestCase):
             protocol_number="HP 25/002",
             submission_date=date.today(),
         )
-        
+
         # Create samples
         self.cytology_sample = CytologySample.objects.create(
             protocol=self.protocol1,
@@ -140,7 +140,7 @@ class SecurityTest(TestCase):
             observations="Test sample",
             number_of_containers=3,
         )
-        
+
         # Create reports
         self.report1 = Report.objects.create(
             protocol=self.protocol1,
@@ -164,7 +164,7 @@ class SecurityTest(TestCase):
             recommendations="Test recommendations 2",
             status=Report.Status.FINALIZED,
         )
-        
+
         # Create work orders
         self.work_order1 = WorkOrder.objects.create(
             veterinarian=self.veterinarian,
@@ -184,11 +184,11 @@ class SecurityTest(TestCase):
             observations="Test work order 2",
             order_number="WO-2025-002",
         )
-        
+
         # Add protocols to work orders
         self.work_order1.protocols.add(self.protocol1)
         self.work_order2.protocols.add(self.protocol2)
-        
+
         # Create work order services
         self.work_order_service1 = WorkOrderService.objects.create(
             work_order=self.work_order1,
@@ -215,12 +215,14 @@ class SecurityTest(TestCase):
         """Test that veterinarians can only access their own protocols."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to access protocol2 (belongs to vet_user2)
         response = self.client.get(
-            reverse("protocols:protocol_detail", kwargs={"pk": self.protocol2.pk})
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol2.pk}
+            )
         )
-        
+
         # Should be forbidden
         self.assertEqual(response.status_code, 403)
 
@@ -228,12 +230,12 @@ class SecurityTest(TestCase):
         """Test that veterinarians can only access their own reports."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to access report2 (belongs to vet_user2)
         response = self.client.get(
             reverse("protocols:report_detail", kwargs={"pk": self.report2.pk})
         )
-        
+
         # Should be forbidden (redirects to protocol_list)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
@@ -242,12 +244,15 @@ class SecurityTest(TestCase):
         """Test that veterinarians can only access their own work orders."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to access work_order2 (belongs to vet_user2)
         response = self.client.get(
-            reverse("protocols:workorder_detail", kwargs={"pk": self.work_order2.pk})
+            reverse(
+                "protocols:workorder_detail",
+                kwargs={"pk": self.work_order2.pk},
+            )
         )
-        
+
         # Should be forbidden (redirects to protocol_list)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
@@ -256,36 +261,46 @@ class SecurityTest(TestCase):
         """Test that staff users can access all protocols."""
         # Login as staff user
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Access protocol1 (belongs to vet_user)
         response = self.client.get(
-            reverse("protocols:protocol_detail", kwargs={"pk": self.protocol1.pk})
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol1.pk}
+            )
         )
         # Staff users need veterinarian profile to access protocol details
         self.assertEqual(response.status_code, 302)
         # The redirect might be to complete_profile or another URL
-        self.assertTrue(response.url.endswith('complete-profile/') or response.url.endswith('complete_profile'))
-        
+        self.assertTrue(
+            response.url.endswith("complete-profile/")
+            or response.url.endswith("complete_profile")
+        )
+
         # Access protocol2 (belongs to vet_user2)
         response = self.client.get(
-            reverse("protocols:protocol_detail", kwargs={"pk": self.protocol2.pk})
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol2.pk}
+            )
         )
         # Staff users need veterinarian profile to access protocol details
         self.assertEqual(response.status_code, 302)
         # The redirect might be to complete_profile or another URL
-        self.assertTrue(response.url.endswith('complete-profile/') or response.url.endswith('complete_profile'))
+        self.assertTrue(
+            response.url.endswith("complete-profile/")
+            or response.url.endswith("complete_profile")
+        )
 
     def test_histopathologist_can_access_all_reports(self):
         """Test that histopathologists can access all reports."""
         # Login as histopathologist
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         # Access report1
         response = self.client.get(
             reverse("protocols:report_detail", kwargs={"pk": self.report1.pk})
         )
         self.assertEqual(response.status_code, 200)
-        
+
         # Access report2
         response = self.client.get(
             reverse("protocols:report_detail", kwargs={"pk": self.report2.pk})
@@ -296,25 +311,29 @@ class SecurityTest(TestCase):
         """Test that admin users can access all data."""
         # Login as admin
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Access protocol1
         response = self.client.get(
-            reverse("protocols:protocol_detail", kwargs={"pk": self.protocol1.pk})
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol1.pk}
+            )
         )
         self.assertEqual(response.status_code, 200)
-        
+
         # Access protocol2
         response = self.client.get(
-            reverse("protocols:protocol_detail", kwargs={"pk": self.protocol2.pk})
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol2.pk}
+            )
         )
         self.assertEqual(response.status_code, 200)
-        
+
         # Access report1
         response = self.client.get(
             reverse("protocols:report_detail", kwargs={"pk": self.report1.pk})
         )
         self.assertEqual(response.status_code, 200)
-        
+
         # Access report2
         response = self.client.get(
             reverse("protocols:report_detail", kwargs={"pk": self.report2.pk})
@@ -325,16 +344,20 @@ class SecurityTest(TestCase):
         """Test that superusers can access all data."""
         # Login as superuser
         self.client.login(email="super@example.com", password="testpass123")
-        
+
         # Access protocol1
         response = self.client.get(
-            reverse("protocols:protocol_detail", kwargs={"pk": self.protocol1.pk})
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol1.pk}
+            )
         )
         self.assertEqual(response.status_code, 200)
-        
+
         # Access protocol2
         response = self.client.get(
-            reverse("protocols:protocol_detail", kwargs={"pk": self.protocol2.pk})
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol2.pk}
+            )
         )
         self.assertEqual(response.status_code, 200)
 
@@ -347,13 +370,15 @@ class SecurityTest(TestCase):
         # Try to access protocol list without login
         response = self.client.get(reverse("protocols:protocol_list"))
         self.assertEqual(response.status_code, 302)  # Redirects to login
-        
+
         # Try to access protocol detail without login
         response = self.client.get(
-            reverse("protocols:protocol_detail", kwargs={"pk": self.protocol1.pk})
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol1.pk}
+            )
         )
         self.assertEqual(response.status_code, 302)  # Redirects to login
-        
+
         # Try to access report detail without login
         response = self.client.get(
             reverse("protocols:report_detail", kwargs={"pk": self.report1.pk})
@@ -365,46 +390,46 @@ class SecurityTest(TestCase):
         # Deactivate user
         self.vet_user.is_active = False
         self.vet_user.save()
-        
+
         # Try to login
         self.client.post(
             reverse("accounts:login"),
-            {"email": "vet@example.com", "password": "testpass123"}
+            {"email": "vet@example.com", "password": "testpass123"},
         )
-        
+
         # Should not be able to login
-        self.assertFalse(self.client.session.get('_auth_user_id'))
+        self.assertFalse(self.client.session.get("_auth_user_id"))
 
     def test_unverified_veterinarian_cannot_login(self):
         """Test that unverified veterinarians cannot login."""
         # Unverify veterinarian
         self.vet_user.email_verified = False
         self.vet_user.save()
-        
+
         # Try to login
         self.client.post(
             reverse("accounts:login"),
-            {"email": "vet@example.com", "password": "testpass123"}
+            {"email": "vet@example.com", "password": "testpass123"},
         )
-        
+
         # Should not be able to login
-        self.assertFalse(self.client.session.get('_auth_user_id'))
+        self.assertFalse(self.client.session.get("_auth_user_id"))
 
     def test_staff_user_can_login_without_verification(self):
         """Test that staff users can login without email verification."""
         # Unverify staff user
         self.staff_user.email_verified = False
         self.staff_user.save()
-        
+
         # Test the can_login method directly
         self.assertTrue(self.staff_user.can_login())
-        
+
         # Test that the user can actually login
         response = self.client.post(
             reverse("accounts:login"),
-            {"email": "staff@example.com", "password": "testpass123"}
+            {"email": "staff@example.com", "password": "testpass123"},
         )
-        
+
         # Should be able to login (staff users don't need verification)
         # The login might return 200 with form errors or 302 on success
         # The important thing is that can_login() returns True
@@ -418,12 +443,14 @@ class SecurityTest(TestCase):
         """Test that veterinarians cannot edit other veterinarians' protocols."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to edit protocol2 (belongs to vet_user2)
         response = self.client.get(
-            reverse("protocols:protocol_edit", kwargs={"pk": self.protocol2.pk})
+            reverse(
+                "protocols:protocol_edit", kwargs={"pk": self.protocol2.pk}
+            )
         )
-        
+
         # Should be forbidden
         self.assertEqual(response.status_code, 403)
 
@@ -431,12 +458,14 @@ class SecurityTest(TestCase):
         """Test that veterinarians cannot finalize other veterinarians' reports."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to finalize report2 (belongs to vet_user2)
         response = self.client.post(
-            reverse("protocols:report_finalize", kwargs={"pk": self.report2.pk})
+            reverse(
+                "protocols:report_finalize", kwargs={"pk": self.report2.pk}
+            )
         )
-        
+
         # Should be forbidden (redirects to protocol_list)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
@@ -445,25 +474,28 @@ class SecurityTest(TestCase):
         """Test that staff cannot edit finalized reports."""
         # Login as staff user
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Try to edit finalized report2
         response = self.client.get(
             reverse("protocols:report_edit", kwargs={"pk": self.report2.pk})
         )
-        
+
         # Should be forbidden (redirects to report_detail)
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:report_detail", kwargs={"pk": self.report2.pk}))
+        self.assertRedirects(
+            response,
+            reverse("protocols:report_detail", kwargs={"pk": self.report2.pk}),
+        )
 
     def test_veterinarian_cannot_access_staff_only_views(self):
         """Test that veterinarians cannot access staff-only views."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to access reception views (staff only)
         response = self.client.get(reverse("protocols:reception_pending"))
         self.assertEqual(response.status_code, 302)  # Redirects to home
-        
+
         response = self.client.get(reverse("protocols:reception_history"))
         self.assertEqual(response.status_code, 302)  # Redirects to home
 
@@ -471,7 +503,7 @@ class SecurityTest(TestCase):
         """Test that staff cannot access admin-only views."""
         # Login as staff user
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Try to access admin dashboard
         response = self.client.get(reverse("pages:dashboard_admin"))
         self.assertEqual(response.status_code, 302)  # Redirects to home
@@ -484,13 +516,13 @@ class SecurityTest(TestCase):
         """Test that protocol list shows only own protocols for veterinarians."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Access protocol list
         response = self.client.get(reverse("protocols:protocol_list"))
         self.assertEqual(response.status_code, 200)
-        
+
         # Should only see protocol1 (belongs to vet_user)
-        protocols = response.context['protocols']
+        protocols = response.context["protocols"]
         self.assertEqual(len(protocols), 1)
         self.assertEqual(protocols[0], self.protocol1)
 
@@ -498,23 +530,25 @@ class SecurityTest(TestCase):
         """Test that protocol list shows all protocols for admin users."""
         # Login as admin
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Access protocol list
         response = self.client.get(reverse("protocols:protocol_list"))
         self.assertEqual(response.status_code, 200)
-        
+
         # Should see all protocols
-        protocols = response.context['protocols']
+        protocols = response.context["protocols"]
         self.assertEqual(len(protocols), 2)
         protocol_ids = [p.id for p in protocols]
         self.assertIn(self.protocol1.id, protocol_ids)
         self.assertIn(self.protocol2.id, protocol_ids)
 
-    def test_work_order_list_shows_only_own_work_orders_for_veterinarians(self):
+    def test_work_order_list_shows_only_own_work_orders_for_veterinarians(
+        self,
+    ):
         """Test that work order list shows only own work orders for veterinarians."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Access work order list
         response = self.client.get(reverse("protocols:workorder_list"))
         # Work order list is staff-only, so veterinarians get redirected
@@ -529,17 +563,16 @@ class SecurityTest(TestCase):
         """Test protection against SQL injection in protocol search."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try SQL injection in search parameter
         malicious_search = "'; DROP TABLE protocols_protocol; --"
         response = self.client.get(
-            reverse("protocols:protocol_list"),
-            {"search": malicious_search}
+            reverse("protocols:protocol_list"), {"search": malicious_search}
         )
-        
+
         # Should not crash and should return 200
         self.assertEqual(response.status_code, 200)
-        
+
         # Protocol should still exist (not dropped)
         self.assertTrue(Protocol.objects.filter(pk=self.protocol1.pk).exists())
 
@@ -547,25 +580,27 @@ class SecurityTest(TestCase):
         """Test protection against XSS in protocol observations."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to submit XSS payload
         xss_payload = "<script>alert('XSS')</script>"
-        
+
         # Update protocol with XSS payload
         response = self.client.post(
-            reverse("protocols:protocol_edit", kwargs={"pk": self.protocol1.pk}),
+            reverse(
+                "protocols:protocol_edit", kwargs={"pk": self.protocol1.pk}
+            ),
             {
                 "analysis_type": Protocol.AnalysisType.CYTOLOGY,
                 "species": "Canino",
                 "animal_identification": "Test",
                 "presumptive_diagnosis": xss_payload,
                 "observations": xss_payload,
-            }
+            },
         )
-        
+
         # Should not crash
         self.assertIn(response.status_code, [200, 302])
-        
+
         # If successful, check that XSS is escaped in the response
         if response.status_code == 200:
             self.assertNotIn("<script>", response.content.decode())
@@ -575,7 +610,7 @@ class SecurityTest(TestCase):
         """Test CSRF protection in protocol creation."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to create protocol without CSRF token
         response = self.client.post(
             reverse("protocols:protocol_create_cytology"),
@@ -584,27 +619,32 @@ class SecurityTest(TestCase):
                 "species": "Canino",
                 "animal_identification": "Test",
                 "presumptive_diagnosis": "Test diagnosis",
-            }
+            },
         )
-        
+
         # Should be forbidden due to CSRF protection or form validation
-        self.assertIn(response.status_code, [403, 200])  # 200 if form validation fails
+        self.assertIn(
+            response.status_code, [403, 200]
+        )  # 200 if form validation fails
 
     def test_directory_traversal_protection_in_file_uploads(self):
         """Test protection against directory traversal in file uploads."""
         # Login as staff user
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Try directory traversal in filename
         # malicious_filename = "../../../etc/passwd"  # Would be used in file upload tests
-        
+
         # This would be tested in file upload views if they exist
         # For now, we'll test that the system doesn't crash with malicious input
         response = self.client.get(reverse("protocols:protocol_list"))
         # Staff users need veterinarian profile to access protocol list
         self.assertEqual(response.status_code, 302)
         # The redirect might be to complete_profile or another URL
-        self.assertTrue(response.url.endswith('complete-profile/') or response.url.endswith('complete_profile'))
+        self.assertTrue(
+            response.url.endswith("complete-profile/")
+            or response.url.endswith("complete_profile")
+        )
 
     # ============================================================================
     # EDGE CASE SECURITY TESTS
@@ -614,12 +654,12 @@ class SecurityTest(TestCase):
         """Test that nonexistent protocol IDs return 404, not 500."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to access nonexistent protocol
         response = self.client.get(
             reverse("protocols:protocol_detail", kwargs={"pk": 99999})
         )
-        
+
         # Should return 404, not 500
         self.assertEqual(response.status_code, 404)
 
@@ -627,10 +667,10 @@ class SecurityTest(TestCase):
         """Test that invalid protocol ID formats return 404."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to access protocol with invalid ID format
         response = self.client.get("/protocols/protocol/invalid_id/")
-        
+
         # Should return 404
         self.assertEqual(response.status_code, 404)
 
@@ -638,13 +678,13 @@ class SecurityTest(TestCase):
         """Test that very large protocol IDs are handled gracefully."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to access protocol with very large ID
         large_id = 999999999999999999999999999999
         response = self.client.get(
             reverse("protocols:protocol_detail", kwargs={"pk": large_id})
         )
-        
+
         # Should return 404, not crash
         self.assertEqual(response.status_code, 404)
 
@@ -652,21 +692,23 @@ class SecurityTest(TestCase):
         """Test that Unicode characters in protocol data are handled safely."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to submit Unicode characters
         unicode_data = "测试数据 🐕 émojis"
-        
+
         # Update protocol with Unicode data
         response = self.client.post(
-            reverse("protocols:protocol_edit", kwargs={"pk": self.protocol1.pk}),
+            reverse(
+                "protocols:protocol_edit", kwargs={"pk": self.protocol1.pk}
+            ),
             {
                 "analysis_type": Protocol.AnalysisType.CYTOLOGY,
                 "species": "Canino",
                 "animal_identification": unicode_data,
                 "presumptive_diagnosis": "Test diagnosis",
-            }
+            },
         )
-        
+
         # Should not crash
         self.assertIn(response.status_code, [200, 302])
 
@@ -678,13 +720,13 @@ class SecurityTest(TestCase):
         """Test that expired sessions are handled properly."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Clear session (simulate timeout)
         self.client.session.flush()
-        
+
         # Try to access protected view
         response = self.client.get(reverse("protocols:protocol_list"))
-        
+
         # Should redirect to login
         self.assertEqual(response.status_code, 302)
         self.assertIn("login", response.url)
@@ -694,15 +736,15 @@ class SecurityTest(TestCase):
         # Create two client sessions
         client1 = Client()
         client2 = Client()
-        
+
         # Login with both clients
         client1.login(email="vet@example.com", password="testpass123")
         client2.login(email="vet@example.com", password="testpass123")
-        
+
         # Both should be able to access their own data
         response1 = client1.get(reverse("protocols:protocol_list"))
         response2 = client2.get(reverse("protocols:protocol_list"))
-        
+
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(response2.status_code, 200)
 
@@ -714,10 +756,10 @@ class SecurityTest(TestCase):
         """Test that veterinarians cannot escalate their privileges."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to access admin dashboard
         response = self.client.get(reverse("pages:dashboard_admin"))
-        
+
         # Should be forbidden
         self.assertEqual(response.status_code, 302)  # Redirects to home
 
@@ -725,10 +767,10 @@ class SecurityTest(TestCase):
         """Test that staff cannot escalate to superuser privileges."""
         # Login as staff user
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Try to access Django admin
         response = self.client.get("/admin/")
-        
+
         # Should be forbidden (redirects to login or 403)
         # Note: Staff users might have access to admin if they have is_staff=True
         # This test verifies the current behavior
@@ -738,13 +780,13 @@ class SecurityTest(TestCase):
         """Test that role cannot be manipulated via URL parameters."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to manipulate role via URL parameter
         response = self.client.get(
             reverse("protocols:protocol_list"),
-            {"role": "admin"}  # Try to set role to admin
+            {"role": "admin"},  # Try to set role to admin
         )
-        
+
         # Should not affect user's actual role
         self.assertEqual(response.status_code, 200)
         # User should still be veterinarian
@@ -758,19 +800,21 @@ class SecurityTest(TestCase):
         """Test that protocol ownership cannot be transferred without authorization."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to transfer protocol1 to veterinarian2
         response = self.client.post(
-            reverse("protocols:protocol_edit", kwargs={"pk": self.protocol1.pk}),
+            reverse(
+                "protocols:protocol_edit", kwargs={"pk": self.protocol1.pk}
+            ),
             {
                 "analysis_type": Protocol.AnalysisType.CYTOLOGY,
                 "species": "Canino",
                 "animal_identification": "Test",
                 "presumptive_diagnosis": "Test diagnosis",
                 "veterinarian": self.veterinarian2.id,  # Try to change owner
-            }
+            },
         )
-        
+
         # Should not be able to change ownership
         if response.status_code == 200:
             # If form is valid, check that ownership wasn't changed
@@ -781,7 +825,7 @@ class SecurityTest(TestCase):
         """Test that report ownership cannot be transferred without authorization."""
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         # Try to transfer report1 to veterinarian2
         response = self.client.post(
             reverse("protocols:report_edit", kwargs={"pk": self.report1.pk}),
@@ -793,9 +837,9 @@ class SecurityTest(TestCase):
                 "comments": "Test comments",
                 "recommendations": "Test recommendations",
                 "veterinarian": self.veterinarian2.id,  # Try to change owner
-            }
+            },
         )
-        
+
         # Should not be able to change ownership
         if response.status_code == 200:
             # If form is valid, check that ownership wasn't changed

@@ -1,6 +1,7 @@
 """
 Tests for work order functionality.
 """
+
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -34,7 +35,9 @@ class PricingCatalogModelTest(TestCase):
 
     def test_pricing_catalog_creation(self):
         """Test pricing catalog creation."""
-        self.assertEqual(self.pricing.service_type, "histopatologia_2a5_piezas")
+        self.assertEqual(
+            self.pricing.service_type, "histopatologia_2a5_piezas"
+        )
         self.assertEqual(self.pricing.price, Decimal("14.04"))
         self.assertTrue(self.pricing.is_valid())
 
@@ -88,7 +91,9 @@ class WorkOrderCounterModelTest(TestCase):
         self.assertEqual(counter.last_number, 1)
 
         # Get second number
-        formatted_number2, counter2 = WorkOrderCounter.get_next_number(year=2024)
+        formatted_number2, counter2 = WorkOrderCounter.get_next_number(
+            year=2024
+        )
         self.assertEqual(formatted_number2, "OT-2024-002")
         self.assertEqual(counter2.last_number, 2)
 
@@ -137,7 +142,9 @@ class WorkOrderModelTest(TestCase):
         self.assertIsNotNone(self.work_order.order_number)
         self.assertTrue(self.work_order.order_number.startswith("OT-"))
         self.assertEqual(self.work_order.balance_due, Decimal("70.00"))
-        self.assertEqual(self.work_order.payment_status, WorkOrder.PaymentStatus.PARTIAL)
+        self.assertEqual(
+            self.work_order.payment_status, WorkOrder.PaymentStatus.PARTIAL
+        )
         self.assertEqual(self.work_order.status, WorkOrder.Status.DRAFT)
 
     def test_work_order_payment_status_pending(self):
@@ -206,16 +213,12 @@ class WorkOrderModelTest(TestCase):
     def test_work_order_get_billing_name(self):
         """Test getting billing name."""
         # Default: use veterinarian name
-        self.assertEqual(
-            self.work_order.get_billing_name(),
-            "Test Vet"
-        )
+        self.assertEqual(self.work_order.get_billing_name(), "Test Vet")
 
         # With custom billing name
         self.work_order.billing_name = "Custom Billing Name"
         self.assertEqual(
-            self.work_order.get_billing_name(),
-            "Custom Billing Name"
+            self.work_order.get_billing_name(), "Custom Billing Name"
         )
 
     def test_work_order_calculate_total(self):
@@ -503,4 +506,3 @@ class WorkOrderIntegrationTest(TestCase):
         self.assertEqual(work_order.protocols.count(), 2)
         self.assertIn(self.protocol1, work_order.protocols.all())
         self.assertIn(self.protocol2, work_order.protocols.all())
-

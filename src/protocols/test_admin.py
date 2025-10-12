@@ -44,7 +44,7 @@ class ProtocolsAdminTest(TestCase):
             username="admin",
             password="testpass123",
         )
-        
+
         # Create staff user
         self.staff_user = User.objects.create_user(
             email="staff@example.com",
@@ -53,7 +53,7 @@ class ProtocolsAdminTest(TestCase):
             role=User.Role.PERSONAL_LAB,
             is_staff=True,
         )
-        
+
         # Create veterinarian
         self.vet_user = User.objects.create_user(
             email="vet@example.com",
@@ -62,7 +62,7 @@ class ProtocolsAdminTest(TestCase):
             role=User.Role.VETERINARIO,
             email_verified=True,
         )
-        
+
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
             first_name="John",
@@ -71,7 +71,7 @@ class ProtocolsAdminTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        
+
         # Create histopathologist
         self.histo_user = User.objects.create_user(
             email="histo@example.com",
@@ -81,7 +81,7 @@ class ProtocolsAdminTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         self.histopathologist = Histopathologist.objects.create(
             user=self.histo_user,
             first_name="Dr. Jane",
@@ -90,7 +90,7 @@ class ProtocolsAdminTest(TestCase):
             position="Profesor Titular",
             specialty="Patología Veterinaria",
         )
-        
+
         # Create test protocols
         self.cytology_protocol = Protocol.objects.create(
             veterinarian=self.veterinarian,
@@ -103,7 +103,7 @@ class ProtocolsAdminTest(TestCase):
             animal_identification="Max",
             presumptive_diagnosis="Tumor mamario",
         )
-        
+
         self.histopathology_protocol = Protocol.objects.create(
             veterinarian=self.veterinarian,
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
@@ -115,7 +115,7 @@ class ProtocolsAdminTest(TestCase):
             animal_identification="Luna",
             presumptive_diagnosis="Lesión cutánea",
         )
-        
+
         # Create samples
         self.cytology_sample = CytologySample.objects.create(
             protocol=self.cytology_protocol,
@@ -125,7 +125,7 @@ class ProtocolsAdminTest(TestCase):
             number_of_slides=3,
             observations="Muestra de buena calidad",
         )
-        
+
         self.histopathology_sample = HistopathologySample.objects.create(
             protocol=self.histopathology_protocol,
             veterinarian=self.veterinarian,
@@ -133,7 +133,7 @@ class ProtocolsAdminTest(TestCase):
             observations="Tejido bien preservado",
             number_of_containers=2,
         )
-        
+
         # Create work order
         self.work_order = WorkOrder.objects.create(
             veterinarian=self.veterinarian,
@@ -144,14 +144,14 @@ class ProtocolsAdminTest(TestCase):
             observations="Test work order",
             order_number="WO-2025-001",
         )
-        
+
         # Create counters
         self.cytology_counter = ProtocolCounter.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             year=2025,
             last_number=0,
         )
-        
+
         self.histopathology_counter = ProtocolCounter.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             year=2025,
@@ -203,7 +203,9 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_admin_detail_view(self):
         """Test protocol admin detail view."""
         self.client.login(email="admin@example.com", password="testpass123")
-        response = self.client.get(f"/admin/protocols/protocol/{self.cytology_protocol.id}/change/")
+        response = self.client.get(
+            f"/admin/protocols/protocol/{self.cytology_protocol.id}/change/"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "C 25/001")
 
@@ -218,7 +220,9 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_admin_filter_by_status(self):
         """Test protocol admin filtering by status."""
         self.client.login(email="admin@example.com", password="testpass123")
-        response = self.client.get("/admin/protocols/protocol/?status=submitted")
+        response = self.client.get(
+            "/admin/protocols/protocol/?status=submitted"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "C 25/001")
         self.assertContains(response, "HP 25/002")
@@ -226,7 +230,9 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_admin_filter_by_analysis_type(self):
         """Test protocol admin filtering by analysis type."""
         self.client.login(email="admin@example.com", password="testpass123")
-        response = self.client.get("/admin/protocols/protocol/?analysis_type=cytology")
+        response = self.client.get(
+            "/admin/protocols/protocol/?analysis_type=cytology"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "C 25/001")
         self.assertNotContains(response, "HP 25/002")
@@ -234,59 +240,63 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_admin_mark_as_received_action(self):
         """Test protocol admin mark as received action."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Select protocols for action
         response = self.client.post(
             "/admin/protocols/protocol/",
             {
                 "action": "mark_as_received",
                 "_selected_action": [str(self.cytology_protocol.id)],
-            }
+            },
         )
         self.assertEqual(response.status_code, 302)
-        
+
         # Check that protocol was marked as received
         self.cytology_protocol.refresh_from_db()
-        self.assertEqual(self.cytology_protocol.status, Protocol.Status.RECEIVED)
+        self.assertEqual(
+            self.cytology_protocol.status, Protocol.Status.RECEIVED
+        )
 
     def test_protocol_admin_mark_as_processing_action(self):
         """Test protocol admin mark as processing action."""
         # First mark as received
         self.cytology_protocol.status = Protocol.Status.RECEIVED
         self.cytology_protocol.save()
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         response = self.client.post(
             "/admin/protocols/protocol/",
             {
                 "action": "mark_as_processing",
                 "_selected_action": [str(self.cytology_protocol.id)],
-            }
+            },
         )
         self.assertEqual(response.status_code, 302)
-        
+
         # Check that protocol was marked as processing
         self.cytology_protocol.refresh_from_db()
-        self.assertEqual(self.cytology_protocol.status, Protocol.Status.PROCESSING)
+        self.assertEqual(
+            self.cytology_protocol.status, Protocol.Status.PROCESSING
+        )
 
     def test_protocol_admin_mark_as_ready_action(self):
         """Test protocol admin mark as ready action."""
         # First mark as processing
         self.cytology_protocol.status = Protocol.Status.PROCESSING
         self.cytology_protocol.save()
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         response = self.client.post(
             "/admin/protocols/protocol/",
             {
                 "action": "mark_as_ready",
                 "_selected_action": [str(self.cytology_protocol.id)],
-            }
+            },
         )
         self.assertEqual(response.status_code, 302)
-        
+
         # Check that protocol was marked as ready
         self.cytology_protocol.refresh_from_db()
         self.assertEqual(self.cytology_protocol.status, Protocol.Status.READY)
@@ -294,11 +304,11 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_admin_get_protocol_code_display(self):
         """Test protocol admin protocol code display method."""
         admin = ProtocolAdmin(Protocol, AdminSite())
-        
+
         # Test with protocol number
         code = admin.get_protocol_code(self.cytology_protocol)
         self.assertIn("C 25/001", code)
-        
+
         # Test with temporary code only
         self.cytology_protocol.protocol_number = None
         self.cytology_protocol.save()
@@ -308,11 +318,11 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_admin_get_editable_status_display(self):
         """Test protocol admin editable status display method."""
         admin = ProtocolAdmin(Protocol, AdminSite())
-        
+
         # Test editable protocol
         status = admin.get_editable_status(self.cytology_protocol)
         self.assertIn("Editable", status)
-        
+
         # Test non-editable protocol
         self.cytology_protocol.status = Protocol.Status.RECEIVED
         self.cytology_protocol.save()
@@ -333,7 +343,9 @@ class ProtocolsAdminTest(TestCase):
     def test_cytology_sample_admin_detail_view(self):
         """Test cytology sample admin detail view."""
         self.client.login(email="admin@example.com", password="testpass123")
-        response = self.client.get(f"/admin/protocols/cytologysample/{self.cytology_sample.id}/change/")
+        response = self.client.get(
+            f"/admin/protocols/cytologysample/{self.cytology_sample.id}/change/"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "PAAF")
 
@@ -364,14 +376,18 @@ class ProtocolsAdminTest(TestCase):
     def test_histopathology_sample_admin_detail_view(self):
         """Test histopathology sample admin detail view."""
         self.client.login(email="admin@example.com", password="testpass123")
-        response = self.client.get(f"/admin/protocols/histopathologysample/{self.histopathology_sample.id}/change/")
+        response = self.client.get(
+            f"/admin/protocols/histopathologysample/{self.histopathology_sample.id}/change/"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Formol 10%")
 
     def test_histopathology_sample_admin_search(self):
         """Test histopathology sample admin search functionality."""
         self.client.login(email="admin@example.com", password="testpass123")
-        response = self.client.get("/admin/protocols/histopathologysample/?q=Formol")
+        response = self.client.get(
+            "/admin/protocols/histopathologysample/?q=Formol"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HP 25/002")
 
@@ -389,7 +405,9 @@ class ProtocolsAdminTest(TestCase):
     def test_work_order_admin_detail_view(self):
         """Test work order admin detail view."""
         self.client.login(email="admin@example.com", password="testpass123")
-        response = self.client.get(f"/admin/protocols/workorder/{self.work_order.id}/change/")
+        response = self.client.get(
+            f"/admin/protocols/workorder/{self.work_order.id}/change/"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "John Doe")
 
@@ -415,19 +433,21 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_counter_admin_get_formatted_display(self):
         """Test protocol counter admin formatted display method."""
         from protocols.admin import ProtocolCounterAdmin
+
         admin = ProtocolCounterAdmin(ProtocolCounter, AdminSite())
-        
+
         display = admin.get_formatted_display(self.cytology_counter)
         self.assertIn("CT 25/001", display)
 
     def test_protocol_counter_admin_delete_permission(self):
         """Test protocol counter admin delete permission."""
         from protocols.admin import ProtocolCounterAdmin
+
         admin = ProtocolCounterAdmin(ProtocolCounter, AdminSite())
-        
+
         # Test with superuser
         self.assertTrue(admin.has_delete_permission(self.admin_user))
-        
+
         # Test with staff user
         self.assertFalse(admin.has_delete_permission(self.staff_user))
 
@@ -446,7 +466,7 @@ class ProtocolsAdminTest(TestCase):
             protocol=self.cytology_protocol,
             status=EmailLog.Status.SENT,
         )
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get("/admin/protocols/emaillog/")
         self.assertEqual(response.status_code, 200)
@@ -463,7 +483,7 @@ class ProtocolsAdminTest(TestCase):
             protocol=self.cytology_protocol,
             status=EmailLog.Status.SENT,
         )
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get("/admin/protocols/emaillog/?q=Test")
         self.assertEqual(response.status_code, 200)
@@ -482,7 +502,7 @@ class ProtocolsAdminTest(TestCase):
             notify_on_processing=False,
             notify_on_report_ready=True,
         )
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get("/admin/protocols/notificationpreference/")
         self.assertEqual(response.status_code, 200)
@@ -495,18 +515,18 @@ class ProtocolsAdminTest(TestCase):
     def test_admin_permissions_staff_user(self):
         """Test admin permissions for staff users."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Staff users should be able to view but not modify certain models
         response = self.client.get("/admin/protocols/protocol/")
         self.assertEqual(response.status_code, 200)
-        
+
         # Test if staff can access admin actions
         response = self.client.post(
             "/admin/protocols/protocol/",
             {
                 "action": "mark_as_received",
                 "_selected_action": [str(self.cytology_protocol.id)],
-            }
+            },
         )
         # Should work for staff users
         self.assertEqual(response.status_code, 302)
@@ -514,18 +534,18 @@ class ProtocolsAdminTest(TestCase):
     def test_admin_permissions_superuser(self):
         """Test admin permissions for superusers."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Superusers should have full access
         response = self.client.get("/admin/protocols/protocol/")
         self.assertEqual(response.status_code, 200)
-        
+
         # Test admin actions
         response = self.client.post(
             "/admin/protocols/protocol/",
             {
                 "action": "mark_as_received",
                 "_selected_action": [str(self.cytology_protocol.id)],
-            }
+            },
         )
         self.assertEqual(response.status_code, 302)
 
@@ -536,7 +556,7 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_admin_form_validation(self):
         """Test protocol admin form validation."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Test invalid form data
         response = self.client.post(
             f"/admin/protocols/protocol/{self.cytology_protocol.id}/change/",
@@ -545,7 +565,7 @@ class ProtocolsAdminTest(TestCase):
                 "analysis_type": "invalid_type",
                 "status": "invalid_status",
                 "submission_date": "invalid_date",
-            }
+            },
         )
         # Should return form with errors
         self.assertEqual(response.status_code, 200)
@@ -553,7 +573,7 @@ class ProtocolsAdminTest(TestCase):
     def test_cytology_sample_admin_form_validation(self):
         """Test cytology sample admin form validation."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Test invalid form data
         response = self.client.post(
             f"/admin/protocols/cytologysample/{self.cytology_sample.id}/change/",
@@ -561,7 +581,7 @@ class ProtocolsAdminTest(TestCase):
                 "protocol": self.cytology_protocol.id,
                 "veterinarian": self.veterinarian.id,
                 "number_of_slides": -1,  # Invalid negative number
-            }
+            },
         )
         # Should return form with errors
         self.assertEqual(response.status_code, 200)
@@ -574,7 +594,7 @@ class ProtocolsAdminTest(TestCase):
         """Test protocol admin inlines for cytology protocol."""
         admin = ProtocolAdmin(Protocol, AdminSite())
         inlines = admin.get_inlines(None, self.cytology_protocol)
-        
+
         # Should include CytologySampleInline for cytology protocols
         self.assertTrue(len(inlines) > 0)
 
@@ -582,7 +602,7 @@ class ProtocolsAdminTest(TestCase):
         """Test protocol admin inlines for histopathology protocol."""
         admin = ProtocolAdmin(Protocol, AdminSite())
         inlines = admin.get_inlines(None, self.histopathology_protocol)
-        
+
         # Should include HistopathologySampleInline for histopathology protocols
         self.assertTrue(len(inlines) > 0)
 
@@ -593,7 +613,7 @@ class ProtocolsAdminTest(TestCase):
     def test_protocol_admin_bulk_mark_as_received(self):
         """Test bulk mark as received operation."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Select multiple protocols
         response = self.client.post(
             "/admin/protocols/protocol/",
@@ -601,17 +621,21 @@ class ProtocolsAdminTest(TestCase):
                 "action": "mark_as_received",
                 "_selected_action": [
                     str(self.cytology_protocol.id),
-                    str(self.histopathology_protocol.id)
+                    str(self.histopathology_protocol.id),
                 ],
-            }
+            },
         )
         self.assertEqual(response.status_code, 302)
-        
+
         # Check that both protocols were marked as received
         self.cytology_protocol.refresh_from_db()
         self.histopathology_protocol.refresh_from_db()
-        self.assertEqual(self.cytology_protocol.status, Protocol.Status.RECEIVED)
-        self.assertEqual(self.histopathology_protocol.status, Protocol.Status.RECEIVED)
+        self.assertEqual(
+            self.cytology_protocol.status, Protocol.Status.RECEIVED
+        )
+        self.assertEqual(
+            self.histopathology_protocol.status, Protocol.Status.RECEIVED
+        )
 
     def test_protocol_admin_bulk_mark_as_processing(self):
         """Test bulk mark as processing operation."""
@@ -620,9 +644,9 @@ class ProtocolsAdminTest(TestCase):
         self.histopathology_protocol.status = Protocol.Status.RECEIVED
         self.cytology_protocol.save()
         self.histopathology_protocol.save()
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Select multiple protocols
         response = self.client.post(
             "/admin/protocols/protocol/",
@@ -630,17 +654,21 @@ class ProtocolsAdminTest(TestCase):
                 "action": "mark_as_processing",
                 "_selected_action": [
                     str(self.cytology_protocol.id),
-                    str(self.histopathology_protocol.id)
+                    str(self.histopathology_protocol.id),
                 ],
-            }
+            },
         )
         self.assertEqual(response.status_code, 302)
-        
+
         # Check that both protocols were marked as processing
         self.cytology_protocol.refresh_from_db()
         self.histopathology_protocol.refresh_from_db()
-        self.assertEqual(self.cytology_protocol.status, Protocol.Status.PROCESSING)
-        self.assertEqual(self.histopathology_protocol.status, Protocol.Status.PROCESSING)
+        self.assertEqual(
+            self.cytology_protocol.status, Protocol.Status.PROCESSING
+        )
+        self.assertEqual(
+            self.histopathology_protocol.status, Protocol.Status.PROCESSING
+        )
 
     # ============================================================================
     # ADMIN ERROR HANDLING TESTS
@@ -649,7 +677,7 @@ class ProtocolsAdminTest(TestCase):
     def test_admin_handles_nonexistent_object(self):
         """Test admin handles nonexistent object gracefully."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Try to access nonexistent protocol
         response = self.client.get("/admin/protocols/protocol/99999/change/")
         self.assertEqual(response.status_code, 404)
@@ -657,14 +685,14 @@ class ProtocolsAdminTest(TestCase):
     def test_admin_handles_invalid_action(self):
         """Test admin handles invalid action gracefully."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Try invalid action
         response = self.client.post(
             "/admin/protocols/protocol/",
             {
                 "action": "invalid_action",
                 "_selected_action": [str(self.cytology_protocol.id)],
-            }
+            },
         )
         # Should redirect back to list view
         self.assertEqual(response.status_code, 302)
@@ -687,9 +715,9 @@ class ProtocolsAdminTest(TestCase):
                 animal_identification=f"Dog {i}",
                 presumptive_diagnosis="Test diagnosis",
             )
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Test list view performance
         response = self.client.get("/admin/protocols/protocol/")
         self.assertEqual(response.status_code, 200)
@@ -711,9 +739,9 @@ class ProtocolsAdminTest(TestCase):
                 animal_identification=f"Searchable Dog {i}",
                 presumptive_diagnosis="Test diagnosis",
             )
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Test search performance
         response = self.client.get("/admin/protocols/protocol/?q=Searchable")
         self.assertEqual(response.status_code, 200)

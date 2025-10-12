@@ -1,6 +1,7 @@
 """
 Forms for report generation and management.
 """
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
@@ -16,10 +17,12 @@ class ReportSearchForm(forms.Form):
     protocol_number = forms.CharField(
         label=_("Número de Protocolo"),
         required=False,
-        widget=forms.TextInput(attrs={
-            "class": "form-control",
-            "placeholder": _("Ej: HP 24/001"),
-        }),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": _("Ej: HP 24/001"),
+            }
+        ),
         help_text=_("Buscar por número de protocolo"),
     )
 
@@ -39,31 +42,51 @@ class ReportCreateForm(forms.ModelForm):
         ]
         widgets = {
             "histopathologist": forms.Select(attrs={"class": "form-control"}),
-            "macroscopic_observations": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 4,
-                "placeholder": _("Describa las observaciones macroscópicas del material recibido..."),
-            }),
-            "microscopic_observations": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 6,
-                "placeholder": _("Describa las observaciones microscópicas generales..."),
-            }),
-            "diagnosis": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 3,
-                "placeholder": _("Ingrese el diagnóstico patológico final..."),
-            }),
-            "comments": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 3,
-                "placeholder": _("Comentarios adicionales sobre el caso..."),
-            }),
-            "recommendations": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 3,
-                "placeholder": _("Recomendaciones clínicas para el veterinario..."),
-            }),
+            "macroscopic_observations": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": _(
+                        "Describa las observaciones macroscópicas del material recibido..."
+                    ),
+                }
+            ),
+            "microscopic_observations": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 6,
+                    "placeholder": _(
+                        "Describa las observaciones microscópicas generales..."
+                    ),
+                }
+            ),
+            "diagnosis": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": _(
+                        "Ingrese el diagnóstico patológico final..."
+                    ),
+                }
+            ),
+            "comments": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": _(
+                        "Comentarios adicionales sobre el caso..."
+                    ),
+                }
+            ),
+            "recommendations": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": _(
+                        "Recomendaciones clínicas para el veterinario..."
+                    ),
+                }
+            ),
         }
         labels = {
             "histopathologist": _("Histopatólogo"),
@@ -77,12 +100,12 @@ class ReportCreateForm(forms.ModelForm):
     def __init__(self, *args, protocol=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.protocol = protocol
-        
+
         # Only show active histopathologists
-        self.fields["histopathologist"].queryset = (
-            Histopathologist.objects.filter(is_active=True)
-        )
-        
+        self.fields[
+            "histopathologist"
+        ].queryset = Histopathologist.objects.filter(is_active=True)
+
         # Set protocol veterinarian if creating new report
         if protocol and not self.instance.pk:
             self.instance.protocol = protocol
@@ -106,16 +129,24 @@ class CassetteObservationForm(forms.ModelForm):
         fields = ["cassette", "observations", "partial_diagnosis", "order"]
         widgets = {
             "cassette": forms.Select(attrs={"class": "form-control"}),
-            "observations": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 5,
-                "placeholder": _("Describa las observaciones microscópicas para este cassette..."),
-            }),
-            "partial_diagnosis": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 2,
-                "placeholder": _("Diagnóstico específico para este cassette (opcional)..."),
-            }),
+            "observations": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": _(
+                        "Describa las observaciones microscópicas para este cassette..."
+                    ),
+                }
+            ),
+            "partial_diagnosis": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": _(
+                        "Diagnóstico específico para este cassette (opcional)..."
+                    ),
+                }
+            ),
             "order": forms.NumberInput(attrs={"class": "form-control"}),
         }
         labels = {
@@ -128,20 +159,20 @@ class CassetteObservationForm(forms.ModelForm):
     def __init__(self, *args, report=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.report = report
-        
+
         # Filter cassettes to only show those from the protocol
         if report and report.protocol:
             protocol = report.protocol
             if protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY:
                 if hasattr(protocol, "histopathology_sample"):
-                    self.fields["cassette"].queryset = (
-                        protocol.histopathology_sample.cassettes.all()
-                    )
+                    self.fields[
+                        "cassette"
+                    ].queryset = protocol.histopathology_sample.cassettes.all()
                 else:
                     self.fields["cassette"].queryset = Cassette.objects.none()
             else:
                 self.fields["cassette"].queryset = Cassette.objects.none()
-        
+
         # Set report instance
         if report and not self.instance.pk:
             self.instance.report = report
@@ -176,24 +207,30 @@ class ReportSendForm(forms.Form):
     additional_email = forms.EmailField(
         label=_("Email adicional (opcional)"),
         required=False,
-        widget=forms.EmailInput(attrs={
-            "class": "form-control",
-            "placeholder": _("email@ejemplo.com"),
-        }),
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": _("email@ejemplo.com"),
+            }
+        ),
         help_text=_("Enviar copia a otro destinatario (opcional)"),
     )
-    
+
     custom_message = forms.CharField(
         label=_("Mensaje personalizado (opcional)"),
         required=False,
-        widget=forms.Textarea(attrs={
-            "class": "form-control",
-            "rows": 3,
-            "placeholder": _("Mensaje adicional para incluir en el email..."),
-        }),
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": _(
+                    "Mensaje adicional para incluir en el email..."
+                ),
+            }
+        ),
         help_text=_("Mensaje personalizado para el veterinario"),
     )
-    
+
     include_work_order = forms.BooleanField(
         label=_("Incluir Orden de Trabajo"),
         required=False,
@@ -207,10 +244,13 @@ class ReportSendForm(forms.Form):
 
     def clean_additional_email(self):
         """Validate additional email is different from veterinarian email."""
-        additional_email = self.cleaned_data.get("additional_email", "").strip()
+        additional_email = self.cleaned_data.get(
+            "additional_email", ""
+        ).strip()
         if additional_email and additional_email == self.veterinarian_email:
             raise ValidationError(
-                _("El email adicional no puede ser el mismo que el del veterinario.")
+                _(
+                    "El email adicional no puede ser el mismo que el del veterinario."
+                )
             )
         return additional_email
-

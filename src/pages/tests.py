@@ -20,7 +20,7 @@ class ViewTests(TestCase):
 
 class DashboardViewsTest(TestCase):
     """Test cases for dashboard views (Phase 3)."""
-    
+
     def setUp(self):
         """Set up test data for dashboard views."""
         # Create users with different roles
@@ -55,7 +55,7 @@ class DashboardViewsTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -65,7 +65,7 @@ class DashboardViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        
+
         # Create histopathologist
         self.histopathologist = Histopathologist.objects.create(
             user=self.histopathologist_user,
@@ -75,7 +75,7 @@ class DashboardViewsTest(TestCase):
             position="Jefe de Histopatología",
             specialty="Oncología",
         )
-        
+
         # Create test protocols with different statuses
         self.submitted_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
@@ -86,7 +86,7 @@ class DashboardViewsTest(TestCase):
             submission_date=date.today(),
         )
         self.submitted_protocol.submit()
-        
+
         self.received_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             veterinarian=self.veterinarian,
@@ -97,7 +97,7 @@ class DashboardViewsTest(TestCase):
         )
         self.received_protocol.submit()
         self.received_protocol.receive(received_by=self.staff_user)
-        
+
         self.processing_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             veterinarian=self.veterinarian,
@@ -110,7 +110,7 @@ class DashboardViewsTest(TestCase):
         self.processing_protocol.receive(received_by=self.staff_user)
         self.processing_protocol.status = Protocol.Status.PROCESSING
         self.processing_protocol.save(update_fields=["status"])
-        
+
         self.ready_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             veterinarian=self.veterinarian,
@@ -123,7 +123,7 @@ class DashboardViewsTest(TestCase):
         self.ready_protocol.receive(received_by=self.staff_user)
         self.ready_protocol.status = Protocol.Status.READY
         self.ready_protocol.save(update_fields=["status"])
-        
+
         # Create reports
         self.draft_report = Report.objects.create(
             protocol=self.ready_protocol,
@@ -136,7 +136,7 @@ class DashboardViewsTest(TestCase):
             recommendations="Cirugía de ampliación",
             status=Report.Status.DRAFT,
         )
-        
+
         self.finalized_report = Report.objects.create(
             protocol=self.received_protocol,
             histopathologist=self.histopathologist,
@@ -149,76 +149,78 @@ class DashboardViewsTest(TestCase):
             status=Report.Status.DRAFT,
         )
         self.finalized_report.finalize()
-        
+
         # Create work order
         self.work_order = WorkOrder.objects.create(
             veterinarian=self.veterinarian,
             total_amount=Decimal("1500.00"),
             status=WorkOrder.Status.DRAFT,
         )
-    
+
     # =============================================================================
     # DASHBOARD VIEW ROUTING TESTS
     # =============================================================================
-    
+
     def test_dashboard_view_veterinarian_redirect(self):
         """Test that dashboard_view redirects veterinarians to veterinarian_dashboard."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pages/dashboard_veterinarian.html")
         self.assertIn("veterinarian", response.context)
         self.assertIn("active_protocols_count", response.context)
-    
+
     def test_dashboard_view_histopathologist_redirect(self):
         """Test that dashboard_view redirects histopathologists to histopathologist_dashboard."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard"))
-        
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "pages/dashboard_histopathologist.html")
+        self.assertTemplateUsed(
+            response, "pages/dashboard_histopathologist.html"
+        )
         self.assertIn("pending_reports_count", response.context)
-    
+
     def test_dashboard_view_lab_staff_redirect(self):
         """Test that dashboard_view redirects lab staff to lab_staff_dashboard."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pages/dashboard_lab_staff.html")
         self.assertIn("pending_reception_count", response.context)
-    
+
     def test_dashboard_view_admin_redirect(self):
         """Test that dashboard_view redirects admins to admin_dashboard."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pages/dashboard_admin.html")
         self.assertIn("total_protocols_count", response.context)
-    
+
     def test_dashboard_view_requires_login(self):
         """Test that dashboard_view requires login."""
         response = self.client.get(reverse("pages:dashboard"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, "/accounts/login/?next=/dashboard/")
-    
+
     # =============================================================================
     # VETERINARIAN DASHBOARD TESTS
     # =============================================================================
-    
+
     def test_veterinarian_dashboard_get(self):
         """Test GET request to veterinarian dashboard."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_veterinarian"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pages/dashboard_veterinarian.html")
         self.assertIn("veterinarian", response.context)
@@ -226,13 +228,13 @@ class DashboardViewsTest(TestCase):
         self.assertIn("ready_reports_count", response.context)
         self.assertIn("monthly_protocols_count", response.context)
         self.assertIn("recent_protocols", response.context)
-    
+
     def test_veterinarian_dashboard_statistics(self):
         """Test that veterinarian dashboard shows correct statistics."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_veterinarian"))
-        
+
         # Should have 3 active protocols (submitted, received, processing, ready)
         self.assertEqual(response.context["active_protocols_count"], 4)
         # Should have 1 ready report
@@ -241,23 +243,25 @@ class DashboardViewsTest(TestCase):
         self.assertEqual(response.context["monthly_protocols_count"], 4)
         # Should have recent protocols
         self.assertEqual(len(response.context["recent_protocols"]), 4)
-    
+
     def test_veterinarian_dashboard_permission_non_veterinarian(self):
         """Test that non-veterinarians are redirected from veterinarian dashboard."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_veterinarian"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("pages:dashboard"))
-    
+
     def test_veterinarian_dashboard_requires_login(self):
         """Test that veterinarian dashboard requires login."""
         response = self.client.get(reverse("pages:dashboard_veterinarian"))
-        
+
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/dashboard/veterinarian/")
-    
+        self.assertRedirects(
+            response, "/accounts/login/?next=/dashboard/veterinarian/"
+        )
+
     def test_veterinarian_dashboard_no_profile_redirect(self):
         """Test that veterinarians without profile are redirected to create profile."""
         # Create a veterinarian user without profile
@@ -268,37 +272,39 @@ class DashboardViewsTest(TestCase):
             role=User.Role.VETERINARIO,
             email_verified=True,
         )
-        
-        self.client.login(email="vet_noprofile@example.com", password="testpass123")
-        
+
+        self.client.login(
+            email="vet_noprofile@example.com", password="testpass123"
+        )
+
         response = self.client.get(reverse("pages:dashboard_veterinarian"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("accounts:complete_profile"))
-    
+
     # =============================================================================
     # LAB STAFF DASHBOARD TESTS
     # =============================================================================
-    
+
     def test_lab_staff_dashboard_get(self):
         """Test GET request to lab staff dashboard."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_lab_staff"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pages/dashboard_lab_staff.html")
         self.assertIn("pending_reception_count", response.context)
         self.assertIn("processing_count", response.context)
         self.assertIn("today_received_count", response.context)
         self.assertIn("processing_queue", response.context)
-    
+
     def test_lab_staff_dashboard_statistics(self):
         """Test that lab staff dashboard shows correct statistics."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_lab_staff"))
-        
+
         # Should have 1 pending reception (submitted)
         self.assertEqual(response.context["pending_reception_count"], 1)
         # Should have 2 processing (received + processing)
@@ -307,79 +313,85 @@ class DashboardViewsTest(TestCase):
         self.assertEqual(response.context["today_received_count"], 2)
         # Should have processing queue
         self.assertEqual(len(response.context["processing_queue"]), 2)
-    
+
     def test_lab_staff_dashboard_permission_non_lab_staff(self):
         """Test that non-lab staff are redirected from lab staff dashboard."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_lab_staff"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("pages:dashboard"))
-    
+
     def test_lab_staff_dashboard_requires_login(self):
         """Test that lab staff dashboard requires login."""
         response = self.client.get(reverse("pages:dashboard_lab_staff"))
-        
+
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/dashboard/lab-staff/")
-    
+        self.assertRedirects(
+            response, "/accounts/login/?next=/dashboard/lab-staff/"
+        )
+
     # =============================================================================
     # HISTOPATHOLOGIST DASHBOARD TESTS
     # =============================================================================
-    
+
     def test_histopathologist_dashboard_get(self):
         """Test GET request to histopathologist dashboard."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_histopathologist"))
-        
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "pages/dashboard_histopathologist.html")
+        self.assertTemplateUsed(
+            response, "pages/dashboard_histopathologist.html"
+        )
         self.assertIn("pending_reports_count", response.context)
         self.assertIn("monthly_reports_count", response.context)
         self.assertIn("avg_report_time", response.context)
         self.assertIn("pending_reports", response.context)
-    
+
     def test_histopathologist_dashboard_statistics(self):
         """Test that histopathologist dashboard shows correct statistics."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_histopathologist"))
-        
+
         # Should have 1 pending report (draft)
         self.assertEqual(response.context["pending_reports_count"], 1)
         # Should have 1 monthly report (finalized this month)
         self.assertEqual(response.context["monthly_reports_count"], 1)
         # Should have pending reports list
         self.assertEqual(len(response.context["pending_reports"]), 1)
-    
+
     def test_histopathologist_dashboard_permission_non_histopathologist(self):
         """Test that non-histopathologists are redirected from histopathologist dashboard."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_histopathologist"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("pages:dashboard"))
-    
+
     def test_histopathologist_dashboard_requires_login(self):
         """Test that histopathologist dashboard requires login."""
         response = self.client.get(reverse("pages:dashboard_histopathologist"))
-        
+
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/dashboard/histopathologist/")
-    
+        self.assertRedirects(
+            response, "/accounts/login/?next=/dashboard/histopathologist/"
+        )
+
     # =============================================================================
     # ADMIN DASHBOARD TESTS
     # =============================================================================
-    
+
     def test_admin_dashboard_get(self):
         """Test GET request to admin dashboard."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_admin"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pages/dashboard_admin.html")
         self.assertIn("total_protocols_count", response.context)
@@ -388,13 +400,13 @@ class DashboardViewsTest(TestCase):
         self.assertIn("active_users_count", response.context)
         self.assertIn("avg_tat_days", response.context)
         self.assertIn("recent_activities", response.context)
-    
+
     def test_admin_dashboard_statistics(self):
         """Test that admin dashboard shows correct statistics."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_admin"))
-        
+
         # Should have 4 total protocols (all created this year)
         self.assertEqual(response.context["total_protocols_count"], 4)
         # Should have 1 completed report (finalized this month)
@@ -403,38 +415,40 @@ class DashboardViewsTest(TestCase):
         self.assertEqual(response.context["total_users_count"], 4)
         # Should have recent activities
         self.assertEqual(len(response.context["recent_activities"]), 3)
-    
+
     def test_admin_dashboard_permission_non_admin(self):
         """Test that non-admins are redirected from admin dashboard."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("pages:dashboard_admin"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("pages:dashboard"))
-    
+
     def test_admin_dashboard_requires_login(self):
         """Test that admin dashboard requires login."""
         response = self.client.get(reverse("pages:dashboard_admin"))
-        
+
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/dashboard/admin/")
-    
+        self.assertRedirects(
+            response, "/accounts/login/?next=/dashboard/admin/"
+        )
+
     # =============================================================================
     # HOME PAGE TESTS
     # =============================================================================
-    
+
     def test_home_page_statistics(self):
         """Test that home page shows correct statistics."""
         response = self.client.get(reverse("home"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pages/landing.html")
         self.assertIn("total_protocols", response.context)
         self.assertIn("total_users", response.context)
         self.assertIn("total_veterinarians", response.context)
         self.assertIn("recent_protocols", response.context)
-        
+
         # Should have 4 total protocols
         self.assertEqual(response.context["total_protocols"], 4)
         # Should have 4 total users
@@ -443,11 +457,11 @@ class DashboardViewsTest(TestCase):
         self.assertEqual(response.context["total_veterinarians"], 1)
         # Should have recent protocols
         self.assertEqual(len(response.context["recent_protocols"]), 4)
-    
+
     def test_home_page_context(self):
         """Test that home page has correct context variables."""
         response = self.client.get(reverse("home"))
-        
+
         self.assertIn("debug", response.context)
         self.assertIn("django_ver", response.context)
         self.assertIn("python_ver", response.context)

@@ -6,33 +6,133 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0003_veterinarian_address_veterinarianchangelog_and_more'),
+        (
+            "accounts",
+            "0003_veterinarian_address_veterinarianchangelog_and_more",
+        ),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Histopathologist',
+            name="Histopathologist",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('last_name', models.CharField(help_text='Apellido del histopatólogo', max_length=100, verbose_name='apellido')),
-                ('first_name', models.CharField(help_text='Nombre del histopatólogo', max_length=100, verbose_name='nombre')),
-                ('license_number', models.CharField(db_index=True, help_text='Número de matrícula profesional', max_length=50, unique=True, verbose_name='número de matrícula')),
-                ('position', models.CharField(blank=True, help_text='Ej: Profesor Titular, Profesor Asociado, Jefe de TP', max_length=100, verbose_name='cargo')),
-                ('specialty', models.CharField(blank=True, help_text='Especialidad o área de expertise', max_length=200, verbose_name='especialidad')),
-                ('signature_image', models.ImageField(blank=True, help_text='Imagen de la firma para incluir en informes', null=True, upload_to='signatures/histopathologists/', verbose_name='firma digital')),
-                ('phone_number', models.CharField(blank=True, help_text='Número de teléfono de contacto', max_length=20, verbose_name='teléfono')),
-                ('is_active', models.BooleanField(default=True, help_text='Si el histopatólogo está activo para firmar informes', verbose_name='activo')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='creado el')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='actualizado el')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='histopathologist_profile', to=settings.AUTH_USER_MODEL, verbose_name='usuario')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "last_name",
+                    models.CharField(
+                        help_text="Apellido del histopatólogo",
+                        max_length=100,
+                        verbose_name="apellido",
+                    ),
+                ),
+                (
+                    "first_name",
+                    models.CharField(
+                        help_text="Nombre del histopatólogo",
+                        max_length=100,
+                        verbose_name="nombre",
+                    ),
+                ),
+                (
+                    "license_number",
+                    models.CharField(
+                        db_index=True,
+                        help_text="Número de matrícula profesional",
+                        max_length=50,
+                        unique=True,
+                        verbose_name="número de matrícula",
+                    ),
+                ),
+                (
+                    "position",
+                    models.CharField(
+                        blank=True,
+                        help_text="Ej: Profesor Titular, Profesor Asociado, Jefe de TP",
+                        max_length=100,
+                        verbose_name="cargo",
+                    ),
+                ),
+                (
+                    "specialty",
+                    models.CharField(
+                        blank=True,
+                        help_text="Especialidad o área de expertise",
+                        max_length=200,
+                        verbose_name="especialidad",
+                    ),
+                ),
+                (
+                    "signature_image",
+                    models.ImageField(
+                        blank=True,
+                        help_text="Imagen de la firma para incluir en informes",
+                        null=True,
+                        upload_to="signatures/histopathologists/",
+                        verbose_name="firma digital",
+                    ),
+                ),
+                (
+                    "phone_number",
+                    models.CharField(
+                        blank=True,
+                        help_text="Número de teléfono de contacto",
+                        max_length=20,
+                        verbose_name="teléfono",
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Si el histopatólogo está activo para firmar informes",
+                        verbose_name="activo",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="creado el"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="actualizado el"
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="histopathologist_profile",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="usuario",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'histopatólogo',
-                'verbose_name_plural': 'histopatólogos',
-                'ordering': ['last_name', 'first_name'],
-                'indexes': [models.Index(fields=['license_number'], name='accounts_hi_license_e93112_idx'), models.Index(fields=['is_active'], name='accounts_hi_is_acti_b3d4c1_idx')],
+                "verbose_name": "histopatólogo",
+                "verbose_name_plural": "histopatólogos",
+                "ordering": ["last_name", "first_name"],
+                "indexes": [
+                    models.Index(
+                        fields=["license_number"],
+                        name="accounts_hi_license_e93112_idx",
+                    ),
+                    models.Index(
+                        fields=["is_active"],
+                        name="accounts_hi_is_acti_b3d4c1_idx",
+                    ),
+                ],
             },
         ),
     ]

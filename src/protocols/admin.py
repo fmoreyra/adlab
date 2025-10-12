@@ -268,18 +268,19 @@ class ProtocolAdmin(admin.ModelAdmin):
                         changed_by=request.user,
                         description="Marked as received by admin",
                     )
-                    
+
                     # Send reception notification email
                     try:
                         send_sample_reception_notification(protocol)
                     except Exception as e:
                         # Log but don't fail the action
                         import logging
+
                         logger = logging.getLogger(__name__)
                         logger.error(
                             f"Failed to send reception email for protocol {protocol.pk}: {e}"
                         )
-                    
+
                     count += 1
                 except Exception:
                     pass
@@ -326,7 +327,7 @@ class ProtocolAdmin(admin.ModelAdmin):
                 changed_by=request.user,
                 description="Marked as ready by admin",
             )
-            
+
             # Send protocol ready notification
             try:
                 queue_email(
@@ -344,6 +345,7 @@ class ProtocolAdmin(admin.ModelAdmin):
             except Exception as e:
                 # Log but don't fail the action
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.error(
                     f"Failed to send ready email for protocol {protocol.pk}: {e}"
@@ -791,7 +793,9 @@ class WorkOrderAdmin(admin.ModelAdmin):
             obj.get_payment_status_display(),
         )
 
-    get_payment_status_display_formatted.short_description = _("Payment Status")
+    get_payment_status_display_formatted.short_description = _(
+        "Payment Status"
+    )
 
     def get_total_from_services(self, obj):
         """Calculate total from services."""
@@ -812,21 +816,21 @@ class WorkOrderAdmin(admin.ModelAdmin):
         for wo in queryset.filter(status=WorkOrder.Status.DRAFT):
             try:
                 wo.issue()
-                
+
                 # Send work order notification email
                 try:
                     send_work_order_notification(
-                        work_order=wo,
-                        work_order_pdf_path=None
+                        work_order=wo, work_order_pdf_path=None
                     )
                 except Exception as e:
                     # Log but don't fail the action
                     import logging
+
                     logger = logging.getLogger(__name__)
                     logger.error(
                         f"Failed to send work order email for {wo.pk}: {e}"
                     )
-                
+
                 count += 1
             except ValueError:
                 pass

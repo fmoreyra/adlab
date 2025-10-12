@@ -30,7 +30,7 @@ User = get_user_model()
 
 class ProtocolModelTest(TestCase):
     """Test cases for Protocol model."""
-    
+
     def setUp(self):
         """Set up test data."""
         self.user = User.objects.create_user(
@@ -48,7 +48,7 @@ class ProtocolModelTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-    
+
     def test_protocol_creation(self):
         """Test creating a protocol."""
         protocol = Protocol.objects.create(
@@ -62,7 +62,7 @@ class ProtocolModelTest(TestCase):
         self.assertEqual(protocol.status, Protocol.Status.DRAFT)
         self.assertIsNone(protocol.temporary_code)
         self.assertIsNone(protocol.protocol_number)
-    
+
     def test_temporary_code_generation(self):
         """Test temporary code generation."""
         protocol = Protocol.objects.create(
@@ -76,7 +76,7 @@ class ProtocolModelTest(TestCase):
         code = protocol.generate_temporary_code()
         self.assertIn("TMP-CT-", code)
         self.assertIn(date.today().strftime("%Y%m%d"), code)
-    
+
     def test_protocol_submit(self):
         """Test submitting a protocol."""
         protocol = Protocol.objects.create(
@@ -91,7 +91,7 @@ class ProtocolModelTest(TestCase):
         self.assertEqual(protocol.status, Protocol.Status.SUBMITTED)
         self.assertIsNotNone(protocol.temporary_code)
         self.assertIn("TMP-HP-", protocol.temporary_code)
-    
+
     def test_protocol_receive(self):
         """Test receiving a protocol."""
         protocol = Protocol.objects.create(
@@ -104,12 +104,12 @@ class ProtocolModelTest(TestCase):
         )
         protocol.submit()
         protocol.receive()
-        
+
         self.assertEqual(protocol.status, Protocol.Status.RECEIVED)
         self.assertIsNotNone(protocol.protocol_number)
         self.assertIsNotNone(protocol.reception_date)
         self.assertIn("CT", protocol.protocol_number)
-    
+
     def test_protocol_number_format(self):
         """Test protocol number format."""
         protocol = Protocol.objects.create(
@@ -122,7 +122,7 @@ class ProtocolModelTest(TestCase):
         )
         protocol.submit()
         protocol.receive()
-        
+
         # Format should be "HP YY/NRO"
         self.assertTrue(protocol.protocol_number.startswith("HP"))
         parts = protocol.protocol_number.split("/")
@@ -130,7 +130,7 @@ class ProtocolModelTest(TestCase):
         # Year should be 2 digits
         year_part = parts[0].split()[1]
         self.assertEqual(len(year_part), 2)
-    
+
     def test_protocol_numbering_sequence(self):
         """Test sequential protocol numbering."""
         # Create and receive multiple protocols
@@ -145,15 +145,15 @@ class ProtocolModelTest(TestCase):
             )
             protocol.submit()
             protocol.receive()
-        
+
         # Check that numbers are sequential
         protocols = Protocol.objects.filter(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             protocol_number__isnull=False,
         ).order_by("protocol_number")
-        
+
         self.assertEqual(protocols.count(), 3)
-    
+
     def test_is_editable(self):
         """Test is_editable property."""
         protocol = Protocol.objects.create(
@@ -164,14 +164,14 @@ class ProtocolModelTest(TestCase):
             presumptive_diagnosis="Test",
             submission_date=date.today(),
         )
-        
+
         # Draft should be editable
         self.assertTrue(protocol.is_editable)
-        
+
         # Submitted should not be editable
         protocol.submit()
         self.assertFalse(protocol.is_editable)
-    
+
     def test_is_deletable(self):
         """Test is_deletable property."""
         protocol = Protocol.objects.create(
@@ -182,14 +182,14 @@ class ProtocolModelTest(TestCase):
             presumptive_diagnosis="Test",
             submission_date=date.today(),
         )
-        
+
         # Draft should be deletable
         self.assertTrue(protocol.is_deletable)
-        
+
         # Submitted should not be deletable
         protocol.submit()
         self.assertFalse(protocol.is_deletable)
-    
+
     def test_get_owner_full_name(self):
         """Test get_owner_full_name method."""
         protocol = Protocol.objects.create(
@@ -207,7 +207,7 @@ class ProtocolModelTest(TestCase):
 
 class CytologySampleModelTest(TestCase):
     """Test cases for CytologySample model."""
-    
+
     def setUp(self):
         """Set up test data."""
         self.user = User.objects.create_user(
@@ -233,7 +233,7 @@ class CytologySampleModelTest(TestCase):
             presumptive_diagnosis="Suspected lymphoma",
             submission_date=date.today(),
         )
-    
+
     def test_cytology_sample_creation(self):
         """Test creating a cytology sample."""
         sample = CytologySample.objects.create(
@@ -245,7 +245,7 @@ class CytologySampleModelTest(TestCase):
         )
         self.assertEqual(sample.protocol, self.protocol)
         self.assertEqual(sample.number_of_slides, 2)
-    
+
     def test_cytology_sample_str(self):
         """Test string representation."""
         sample = CytologySample.objects.create(
@@ -262,7 +262,7 @@ class CytologySampleModelTest(TestCase):
 
 class HistopathologySampleModelTest(TestCase):
     """Test cases for HistopathologySample model."""
-    
+
     def setUp(self):
         """Set up test data."""
         self.user = User.objects.create_user(
@@ -288,7 +288,7 @@ class HistopathologySampleModelTest(TestCase):
             presumptive_diagnosis="Tumor mamario",
             submission_date=date.today(),
         )
-    
+
     def test_histopathology_sample_creation(self):
         """Test creating a histopathology sample."""
         sample = HistopathologySample.objects.create(
@@ -301,7 +301,7 @@ class HistopathologySampleModelTest(TestCase):
         self.assertEqual(sample.protocol, self.protocol)
         self.assertEqual(sample.number_of_containers, 1)
         self.assertEqual(sample.preservation, "Formol 10%")
-    
+
     def test_histopathology_sample_str(self):
         """Test string representation."""
         sample = HistopathologySample.objects.create(
@@ -317,7 +317,7 @@ class HistopathologySampleModelTest(TestCase):
 
 class ProtocolStatusHistoryModelTest(TestCase):
     """Test cases for ProtocolStatusHistory model."""
-    
+
     def setUp(self):
         """Set up test data."""
         self.user = User.objects.create_user(
@@ -343,7 +343,7 @@ class ProtocolStatusHistoryModelTest(TestCase):
             presumptive_diagnosis="Suspected lymphoma",
             submission_date=date.today(),
         )
-    
+
     def test_log_status_change(self):
         """Test logging status changes."""
         ProtocolStatusHistory.log_status_change(
@@ -352,7 +352,7 @@ class ProtocolStatusHistoryModelTest(TestCase):
             changed_by=self.user,
             description="Protocol submitted",
         )
-        
+
         history = ProtocolStatusHistory.objects.filter(protocol=self.protocol)
         self.assertEqual(history.count(), 1)
         self.assertEqual(history.first().status, Protocol.Status.SUBMITTED)
@@ -360,7 +360,7 @@ class ProtocolStatusHistoryModelTest(TestCase):
 
 class CytologyProtocolFormTest(TestCase):
     """Test cases for CytologyProtocolForm."""
-    
+
     def setUp(self):
         """Set up test data."""
         self.user = User.objects.create_user(
@@ -378,7 +378,7 @@ class CytologyProtocolFormTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-    
+
     def test_valid_cytology_form(self):
         """Test valid cytology form."""
         form_data = {
@@ -400,7 +400,7 @@ class CytologyProtocolFormTest(TestCase):
         }
         form = CytologyProtocolForm(data=form_data)
         self.assertTrue(form.is_valid(), form.errors)
-    
+
     def test_cytology_form_missing_required_fields(self):
         """Test cytology form with missing required fields."""
         form_data = {
@@ -415,7 +415,7 @@ class CytologyProtocolFormTest(TestCase):
         form = CytologyProtocolForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("species", form.errors)
-    
+
     def test_cytology_form_save(self):
         """Test saving cytology form."""
         form_data = {
@@ -429,13 +429,13 @@ class CytologyProtocolFormTest(TestCase):
         }
         form = CytologyProtocolForm(data=form_data)
         self.assertTrue(form.is_valid())
-        
+
         protocol = form.save(veterinarian=self.veterinarian)
         self.assertEqual(
             protocol.analysis_type, Protocol.AnalysisType.CYTOLOGY
         )
         self.assertEqual(protocol.status, Protocol.Status.DRAFT)
-        
+
         # Check that cytology sample was created
         self.assertTrue(hasattr(protocol, "cytology_sample"))
         self.assertEqual(protocol.cytology_sample.number_of_slides, 2)
@@ -443,7 +443,7 @@ class CytologyProtocolFormTest(TestCase):
 
 class HistopathologyProtocolFormTest(TestCase):
     """Test cases for HistopathologyProtocolForm."""
-    
+
     def setUp(self):
         """Set up test data."""
         self.user = User.objects.create_user(
@@ -461,7 +461,7 @@ class HistopathologyProtocolFormTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-    
+
     def test_valid_histopathology_form(self):
         """Test valid histopathology form."""
         form_data = {
@@ -483,7 +483,7 @@ class HistopathologyProtocolFormTest(TestCase):
         }
         form = HistopathologyProtocolForm(data=form_data)
         self.assertTrue(form.is_valid(), form.errors)
-    
+
     def test_histopathology_form_save(self):
         """Test saving histopathology form."""
         form_data = {
@@ -497,13 +497,13 @@ class HistopathologyProtocolFormTest(TestCase):
         }
         form = HistopathologyProtocolForm(data=form_data)
         self.assertTrue(form.is_valid())
-        
+
         protocol = form.save(veterinarian=self.veterinarian)
         self.assertEqual(
             protocol.analysis_type, Protocol.AnalysisType.HISTOPATHOLOGY
         )
         self.assertEqual(protocol.status, Protocol.Status.DRAFT)
-        
+
         # Check that histopathology sample was created
         self.assertTrue(hasattr(protocol, "histopathology_sample"))
         self.assertEqual(
@@ -513,7 +513,7 @@ class HistopathologyProtocolFormTest(TestCase):
 
 class ProtocolViewsTest(TestCase):
     """Test cases for protocol views."""
-    
+
     def setUp(self):
         """Set up test data."""
         self.user = User.objects.create_user(
@@ -532,13 +532,13 @@ class ProtocolViewsTest(TestCase):
             email="vet@example.com",
         )
         self.client.login(email="vet@example.com", password="testpass123")
-    
+
     def test_protocol_list_view(self):
         """Test protocol list view."""
         response = self.client.get(reverse("protocols:protocol_list"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/protocol_list.html")
-    
+
     def test_protocol_select_type_view(self):
         """Test protocol type selection view."""
         response = self.client.get(reverse("protocols:protocol_select_type"))
@@ -546,7 +546,7 @@ class ProtocolViewsTest(TestCase):
         self.assertTemplateUsed(
             response, "protocols/protocol_select_type.html"
         )
-    
+
     def test_protocol_create_cytology_view_get(self):
         """Test GET request to create cytology protocol."""
         response = self.client.get(
@@ -555,7 +555,7 @@ class ProtocolViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/protocol_form.html")
         self.assertIn("form", response.context)
-    
+
     def test_protocol_create_cytology_view_post(self):
         """Test POST request to create cytology protocol."""
         form_data = {
@@ -571,10 +571,10 @@ class ProtocolViewsTest(TestCase):
             reverse("protocols:protocol_create_cytology"),
             data=form_data,
         )
-        
+
         # Should redirect to detail view
         self.assertEqual(response.status_code, 302)
-        
+
         # Check protocol was created
         protocol = Protocol.objects.filter(
             veterinarian=self.veterinarian
@@ -583,7 +583,7 @@ class ProtocolViewsTest(TestCase):
         self.assertEqual(
             protocol.analysis_type, Protocol.AnalysisType.CYTOLOGY
         )
-    
+
     def test_protocol_create_histopathology_view_post(self):
         """Test POST request to create histopathology protocol."""
         form_data = {
@@ -599,10 +599,10 @@ class ProtocolViewsTest(TestCase):
             reverse("protocols:protocol_create_histopathology"),
             data=form_data,
         )
-        
+
         # Should redirect to detail view
         self.assertEqual(response.status_code, 302)
-        
+
         # Check protocol was created
         protocol = Protocol.objects.filter(
             veterinarian=self.veterinarian
@@ -611,7 +611,7 @@ class ProtocolViewsTest(TestCase):
         self.assertEqual(
             protocol.analysis_type, Protocol.AnalysisType.HISTOPATHOLOGY
         )
-    
+
     def test_protocol_detail_view(self):
         """Test protocol detail view."""
         protocol = Protocol.objects.create(
@@ -629,14 +629,14 @@ class ProtocolViewsTest(TestCase):
             sampling_site="Test site",
             number_of_slides=1,
         )
-        
+
         response = self.client.get(
             reverse("protocols:protocol_detail", kwargs={"pk": protocol.pk})
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/protocol_detail.html")
         self.assertEqual(response.context["protocol"], protocol)
-    
+
     def test_protocol_edit_view_get(self):
         """Test GET request to edit protocol."""
         protocol = Protocol.objects.create(
@@ -654,13 +654,13 @@ class ProtocolViewsTest(TestCase):
             sampling_site="Test site",
             number_of_slides=1,
         )
-        
+
         response = self.client.get(
             reverse("protocols:protocol_edit", kwargs={"pk": protocol.pk})
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/protocol_edit.html")
-    
+
     def test_protocol_submit_view(self):
         """Test submitting a protocol."""
         protocol = Protocol.objects.create(
@@ -671,19 +671,19 @@ class ProtocolViewsTest(TestCase):
             presumptive_diagnosis="Test",
             submission_date=date.today(),
         )
-        
+
         response = self.client.post(
             reverse("protocols:protocol_submit", kwargs={"pk": protocol.pk})
         )
-        
+
         # Should redirect to detail view
         self.assertEqual(response.status_code, 302)
-        
+
         # Check protocol was submitted
         protocol.refresh_from_db()
         self.assertEqual(protocol.status, Protocol.Status.SUBMITTED)
         self.assertIsNotNone(protocol.temporary_code)
-    
+
     def test_protocol_delete_view(self):
         """Test deleting a protocol."""
         protocol = Protocol.objects.create(
@@ -694,17 +694,17 @@ class ProtocolViewsTest(TestCase):
             presumptive_diagnosis="Test",
             submission_date=date.today(),
         )
-        
+
         response = self.client.post(
             reverse("protocols:protocol_delete", kwargs={"pk": protocol.pk})
         )
-        
+
         # Should redirect to list view
         self.assertEqual(response.status_code, 302)
-        
+
         # Check protocol was deleted
         self.assertFalse(Protocol.objects.filter(pk=protocol.pk).exists())
-    
+
     def test_protocol_access_control(self):
         """Test that veterinarians can only access their own protocols."""
         # Create another user and veterinarian
@@ -723,7 +723,7 @@ class ProtocolViewsTest(TestCase):
             phone="+54 341 7654321",
             email="other@example.com",
         )
-        
+
         # Create protocol for other veterinarian
         protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -733,15 +733,15 @@ class ProtocolViewsTest(TestCase):
             presumptive_diagnosis="Test",
             submission_date=date.today(),
         )
-        
+
         # Try to access it with current user
         response = self.client.get(
             reverse("protocols:protocol_detail", kwargs={"pk": protocol.pk})
         )
-        
+
         # Should be forbidden
         self.assertEqual(response.status_code, 403)  # Returns 403 Forbidden
-    
+
     def test_protocol_list_filtering(self):
         """Test protocol list filtering."""
         # Create protocols with different statuses
@@ -753,7 +753,7 @@ class ProtocolViewsTest(TestCase):
             presumptive_diagnosis="Test",
             submission_date=date.today(),
         )
-        
+
         submitted = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             veterinarian=self.veterinarian,
@@ -763,7 +763,7 @@ class ProtocolViewsTest(TestCase):
             submission_date=date.today(),
         )
         submitted.submit()
-        
+
         # Filter by status
         response = self.client.get(
             reverse("protocols:protocol_list") + "?status=draft"
@@ -772,7 +772,7 @@ class ProtocolViewsTest(TestCase):
         protocols = response.context["page_obj"]
         self.assertEqual(len(protocols), 1)
         self.assertEqual(protocols[0].status, Protocol.Status.DRAFT)
-        
+
         # Filter by type
         response = self.client.get(
             reverse("protocols:protocol_list") + "?type=cytology"
@@ -1445,7 +1445,7 @@ class ProcessingWorkflowTest(TestCase):
 
 class ProcessingViewsTest(TestCase):
     """Test cases for processing views (Phase 1.2)."""
-    
+
     def setUp(self):
         """Set up test data for processing views."""
         # Create users with different roles
@@ -1472,7 +1472,7 @@ class ProcessingViewsTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -1482,7 +1482,7 @@ class ProcessingViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        
+
         # Create test protocols
         self.cytology_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -1500,13 +1500,13 @@ class ProcessingViewsTest(TestCase):
             sampling_site="Linfonódulo submandibular",
             number_of_slides=2,
         )
-        
+
         self.cytology_protocol.submit()
         self.cytology_protocol.receive(
             received_by=self.staff_user,
-            sample_condition=Protocol.SampleCondition.OPTIMAL
+            sample_condition=Protocol.SampleCondition.OPTIMAL,
         )
-        
+
         self.histopathology_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             veterinarian=self.veterinarian,
@@ -1518,9 +1518,9 @@ class ProcessingViewsTest(TestCase):
         self.histopathology_protocol.submit()
         self.histopathology_protocol.receive(
             received_by=self.staff_user,
-            sample_condition=Protocol.SampleCondition.OPTIMAL
+            sample_condition=Protocol.SampleCondition.OPTIMAL,
         )
-        
+
         self.histopathology_sample = HistopathologySample.objects.create(
             protocol=self.histopathology_protocol,
             veterinarian=self.veterinarian,
@@ -1528,18 +1528,20 @@ class ProcessingViewsTest(TestCase):
             number_of_containers=1,
             preservation="Formol 10%",
         )
-        
+
         self.client = Client()
-    
+
     def test_processing_dashboard_view(self):
         """Test processing dashboard view shows correct statistics."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:processing_dashboard"))
-        
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/processing/dashboard.html")
-        
+        self.assertTemplateUsed(
+            response, "protocols/processing/dashboard.html"
+        )
+
         # Check context contains expected statistics
         context = response.context
         self.assertIn("protocols_received", context)
@@ -1548,131 +1550,149 @@ class ProcessingViewsTest(TestCase):
         self.assertIn("cassettes_pending", context)
         self.assertIn("slides_pending", context)
         self.assertIn("recent_logs", context)
-        
+
         # Should show at least 2 received protocols
         self.assertGreaterEqual(context["protocols_received"], 2)
-    
+
     def test_processing_dashboard_view_permission_staff_required(self):
         """Test that only staff can access processing dashboard."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:processing_dashboard"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_processing_queue_view(self):
         """Test processing queue view shows protocols awaiting processing."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:processing_queue"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/processing/queue.html")
-        
+
         # Check context contains protocols
         context = response.context
         self.assertIn("protocols", context)
         self.assertIn("filter_fields", context)
-        
+
         # Should show received protocols
         protocols = context["protocols"]
         self.assertGreaterEqual(len(protocols), 2)
-        
+
         # Check that days_in_process is calculated
         for protocol in protocols:
             self.assertTrue(hasattr(protocol, "days_in_process"))
             self.assertGreaterEqual(protocol.days_in_process, 0)
-    
+
     def test_processing_queue_view_filter_by_type(self):
         """Test processing queue view filtering by analysis type."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Filter by cytology
         response = self.client.get(
             reverse("protocols:processing_queue") + "?type=cytology"
         )
-        
+
         self.assertEqual(response.status_code, 200)
         protocols = response.context["protocols"]
-        
+
         # All protocols should be cytology
         for protocol in protocols:
-            self.assertEqual(protocol.analysis_type, Protocol.AnalysisType.CYTOLOGY)
-    
+            self.assertEqual(
+                protocol.analysis_type, Protocol.AnalysisType.CYTOLOGY
+            )
+
     def test_processing_queue_view_permission_staff_required(self):
         """Test that only staff can access processing queue."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:processing_queue"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_protocol_processing_status_view(self):
         """Test protocol processing status view shows complete timeline."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:processing_status", kwargs={"pk": self.cytology_protocol.pk})
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.cytology_protocol.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/processing/protocol_status.html")
-        
+        self.assertTemplateUsed(
+            response, "protocols/processing/protocol_status.html"
+        )
+
         # Check context contains expected data
         context = response.context
         self.assertEqual(context["protocol"], self.cytology_protocol)
         self.assertIn("slides", context)
         self.assertIn("processing_logs", context)
         self.assertIn("status_history", context)
-    
+
     def test_protocol_processing_status_view_histopathology(self):
         """Test protocol processing status view for histopathology protocol."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:processing_status", kwargs={"pk": self.histopathology_protocol.pk})
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.histopathology_protocol.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
-        
+
         # Check context contains cassettes for histopathology
         context = response.context
         self.assertIn("cassettes", context)
         self.assertEqual(context["protocol"], self.histopathology_protocol)
-    
+
     def test_protocol_processing_status_view_permission_staff_required(self):
         """Test that only staff can access protocol processing status."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:processing_status", kwargs={"pk": self.cytology_protocol.pk})
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.cytology_protocol.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_cassette_create_view_get(self):
         """Test GET request to cassette create view."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:cassette_create", kwargs={"protocol_pk": self.histopathology_protocol.pk})
+            reverse(
+                "protocols:cassette_create",
+                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/processing/cassette_create.html")
-        
+        self.assertTemplateUsed(
+            response, "protocols/processing/cassette_create.html"
+        )
+
         # Check context contains protocol and existing cassettes
         context = response.context
         self.assertEqual(context["protocol"], self.histopathology_protocol)
         self.assertIn("existing_cassettes", context)
-    
+
     def test_cassette_create_view_post(self):
         """Test POST request to create cassettes."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "cassette_count": "2",
             "material_0": "Tejido mamario",
@@ -1684,65 +1704,95 @@ class ProcessingViewsTest(TestCase):
             "color_1": Cassette.CassetteColor.BLANCO,
             "observaciones_1": "Muestra secundaria",
         }
-        
+
         response = self.client.post(
-            reverse("protocols:cassette_create", kwargs={"protocol_pk": self.histopathology_protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:cassette_create",
+                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to slide register (workflow continues to slide registration)
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:slide_register", kwargs={"protocol_pk": self.histopathology_protocol.pk}))
-        
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:slide_register",
+                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+            ),
+        )
+
         # Check cassettes were created
-        cassettes = self.histopathology_protocol.histopathology_sample.cassettes.all()
+        cassettes = (
+            self.histopathology_protocol.histopathology_sample.cassettes.all()
+        )
         self.assertEqual(cassettes.count(), 2)
-        
+
         # Check protocol status was updated to processing
         self.histopathology_protocol.refresh_from_db()
-        self.assertEqual(self.histopathology_protocol.status, Protocol.Status.PROCESSING)
-    
+        self.assertEqual(
+            self.histopathology_protocol.status, Protocol.Status.PROCESSING
+        )
+
     def test_cassette_create_view_wrong_protocol_type(self):
         """Test cassette create view with cytology protocol (should fail)."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:cassette_create", kwargs={"protocol_pk": self.cytology_protocol.pk})
+            reverse(
+                "protocols:cassette_create",
+                kwargs={"protocol_pk": self.cytology_protocol.pk},
+            )
         )
-        
+
         # Should redirect with error message
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:processing_status", kwargs={"pk": self.cytology_protocol.pk}))
-    
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.cytology_protocol.pk},
+            ),
+        )
+
     def test_cassette_create_view_permission_staff_required(self):
         """Test that only staff can access cassette create view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:cassette_create", kwargs={"protocol_pk": self.histopathology_protocol.pk})
+            reverse(
+                "protocols:cassette_create",
+                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_slide_register_view_get(self):
         """Test GET request to slide register view."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:slide_register", kwargs={"protocol_pk": self.cytology_protocol.pk})
+            reverse(
+                "protocols:slide_register",
+                kwargs={"protocol_pk": self.cytology_protocol.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/processing/slide_register.html")
-        
+        self.assertTemplateUsed(
+            response, "protocols/processing/slide_register.html"
+        )
+
         # Check context contains expected data
         context = response.context
         self.assertEqual(context["protocol"], self.cytology_protocol)
         self.assertIn("existing_slides", context)
         self.assertIn("is_cytology", context)
         self.assertTrue(context["is_cytology"])
-    
+
     def test_slide_register_view_get_histopathology(self):
         """Test GET request to slide register view for histopathology."""
         # First create some cassettes
@@ -1752,65 +1802,82 @@ class ProcessingViewsTest(TestCase):
             tipo_cassette=Cassette.CassetteType.NORMAL,
             color_cassette=Cassette.CassetteColor.BLANCO,
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:slide_register", kwargs={"protocol_pk": self.histopathology_protocol.pk})
+            reverse(
+                "protocols:slide_register",
+                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
-        
+
         # Check context contains cassettes for histopathology
         context = response.context
         self.assertIn("cassettes", context)
         self.assertEqual(len(context["cassettes"]), 1)
         self.assertFalse(context["is_cytology"])
-    
+
     def test_slide_register_view_post(self):
         """Test POST request to register slides."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         import json
-        
+
         slides_data = ["1", "2"]
         relationships_data = {}
-        
+
         form_data = {
             "comments": "Slides registrados correctamente",
             "staining_technique": "Hematoxilina-Eosina",
             "slides_data": json.dumps(slides_data),
             "relationships_data": json.dumps(relationships_data),
         }
-        
+
         response = self.client.post(
-            reverse("protocols:slide_register", kwargs={"protocol_pk": self.cytology_protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:slide_register",
+                kwargs={"protocol_pk": self.cytology_protocol.pk},
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to processing status
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:processing_status", kwargs={"pk": self.cytology_protocol.pk}))
-        
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.cytology_protocol.pk},
+            ),
+        )
+
         # Check slides were created
         slides = self.cytology_protocol.slides.all()
         self.assertEqual(slides.count(), 2)
-        
+
         # Check protocol status was updated to processing
         self.cytology_protocol.refresh_from_db()
-        self.assertEqual(self.cytology_protocol.status, Protocol.Status.PROCESSING)
-    
+        self.assertEqual(
+            self.cytology_protocol.status, Protocol.Status.PROCESSING
+        )
+
     def test_slide_register_view_permission_staff_required(self):
         """Test that only staff can access slide register view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:slide_register", kwargs={"protocol_pk": self.cytology_protocol.pk})
+            reverse(
+                "protocols:slide_register",
+                kwargs={"protocol_pk": self.cytology_protocol.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_slide_update_stage_view(self):
         """Test slide update stage view."""
         # Create a slide first
@@ -1818,27 +1885,35 @@ class ProcessingViewsTest(TestCase):
             protocol=self.cytology_protocol,
             campo="1",
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "stage": "montaje",
             "observaciones": "Slide montado correctamente",
         }
-        
+
         response = self.client.post(
-            reverse("protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}),
-            data=form_data
+            reverse(
+                "protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to processing status
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:processing_status", kwargs={"pk": self.cytology_protocol.pk}))
-        
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.cytology_protocol.pk},
+            ),
+        )
+
         # Check slide stage was updated
         slide.refresh_from_db()
         self.assertEqual(slide.estado, Slide.Status.MONTADO)
-    
+
     def test_slide_update_stage_view_mark_ready(self):
         """Test slide update stage view marking slide as ready."""
         # Create a slide first
@@ -1846,26 +1921,28 @@ class ProcessingViewsTest(TestCase):
             protocol=self.cytology_protocol,
             campo="1",
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "stage": "listo",
             "observaciones": "Slide listo para análisis",
         }
-        
+
         response = self.client.post(
-            reverse("protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}),
-            data=form_data
+            reverse(
+                "protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to processing status
         self.assertEqual(response.status_code, 302)
-        
+
         # Check slide was marked as ready
         slide.refresh_from_db()
         self.assertEqual(slide.estado, Slide.Status.LISTO)
-    
+
     def test_slide_update_stage_view_invalid_stage(self):
         """Test slide update stage view with invalid stage."""
         # Create a slide first
@@ -1873,22 +1950,24 @@ class ProcessingViewsTest(TestCase):
             protocol=self.cytology_protocol,
             campo="1",
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "stage": "invalid_stage",
             "observaciones": "Invalid stage",
         }
-        
+
         response = self.client.post(
-            reverse("protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}),
-            data=form_data
+            reverse(
+                "protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to processing status
         self.assertEqual(response.status_code, 302)
-    
+
     def test_slide_update_stage_view_permission_staff_required(self):
         """Test that only staff can access slide update stage view."""
         # Create a slide first
@@ -1896,17 +1975,19 @@ class ProcessingViewsTest(TestCase):
             protocol=self.cytology_protocol,
             campo="1",
         )
-        
+
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.post(
-            reverse("protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}),
-            data={"stage": "montaje"}
+            reverse(
+                "protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}
+            ),
+            data={"stage": "montaje"},
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_slide_update_quality_view(self):
         """Test slide update quality view."""
         # Create a slide first
@@ -1914,28 +1995,36 @@ class ProcessingViewsTest(TestCase):
             protocol=self.cytology_protocol,
             campo="1",
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "quality": Slide.Quality.EXCELENTE,
             "observaciones": "Calidad excelente",
         }
-        
+
         response = self.client.post(
-            reverse("protocols:slide_update_quality", kwargs={"slide_pk": slide.pk}),
-            data=form_data
+            reverse(
+                "protocols:slide_update_quality", kwargs={"slide_pk": slide.pk}
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to processing status
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:processing_status", kwargs={"pk": self.cytology_protocol.pk}))
-        
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.cytology_protocol.pk},
+            ),
+        )
+
         # Check slide quality was updated
         slide.refresh_from_db()
         self.assertEqual(slide.calidad, Slide.Quality.EXCELENTE)
         self.assertEqual(slide.observaciones, "Calidad excelente")
-    
+
     def test_slide_update_quality_view_invalid_quality(self):
         """Test slide update quality view with invalid quality."""
         # Create a slide first
@@ -1943,22 +2032,24 @@ class ProcessingViewsTest(TestCase):
             protocol=self.cytology_protocol,
             campo="1",
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "quality": "invalid_quality",
             "observaciones": "Invalid quality",
         }
-        
+
         response = self.client.post(
-            reverse("protocols:slide_update_quality", kwargs={"slide_pk": slide.pk}),
-            data=form_data
+            reverse(
+                "protocols:slide_update_quality", kwargs={"slide_pk": slide.pk}
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to processing status
         self.assertEqual(response.status_code, 302)
-    
+
     def test_slide_update_quality_view_permission_staff_required(self):
         """Test that only staff can access slide update quality view."""
         # Create a slide first
@@ -1966,14 +2057,16 @@ class ProcessingViewsTest(TestCase):
             protocol=self.cytology_protocol,
             campo="1",
         )
-        
+
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.post(
-            reverse("protocols:slide_update_quality", kwargs={"slide_pk": slide.pk}),
-            data={"quality": Slide.Quality.EXCELENTE}
+            reverse(
+                "protocols:slide_update_quality", kwargs={"slide_pk": slide.pk}
+            ),
+            data={"quality": Slide.Quality.EXCELENTE},
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
 
@@ -1985,7 +2078,7 @@ class ProcessingViewsTest(TestCase):
 
 class WorkOrderViewsTest(TestCase):
     """Test cases for work order views (Phase 2.1)."""
-    
+
     def setUp(self):
         """Set up test data for work order views."""
         # Create users with different roles
@@ -2012,7 +2105,7 @@ class WorkOrderViewsTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -2022,7 +2115,7 @@ class WorkOrderViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        
+
         # Create test protocols ready for work orders
         self.protocol1 = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -2035,12 +2128,12 @@ class WorkOrderViewsTest(TestCase):
         self.protocol1.submit()
         self.protocol1.receive(
             received_by=self.staff_user,
-            sample_condition=Protocol.SampleCondition.OPTIMAL
+            sample_condition=Protocol.SampleCondition.OPTIMAL,
         )
         # Mark as ready for work order
         self.protocol1.status = Protocol.Status.READY
         self.protocol1.save()
-        
+
         self.protocol2 = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             veterinarian=self.veterinarian,
@@ -2052,19 +2145,19 @@ class WorkOrderViewsTest(TestCase):
         self.protocol2.submit()
         self.protocol2.receive(
             received_by=self.staff_user,
-            sample_condition=Protocol.SampleCondition.OPTIMAL
+            sample_condition=Protocol.SampleCondition.OPTIMAL,
         )
         # Mark as ready for work order
         self.protocol2.status = Protocol.Status.READY
         self.protocol2.save()
-        
+
         # Create a work order for testing
         self.work_order = WorkOrder.objects.create(
             veterinarian=self.veterinarian,
             created_by=self.staff_user,
             status=WorkOrder.Status.DRAFT,
         )
-        
+
         # Create work order services
         self.service1 = WorkOrderService.objects.create(
             work_order=self.work_order,
@@ -2073,142 +2166,168 @@ class WorkOrderViewsTest(TestCase):
             service_type="citologia",
             unit_price=Decimal("150.00"),
         )
-        
+
         self.client = Client()
-    
+
     def test_workorder_list_view(self):
         """Test work order list view shows all work orders."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:workorder_list"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/workorder/list.html")
-        
+
         # Check context contains work orders
         context = response.context
         self.assertIn("work_orders", context)
         self.assertIn("filter_form", context)
         self.assertIn("title", context)
-        
+
         # Should show the created work order
         work_orders = context["work_orders"]
         self.assertGreaterEqual(work_orders.count(), 1)
-    
+
     def test_workorder_list_view_with_filters(self):
         """Test work order list view with filters applied."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Filter by veterinarian
         response = self.client.get(
-            reverse("protocols:workorder_list") + f"?veterinarian={self.veterinarian.pk}"
+            reverse("protocols:workorder_list")
+            + f"?veterinarian={self.veterinarian.pk}"
         )
-        
+
         self.assertEqual(response.status_code, 200)
         work_orders = response.context["work_orders"]
-        
+
         # All work orders should be from the same veterinarian
         for work_order in work_orders:
             self.assertEqual(work_order.veterinarian, self.veterinarian)
-    
+
     def test_workorder_list_view_permission_staff_required(self):
         """Test that only staff can access work order list."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:workorder_list"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
-    
+
     def test_workorder_pending_protocols_view(self):
         """Test pending protocols view shows protocols ready for work orders."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
-        response = self.client.get(reverse("protocols:workorder_pending_protocols"))
-        
+
+        response = self.client.get(
+            reverse("protocols:workorder_pending_protocols")
+        )
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/workorder/pending_protocols.html")
-        
+        self.assertTemplateUsed(
+            response, "protocols/workorder/pending_protocols.html"
+        )
+
         # Check context contains protocols
         context = response.context
         self.assertIn("protocols_by_vet", context)
         self.assertIn("title", context)
-        
+
         # Should show protocols ready for work orders
         protocols_by_vet = context["protocols_by_vet"]
         self.assertGreaterEqual(len(protocols_by_vet), 1)
-    
+
     def test_workorder_pending_protocols_view_permission_staff_required(self):
         """Test that only staff can access pending protocols view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
-        response = self.client.get(reverse("protocols:workorder_pending_protocols"))
-        
+
+        response = self.client.get(
+            reverse("protocols:workorder_pending_protocols")
+        )
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
-    
+
     def test_workorder_select_protocols_view(self):
         """Test protocol selection view for work order creation."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:workorder_select_protocols", kwargs={"veterinarian_id": self.veterinarian.pk})
+            reverse(
+                "protocols:workorder_select_protocols",
+                kwargs={"veterinarian_id": self.veterinarian.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/workorder/select_protocols.html")
-        
+        self.assertTemplateUsed(
+            response, "protocols/workorder/select_protocols.html"
+        )
+
         # Check context contains form and veterinarian
         context = response.context
         self.assertIn("form", context)
         self.assertIn("veterinarian", context)
         self.assertEqual(context["veterinarian"], self.veterinarian)
-        
+
         # Check form has protocols available
         form = context["form"]
         self.assertIn("protocols", form.fields)
-    
+
     def test_workorder_select_protocols_view_post(self):
         """Test POST request to select protocols for work order."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "protocols": [self.protocol1.pk, self.protocol2.pk],
         }
-        
+
         response = self.client.post(
-            reverse("protocols:workorder_select_protocols", kwargs={"veterinarian_id": self.veterinarian.pk}),
-            data=form_data
+            reverse(
+                "protocols:workorder_select_protocols",
+                kwargs={"veterinarian_id": self.veterinarian.pk},
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to work order creation
         self.assertEqual(response.status_code, 302)
-        expected_url = reverse("protocols:workorder_create_with_protocols", kwargs={"protocol_ids": f"{self.protocol1.pk},{self.protocol2.pk}"})
+        expected_url = reverse(
+            "protocols:workorder_create_with_protocols",
+            kwargs={
+                "protocol_ids": f"{self.protocol1.pk},{self.protocol2.pk}"
+            },
+        )
         self.assertRedirects(response, expected_url)
-    
+
     def test_workorder_select_protocols_view_permission_staff_required(self):
         """Test that only staff can access protocol selection view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:workorder_select_protocols", kwargs={"veterinarian_id": self.veterinarian.pk})
+            reverse(
+                "protocols:workorder_select_protocols",
+                kwargs={"veterinarian_id": self.veterinarian.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
-    
+
     def test_workorder_create_view_get(self):
         """Test GET request to work order creation view."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         protocol_ids = f"{self.protocol1.pk},{self.protocol2.pk}"
         response = self.client.get(
-            reverse("protocols:workorder_create_with_protocols", kwargs={"protocol_ids": protocol_ids})
+            reverse(
+                "protocols:workorder_create_with_protocols",
+                kwargs={"protocol_ids": protocol_ids},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/workorder/create.html")
-        
+
         # Check context contains expected data
         context = response.context
         self.assertIn("form", context)
@@ -2216,15 +2335,15 @@ class WorkOrderViewsTest(TestCase):
         self.assertIn("veterinarian", context)
         self.assertIn("services_data", context)
         self.assertEqual(context["veterinarian"], self.veterinarian)
-        
+
         # Should show both protocols
         protocols = context["protocols"]
         self.assertEqual(protocols.count(), 2)
-    
+
     def test_workorder_create_view_post(self):
         """Test POST request to create work order."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         protocol_ids = f"{self.protocol1.pk},{self.protocol2.pk}"
         form_data = {
             "veterinarian": self.veterinarian.pk,
@@ -2234,36 +2353,44 @@ class WorkOrderViewsTest(TestCase):
             "iva_condition": WorkOrder.IVACondition.RESPONSABLE_INSCRIPTO,
             "observations": "Work order for testing",
         }
-        
+
         response = self.client.post(
-            reverse("protocols:workorder_create_with_protocols", kwargs={"protocol_ids": protocol_ids}),
-            data=form_data
+            reverse(
+                "protocols:workorder_create_with_protocols",
+                kwargs={"protocol_ids": protocol_ids},
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to work order detail
         self.assertEqual(response.status_code, 302)
-        
+
         # Check work order was created
         work_orders = WorkOrder.objects.filter(veterinarian=self.veterinarian)
         self.assertGreaterEqual(work_orders.count(), 2)  # Original + new one
-        
+
         # Check protocols were linked to work order
         new_work_order = work_orders.exclude(pk=self.work_order.pk).first()
         self.assertIsNotNone(new_work_order)
         self.assertEqual(new_work_order.services.count(), 2)
-    
+
     def test_workorder_create_view_invalid_protocols(self):
         """Test work order creation with invalid protocol IDs."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:workorder_create_with_protocols", kwargs={"protocol_ids": "999,998"})
+            reverse(
+                "protocols:workorder_create_with_protocols",
+                kwargs={"protocol_ids": "999,998"},
+            )
         )
-        
+
         # Should redirect with error message
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:workorder_pending_protocols"))
-    
+        self.assertRedirects(
+            response, reverse("protocols:workorder_pending_protocols")
+        )
+
     def test_workorder_create_view_different_veterinarians(self):
         """Test work order creation with protocols from different veterinarians."""
         # Create another veterinarian and protocol
@@ -2282,7 +2409,7 @@ class WorkOrderViewsTest(TestCase):
             phone="+54 341 7654321",
             email="vet2@example.com",
         )
-        
+
         protocol3 = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             veterinarian=veterinarian2,
@@ -2294,180 +2421,228 @@ class WorkOrderViewsTest(TestCase):
         protocol3.submit()
         protocol3.receive(
             received_by=self.staff_user,
-            sample_condition=Protocol.SampleCondition.OPTIMAL
+            sample_condition=Protocol.SampleCondition.OPTIMAL,
         )
         protocol3.status = Protocol.Status.READY
         protocol3.save()
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Try to create work order with protocols from different veterinarians
         protocol_ids = f"{self.protocol1.pk},{protocol3.pk}"
         response = self.client.get(
-            reverse("protocols:workorder_create_with_protocols", kwargs={"protocol_ids": protocol_ids})
+            reverse(
+                "protocols:workorder_create_with_protocols",
+                kwargs={"protocol_ids": protocol_ids},
+            )
         )
-        
+
         # Should redirect with error message
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:workorder_pending_protocols"))
-    
+        self.assertRedirects(
+            response, reverse("protocols:workorder_pending_protocols")
+        )
+
     def test_workorder_create_view_permission_staff_required(self):
         """Test that only staff can access work order creation view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         protocol_ids = f"{self.protocol1.pk},{self.protocol2.pk}"
         response = self.client.get(
-            reverse("protocols:workorder_create_with_protocols", kwargs={"protocol_ids": protocol_ids})
+            reverse(
+                "protocols:workorder_create_with_protocols",
+                kwargs={"protocol_ids": protocol_ids},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
-    
+
     def test_workorder_detail_view(self):
         """Test work order detail view shows complete information."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:workorder_detail", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/workorder/detail.html")
-        
+
         # Check context contains work order
         context = response.context
         self.assertEqual(context["work_order"], self.work_order)
         self.assertIn("title", context)
-    
+
     def test_workorder_detail_view_permission_staff_required(self):
         """Test that only staff can access work order detail view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:workorder_detail", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
-    
+
     def test_workorder_issue_view(self):
         """Test work order issue view finalizes draft work order."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Ensure work order is in draft status
         self.work_order.status = WorkOrder.Status.DRAFT
         self.work_order.save()
-        
+
         response = self.client.post(
-            reverse("protocols:workorder_issue", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_issue", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         # Should redirect to work order detail
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:workorder_detail", kwargs={"pk": self.work_order.pk}))
-        
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
+            ),
+        )
+
         # Check work order status was updated
         self.work_order.refresh_from_db()
         self.assertEqual(self.work_order.status, WorkOrder.Status.ISSUED)
-    
+
     def test_workorder_issue_view_wrong_status(self):
         """Test work order issue view with non-draft work order."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Set work order to issued status
         self.work_order.status = WorkOrder.Status.ISSUED
         self.work_order.save()
-        
+
         response = self.client.post(
-            reverse("protocols:workorder_issue", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_issue", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         # Should redirect with error message
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:workorder_detail", kwargs={"pk": self.work_order.pk}))
-    
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
+            ),
+        )
+
     def test_workorder_issue_view_permission_staff_required(self):
         """Test that only staff can access work order issue view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.post(
-            reverse("protocols:workorder_issue", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_issue", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
-    
+
     def test_workorder_send_view(self):
         """Test work order send view marks work order as sent."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Ensure work order is in draft status
         self.work_order.status = WorkOrder.Status.DRAFT
         self.work_order.save()
-        
+
         response = self.client.post(
-            reverse("protocols:workorder_send", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_send", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         # Should redirect to work order detail
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:workorder_detail", kwargs={"pk": self.work_order.pk}))
-        
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
+            ),
+        )
+
         # Check work order status was updated
         self.work_order.refresh_from_db()
         self.assertEqual(self.work_order.status, WorkOrder.Status.SENT)
-    
+
     def test_workorder_send_view_wrong_status(self):
         """Test work order send view with already sent work order."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # Set work order to sent status
         self.work_order.status = WorkOrder.Status.SENT
         self.work_order.save()
-        
+
         response = self.client.post(
-            reverse("protocols:workorder_send", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_send", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         # Should redirect with error message
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:workorder_detail", kwargs={"pk": self.work_order.pk}))
-    
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
+            ),
+        )
+
     def test_workorder_send_view_permission_staff_required(self):
         """Test that only staff can access work order send view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.post(
-            reverse("protocols:workorder_send", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_send", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
-    
+
     def test_workorder_pdf_view(self):
         """Test work order PDF view generates and serves PDF."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:workorder_pdf", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_pdf", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         # Should return PDF response
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertIn("inline", response["Content-Disposition"])
-        
+
         # Check PDF content is not empty
         self.assertGreater(len(response.content), 0)
-    
+
     def test_workorder_pdf_view_permission_staff_required(self):
         """Test that only staff can access work order PDF view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:workorder_pdf", kwargs={"pk": self.work_order.pk})
+            reverse(
+                "protocols:workorder_pdf", kwargs={"pk": self.work_order.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
 
@@ -2479,7 +2654,7 @@ class WorkOrderViewsTest(TestCase):
 
 class ReceptionViewsTest(TestCase):
     """Test cases for reception views (Phase 1.1)."""
-    
+
     def setUp(self):
         """Set up test data for reception views."""
         # Create users with different roles
@@ -2506,7 +2681,7 @@ class ReceptionViewsTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -2516,7 +2691,7 @@ class ReceptionViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        
+
         # Create test protocol
         self.protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -2526,7 +2701,7 @@ class ReceptionViewsTest(TestCase):
             presumptive_diagnosis="Sospecha de linfoma",
             submission_date=date.today(),
         )
-        
+
         # Create cytology sample for the protocol
         self.cytology_sample = CytologySample.objects.create(
             protocol=self.protocol,
@@ -2535,191 +2710,223 @@ class ReceptionViewsTest(TestCase):
             sampling_site="Linfonódulo submandibular",
             number_of_slides=2,
         )
-        
+
         self.protocol.submit()
-        
+
         self.client = Client()
-    
+
     def test_reception_search_view_get(self):
         """Test GET request to reception search view."""
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:reception_search"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reception_search.html")
         self.assertIn("form", response.context)
         self.assertIsNone(response.context["protocol"])
-    
+
     def test_reception_search_view_post_valid_code(self):
         """Test POST request with valid temporary code."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.post(
             reverse("protocols:reception_search"),
-            data={"temporary_code": self.protocol.temporary_code}
+            data={"temporary_code": self.protocol.temporary_code},
         )
-        
+
         # Should redirect to confirmation page for submitted protocols
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:reception_confirm", kwargs={"pk": self.protocol.pk}))
-    
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:reception_confirm", kwargs={"pk": self.protocol.pk}
+            ),
+        )
+
     def test_reception_search_view_post_invalid_code(self):
         """Test POST request with invalid temporary code."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.post(
             reverse("protocols:reception_search"),
-            data={"temporary_code": "INVALID-CODE"}
+            data={"temporary_code": "INVALID-CODE"},
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reception_search.html")
         self.assertIsNone(response.context["protocol"])
         self.assertContains(response, "No se encontró ningún protocolo")
-    
+
     def test_reception_search_view_permission_staff_required(self):
         """Test that only staff can access reception search."""
         # Test veterinarian access (should be blocked)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:reception_search"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_reception_search_view_permission_admin_allowed(self):
         """Test that admin can access reception search."""
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:reception_search"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reception_search.html")
-    
+
     def test_reception_confirm_view_get(self):
         """Test GET request to reception confirm view."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:reception_confirm", kwargs={"pk": self.protocol.pk})
+            reverse(
+                "protocols:reception_confirm", kwargs={"pk": self.protocol.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reception_confirm.html")
         self.assertEqual(response.context["protocol"], self.protocol)
         self.assertIn("form", response.context)
-    
-    @patch('protocols.emails.queue_email')
+
+    @patch("protocols.emails.queue_email")
     def test_reception_confirm_view_post_valid_data(self, mock_queue_email):
         """Test POST request with valid reception data."""
         # Mock the email queue to avoid constraint issues
         mock_queue_email.return_value = None
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "sample_condition": Protocol.SampleCondition.OPTIMAL,
             "reception_notes": "Muestra en buen estado",
             "discrepancies": "",
             "number_slides_received": 2,  # Required for cytology protocols
         }
-        
+
         response = self.client.post(
-            reverse("protocols:reception_confirm", kwargs={"pk": self.protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:reception_confirm", kwargs={"pk": self.protocol.pk}
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to reception detail
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:reception_detail", kwargs={"pk": self.protocol.pk}))
-        
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:reception_detail", kwargs={"pk": self.protocol.pk}
+            ),
+        )
+
         # Check protocol was received
         self.protocol.refresh_from_db()
         self.assertEqual(self.protocol.status, Protocol.Status.RECEIVED)
-        self.assertEqual(self.protocol.sample_condition, Protocol.SampleCondition.OPTIMAL)
+        self.assertEqual(
+            self.protocol.sample_condition, Protocol.SampleCondition.OPTIMAL
+        )
         self.assertEqual(self.protocol.received_by, self.staff_user)
-    
-    @patch('protocols.emails.queue_email')
-    def test_reception_confirm_view_post_with_discrepancies(self, mock_queue_email):
+
+    @patch("protocols.emails.queue_email")
+    def test_reception_confirm_view_post_with_discrepancies(
+        self, mock_queue_email
+    ):
         """Test POST request with sample discrepancies."""
         # Mock the email queue to avoid constraint issues
         mock_queue_email.return_value = None
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "sample_condition": Protocol.SampleCondition.SUBOPTIMAL,
             "reception_notes": "Muestra con problemas",
             "discrepancies": "Falta información en la etiqueta",
             "number_slides_received": 1,  # Required for cytology protocols
         }
-        
+
         response = self.client.post(
-            reverse("protocols:reception_confirm", kwargs={"pk": self.protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:reception_confirm", kwargs={"pk": self.protocol.pk}
+            ),
+            data=form_data,
         )
-        
+
         self.assertEqual(response.status_code, 302)
-        
+
         # Check protocol was received with discrepancies
         self.protocol.refresh_from_db()
         self.assertEqual(self.protocol.status, Protocol.Status.RECEIVED)
-        self.assertEqual(self.protocol.sample_condition, Protocol.SampleCondition.SUBOPTIMAL)
-        self.assertEqual(self.protocol.discrepancies, "Falta información en la etiqueta")
-    
+        self.assertEqual(
+            self.protocol.sample_condition, Protocol.SampleCondition.SUBOPTIMAL
+        )
+        self.assertEqual(
+            self.protocol.discrepancies, "Falta información en la etiqueta"
+        )
+
     def test_reception_confirm_view_permission_staff_required(self):
         """Test that only staff can access reception confirm."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:reception_confirm", kwargs={"pk": self.protocol.pk})
+            reverse(
+                "protocols:reception_confirm", kwargs={"pk": self.protocol.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_reception_confirm_view_already_processed(self):
         """Test reception confirm for already processed protocol."""
         # Mark protocol as already received
         self.protocol.receive(received_by=self.staff_user)
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:reception_confirm", kwargs={"pk": self.protocol.pk})
+            reverse(
+                "protocols:reception_confirm", kwargs={"pk": self.protocol.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:reception_search"))
-    
+
     def test_reception_detail_view(self):
         """Test reception detail view."""
         # First receive the protocol
         self.protocol.receive(
             received_by=self.staff_user,
             sample_condition=Protocol.SampleCondition.OPTIMAL,
-            reception_notes="Muestra recibida correctamente"
+            reception_notes="Muestra recibida correctamente",
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:reception_detail", kwargs={"pk": self.protocol.pk})
+            reverse(
+                "protocols:reception_detail", kwargs={"pk": self.protocol.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reception_detail.html")
         self.assertEqual(response.context["protocol"], self.protocol)
-    
+
     def test_reception_detail_view_permission_staff_required(self):
         """Test that only staff can access reception detail."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:reception_detail", kwargs={"pk": self.protocol.pk})
+            reverse(
+                "protocols:reception_detail", kwargs={"pk": self.protocol.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_reception_pending_view(self):
         """Test reception pending view shows submitted protocols."""
         # Create another submitted protocol
@@ -2732,32 +2939,32 @@ class ReceptionViewsTest(TestCase):
             submission_date=date.today(),
         )
         protocol2.submit()
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:reception_pending"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reception_pending.html")
-        
+
         # Check both protocols are in the list
         protocols = response.context["protocols"]
         self.assertEqual(len(protocols), 2)
-        
+
         # Check days_pending is calculated
         for protocol in protocols:
             self.assertTrue(hasattr(protocol, "days_pending"))
             self.assertGreaterEqual(protocol.days_pending, 0)
-    
+
     def test_reception_pending_view_permission_staff_required(self):
         """Test that only staff can access reception pending."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:reception_pending"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_reception_history_view(self):
         """Test reception history view."""
         # Create some received protocols
@@ -2771,49 +2978,53 @@ class ReceptionViewsTest(TestCase):
         )
         protocol2.submit()
         protocol2.receive(received_by=self.staff_user)
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:reception_history"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reception_history.html")
-    
+
     def test_reception_history_view_permission_staff_required(self):
         """Test that only staff can access reception history."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:reception_history"))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
-    
+
     def test_reception_label_pdf_view(self):
         """Test reception label PDF generation."""
         # First receive the protocol
         self.protocol.receive(
             received_by=self.staff_user,
-            sample_condition=Protocol.SampleCondition.OPTIMAL
+            sample_condition=Protocol.SampleCondition.OPTIMAL,
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:reception_label", kwargs={"pk": self.protocol.pk})
+            reverse(
+                "protocols:reception_label", kwargs={"pk": self.protocol.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertIn("attachment", response["Content-Disposition"])
-    
+
     def test_reception_label_pdf_view_permission_staff_required(self):
         """Test that only staff can access reception label PDF."""
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:reception_label", kwargs={"pk": self.protocol.pk})
+            reverse(
+                "protocols:reception_label", kwargs={"pk": self.protocol.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("home"))
 
@@ -2888,7 +3099,7 @@ class ReceptionViewsTest(TestCase):
 
 class ReportViewsTest(TestCase):
     """Test cases for report views (Phase 2.2)."""
-    
+
     def setUp(self):
         """Set up test data for report views."""
         # Create users with different roles
@@ -2923,7 +3134,7 @@ class ReportViewsTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -2933,7 +3144,7 @@ class ReportViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        
+
         # Create histopathologist
         self.histopathologist = Histopathologist.objects.create(
             user=self.histopathologist_user,
@@ -2943,7 +3154,7 @@ class ReportViewsTest(TestCase):
             position="Profesor Titular",
             specialty="Patología Veterinaria",
         )
-        
+
         # Create test protocol ready for report generation
         self.protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
@@ -2956,9 +3167,9 @@ class ReportViewsTest(TestCase):
         self.protocol.submit()
         self.protocol.receive(
             received_by=self.staff_user,
-            sample_condition=Protocol.SampleCondition.OPTIMAL
+            sample_condition=Protocol.SampleCondition.OPTIMAL,
         )
-        
+
         # Create histopathology sample
         self.histopathology_sample = HistopathologySample.objects.create(
             protocol=self.protocol,
@@ -2968,7 +3179,7 @@ class ReportViewsTest(TestCase):
             preservation="Formol 10%",
             observations="Procesamiento estándar",
         )
-        
+
         # Create cassettes and slides for the protocol
         self.cassette1 = Cassette.objects.create(
             histopathology_sample=self.histopathology_sample,
@@ -2984,7 +3195,7 @@ class ReportViewsTest(TestCase):
             tipo_cassette=Cassette.CassetteType.NORMAL,
             color_cassette=Cassette.CassetteColor.BLANCO,
         )
-        
+
         # Create slides
         self.slide1 = Slide.objects.create(
             protocol=self.protocol,
@@ -2998,11 +3209,11 @@ class ReportViewsTest(TestCase):
             estado=Slide.Status.LISTO,
             calidad=Slide.Quality.BUENA,
         )
-        
+
         # Mark protocol as ready for report generation
         self.protocol.status = Protocol.Status.READY
         self.protocol.save()
-        
+
         # Create a separate protocol for report creation tests (no reports yet)
         self.create_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
@@ -3015,11 +3226,11 @@ class ReportViewsTest(TestCase):
         self.create_protocol.submit()
         self.create_protocol.receive(
             received_by=self.staff_user,
-            sample_condition=Protocol.SampleCondition.OPTIMAL
+            sample_condition=Protocol.SampleCondition.OPTIMAL,
         )
         self.create_protocol.status = Protocol.Status.READY
         self.create_protocol.save()
-        
+
         # Create a draft report
         self.draft_report = Report.objects.create(
             protocol=self.protocol,
@@ -3032,7 +3243,7 @@ class ReportViewsTest(TestCase):
             recommendations="Cirugía de ampliación",
             status=Report.Status.DRAFT,
         )
-        
+
         # Create a finalized report
         self.finalized_report = Report.objects.create(
             protocol=self.protocol,
@@ -3046,76 +3257,83 @@ class ReportViewsTest(TestCase):
             status=Report.Status.FINALIZED,
             pdf_path="/tmp/test_report.pdf",  # Mock PDF path for testing
         )
-        
+
         self.client = Client()
-    
+
     def test_report_pending_list_view_get(self):
         """Test GET request to report pending list view."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:report_pending_list"))
-        
+
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/reports/pending_list.html")
+        self.assertTemplateUsed(
+            response, "protocols/reports/pending_list.html"
+        )
         self.assertIn("protocols", response.context)
-    
-    def test_report_pending_list_view_permission_histopathologist_required(self):
+
+    def test_report_pending_list_view_permission_histopathologist_required(
+        self,
+    ):
         """Test that only staff users can access report pending list."""
         # Test with vet user (should be denied)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_pending_list"))
         self.assertEqual(response.status_code, 302)  # Redirects instead of 403
-        
+
         # Test with staff user (should be allowed - they have is_staff=True)
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_pending_list"))
         self.assertEqual(response.status_code, 200)  # Staff users can access
-        
+
         # Test with histopathologist (should be allowed - they have is_staff=True)
         self.client.login(email="histo@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_pending_list"))
         self.assertEqual(response.status_code, 200)
-    
+
     def test_report_history_view_get(self):
         """Test GET request to report history view."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:report_history"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reports/history.html")
         self.assertIn("reports", response.context)
-    
+
     def test_report_history_view_permission_histopathologist_required(self):
         """Test that only histopathologists can access report history."""
         # Test with vet user (should be denied)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_history"))
         self.assertEqual(response.status_code, 302)  # Redirects instead of 403
-        
+
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_history"))
         self.assertEqual(response.status_code, 200)
-    
+
     def test_report_create_view_get(self):
         """Test GET request to report create view."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:report_create", kwargs={"protocol_id": self.create_protocol.pk})
+            reverse(
+                "protocols:report_create",
+                kwargs={"protocol_id": self.create_protocol.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reports/create.html")
         self.assertIn("form", response.context)
         self.assertIn("protocol", response.context)
         self.assertEqual(response.context["protocol"], self.create_protocol)
-    
+
     def test_report_create_view_post_valid_data(self):
         """Test POST request with valid report data."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         form_data = {
             "histopathologist": self.histopathologist.pk,
             "macroscopic_observations": "Masa firme, bien delimitada",
@@ -3124,78 +3342,95 @@ class ReportViewsTest(TestCase):
             "comments": "Recomiendo seguimiento",
             "recommendations": "Cirugía de ampliación",
         }
-        
+
         response = self.client.post(
-            reverse("protocols:report_create", kwargs={"protocol_id": self.create_protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:report_create",
+                kwargs={"protocol_id": self.create_protocol.pk},
+            ),
+            data=form_data,
         )
-        
+
         self.assertEqual(response.status_code, 302)
         # The view redirects to report_edit, not report_detail
         # Check that it redirects to a report edit URL (don't hardcode the ID)
-        self.assertTrue(response.url.startswith('/protocols/reports/') and response.url.endswith('/edit/'))
-        
+        self.assertTrue(
+            response.url.startswith("/protocols/reports/")
+            and response.url.endswith("/edit/")
+        )
+
         # Check report was created
         report = Report.objects.get(protocol=self.create_protocol)
         self.assertEqual(report.histopathologist, self.histopathologist)
         self.assertEqual(report.diagnosis, "Carcinoma mamario")
         self.assertEqual(report.status, Report.Status.DRAFT)
-    
+
     def test_report_create_view_post_invalid_data(self):
         """Test POST request with invalid report data."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         form_data = {
             "histopathologist": "",  # Required field missing
             "macroscopic_observations": "Masa firme",
             "microscopic_observations": "Células atípicas",
             "diagnosis": "",  # Required field missing
         }
-        
+
         response = self.client.post(
-            reverse("protocols:report_create", kwargs={"protocol_id": self.create_protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:report_create",
+                kwargs={"protocol_id": self.create_protocol.pk},
+            ),
+            data=form_data,
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reports/create.html")
         self.assertIn("form", response.context)
         self.assertTrue(response.context["form"].errors)
-    
+
     def test_report_create_view_permission_histopathologist_required(self):
         """Test that only histopathologists can create reports."""
         # Test with vet user (should be denied)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_create", kwargs={"protocol_id": self.create_protocol.pk})
+            reverse(
+                "protocols:report_create",
+                kwargs={"protocol_id": self.create_protocol.pk},
+            )
         )
         self.assertEqual(response.status_code, 302)  # Redirects instead of 403
-        
+
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_create", kwargs={"protocol_id": self.create_protocol.pk})
+            reverse(
+                "protocols:report_create",
+                kwargs={"protocol_id": self.create_protocol.pk},
+            )
         )
         self.assertEqual(response.status_code, 200)
-    
+
     def test_report_edit_view_get(self):
         """Test GET request to report edit view."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:report_edit", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_edit", kwargs={"pk": self.draft_report.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reports/edit.html")
         self.assertIn("form", response.context)
         self.assertIn("report", response.context)
         self.assertEqual(response.context["report"], self.draft_report)
-    
+
     def test_report_edit_view_post_valid_data(self):
         """Test POST request with valid edit data."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         form_data = {
             "histopathologist": self.histopathologist.pk,
             "macroscopic_observations": "Masa firme, bien delimitada - EDITADO",
@@ -3213,12 +3448,14 @@ class ReportViewsTest(TestCase):
             "form-0-partial_diagnosis": "Diagnóstico parcial A1",
             "form-0-order": "0",
         }
-        
+
         response = self.client.post(
-            reverse("protocols:report_edit", kwargs={"pk": self.draft_report.pk}),
-            data=form_data
+            reverse(
+                "protocols:report_edit", kwargs={"pk": self.draft_report.pk}
+            ),
+            data=form_data,
         )
-        
+
         # The view requires both form and formset to be valid
         # If formset is invalid, the view returns 200 with form errors
         # If both are valid, the view redirects to report detail
@@ -3229,284 +3466,389 @@ class ReportViewsTest(TestCase):
             self.assertIn("formset", response.context)
             # Report should not be updated if formset is invalid
             self.draft_report.refresh_from_db()
-            self.assertNotEqual(self.draft_report.diagnosis, "Carcinoma mamario - EDITADO")
+            self.assertNotEqual(
+                self.draft_report.diagnosis, "Carcinoma mamario - EDITADO"
+            )
         else:
             # Both form and formset are valid, should redirect
             self.assertEqual(response.status_code, 302)
-            self.assertRedirects(response, reverse("protocols:report_detail", kwargs={"pk": self.draft_report.pk}))
+            self.assertRedirects(
+                response,
+                reverse(
+                    "protocols:report_detail",
+                    kwargs={"pk": self.draft_report.pk},
+                ),
+            )
             # Check report was updated
             self.draft_report.refresh_from_db()
-            self.assertEqual(self.draft_report.diagnosis, "Carcinoma mamario - EDITADO")
+            self.assertEqual(
+                self.draft_report.diagnosis, "Carcinoma mamario - EDITADO"
+            )
         self.assertEqual(self.draft_report.status, Report.Status.DRAFT)
-    
+
     def test_report_edit_view_post_invalid_data(self):
         """Test POST request with invalid edit data."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         form_data = {
             "histopathologist": "",  # Required field missing
             "macroscopic_observations": "Masa firme",
             "microscopic_observations": "Células atípicas",
             "diagnosis": "",  # Required field missing
         }
-        
+
         response = self.client.post(
-            reverse("protocols:report_edit", kwargs={"pk": self.draft_report.pk}),
-            data=form_data
+            reverse(
+                "protocols:report_edit", kwargs={"pk": self.draft_report.pk}
+            ),
+            data=form_data,
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reports/edit.html")
         self.assertIn("form", response.context)
         self.assertTrue(response.context["form"].errors)
-    
+
     def test_report_edit_view_permission_histopathologist_required(self):
         """Test that only histopathologists can edit reports."""
         # Test with vet user (should be denied)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_edit", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_edit", kwargs={"pk": self.draft_report.pk}
+            )
         )
         self.assertEqual(response.status_code, 302)  # Redirects instead of 403
-        
+
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_edit", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_edit", kwargs={"pk": self.draft_report.pk}
+            )
         )
         self.assertEqual(response.status_code, 200)
-    
+
     def test_report_edit_view_cannot_edit_finalized_report(self):
         """Test that finalized reports cannot be edited."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:report_edit", kwargs={"pk": self.finalized_report.pk})
+            reverse(
+                "protocols:report_edit",
+                kwargs={"pk": self.finalized_report.pk},
+            )
         )
-        
-        self.assertEqual(response.status_code, 302)  # Redirects to report detail for finalized reports
-    
+
+        self.assertEqual(
+            response.status_code, 302
+        )  # Redirects to report detail for finalized reports
+
     def test_report_detail_view_get(self):
         """Test GET request to report detail view."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:report_detail", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_detail", kwargs={"pk": self.draft_report.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reports/detail.html")
         self.assertIn("report", response.context)
         self.assertEqual(response.context["report"], self.draft_report)
-    
+
     def test_report_detail_view_permission_histopathologist_required(self):
         """Test that histopathologists and report owners can view report details."""
         # Test with vet user (should be allowed - they own the report)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_detail", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_detail", kwargs={"pk": self.draft_report.pk}
+            )
         )
-        self.assertEqual(response.status_code, 200)  # Veterinarian can view their own report
-        
+        self.assertEqual(
+            response.status_code, 200
+        )  # Veterinarian can view their own report
+
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_detail", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_detail", kwargs={"pk": self.draft_report.pk}
+            )
         )
         self.assertEqual(response.status_code, 200)
-    
-    @patch('protocols.emails.queue_email')
+
+    @patch("protocols.emails.queue_email")
     def test_report_finalize_view_post(self, mock_queue_email):
         """Test POST request to finalize report."""
         mock_queue_email.return_value = None
-        
+
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.post(
-            reverse("protocols:report_finalize", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_finalize",
+                kwargs={"pk": self.draft_report.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:report_detail", kwargs={"pk": self.draft_report.pk}))
-        
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:report_detail", kwargs={"pk": self.draft_report.pk}
+            ),
+        )
+
         # Check report was finalized
         self.draft_report.refresh_from_db()
         self.assertEqual(self.draft_report.status, Report.Status.FINALIZED)
         self.assertIsNotNone(self.draft_report.updated_at)
-    
+
     def test_report_finalize_view_permission_histopathologist_required(self):
         """Test that only histopathologists can finalize reports."""
         # Test with vet user (should be denied)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.post(
-            reverse("protocols:report_finalize", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_finalize",
+                kwargs={"pk": self.draft_report.pk},
+            )
         )
         self.assertEqual(response.status_code, 302)  # Redirects instead of 403
-        
+
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
         response = self.client.post(
-            reverse("protocols:report_finalize", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_finalize",
+                kwargs={"pk": self.draft_report.pk},
+            )
         )
         self.assertEqual(response.status_code, 302)
-    
-    def test_report_finalize_view_cannot_finalize_already_finalized_report(self):
+
+    def test_report_finalize_view_cannot_finalize_already_finalized_report(
+        self,
+    ):
         """Test that already finalized reports cannot be finalized again."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.post(
-            reverse("protocols:report_finalize", kwargs={"pk": self.finalized_report.pk})
+            reverse(
+                "protocols:report_finalize",
+                kwargs={"pk": self.finalized_report.pk},
+            )
         )
-        
-        self.assertEqual(response.status_code, 302)  # Redirects to report detail for already finalized reports
-    
-    @patch('os.path.exists')
-    @patch('builtins.open')
+
+        self.assertEqual(
+            response.status_code, 302
+        )  # Redirects to report detail for already finalized reports
+
+    @patch("os.path.exists")
+    @patch("builtins.open")
     def test_report_pdf_view_get(self, mock_open, mock_exists):
         """Test GET request to report PDF view."""
         mock_exists.return_value = True
         mock_open.return_value.__enter__.return_value = b"fake pdf content"
-        
+
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:report_pdf", kwargs={"pk": self.finalized_report.pk})
+            reverse(
+                "protocols:report_pdf", kwargs={"pk": self.finalized_report.pk}
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
-    
-    @patch('os.path.exists')
-    @patch('builtins.open')
-    def test_report_pdf_view_permission_histopathologist_required(self, mock_open, mock_exists):
+
+    @patch("os.path.exists")
+    @patch("builtins.open")
+    def test_report_pdf_view_permission_histopathologist_required(
+        self, mock_open, mock_exists
+    ):
         """Test that histopathologists and report owners can generate report PDFs."""
         mock_exists.return_value = True
         mock_open.return_value.__enter__.return_value = b"fake pdf content"
-        
+
         # Test with vet user (should be allowed - they own the report)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_pdf", kwargs={"pk": self.finalized_report.pk})
+            reverse(
+                "protocols:report_pdf", kwargs={"pk": self.finalized_report.pk}
+            )
         )
-        self.assertEqual(response.status_code, 200)  # Veterinarian can view their own report PDF
-        
+        self.assertEqual(
+            response.status_code, 200
+        )  # Veterinarian can view their own report PDF
+
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_pdf", kwargs={"pk": self.finalized_report.pk})
+            reverse(
+                "protocols:report_pdf", kwargs={"pk": self.finalized_report.pk}
+            )
         )
         self.assertEqual(response.status_code, 200)
-    
+
     def test_report_pdf_view_only_finalized_reports(self):
         """Test that only finalized reports can generate PDFs."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:report_pdf", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_pdf", kwargs={"pk": self.draft_report.pk}
+            )
         )
-        
-        self.assertEqual(response.status_code, 302)  # Redirects because draft report has no PDF
-    
-    @patch('protocols.emails.queue_email')
-    @patch('os.path.exists')
+
+        self.assertEqual(
+            response.status_code, 302
+        )  # Redirects because draft report has no PDF
+
+    @patch("protocols.emails.queue_email")
+    @patch("os.path.exists")
     def test_report_send_view_get(self, mock_exists, mock_queue_email):
         """Test GET request to report send view."""
         mock_queue_email.return_value = None
         mock_exists.return_value = True
-        
+
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:report_send", kwargs={"pk": self.finalized_report.pk})
+            reverse(
+                "protocols:report_send",
+                kwargs={"pk": self.finalized_report.pk},
+            )
         )
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reports/send.html")
         self.assertIn("form", response.context)
         self.assertIn("report", response.context)
         self.assertEqual(response.context["report"], self.finalized_report)
-    
-    @patch('protocols.emails.queue_email')
-    @patch('os.path.exists')
-    def test_report_send_view_post_valid_data(self, mock_exists, mock_queue_email):
+
+    @patch("protocols.emails.queue_email")
+    @patch("os.path.exists")
+    def test_report_send_view_post_valid_data(
+        self, mock_exists, mock_queue_email
+    ):
         """Test POST request with valid send data."""
         mock_queue_email.return_value = None
         mock_exists.return_value = True
-        
+
         # Mock the specific file opening for the PDF
-        with patch('builtins.open', mock_open(read_data=b"fake pdf content")):
-            self.client.login(email="histo@example.com", password="testpass123")
-            
+        with patch("builtins.open", mock_open(read_data=b"fake pdf content")):
+            self.client.login(
+                email="histo@example.com", password="testpass123"
+            )
+
             form_data = {
                 "recipient_email": "vet@example.com",
                 "subject": "Test Report",
                 "message": "Test message",
             }
-            
+
             response = self.client.post(
-                reverse("protocols:report_send", kwargs={"pk": self.finalized_report.pk}),
-                data=form_data
+                reverse(
+                    "protocols:report_send",
+                    kwargs={"pk": self.finalized_report.pk},
+                ),
+                data=form_data,
             )
-            
+
             # Should redirect to report detail on success
-            self.assertRedirects(response, reverse("protocols:report_detail", kwargs={"pk": self.finalized_report.pk}))
-            
+            self.assertRedirects(
+                response,
+                reverse(
+                    "protocols:report_detail",
+                    kwargs={"pk": self.finalized_report.pk},
+                ),
+            )
+
             # Check report was marked as sent
             self.finalized_report.refresh_from_db()
             self.assertEqual(self.finalized_report.status, Report.Status.SENT)
             self.assertIsNotNone(self.finalized_report.sent_date)
-    
-    @patch('protocols.emails.queue_email')
-    @patch('os.path.exists')
-    def test_report_send_view_post_invalid_data(self, mock_exists, mock_queue_email):
+
+    @patch("protocols.emails.queue_email")
+    @patch("os.path.exists")
+    def test_report_send_view_post_invalid_data(
+        self, mock_exists, mock_queue_email
+    ):
         """Test POST request with invalid send data."""
         mock_queue_email.return_value = None
         mock_exists.return_value = True
-        
+
         # Mock the specific file opening for the PDF
-        with patch('builtins.open', mock_open(read_data=b"fake pdf content")):
-            self.client.login(email="histo@example.com", password="testpass123")
-            
+        with patch("builtins.open", mock_open(read_data=b"fake pdf content")):
+            self.client.login(
+                email="histo@example.com", password="testpass123"
+            )
+
             form_data = {
                 "recipient_email": "",  # Required field missing
                 "subject": "",
                 "message": "",
             }
-            
+
             response = self.client.post(
-                reverse("protocols:report_send", kwargs={"pk": self.finalized_report.pk}),
-                data=form_data
+                reverse(
+                    "protocols:report_send",
+                    kwargs={"pk": self.finalized_report.pk},
+                ),
+                data=form_data,
             )
-            
+
             # Should redirect to report detail on success (form is valid)
             self.assertEqual(response.status_code, 302)
-            self.assertRedirects(response, reverse("protocols:report_detail", kwargs={"pk": self.finalized_report.pk}))
-    
-    @patch('os.path.exists')
-    def test_report_send_view_permission_histopathologist_required(self, mock_exists):
+            self.assertRedirects(
+                response,
+                reverse(
+                    "protocols:report_detail",
+                    kwargs={"pk": self.finalized_report.pk},
+                ),
+            )
+
+    @patch("os.path.exists")
+    def test_report_send_view_permission_histopathologist_required(
+        self, mock_exists
+    ):
         """Test that only histopathologists can send reports."""
         mock_exists.return_value = True
-        
+
         # Test with vet user (should be denied)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_send", kwargs={"pk": self.finalized_report.pk})
+            reverse(
+                "protocols:report_send",
+                kwargs={"pk": self.finalized_report.pk},
+            )
         )
         self.assertEqual(response.status_code, 302)  # Redirects instead of 403
-        
+
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:report_send", kwargs={"pk": self.finalized_report.pk})
+            reverse(
+                "protocols:report_send",
+                kwargs={"pk": self.finalized_report.pk},
+            )
         )
         self.assertEqual(response.status_code, 200)
-    
+
     def test_report_send_view_only_finalized_reports(self):
         """Test that only finalized reports can be sent."""
         self.client.login(email="histo@example.com", password="testpass123")
-        
+
         response = self.client.get(
-            reverse("protocols:report_send", kwargs={"pk": self.draft_report.pk})
+            reverse(
+                "protocols:report_send", kwargs={"pk": self.draft_report.pk}
+            )
         )
-        
-        self.assertEqual(response.status_code, 302)  # Redirects because draft report cannot be sent
+
+        self.assertEqual(
+            response.status_code, 302
+        )  # Redirects because draft report cannot be sent

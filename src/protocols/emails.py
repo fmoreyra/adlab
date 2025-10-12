@@ -223,14 +223,10 @@ def send_work_order_notification(work_order, work_order_pdf_path=None):
         )
 
         recipient_email = prefs.get_recipient_email()
-        attachment = (
-            work_order_pdf_path if prefs.include_attachments else None
-        )
+        attachment = work_order_pdf_path if prefs.include_attachments else None
 
         # Get veterinarian's protocols in this work order
-        vet_protocols = work_order.protocols.filter(
-            veterinarian=veterinarian
-        )
+        vet_protocols = work_order.protocols.filter(veterinarian=veterinarian)
 
         email_log = queue_email(
             email_type=EmailLog.EmailType.WORK_ORDER,
@@ -275,4 +271,3 @@ def send_custom_notification(
         template_name=template_name,
         veterinarian=veterinarian,
     )
-

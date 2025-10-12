@@ -51,7 +51,7 @@ class AccountsViewsTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian profile
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -77,7 +77,7 @@ class AccountsViewsTest(TestCase):
         """Test POST request with valid credentials."""
         response = self.client.post(
             reverse("accounts:login"),
-            {"username": "vet@example.com", "password": "testpass123"}
+            {"username": "vet@example.com", "password": "testpass123"},
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, "/protocols/select-type/")
@@ -86,7 +86,7 @@ class AccountsViewsTest(TestCase):
         """Test POST request with invalid credentials."""
         response = self.client.post(
             reverse("accounts:login"),
-            {"username": "vet@example.com", "password": "wrongpassword"}
+            {"username": "vet@example.com", "password": "wrongpassword"},
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "accounts/login.html")
@@ -97,10 +97,10 @@ class AccountsViewsTest(TestCase):
         # Unverify the veterinarian
         self.vet_user.email_verified = False
         self.vet_user.save()
-        
+
         response = self.client.post(
             reverse("accounts:login"),
-            {"username": "vet@example.com", "password": "testpass123"}
+            {"username": "vet@example.com", "password": "testpass123"},
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "accounts/login.html")
@@ -111,10 +111,10 @@ class AccountsViewsTest(TestCase):
         # Deactivate the user
         self.vet_user.is_active = False
         self.vet_user.save()
-        
+
         response = self.client.post(
             reverse("accounts:login"),
-            {"username": "vet@example.com", "password": "testpass123"}
+            {"username": "vet@example.com", "password": "testpass123"},
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "accounts/login.html")
@@ -131,13 +131,13 @@ class AccountsViewsTest(TestCase):
         """Test logout view."""
         # Login first
         self.client.login(email="vet@example.com", password="testpass123")
-        self.assertTrue(self.client.session.get('_auth_user_id'))
-        
+        self.assertTrue(self.client.session.get("_auth_user_id"))
+
         # Logout
         response = self.client.get(reverse("accounts:logout"))
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, "/accounts/login/")
-        self.assertFalse(self.client.session.get('_auth_user_id'))
+        self.assertFalse(self.client.session.get("_auth_user_id"))
 
     def test_register_view_get(self):
         """Test GET request to register view."""
@@ -158,13 +158,15 @@ class AccountsViewsTest(TestCase):
                 "first_name": "New",
                 "last_name": "Vet",
                 "role": User.Role.VETERINARIO,
-            }
+            },
         )
         self.assertEqual(response.status_code, 302)
-        
+
         # Check that user was created
-        self.assertTrue(User.objects.filter(email="newvet@example.com").exists())
-        
+        self.assertTrue(
+            User.objects.filter(email="newvet@example.com").exists()
+        )
+
         # Check that user is not verified initially
         user = User.objects.get(email="newvet@example.com")
         self.assertFalse(user.email_verified)
@@ -181,7 +183,7 @@ class AccountsViewsTest(TestCase):
                 "first_name": "New",
                 "last_name": "Vet",
                 "role": User.Role.VETERINARIO,
-            }
+            },
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "accounts/register.html")
@@ -195,22 +197,26 @@ class AccountsViewsTest(TestCase):
         """Test GET request to password reset view."""
         response = self.client.get(reverse("accounts:password_reset_request"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "accounts/password_reset_request.html")
+        self.assertTemplateUsed(
+            response, "accounts/password_reset_request.html"
+        )
         self.assertIn("form", response.context)
 
     def test_password_reset_request_view_post_valid_email(self):
         """Test POST request with valid email."""
-        with patch('accounts.views.send_mail') as mock_send_mail:
+        with patch("accounts.views.send_mail") as mock_send_mail:
             response = self.client.post(
                 reverse("accounts:password_reset_request"),
-                {"email": "vet@example.com"}
+                {"email": "vet@example.com"},
             )
             self.assertEqual(response.status_code, 302)
             self.assertRedirects(response, reverse("accounts:login"))
-            
+
             # Check that reset token was created
-            self.assertTrue(PasswordResetToken.objects.filter(user=self.vet_user).exists())
-            
+            self.assertTrue(
+                PasswordResetToken.objects.filter(user=self.vet_user).exists()
+            )
+
             # Check that email was sent
             mock_send_mail.assert_called_once()
 
@@ -218,7 +224,7 @@ class AccountsViewsTest(TestCase):
         """Test POST request with invalid email."""
         response = self.client.post(
             reverse("accounts:password_reset_request"),
-            {"email": "nonexistent@example.com"}
+            {"email": "nonexistent@example.com"},
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("accounts:login"))
@@ -229,14 +235,19 @@ class AccountsViewsTest(TestCase):
         token = PasswordResetToken.objects.create(
             user=self.vet_user,
             token="test-token-123",
-            expires_at=timezone.now() + timezone.timedelta(hours=1)
+            expires_at=timezone.now() + timezone.timedelta(hours=1),
         )
-        
+
         response = self.client.get(
-            reverse("accounts:password_reset_confirm", kwargs={"token": token.token})
+            reverse(
+                "accounts:password_reset_confirm",
+                kwargs={"token": token.token},
+            )
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "accounts/password_reset_confirm.html")
+        self.assertTemplateUsed(
+            response, "accounts/password_reset_confirm.html"
+        )
         self.assertIn("form", response.context)
 
     def test_password_reset_confirm_view_post_valid_data(self):
@@ -245,31 +256,41 @@ class AccountsViewsTest(TestCase):
         token = PasswordResetToken.objects.create(
             user=self.vet_user,
             token="test-token-123",
-            expires_at=timezone.now() + timezone.timedelta(hours=1)
+            expires_at=timezone.now() + timezone.timedelta(hours=1),
         )
-        
+
         response = self.client.post(
-            reverse("accounts:password_reset_confirm", kwargs={"token": token.token}),
+            reverse(
+                "accounts:password_reset_confirm",
+                kwargs={"token": token.token},
+            ),
             {
                 "new_password1": "newpassword123",
-                "new_password2": "newpassword123"
-            }
+                "new_password2": "newpassword123",
+            },
         )
         # Form validation might fail, so check for either redirect or form errors
         self.assertIn(response.status_code, [200, 302])
-        
+
         if response.status_code == 302:
             self.assertRedirects(response, reverse("accounts:login"))
             # Check that token was deleted
-            self.assertFalse(PasswordResetToken.objects.filter(token=token.token).exists())
+            self.assertFalse(
+                PasswordResetToken.objects.filter(token=token.token).exists()
+            )
 
     def test_password_reset_confirm_view_invalid_token(self):
         """Test password reset confirm with invalid token."""
         response = self.client.get(
-            reverse("accounts:password_reset_confirm", kwargs={"token": "invalid-token"})
+            reverse(
+                "accounts:password_reset_confirm",
+                kwargs={"token": "invalid-token"},
+            )
         )
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("accounts:password_reset_request"))
+        self.assertRedirects(
+            response, reverse("accounts:password_reset_request")
+        )
 
     # ============================================================================
     # EMAIL VERIFICATION TESTS
@@ -286,13 +307,16 @@ class AccountsViewsTest(TestCase):
             email_verified=False,
         )
         unverified_user.generate_email_verification_token()
-        
+
         response = self.client.get(
-            reverse("accounts:verify_email", kwargs={"token": unverified_user.email_verification_token})
+            reverse(
+                "accounts:verify_email",
+                kwargs={"token": unverified_user.email_verification_token},
+            )
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("accounts:login"))
-        
+
         # Check that user is now verified
         unverified_user.refresh_from_db()
         self.assertTrue(unverified_user.email_verified)
@@ -312,7 +336,7 @@ class AccountsViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "accounts/resend_verification.html")
         # The form might be in a different context structure
-        self.assertTrue(hasattr(response, 'context'))
+        self.assertTrue(hasattr(response, "context"))
 
     def test_resend_verification_view_post_valid_email(self):
         """Test POST request with valid email."""
@@ -324,11 +348,11 @@ class AccountsViewsTest(TestCase):
             role=User.Role.VETERINARIO,
             email_verified=False,
         )
-        
-        with patch('accounts.views.send_verification_email') as mock_send:
+
+        with patch("accounts.views.send_verification_email") as mock_send:
             response = self.client.post(
                 reverse("accounts:resend_verification"),
-                {"email": "unverified@example.com"}
+                {"email": "unverified@example.com"},
             )
             self.assertEqual(response.status_code, 302)
             self.assertRedirects(response, reverse("accounts:login"))
@@ -355,11 +379,11 @@ class AccountsViewsTest(TestCase):
                 "first_name": "Updated",
                 "last_name": "Name",
                 "email": "vet@example.com",
-            }
+            },
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("accounts:profile"))
-        
+
         # Check that profile was updated
         self.vet_user.refresh_from_db()
         self.assertEqual(self.vet_user.first_name, "Updated")
@@ -369,7 +393,9 @@ class AccountsViewsTest(TestCase):
         """Test that profile view requires login."""
         response = self.client.get(reverse("accounts:profile"))
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/?next=/accounts/profile/")
+        self.assertRedirects(
+            response, "/accounts/login/?next=/accounts/profile/"
+        )
 
     # ============================================================================
     # VETERINARIAN PROFILE TESTS
@@ -379,7 +405,7 @@ class AccountsViewsTest(TestCase):
         """Test GET request to complete profile view."""
         # Delete existing veterinarian profile first
         self.veterinarian.delete()
-        
+
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("accounts:complete_profile"))
         self.assertEqual(response.status_code, 200)
@@ -390,7 +416,7 @@ class AccountsViewsTest(TestCase):
         """Test POST request with valid profile completion data."""
         # Delete existing veterinarian profile
         self.veterinarian.delete()
-        
+
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.post(
             reverse("accounts:complete_profile"),
@@ -400,22 +426,28 @@ class AccountsViewsTest(TestCase):
                 "license_number": "MP-12345",
                 "phone": "+54 341 1234567",
                 "email": "vet@example.com",
-            }
+            },
         )
         # Form validation might fail, so check for either redirect or form errors
         self.assertIn(response.status_code, [200, 302])
-        
+
         if response.status_code == 302:
-            self.assertRedirects(response, reverse("accounts:veterinarian_profile_detail"))
+            self.assertRedirects(
+                response, reverse("accounts:veterinarian_profile_detail")
+            )
             # Check that veterinarian profile was created
-            self.assertTrue(Veterinarian.objects.filter(user=self.vet_user).exists())
+            self.assertTrue(
+                Veterinarian.objects.filter(user=self.vet_user).exists()
+            )
 
     def test_complete_profile_view_already_completed(self):
         """Test complete profile view when profile already exists."""
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("accounts:complete_profile"))
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("accounts:veterinarian_profile_detail"))
+        self.assertRedirects(
+            response, reverse("accounts:veterinarian_profile_detail")
+        )
 
     def test_complete_profile_view_non_veterinarian(self):
         """Test complete profile view for non-veterinarian user."""
@@ -427,19 +459,27 @@ class AccountsViewsTest(TestCase):
     def test_veterinarian_profile_detail_view(self):
         """Test veterinarian profile detail view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        response = self.client.get(reverse("accounts:veterinarian_profile_detail"))
+        response = self.client.get(
+            reverse("accounts:veterinarian_profile_detail")
+        )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "accounts/veterinarian_profile_detail.html")
+        self.assertTemplateUsed(
+            response, "accounts/veterinarian_profile_detail.html"
+        )
         self.assertIn("veterinarian", response.context)
 
     def test_veterinarian_profile_edit_view_get(self):
         """Test GET request to veterinarian profile edit view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        response = self.client.get(reverse("accounts:veterinarian_profile_edit"))
+        response = self.client.get(
+            reverse("accounts:veterinarian_profile_edit")
+        )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "accounts/veterinarian_profile_edit.html")
+        self.assertTemplateUsed(
+            response, "accounts/veterinarian_profile_edit.html"
+        )
         # The form might be in a different context structure (vet_form, address_form)
-        self.assertTrue(hasattr(response, 'context'))
+        self.assertTrue(hasattr(response, "context"))
 
     def test_veterinarian_profile_edit_view_post_valid_data(self):
         """Test POST request with valid profile edit data."""
@@ -452,13 +492,15 @@ class AccountsViewsTest(TestCase):
                 "license_number": "MP-12345",
                 "phone": "+54 341 7654321",
                 "email": "vet@example.com",
-            }
+            },
         )
         # Form validation might fail, so check for either redirect or form errors
         self.assertIn(response.status_code, [200, 302])
-        
+
         if response.status_code == 302:
-            self.assertRedirects(response, reverse("accounts:veterinarian_profile_detail"))
+            self.assertRedirects(
+                response, reverse("accounts:veterinarian_profile_detail")
+            )
             # Check that profile was updated
             self.veterinarian.refresh_from_db()
             self.assertEqual(self.veterinarian.first_name, "Updated")
@@ -467,11 +509,15 @@ class AccountsViewsTest(TestCase):
     def test_veterinarian_profile_history_view(self):
         """Test veterinarian profile history view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        response = self.client.get(reverse("accounts:veterinarian_profile_history"))
+        response = self.client.get(
+            reverse("accounts:veterinarian_profile_history")
+        )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "accounts/veterinarian_profile_history.html")
+        self.assertTemplateUsed(
+            response, "accounts/veterinarian_profile_history.html"
+        )
         # The context variable might be 'changes' instead of 'change_logs'
-        self.assertTrue(hasattr(response, 'context'))
+        self.assertTrue(hasattr(response, "context"))
 
     # ============================================================================
     # AUDIT LOGGING TESTS
@@ -480,30 +526,30 @@ class AccountsViewsTest(TestCase):
     def test_login_creates_audit_log(self):
         """Test that successful login creates audit log."""
         initial_count = AuthAuditLog.objects.count()
-        
+
         self.client.post(
             reverse("accounts:login"),
-            {"username": "vet@example.com", "password": "testpass123"}
+            {"username": "vet@example.com", "password": "testpass123"},
         )
-        
+
         # Check that audit log was created
         self.assertEqual(AuthAuditLog.objects.count(), initial_count + 1)
-        log = AuthAuditLog.objects.latest('created_at')
+        log = AuthAuditLog.objects.latest("created_at")
         self.assertEqual(log.email, "vet@example.com")
         self.assertEqual(log.action, AuthAuditLog.Action.LOGIN_SUCCESS)
 
     def test_failed_login_creates_audit_log(self):
         """Test that failed login creates audit log."""
         initial_count = AuthAuditLog.objects.count()
-        
+
         self.client.post(
             reverse("accounts:login"),
-            {"username": "vet@example.com", "password": "wrongpassword"}
+            {"username": "vet@example.com", "password": "wrongpassword"},
         )
-        
+
         # Check that audit log was created
         self.assertEqual(AuthAuditLog.objects.count(), initial_count + 1)
-        log = AuthAuditLog.objects.latest('created_at')
+        log = AuthAuditLog.objects.latest("created_at")
         self.assertEqual(log.email, "vet@example.com")
         self.assertEqual(log.action, AuthAuditLog.Action.LOGIN_FAILED)
 
@@ -512,13 +558,13 @@ class AccountsViewsTest(TestCase):
         # Login first
         self.client.login(email="vet@example.com", password="testpass123")
         initial_count = AuthAuditLog.objects.count()
-        
+
         # Logout
         self.client.get(reverse("accounts:logout"))
-        
+
         # Check that audit log was created
         self.assertEqual(AuthAuditLog.objects.count(), initial_count + 1)
-        log = AuthAuditLog.objects.latest('created_at')
+        log = AuthAuditLog.objects.latest("created_at")
         self.assertEqual(log.email, "vet@example.com")
         self.assertEqual(log.action, AuthAuditLog.Action.LOGOUT)
 
@@ -533,7 +579,7 @@ class AccountsViewsTest(TestCase):
             reverse("accounts:veterinarian_profile_edit"),
             reverse("accounts:veterinarian_profile_history"),
         ]
-        
+
         for url in urls:
             response = self.client.get(url)
             self.assertEqual(response.status_code, 302)
@@ -542,13 +588,13 @@ class AccountsViewsTest(TestCase):
     def test_veterinarian_profile_views_require_veterinarian_role(self):
         """Test that veterinarian profile views require veterinarian role."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         urls = [
             reverse("accounts:veterinarian_profile_detail"),
             reverse("accounts:veterinarian_profile_edit"),
             reverse("accounts:veterinarian_profile_history"),
         ]
-        
+
         for url in urls:
             response = self.client.get(url)
             self.assertEqual(response.status_code, 302)
@@ -562,7 +608,7 @@ class AccountsViewsTest(TestCase):
         """Test that login works with case insensitive email."""
         response = self.client.post(
             reverse("accounts:login"),
-            {"username": "VET@EXAMPLE.COM", "password": "testpass123"}
+            {"username": "VET@EXAMPLE.COM", "password": "testpass123"},
         )
         # Login might fail due to case sensitivity, so check for either success or failure
         self.assertIn(response.status_code, [200, 302])
@@ -579,7 +625,7 @@ class AccountsViewsTest(TestCase):
                 "first_name": "New",
                 "last_name": "Vet",
                 "role": User.Role.VETERINARIO,
-            }
+            },
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "accounts/register.html")
@@ -591,14 +637,19 @@ class AccountsViewsTest(TestCase):
         token = PasswordResetToken.objects.create(
             user=self.vet_user,
             token="expired-token",
-            expires_at=timezone.now() - timezone.timedelta(hours=1)
+            expires_at=timezone.now() - timezone.timedelta(hours=1),
         )
-        
+
         response = self.client.get(
-            reverse("accounts:password_reset_confirm", kwargs={"token": token.token})
+            reverse(
+                "accounts:password_reset_confirm",
+                kwargs={"token": token.token},
+            )
         )
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("accounts:password_reset_request"))
+        self.assertRedirects(
+            response, reverse("accounts:password_reset_request")
+        )
 
     def test_email_verification_with_expired_token(self):
         """Test email verification with expired token."""
@@ -612,11 +663,16 @@ class AccountsViewsTest(TestCase):
         )
         unverified_user.generate_email_verification_token()
         # Manually set expired time
-        unverified_user.email_verification_sent_at = timezone.now() - timezone.timedelta(hours=25)
+        unverified_user.email_verification_sent_at = (
+            timezone.now() - timezone.timedelta(hours=25)
+        )
         unverified_user.save()
-        
+
         response = self.client.get(
-            reverse("accounts:verify_email", kwargs={"token": unverified_user.email_verification_token})
+            reverse(
+                "accounts:verify_email",
+                kwargs={"token": unverified_user.email_verification_token},
+            )
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("accounts:resend_verification"))

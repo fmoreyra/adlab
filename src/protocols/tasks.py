@@ -64,9 +64,7 @@ def send_email(
                 "report_ready": "emails/report_ready.html",
                 "work_order": "emails/work_order.html",
             }
-            template_name = template_map.get(
-                email_type, "emails/default.html"
-            )
+            template_name = template_map.get(email_type, "emails/default.html")
 
         # Render email HTML
         html_content = render_to_string(template_name, context)
@@ -123,4 +121,3 @@ def send_email(
 
         # Re-raise for Celery retry
         raise
-

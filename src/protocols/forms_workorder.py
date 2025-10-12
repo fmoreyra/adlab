@@ -1,6 +1,7 @@
 """
 Forms for work order generation and management.
 """
+
 from datetime import date
 from decimal import Decimal
 
@@ -67,23 +68,25 @@ class ProtocolSelectionForm(forms.Form):
         if veterinarian:
             # Only show protocols from this veterinarian that are ready
             # and don't already have a work order
-            self.fields["protocols"].queryset = Protocol.objects.filter(
-                veterinarian=veterinarian,
-                status__in=[
-                    Protocol.Status.READY,
-                    Protocol.Status.REPORT_SENT,
-                ],
-                work_order__isnull=True,
-            ).select_related("veterinarian").order_by("-submission_date")
+            self.fields["protocols"].queryset = (
+                Protocol.objects.filter(
+                    veterinarian=veterinarian,
+                    status__in=[
+                        Protocol.Status.READY,
+                        Protocol.Status.REPORT_SENT,
+                    ],
+                    work_order__isnull=True,
+                )
+                .select_related("veterinarian")
+                .order_by("-submission_date")
+            )
 
     def clean_protocols(self):
         """Validate protocol selection."""
         protocols = self.cleaned_data.get("protocols")
 
         if not protocols:
-            raise ValidationError(
-                _("Debe seleccionar al menos un protocolo.")
-            )
+            raise ValidationError(_("Debe seleccionar al menos un protocolo."))
 
         # Validate all protocols are from same veterinarian
         veterinarians = set(p.veterinarian for p in protocols)
@@ -98,9 +101,7 @@ class ProtocolSelectionForm(forms.Form):
         with_orders = [p for p in protocols if p.work_order]
         if with_orders:
             raise ValidationError(
-                _(
-                    "Algunos protocolos ya tienen orden de trabajo asignada."
-                )
+                _("Algunos protocolos ya tienen orden de trabajo asignada.")
             )
 
         return protocols
@@ -134,7 +135,9 @@ class WorkOrderCreateForm(forms.ModelForm):
             "billing_name": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": _("Dejar vacío para usar nombre del veterinario"),
+                    "placeholder": _(
+                        "Dejar vacío para usar nombre del veterinario"
+                    ),
                 }
             ),
             "cuit_cuil": forms.TextInput(
@@ -161,9 +164,7 @@ class WorkOrderCreateForm(forms.ModelForm):
             "observations": _("Observaciones"),
         }
         help_texts = {
-            "advance_payment": _(
-                "Monto pagado adelantado (opcional)"
-            ),
+            "advance_payment": _("Monto pagado adelantado (opcional)"),
             "billing_name": _(
                 "Opcional: usar si el nombre de facturación difiere del veterinario"
             ),
@@ -206,7 +207,9 @@ class WorkOrderCreateForm(forms.ModelForm):
             cuit_clean = cuit.replace("-", "")
             if not cuit_clean.isdigit() or len(cuit_clean) != 11:
                 raise ValidationError(
-                    _("CUIT/CUIL debe tener 11 dígitos (formato: XX-XXXXXXXX-X)")
+                    _(
+                        "CUIT/CUIL debe tener 11 dígitos (formato: XX-XXXXXXXX-X)"
+                    )
                 )
 
         return cuit
@@ -349,9 +352,7 @@ class PricingCatalogForm(forms.ModelForm):
                 "Identificador único del servicio (sin espacios)"
             ),
             "valid_from": _("Fecha desde la cual este precio es válido"),
-            "valid_until": _(
-                "Dejar vacío si no tiene fecha de expiración"
-            ),
+            "valid_until": _("Dejar vacío si no tiene fecha de expiración"),
         }
 
     def __init__(self, *args, **kwargs):
@@ -374,7 +375,9 @@ class PricingCatalogForm(forms.ModelForm):
         # Ensure no spaces (use underscores)
         if " " in service_type:
             raise ValidationError(
-                _("El tipo de servicio no puede contener espacios. Use guiones bajos (_).")
+                _(
+                    "El tipo de servicio no puede contener espacios. Use guiones bajos (_)."
+                )
             )
 
         return service_type.lower()
@@ -453,4 +456,3 @@ class WorkOrderFilterForm(forms.Form):
             }
         ),
     )
-

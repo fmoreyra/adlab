@@ -5,129 +5,294 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0004_histopathologist'),
-        ('protocols', '0008_workorder_management'),
+        ("accounts", "0004_histopathologist"),
+        ("protocols", "0008_workorder_management"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='EmailLog',
+            name="EmailLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('email_type', models.CharField(choices=[('email_verification', 'Verificación de Email'), ('password_reset', 'Restablecimiento de Contraseña'), ('sample_reception', 'Recepción de Muestra'), ('report_ready', 'Informe Listo'), ('work_order', 'Orden de Trabajo'), ('custom', 'Notificación Personalizada')], max_length=50, verbose_name='tipo de email')),
-                ('recipient_email', models.EmailField(max_length=254, verbose_name='email del destinatario')),
-                ('subject', models.CharField(max_length=500, verbose_name='asunto')),
-                ('celery_task_id', models.CharField(db_index=True, max_length=255, unique=True, verbose_name='ID de tarea Celery')),
-                ('status', models.CharField(choices=[('queued', 'En Cola'), ('sent', 'Enviado'), ('failed', 'Fallido'), ('bounced', 'Rebotado')], default='queued', max_length=20, verbose_name='estado')),
-                ('sent_at', models.DateTimeField(blank=True, null=True, verbose_name='enviado el')),
-                ('error_message', models.TextField(blank=True, verbose_name='mensaje de error')),
-                ('has_attachment', models.BooleanField(default=False, verbose_name='tiene adjunto')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='creado el')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "email_type",
+                    models.CharField(
+                        choices=[
+                            ("email_verification", "Verificación de Email"),
+                            (
+                                "password_reset",
+                                "Restablecimiento de Contraseña",
+                            ),
+                            ("sample_reception", "Recepción de Muestra"),
+                            ("report_ready", "Informe Listo"),
+                            ("work_order", "Orden de Trabajo"),
+                            ("custom", "Notificación Personalizada"),
+                        ],
+                        max_length=50,
+                        verbose_name="tipo de email",
+                    ),
+                ),
+                (
+                    "recipient_email",
+                    models.EmailField(
+                        max_length=254, verbose_name="email del destinatario"
+                    ),
+                ),
+                (
+                    "subject",
+                    models.CharField(max_length=500, verbose_name="asunto"),
+                ),
+                (
+                    "celery_task_id",
+                    models.CharField(
+                        db_index=True,
+                        max_length=255,
+                        unique=True,
+                        verbose_name="ID de tarea Celery",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("queued", "En Cola"),
+                            ("sent", "Enviado"),
+                            ("failed", "Fallido"),
+                            ("bounced", "Rebotado"),
+                        ],
+                        default="queued",
+                        max_length=20,
+                        verbose_name="estado",
+                    ),
+                ),
+                (
+                    "sent_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="enviado el"
+                    ),
+                ),
+                (
+                    "error_message",
+                    models.TextField(
+                        blank=True, verbose_name="mensaje de error"
+                    ),
+                ),
+                (
+                    "has_attachment",
+                    models.BooleanField(
+                        default=False, verbose_name="tiene adjunto"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="creado el"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'log de email',
-                'verbose_name_plural': 'logs de email',
-                'ordering': ['-created_at'],
+                "verbose_name": "log de email",
+                "verbose_name_plural": "logs de email",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='NotificationPreference',
+            name="NotificationPreference",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('notify_on_reception', models.BooleanField(default=True, help_text='Notificar cuando la muestra es recibida', verbose_name='notificar en recepción')),
-                ('notify_on_processing', models.BooleanField(default=False, help_text='Notificar en cambios de estado', verbose_name='notificar en procesamiento')),
-                ('notify_on_report_ready', models.BooleanField(default=True, help_text='Notificar cuando el informe esté disponible', verbose_name='notificar cuando informe esté listo')),
-                ('alternative_email', models.EmailField(blank=True, help_text='Enviar notificaciones a este email en su lugar', max_length=254, verbose_name='email alternativo')),
-                ('include_attachments', models.BooleanField(default=True, help_text='Incluir PDFs en los emails', verbose_name='incluir adjuntos')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='actualizado el')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='creado el')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "notify_on_reception",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Notificar cuando la muestra es recibida",
+                        verbose_name="notificar en recepción",
+                    ),
+                ),
+                (
+                    "notify_on_processing",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Notificar en cambios de estado",
+                        verbose_name="notificar en procesamiento",
+                    ),
+                ),
+                (
+                    "notify_on_report_ready",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Notificar cuando el informe esté disponible",
+                        verbose_name="notificar cuando informe esté listo",
+                    ),
+                ),
+                (
+                    "alternative_email",
+                    models.EmailField(
+                        blank=True,
+                        help_text="Enviar notificaciones a este email en su lugar",
+                        max_length=254,
+                        verbose_name="email alternativo",
+                    ),
+                ),
+                (
+                    "include_attachments",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Incluir PDFs en los emails",
+                        verbose_name="incluir adjuntos",
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="actualizado el"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="creado el"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'preferencia de notificación',
-                'verbose_name_plural': 'preferencias de notificación',
+                "verbose_name": "preferencia de notificación",
+                "verbose_name_plural": "preferencias de notificación",
             },
         ),
         migrations.RenameIndex(
-            model_name='pricingcatalog',
-            new_name='protocols_p_service_c11db5_idx',
-            old_name='protocols_p_service_e29d93_idx',
+            model_name="pricingcatalog",
+            new_name="protocols_p_service_c11db5_idx",
+            old_name="protocols_p_service_e29d93_idx",
         ),
         migrations.RenameIndex(
-            model_name='pricingcatalog',
-            new_name='protocols_p_valid_f_deadaa_idx',
-            old_name='protocols_p_valid_f_61a06e_idx',
+            model_name="pricingcatalog",
+            new_name="protocols_p_valid_f_deadaa_idx",
+            old_name="protocols_p_valid_f_61a06e_idx",
         ),
         migrations.RenameIndex(
-            model_name='workorder',
-            new_name='protocols_w_order_n_27b6e9_idx',
-            old_name='protocols_w_order_n_a1b2c3_idx',
+            model_name="workorder",
+            new_name="protocols_w_order_n_27b6e9_idx",
+            old_name="protocols_w_order_n_a1b2c3_idx",
         ),
         migrations.RenameIndex(
-            model_name='workorder',
-            new_name='protocols_w_veterin_2f7de1_idx',
-            old_name='protocols_w_veterinary_d4e5f6_idx',
+            model_name="workorder",
+            new_name="protocols_w_veterin_2f7de1_idx",
+            old_name="protocols_w_veterinary_d4e5f6_idx",
         ),
         migrations.RenameIndex(
-            model_name='workorder',
-            new_name='protocols_w_status_6d99be_idx',
-            old_name='protocols_w_status_g7h8i9_idx',
+            model_name="workorder",
+            new_name="protocols_w_status_6d99be_idx",
+            old_name="protocols_w_status_g7h8i9_idx",
         ),
         migrations.RenameIndex(
-            model_name='workorder',
-            new_name='protocols_w_created_d17492_idx',
-            old_name='protocols_w_created_j0k1l2_idx',
+            model_name="workorder",
+            new_name="protocols_w_created_d17492_idx",
+            old_name="protocols_w_created_j0k1l2_idx",
         ),
         migrations.RenameIndex(
-            model_name='workordercounter',
-            new_name='protocols_w_year_836500_idx',
-            old_name='protocols_w_year_45c9a3_idx',
+            model_name="workordercounter",
+            new_name="protocols_w_year_836500_idx",
+            old_name="protocols_w_year_45c9a3_idx",
         ),
         migrations.RenameIndex(
-            model_name='workorderservice',
-            new_name='protocols_w_work_or_7f3422_idx',
-            old_name='protocols_w_work_or_m3n4o5_idx',
+            model_name="workorderservice",
+            new_name="protocols_w_work_or_7f3422_idx",
+            old_name="protocols_w_work_or_m3n4o5_idx",
         ),
         migrations.RenameIndex(
-            model_name='workorderservice',
-            new_name='protocols_w_protoco_ef5760_idx',
-            old_name='protocols_w_protoco_p6q7r8_idx',
+            model_name="workorderservice",
+            new_name="protocols_w_protoco_ef5760_idx",
+            old_name="protocols_w_protoco_p6q7r8_idx",
         ),
         migrations.AddField(
-            model_name='emaillog',
-            name='protocol',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='emails', to='protocols.protocol', verbose_name='protocolo'),
+            model_name="emaillog",
+            name="protocol",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="emails",
+                to="protocols.protocol",
+                verbose_name="protocolo",
+            ),
         ),
         migrations.AddField(
-            model_name='emaillog',
-            name='recipient',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='emails_received', to='accounts.veterinarian', verbose_name='destinatario'),
+            model_name="emaillog",
+            name="recipient",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="emails_received",
+                to="accounts.veterinarian",
+                verbose_name="destinatario",
+            ),
         ),
         migrations.AddField(
-            model_name='emaillog',
-            name='work_order',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='emails', to='protocols.workorder', verbose_name='orden de trabajo'),
+            model_name="emaillog",
+            name="work_order",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="emails",
+                to="protocols.workorder",
+                verbose_name="orden de trabajo",
+            ),
         ),
         migrations.AddField(
-            model_name='notificationpreference',
-            name='veterinarian',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='notification_preferences', to='accounts.veterinarian', verbose_name='veterinario'),
+            model_name="notificationpreference",
+            name="veterinarian",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="notification_preferences",
+                to="accounts.veterinarian",
+                verbose_name="veterinario",
+            ),
         ),
         migrations.AddIndex(
-            model_name='emaillog',
-            index=models.Index(fields=['email_type', '-created_at'], name='protocols_e_email_t_6a3541_idx'),
+            model_name="emaillog",
+            index=models.Index(
+                fields=["email_type", "-created_at"],
+                name="protocols_e_email_t_6a3541_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='emaillog',
-            index=models.Index(fields=['recipient_email', '-created_at'], name='protocols_e_recipie_c65b2e_idx'),
+            model_name="emaillog",
+            index=models.Index(
+                fields=["recipient_email", "-created_at"],
+                name="protocols_e_recipie_c65b2e_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='emaillog',
-            index=models.Index(fields=['status', '-created_at'], name='protocols_e_status_437dec_idx'),
+            model_name="emaillog",
+            index=models.Index(
+                fields=["status", "-created_at"],
+                name="protocols_e_status_437dec_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='emaillog',
-            index=models.Index(fields=['celery_task_id'], name='protocols_e_celery__ce54a2_idx'),
+            model_name="emaillog",
+            index=models.Index(
+                fields=["celery_task_id"],
+                name="protocols_e_celery__ce54a2_idx",
+            ),
         ),
     ]
