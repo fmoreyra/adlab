@@ -1835,6 +1835,24 @@ class Report(models.Model):
             ]
         )
 
+    def send(self):
+        """Send the report (mark as sent)."""
+        if self.status != self.Status.FINALIZED:
+            raise ValueError("Only finalized reports can be sent")
+
+        # For now, just mark as sent without actual email sending
+        # The actual email sending is handled by the view/form
+        self.status = self.Status.SENT
+        self.sent_date = timezone.now()
+        self.email_status = self.EmailStatus.SENT
+        self.save(
+            update_fields=[
+                "status",
+                "sent_date",
+                "email_status",
+            ]
+        )
+
 
 class CassetteObservation(models.Model):
     """

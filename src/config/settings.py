@@ -115,7 +115,9 @@ DATABASES = {
             "NAME": f"test_{os.getenv('POSTGRES_DB', 'adlab')}",
             "CONN_MAX_AGE": 0,  # Don't persist connections during tests
         },
-        "CONN_MAX_AGE": 0 if TESTING else 60,  # No persistent connections during tests
+        "CONN_MAX_AGE": 0
+        if TESTING
+        else 60,  # No persistent connections during tests
     }
 }
 
