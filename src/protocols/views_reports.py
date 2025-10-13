@@ -6,6 +6,7 @@ import hashlib
 import io
 import logging
 import os
+import tempfile
 
 from django.conf import settings
 from django.contrib import messages
@@ -580,14 +581,31 @@ def report_finalize_view(request, pk):
             # Generate PDF
             pdf_buffer, pdf_hash = generate_report_pdf(report)
 
-            # Save PDF to file
+            # Save PDF to file using atomic operations
             pdf_filename = report.generate_pdf_filename()
             pdf_dir = os.path.join(settings.MEDIA_ROOT, "reports")
             os.makedirs(pdf_dir, exist_ok=True)
 
             pdf_path = os.path.join(pdf_dir, pdf_filename)
-            with open(pdf_path, "wb") as f:
-                f.write(pdf_buffer.getvalue())
+            tmp_path = None
+
+            try:
+                # Write to temporary file first
+                with tempfile.NamedTemporaryFile(
+                    mode="wb", delete=False, dir=pdf_dir, suffix=".tmp"
+                ) as tmp_file:
+                    tmp_file.write(pdf_buffer.getvalue())
+                    tmp_path = tmp_file.name
+
+                # Atomic rename to final location
+                os.replace(tmp_path, pdf_path)
+                tmp_path = None  # Success, no cleanup needed
+
+            except Exception:
+                # Cleanup temporary file on error
+                if tmp_path and os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+                raise
 
             # Update report
             report.pdf_path = pdf_path

@@ -5,6 +5,7 @@ Views for work order generation and management.
 import io
 import logging
 import os
+import tempfile
 from decimal import Decimal
 
 from django.conf import settings
@@ -757,7 +758,7 @@ def _generate_workorder_pdf_buffer(work_order):
 
 def _generate_workorder_pdf(work_order):
     """
-    Generate work order PDF and save to file.
+    Generate work order PDF and save to file using atomic operations.
 
     Args:
         work_order: WorkOrder instance
@@ -765,15 +766,31 @@ def _generate_workorder_pdf(work_order):
     # Generate PDF buffer
     pdf_buffer = _generate_workorder_pdf_buffer(work_order)
 
-    # Save to file
+    # Save to file using atomic operations
     workorders_dir = os.path.join(settings.MEDIA_ROOT, "workorders")
     os.makedirs(workorders_dir, exist_ok=True)
 
     filename = work_order.generate_pdf_filename()
     filepath = os.path.join(workorders_dir, filename)
+    tmp_path = None
 
-    with open(filepath, "wb") as f:
-        f.write(pdf_buffer.getvalue())
+    try:
+        # Write to temporary file first
+        with tempfile.NamedTemporaryFile(
+            mode="wb", delete=False, dir=workorders_dir, suffix=".tmp"
+        ) as tmp_file:
+            tmp_file.write(pdf_buffer.getvalue())
+            tmp_path = tmp_file.name
+
+        # Atomic rename to final location
+        os.replace(tmp_path, filepath)
+        tmp_path = None  # Success, no cleanup needed
+
+    except Exception:
+        # Cleanup temporary file on error
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
 
     # Update work order with PDF path
     work_order.pdf_path = os.path.join("workorders", filename)

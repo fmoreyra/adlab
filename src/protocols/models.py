@@ -202,24 +202,18 @@ class Protocol(models.Model):
 
     def generate_temporary_code(self):
         """
-        Generate unique temporary tracking code.
+        Generate unique temporary tracking code using atomic counter.
         Format: TMP-{TYPE}-{YYYYMMDD}-{ID}
 
         Returns:
             str: Generated temporary code
         """
-        type_prefix = (
-            "CT" if self.analysis_type == self.AnalysisType.CYTOLOGY else "HP"
+        # Use TemporaryCodeCounter to get next sequential number
+        formatted_number, _ = TemporaryCodeCounter.get_next_number(
+            analysis_type=self.analysis_type,
+            date_obj=date.today(),
         )
-        date_str = date.today().strftime("%Y%m%d")
-
-        # Get next ID by counting existing protocols for today
-        today_protocols = Protocol.objects.filter(
-            temporary_code__contains=f"TMP-{type_prefix}-{date_str}"
-        ).count()
-        next_id = today_protocols + 1
-
-        return f"TMP-{type_prefix}-{date_str}-{next_id:03d}"
+        return formatted_number
 
     def assign_protocol_number(self):
         """
@@ -1092,6 +1086,86 @@ class ProtocolCounter(models.Model):
             year_short = str(year)[-2:]
             formatted_number = (
                 f"{prefix} {year_short}/{counter.last_number:03d}"
+            )
+
+            return formatted_number, counter
+
+
+class TemporaryCodeCounter(models.Model):
+    """
+    Track sequential temporary code numbering per type and date.
+    Ensures unique, sequential temporary codes.
+    """
+
+    analysis_type = models.CharField(
+        _("tipo de análisis"),
+        max_length=20,
+        choices=Protocol.AnalysisType.choices,
+    )
+    date = models.DateField(
+        _("fecha"),
+        help_text=_("Fecha para el contador"),
+    )
+    last_number = models.IntegerField(
+        _("último número"),
+        default=0,
+        help_text=_("Último número de código temporal asignado"),
+    )
+
+    class Meta:
+        verbose_name = _("contador de código temporal")
+        verbose_name_plural = _("contadores de código temporal")
+        unique_together = [["analysis_type", "date"]]
+        indexes = [
+            models.Index(fields=["analysis_type", "date"]),
+        ]
+
+    def __str__(self):
+        prefix = (
+            "CT"
+            if self.analysis_type == Protocol.AnalysisType.CYTOLOGY
+            else "HP"
+        )
+        return f"TMP-{prefix} {self.date}: {self.last_number}"
+
+    @classmethod
+    def get_next_number(cls, analysis_type, date_obj=None):
+        """
+        Get the next temporary code number for a given type and date.
+
+        Args:
+            analysis_type: Type of analysis (cytology or histopathology)
+            date_obj: Date for the counter (defaults to today)
+
+        Returns:
+            tuple: (formatted_number, counter_instance)
+        """
+        from django.db import transaction
+
+        if date_obj is None:
+            date_obj = date.today()
+
+        with transaction.atomic():
+            # Get or create counter for this type and date
+            counter, created = cls.objects.select_for_update().get_or_create(
+                analysis_type=analysis_type,
+                date=date_obj,
+                defaults={"last_number": 0},
+            )
+
+            # Increment counter
+            counter.last_number += 1
+            counter.save()
+
+            # Format temporary code
+            type_prefix = (
+                "CT"
+                if analysis_type == Protocol.AnalysisType.CYTOLOGY
+                else "HP"
+            )
+            date_str = date_obj.strftime("%Y%m%d")
+            formatted_number = (
+                f"TMP-{type_prefix}-{date_str}-{counter.last_number:03d}"
             )
 
             return formatted_number, counter

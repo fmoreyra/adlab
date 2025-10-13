@@ -21,6 +21,7 @@ from protocols.models import (
     ProtocolStatusHistory,
     ReceptionLog,
     Slide,
+    TemporaryCodeCounter,
     WorkOrder,
     WorkOrderCounter,
     WorkOrderService,
@@ -1015,6 +1016,59 @@ class ProtocolCounterAdmin(admin.ModelAdmin):
         next_num = obj.last_number + 1
         # Use regular string formatting to avoid SafeString issues
         formatted_text = f"<strong>Next number: {prefix} {year_short}/{next_num:03d}</strong>"
+        return mark_safe(formatted_text)
+
+    get_formatted_display.short_description = _("Preview")
+
+    def has_delete_permission(self, request, obj=None):
+        """Only superusers can delete counters."""
+        return request.user.is_superuser
+
+
+@admin.register(TemporaryCodeCounter)
+class TemporaryCodeCounterAdmin(admin.ModelAdmin):
+    """Admin interface for TemporaryCodeCounter model."""
+
+    list_display = [
+        "id",
+        "analysis_type",
+        "date",
+        "last_number",
+        "get_formatted_display",
+    ]
+    list_filter = [
+        "analysis_type",
+        "date",
+    ]
+    search_fields = [
+        "date",
+    ]
+    readonly_fields = ["get_formatted_display"]
+
+    fieldsets = (
+        (
+            _("Counter Information"),
+            {
+                "fields": (
+                    "analysis_type",
+                    "date",
+                    "last_number",
+                    "get_formatted_display",
+                ),
+            },
+        ),
+    )
+
+    def get_formatted_display(self, obj):
+        """Show example of next temporary code."""
+        prefix = (
+            "CT"
+            if obj.analysis_type == Protocol.AnalysisType.CYTOLOGY
+            else "HP"
+        )
+        date_str = obj.date.strftime("%Y%m%d")
+        next_num = obj.last_number + 1
+        formatted_text = f"<strong>Next code: TMP-{prefix}-{date_str}-{next_num:03d}</strong>"
         return mark_safe(formatted_text)
 
     get_formatted_display.short_description = _("Preview")
