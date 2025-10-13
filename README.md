@@ -1,21 +1,31 @@
 # 🧪 Laboratory Management System
 
-A comprehensive Django-based laboratory management system for handling veterinary pathology protocols, sample processing, and report generation. This system provides a complete workflow for managing laboratory operations from protocol submission to final report delivery.
+A comprehensive Django-based laboratory management system for handling
+veterinary pathology protocols, sample processing, and report generation.
+This system provides a complete workflow for managing laboratory operations
+from protocol submission to final report delivery.
 
 ## 🏥 System Overview
 
-This laboratory management system is designed to streamline veterinary pathology laboratory operations, providing:
+This laboratory management system is designed to streamline veterinary
+pathology laboratory operations, providing:
 
-- **Protocol Management**: Complete workflow for protocol submission, review, and approval
-- **Sample Processing**: Track samples through reception, processing, and analysis stages
-- **Report Generation**: Automated report creation with PDF generation and email delivery
-- **User Management**: Role-based access control for veterinarians, histopathologists, and staff
+- **Protocol Management**: Complete workflow for protocol submission, review,
+  and approval
+- **Sample Processing**: Track samples through reception, processing, and
+  analysis stages
+- **Report Generation**: Automated report creation with PDF generation and
+  email delivery
+- **User Management**: Role-based access control for veterinarians,
+  histopathologists, and staff
 - **Work Orders**: Comprehensive work order management and tracking
-- **Email Notifications**: Automated email system for status updates and notifications
+- **Email Notifications**: Automated email system for status updates and
+  notifications
 
 ## 🛠 Technical Foundation
 
-This system is built on top of a robust Django + Docker foundation that provides:
+This system is built on top of a robust Django + Docker foundation that
+provides:
 
 - **Docker-based Development**: Complete containerized development environment
 - **Modern Tech Stack**: PostgreSQL, Redis, Celery for background tasks
@@ -23,9 +33,13 @@ This system is built on top of a robust Django + Docker foundation that provides
 - **Code Quality**: Ruff for linting and formatting
 - **Production Ready**: Gunicorn, WhiteNoise, and comprehensive configuration
 
-**Built with Django 5.2.7 and Python 3.14.0**
+### Built with Django 5.2.7 and Python 3.14.0
 
-> **Note**: This project is based on the excellent [Docker Django Example](https://github.com/nickjj/docker-django-example) by [Nick Janetakis](https://nickjanetakis.com). The original template provides the Docker infrastructure, development workflow, and best practices that make this laboratory system possible.
+> **Note**: This project is based on the excellent
+> [Docker Django Example](https://github.com/nickjj/docker-django-example) by
+> [Nick Janetakis](https://nickjanetakis.com). The original template provides
+> the Docker infrastructure, development workflow, and best practices that make
+> this laboratory system possible.
 
 ## 🧾 Table of contents
 
@@ -48,80 +62,88 @@ This system is built on top of a robust Django + Docker foundation that provides
 
 ### Core Functionality
 
-- **🔐 Authentication & Authorization**
-  - Email verification system for veterinarians
-  - Role-based access control (Veterinarian, Histopathologist, Staff)
-  - Secure password reset functionality
-  - Session management and audit logging
+#### 🔐 Authentication & Authorization
 
-- **📋 Protocol Management**
-  - Protocol submission and review workflow
-  - Support for Cytology and Histopathology analysis types
-  - Protocol editing and status tracking
-  - Automatic protocol numbering system
+- Email verification system for veterinarians
+- Role-based access control (Veterinarian, Histopathologist, Staff)
+- Secure password reset functionality
+- Session management and audit logging
 
-- **🧬 Sample Processing**
-  - Sample reception and registration
-  - Cassette and slide management
+#### 📋 Protocol Management
+
+- Protocol submission and review workflow
+- Support for Cytology and Histopathology analysis types
+- Protocol editing and status tracking
+- Automatic protocol numbering system
+
+#### 🧬 Sample Processing
+
+- Sample reception and registration
+- Cassette and slide management
   - Sample tracking through processing stages
   - Visual slide registration interface with Vue.js
 
-- **📊 Report Generation**
-  - Automated PDF report generation using ReportLab
-  - Report templates for different analysis types
-  - Report finalization and approval workflow
-  - Email delivery of completed reports
+#### 📊 Report Generation
 
-- **📦 Work Order Management**
-  - Work order creation and tracking
-  - Service management and pricing
-  - Work order status updates
-  - PDF work order generation
+- Automated PDF report generation using ReportLab
+- Report templates for different analysis types
+- Report finalization and approval workflow
+- Email delivery of completed reports
 
-- **📧 Email System**
-  - Automated email notifications
-  - Email verification for new users
-  - Report delivery via email
-  - Configurable email templates
+#### 📦 Work Order Management
+
+- Work order creation and tracking
+- Service management and pricing
+- Work order status updates
+- PDF work order generation
+
+#### 📧 Email System
+
+- Automated email notifications
+- Email verification for new users
+- Report delivery via email
+- Configurable email templates
 
 ### Advanced Features
 
-- **📈 Dashboard & Analytics**
-  - User-specific dashboards
-  - Protocol and report statistics
-  - System performance metrics
+#### 📈 Dashboard & Analytics
+
+- User-specific dashboards
+- Protocol and report statistics
+- System performance metrics
   - Data visualization
 
-- **🔍 Search & Filtering**
-  - Advanced search capabilities
-  - Filter protocols by status, type, and date
-  - Quick access to recent activities
-  - Export functionality
+#### 🔍 Search & Filtering
 
-- **🛡️ Security Features**
-  - CSRF protection
-  - XSS prevention
-  - SQL injection protection
-  - Secure file handling
-  - Permission-based access control
+- Advanced search capabilities
+- Filter protocols by status, type, and date
+- Quick access to recent activities
+- Export functionality
 
-- **📱 Modern UI/UX**
-  - Responsive design with TailwindCSS
-  - Interactive components with Vue.js
-  - Real-time notifications
-  - Intuitive navigation
+#### 🛡️ Security Features
 
-## 🧬 Tech stack
+- CSRF protection
+- XSS prevention
+- SQL injection protection
+- Secure file handling
+- Permission-based access control
 
-If you don't like some of these choices that's no problem, you can swap them
-out for something else on your own.
+#### 📱 Modern UI/UX
+
+- Responsive design with TailwindCSS
+- Interactive components with Vue.js
+- Real-time notifications
+- Intuitive navigation
+
+## 🧬 Tech Stack
 
 ### Back-end
 
 - [PostgreSQL](https://www.postgresql.org/) - Primary database
 - [Redis](https://redis.io/) - Caching and session storage
 - [Celery](https://github.com/celery/celery) - Background task processing
-- [ReportLab](https://www.reportlab.com/) - PDF generation for reports and work orders
+- [ReportLab](https://www.reportlab.com/) - PDF generation for reports and work
+  orders
 - [qrcode](https://github.com/lincolnloop/python-qrcode) - QR code generation for samples
 - [Django](https://www.djangoproject.com/) - Web framework
 - [Gunicorn](https://gunicorn.org/) - WSGI HTTP server
@@ -135,29 +157,6 @@ out for something else on your own.
 - [Vue.js 3](https://vuejs.org/) - Interactive UI components
 - [Alpine.js](https://alpinejs.dev/) - Lightweight JavaScript framework
 
-#### But what about JavaScript?!
-
-Picking a JS library is a very app specific decision because it depends on
-which library you like and it also depends on if your app is going to be
-mostly Django templates with sprinkles of JS or an API back-end.
-
-This isn't an exhaustive list but here's a few reasonable choices depending on
-how you're building your app:
-
-- <https://hotwired.dev/>
-- <https://htmx.org/>
-- <https://github.com/alpinejs/alpine>
-- <https://vuejs.org/>
-- <https://reactjs.org/>
-- <https://jquery.com/>
-
-On the bright side with esbuild being set up you can use any (or none) of these
-solutions very easily. You could follow a specific library's installation
-guides to get up and running in no time.
-
-Personally I'm going to be using Hotwire Turbo + Stimulus in most newer
-projects.
-
 ## 🍣 Notable opinions and extensions
 
 Django is an opinionated framework and I've added a few extra opinions based on
@@ -165,32 +164,35 @@ having Dockerized and deployed a number of Django projects. Here's a few (but
 not all) note worthy additions and changes.
 
 - **Packages and extensions**:
-    - *[gunicorn](https://gunicorn.org/)* for an app server in both development and production
-    - *[whitenoise](https://github.com/evansd/whitenoise)* for serving static files
-    - *[django-debug-toolbar](https://github.com/jazzband/django-debug-toolbar)* for displaying info about a request
+  - *[gunicorn](https://gunicorn.org/)* for an app server in both development and
+  production
+  - *[whitenoise](https://github.com/evansd/whitenoise)* for serving static files
+  - *[django-debug-toolbar](https://github.com/jazzband/django-debug-toolbar)* for
+    displaying info about a request
 - **Linting and formatting**:
-    - *[ruff](https://github.com/astral-sh/ruff)* is used to lint and format the code base
+  - *[ruff](https://github.com/astral-sh/ruff)* is used to lint and format the code base
 - **Django apps**:
-    - Add `pages` app to render a home page
-    - Add `up` app to provide a few health check pages
+  - Add `pages` app to render a home page
+  - Add `up` app to provide a few health check pages
 - **Config**:
-    - Log to STDOUT so that Docker can consume and deal with log output
-    - Extract a bunch of configuration settings into environment variables
-    - Rename project directory from its custom name to `config/`
-    - `src/config/settings.py` and the `.env` file handles configuration in all environments
+  - Log to STDOUT so that Docker can consume and deal with log output
+  - Extract a bunch of configuration settings into environment variables
+  - Rename project directory from its custom name to `config/`
+  - `src/config/settings.py` and the `.env` file handles configuration in all environments
 - **Front-end assets**:
-    - `assets/` contains all your CSS, JS, images, fonts, etc. and is managed by esbuild
-    - Custom `502.html` and `maintenance.html` pages
-    - Generate favicons using modern best practices
+  - `assets/` contains all your CSS, JS, images, fonts, etc. and is managed by esbuild
+  - Custom `502.html` and `maintenance.html` pages
+  - Generate favicons using modern best practices
 - **Django defaults that are changed**:
-    - Use Redis as the default Cache back-end
-    - Use signed cookies as the session back-end
-    - `public/` is the static directory where Django will serve static files from
-    - `public_collected/` is where `collectstatic` will write its files to
+  - Use Redis as the default Cache back-end
+  - Use signed cookies as the session back-end
+  - `public/` is the static directory where Django will serve static files from
+  - `public_collected/` is where `collectstatic` will write its files to
 
 Besides the Django app itself:
 
-- [uv](https://github.com/astral-sh/uv) is used for package management instead of `pip3` (builds on my machine are ~10x faster!)
+- [uv](https://github.com/astral-sh/uv) is used for package management instead of
+  `pip3` (builds on my machine are ~10x faster!)
 - Docker support has been added which would be any files having `*docker*` in
   its name
 - GitHub Actions have been set up
@@ -351,46 +353,6 @@ functions as you want. This file's purpose is to make your experience better!
 `alias run=./run` in your `~/.bash_aliases` or equivalent file. Then you'll be
 able to run `run` instead of `./run`.*
 
-## ✨ Running a script to automate renaming the project
-
-The app is named `adlab` right now but chances are your app will be a different
-name. Since the app is already created we'll need to do a find / replace on a
-few variants of the string "adlab" and update a few Docker related resources.
-
-And by we I mean I created a zero dependency shell script that does all of the
-heavy lifting for you. All you have to do is run the script below.
-
-#### Run the rename-project script included in this repo:
-
-```sh
-# The script takes 2 arguments.
-#
-# The first one is the lower case version of your app's name, such as myapp or
-# my_app depending on your preference.
-#
-# The second one is used for your app's module name. For example if you used
-# myapp or my_app for the first argument you would want to use MyApp here.
-bin/rename-project myapp MyApp
-```
-
-The [bin/rename-project
-script](https://github.com/nickjj/docker-django-example/blob/main/bin/rename-project)
-is going to:
-
-- Remove any Docker resources for your current project
-- Perform a number of find / replace actions
-- Optionally initialize a new git repo for you
-
-*Afterwards you can delete this script because its only purpose is to assist in
-helping you change this project's name without depending on any complicated
-project generator tools or 3rd party dependencies.*
-
-If you're not comfy running the script or it doesn't work for whatever reasons
-you can [check it
-out](https://github.com/nickjj/docker-django-example/blob/main/bin/rename-project)
-and perform the actions manually. It's mostly running a find / replace across
-files and then renaming a few directories and files.
-
 #### Start and setup the project:
 
 This won't take as long as before because Docker can re-use most things. We'll
@@ -445,15 +407,15 @@ figured out what you want to update, go make those updates in your
 Or, let's say you've customized your app and it's time to add a new dependency,
 either for Python or Node.
 
-#### In development:
+### In development
 
-##### Option 1
+#### Option 1
 
 1. Directly edit `pyproject.toml` or `assets/package.json` to add your package
 2. `./run deps:install` or `./run deps:install --no-build`
-    - The `--no-build` option will only write out a new lock file without re-building your image
+   - The `--no-build` option will only write out a new lock file without re-building your image
 
-##### Option 2
+#### Option 2
 
 1. Run `./run uv add mypackage --no-sync` or `run yarn add mypackage --no-lockfile` which will update your `pyproject.toml` or `assets/package.json` with the latest version of that package but not install it
 2. The same step as step 2 from option 1
@@ -465,14 +427,14 @@ removing one as well.
 You can also access `uv` and `yarn` in Docker with `./run uv` and `./run yarn`
 after you've upped the project.
 
-#### In CI:
+### In CI
 
 You'll want to run `docker compose build` since it will use any existing lock
 files if they exist. You can also check out the complete CI test pipeline in
 the [run](https://github.com/nickjj/docker-django-example/blob/main/run) file
 under the `ci:test` function.
 
-#### In production:
+### In production
 
 This is usually a non-issue since you'll be pulling down pre-built images from
 a Docker registry but if you decide to build your Docker images directly on

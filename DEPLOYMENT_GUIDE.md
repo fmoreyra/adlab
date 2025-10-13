@@ -8,7 +8,9 @@
 
 ## 📋 Overview
 
-This guide provides complete instructions for deploying the Laboratory Management System to your production server (192.168.0.130). The deployment process is designed to be safe, automated, and includes rollback capabilities.
+This guide provides complete instructions for deploying the Laboratory Management
+System to your production server (192.168.0.130). The deployment process is
+designed to be safe, automated, and includes rollback capabilities.
 
 ### Key Features
 
@@ -587,13 +589,13 @@ docker compose exec postgres psql -U lab_user -d laboratory_db -c "SELECT schema
 
 ---
 
-**⚠️ Important Notes:**
+### ⚠️ Important Notes
 
-1. **Always test deployments in a staging environment first**
-2. **Keep database backups for at least 30 days**
-3. **Monitor application logs after each deployment**
-4. **Have a rollback plan ready before deploying**
-5. **Document any custom configurations or changes**
+1. Always test deployments in a staging environment first
+2. Keep database backups for at least 30 days
+3. Monitor application logs after each deployment
+4. Have a rollback plan ready before deploying
+5. Document any custom configurations or changes
 
 ---
 
