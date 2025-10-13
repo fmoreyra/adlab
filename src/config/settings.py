@@ -30,8 +30,8 @@ TESTING = "test" in sys.argv
 
 # Test configuration
 if TESTING:
-    # Run tests sequentially to avoid database deadlocks
-    TEST_RUNNER = "django.test.runner.DiscoverRunner"
+    # Use custom test runner that handles database cleanup properly
+    TEST_RUNNER = "config.test_runner.DockerTestRunner"
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#std:setting-ALLOWED_HOSTS
 allowed_hosts = os.getenv("ALLOWED_HOSTS", ".localhost,127.0.0.1,[::1]")
@@ -113,7 +113,9 @@ DATABASES = {
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
         "TEST": {
             "NAME": f"test_{os.getenv('POSTGRES_DB', 'adlab')}",
+            "CONN_MAX_AGE": 0,  # Don't persist connections during tests
         },
+        "CONN_MAX_AGE": 0 if TESTING else 60,  # No persistent connections during tests
     }
 }
 
