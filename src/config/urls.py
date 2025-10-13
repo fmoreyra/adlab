@@ -22,7 +22,7 @@ from django.urls import include, path
 from pages import views
 
 urlpatterns = [
-    path("", views.home, name="home"),  # Global home URL
+    path("", views.HomeView.as_view(), name="home"),  # Global home URL
     path("accounts/", include("accounts.urls")),
     path("protocols/", include("protocols.urls")),
     path("up/", include("up.urls")),
