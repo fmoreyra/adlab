@@ -11,6 +11,10 @@ public_collected/*
 # Database backups
 backups/
 
+# Generated reports and work orders
+src/reports/
+src/workorders/
+
 .env*
 !.env.example
 docker-compose.override.yml
