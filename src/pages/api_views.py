@@ -267,19 +267,41 @@ class DashboardVolumeView(
             protocol_filter &= Q(analysis_type=tipo)
             report_filter &= Q(protocol__analysis_type=tipo)
 
-        # Get protocol counts by type
+        # OPTIMIZED: Single query to get both protocol and report counts
+        # Use UNION to combine protocol and report data
+        from django.db.models import F, Value, CharField
+        
         protocol_counts = (
             Protocol.objects.filter(protocol_filter)
             .values("analysis_type")
-            .annotate(count=Count("id"))
+            .annotate(
+                count=Count("id"),
+                data_type=Value("protocol", output_field=CharField())
+            )
         )
-
-        # Get report counts by type
+        
         report_counts = (
             Report.objects.filter(report_filter)
-            .values("protocol__analysis_type")
-            .annotate(count=Count("id"))
+            .values(analysis_type=F("protocol__analysis_type"))
+            .annotate(
+                count=Count("id"),
+                data_type=Value("report", output_field=CharField())
+            )
         )
+        
+        # Combine the results
+        combined_data = {}
+        for item in protocol_counts:
+            analysis_type = item["analysis_type"]
+            if analysis_type not in combined_data:
+                combined_data[analysis_type] = {"protocols": 0, "reports": 0}
+            combined_data[analysis_type]["protocols"] = item["count"]
+        
+        for item in report_counts:
+            analysis_type = item["analysis_type"]
+            if analysis_type not in combined_data:
+                combined_data[analysis_type] = {"protocols": 0, "reports": 0}
+            combined_data[analysis_type]["reports"] = item["count"]
 
         # Initialize result structure
         result = {
@@ -299,25 +321,20 @@ class DashboardVolumeView(
             "total": {"protocolos_recibidos": 0, "informes_enviados": 0},
         }
 
-        # Populate protocol counts
-        for item in protocol_counts:
-            analysis_type = item["analysis_type"]
-            count = item["count"]
+        # Populate results from combined data
+        for analysis_type, data in combined_data.items():
+            protocol_count = data["protocols"]
+            report_count = data["reports"]
+            
             if analysis_type == "histopathology":
-                result["histopatologia"]["protocolos_recibidos"] = count
+                result["histopatologia"]["protocolos_recibidos"] = protocol_count
+                result["histopatologia"]["informes_enviados"] = report_count
             elif analysis_type == "cytology":
-                result["citologia"]["protocolos_recibidos"] = count
-            result["total"]["protocolos_recibidos"] += count
-
-        # Populate report counts
-        for item in report_counts:
-            analysis_type = item["protocol__analysis_type"]
-            count = item["count"]
-            if analysis_type == "histopathology":
-                result["histopatologia"]["informes_enviados"] = count
-            elif analysis_type == "cytology":
-                result["citologia"]["informes_enviados"] = count
-            result["total"]["informes_enviados"] += count
+                result["citologia"]["protocolos_recibidos"] = protocol_count
+                result["citologia"]["informes_enviados"] = report_count
+            
+            result["total"]["protocolos_recibidos"] += protocol_count
+            result["total"]["informes_enviados"] += report_count
 
         # Calculate daily averages
         days = (date_to - date_from).days + 1
@@ -342,7 +359,14 @@ class DashboardTATView(
     def get(self, request, *args, **kwargs):
         """Return TAT metrics for both analysis types."""
         try:
-            tat_data = self._calculate_tat_metrics()
+            # Cache TAT data for 3 minutes (moderate frequency)
+            cache_key = "dashboard_tat_metrics"
+            tat_data = cache.get(cache_key)
+            
+            if tat_data is None:
+                tat_data = self._calculate_tat_metrics()
+                cache.set(cache_key, tat_data, 180)  # Cache for 3 minutes
+            
             return render(request, "pages/api/tat_widget.html", tat_data)
         except Exception as e:
             return render(
@@ -352,15 +376,46 @@ class DashboardTATView(
             )
 
     def _calculate_tat_metrics(self) -> Dict:
-        """Calculate TAT metrics for both analysis types."""
+        """Calculate TAT metrics for both analysis types - OPTIMIZED VERSION."""
+        from django.db.models import F, Avg, Min, Max, Case, When, IntegerField, Count
+        
         # Get completed reports from last 30 days
         thirty_days_ago = timezone.now() - timedelta(days=30)
 
-        completed_reports = Report.objects.filter(
-            status=Report.Status.FINALIZED,
-            updated_at__gte=thirty_days_ago,
-            protocol__reception_date__isnull=False,
-        ).select_related("protocol")
+        # OPTIMIZED: Use database aggregation instead of Python loops
+        tat_data = (
+            Report.objects
+            .filter(
+                status=Report.Status.FINALIZED,
+                updated_at__gte=thirty_days_ago,
+                protocol__reception_date__isnull=False,
+            )
+            .annotate(
+                tat_days=Case(
+                    When(
+                        protocol__reception_date__isnull=False,
+                        then=F('updated_at__date') - F('protocol__reception_date')
+                    ),
+                    default=0,
+                    output_field=IntegerField()
+                )
+            )
+            .values('protocol__analysis_type')
+            .annotate(
+                count=Count('id'),
+                avg_tat=Avg('tat_days'),
+                min_tat=Min('tat_days'),
+                max_tat=Max('tat_days'),
+                within_target_7=Count(
+                    'id',
+                    filter=Q(tat_days__lte=7)
+                ),
+                within_target_3=Count(
+                    'id',
+                    filter=Q(tat_days__lte=3)
+                )
+            )
+        )
 
         result = {
             "histopatologia": {
@@ -379,52 +434,62 @@ class DashboardTATView(
             },
         }
 
-        # Calculate TAT for each analysis type
-        for analysis_type in ["histopathology", "cytology"]:
-            reports = completed_reports.filter(
-                protocol__analysis_type=analysis_type
+        # Process aggregated results
+        for item in tat_data:
+            analysis_type = item['protocol__analysis_type']
+            count = item['count']
+            
+            if count == 0:
+                continue
+            
+            # Map analysis type to result key
+            result_key = (
+                "histopatologia"
+                if analysis_type == "histopathology"
+                else "citologia"
+            )
+            
+            target_days = 7 if analysis_type == "histopathology" else 3
+            within_target_count = (
+                item['within_target_7'] if analysis_type == "histopathology" 
+                else item['within_target_3']
             )
 
-            if not reports.exists():
-                continue
-
-            # Calculate TAT in days for each report
-            tat_days = []
-            for report in reports:
-                if report.protocol.reception_date:
-                    tat = (
-                        report.updated_at.date()
-                        - report.protocol.reception_date
-                    ).days
-                    tat_days.append(tat)
-
-            if tat_days:
-                tat_days.sort()
-                n = len(tat_days)
-
-                # Map analysis type to result key
-                result_key = (
-                    "histopatologia"
-                    if analysis_type == "histopathology"
-                    else "citologia"
+            result[result_key]["tat_promedio_dias"] = round(item['avg_tat'] or 0, 1)
+            result[result_key]["tat_minimo_dias"] = item['min_tat'] or 0
+            result[result_key]["tat_maximo_dias"] = item['max_tat'] or 0
+            result[result_key]["dentro_objetivo"] = round(
+                (within_target_count / count) * 100 if count > 0 else 0
+            )
+            
+            # For median, we need a separate query (database limitation)
+            # This is still much better than loading all reports into memory
+            median_reports = (
+                Report.objects
+                .filter(
+                    status=Report.Status.FINALIZED,
+                    updated_at__gte=thirty_days_ago,
+                    protocol__reception_date__isnull=False,
+                    protocol__analysis_type=analysis_type
                 )
-
-                # Calculate metrics
-                result[result_key]["tat_promedio_dias"] = round(
-                    sum(tat_days) / n, 1
+                .annotate(
+                    tat_days=Case(
+                        When(
+                            protocol__reception_date__isnull=False,
+                            then=F('updated_at__date') - F('protocol__reception_date')
+                        ),
+                        default=0,
+                        output_field=IntegerField()
+                    )
                 )
-                result[result_key]["tat_mediana_dias"] = tat_days[n // 2]
-                result[result_key]["tat_minimo_dias"] = min(tat_days)
-                result[result_key]["tat_maximo_dias"] = max(tat_days)
-
-                # Calculate percentage within target (7 days for histopathology, 3 days for cytology)
-                target_days = 7 if analysis_type == "histopathology" else 3
-                within_target = sum(
-                    1 for days in tat_days if days <= target_days
-                )
-                result[result_key]["dentro_objetivo"] = round(
-                    (within_target / n) * 100
-                )
+                .values_list('tat_days', flat=True)
+                .order_by('tat_days')
+            )
+            
+            if median_reports:
+                median_list = list(median_reports)
+                n = len(median_list)
+                result[result_key]["tat_mediana_dias"] = median_list[n // 2] if n > 0 else 0
 
         return result
 

@@ -5,6 +5,7 @@ from django import get_version
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count, Q
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.generic import TemplateView, View
@@ -234,61 +235,73 @@ class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        """Add histopathologist-specific context data."""
+        """Add histopathologist-specific context data - OPTIMIZED VERSION."""
+        from django.core.cache import cache
+        from django.db.models import Avg, F, Case, When, IntegerField
+        
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Get statistics
-        pending_reports = Report.objects.filter(
-            status=Report.Status.DRAFT
-        ).count()
+        # Cache dashboard data for 2 minutes
+        cache_key = f"histopathologist_dashboard_{user.id}"
+        dashboard_data = cache.get(cache_key)
+        
+        if dashboard_data is None:
+            # OPTIMIZED: Single query to get all statistics
+            now = timezone.now()
+            month_start = now.replace(
+                day=1, hour=0, minute=0, second=0, microsecond=0
+            )
 
-        # Get current month start
-        now = timezone.now()
-        month_start = now.replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
-        )
+            # Get all statistics in one query using aggregation
+            stats = (
+                Report.objects
+                .aggregate(
+                    pending_count=Count('id', filter=Q(status=Report.Status.DRAFT)),
+                    monthly_count=Count(
+                        'id', 
+                        filter=Q(
+                            status=Report.Status.FINALIZED, 
+                            updated_at__gte=month_start
+                        )
+                    ),
+                    avg_tat=Avg(
+                        Case(
+                            When(
+                                status=Report.Status.FINALIZED,
+                                protocol__reception_date__isnull=False,
+                                then=F('updated_at__date') - F('protocol__reception_date')
+                            ),
+                            default=None,
+                            output_field=IntegerField()
+                        )
+                    )
+                )
+            )
 
-        monthly_reports = Report.objects.filter(
-            status=Report.Status.FINALIZED, updated_at__gte=month_start
-        ).count()
+            # Get pending reports list
+            pending_reports_list = (
+                Report.objects.filter(status=Report.Status.DRAFT)
+                .select_related("protocol__veterinarian")
+                .order_by("created_at")[:10]
+            )
 
-        # Calculate average report time (simplified)
-        avg_report_time = 0
-        completed_reports = Report.objects.filter(
-            status=Report.Status.FINALIZED
-        ).select_related("protocol")[:100]
-
-        if completed_reports:
-            total_days = 0
-            count = 0
-            for report in completed_reports:
-                if report.protocol.reception_date and report.updated_at:
-                    days = (
-                        report.updated_at.date()
-                        - report.protocol.reception_date.date()
-                    ).days
-                    if days >= 0:
-                        total_days += days
-                        count += 1
-
-            if count > 0:
-                avg_report_time = round(total_days / count, 1)
-
-        # Get pending reports
-        pending_reports_list = (
-            Report.objects.filter(status=Report.Status.DRAFT)
-            .select_related("protocol__veterinarian")
-            .order_by("created_at")[:10]
-        )
+            dashboard_data = {
+                'pending_reports_count': stats['pending_count'] or 0,
+                'monthly_reports_count': stats['monthly_count'] or 0,
+                'avg_report_time': round(stats['avg_tat'] or 0, 1),
+                'pending_reports_list': list(pending_reports_list),
+            }
+            
+            cache.set(cache_key, dashboard_data, 120)  # Cache for 2 minutes
 
         context.update(
             {
                 "user": user,
-                "pending_reports_count": pending_reports,
-                "monthly_reports_count": monthly_reports,
-                "avg_report_time": avg_report_time,
-                "pending_reports": pending_reports_list,
+                "pending_reports_count": dashboard_data['pending_reports_count'],
+                "monthly_reports_count": dashboard_data['monthly_reports_count'],
+                "avg_report_time": dashboard_data['avg_report_time'],
+                "pending_reports": dashboard_data['pending_reports_list'],
             }
         )
 
