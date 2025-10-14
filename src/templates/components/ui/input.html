@@ -5,7 +5,7 @@ Usage: {% include 'components/ui/input.html' with field=form.field_name label="C
 
 <div class="space-y-1">
     {% if label %}
-        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-purple-700">
             {{ label }}
             {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
         </label>
@@ -17,7 +17,7 @@ Usage: {% include 'components/ui/input.html' with field=form.field_name label="C
             id="{{ field.id_for_label }}"
             {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
             {% if field.field.required %}required{% endif %}
-            class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 resize-none bg-gray-100"
             rows="{% if rows %}{{ rows }}{% else %}4{% endif %}"
         >{{ field.value|default:"" }}</textarea>
     {% elif field.field.widget.input_type == 'checkbox' %}
@@ -27,7 +27,7 @@ Usage: {% include 'components/ui/input.html' with field=form.field_name label="C
                 name="{{ field.name }}" 
                 id="{{ field.id_for_label }}"
                 {% if field.value %}checked{% endif %}
-                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+                class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded transition-colors duration-200"
             >
             <label for="{{ field.id_for_label }}" class="text-sm text-gray-700">
                 {{ label|default:field.label }}
@@ -38,7 +38,7 @@ Usage: {% include 'components/ui/input.html' with field=form.field_name label="C
             name="{{ field.name }}" 
             id="{{ field.id_for_label }}"
             {% if field.field.required %}required{% endif %}
-            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-white"
         >
             {% if placeholder %}
                 <option value="">{{ placeholder }}</option>
@@ -57,7 +57,7 @@ Usage: {% include 'components/ui/input.html' with field=form.field_name label="C
             {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
             {% if field.value %}value="{{ field.value }}"{% endif %}
             {% if field.field.required %}required{% endif %}
-            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
         >
     {% endif %}
     

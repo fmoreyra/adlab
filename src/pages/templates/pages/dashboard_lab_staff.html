@@ -8,27 +8,27 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Welcome Section -->
-        <div class="mb-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-8 text-white">
+        <div class="mb-8 bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg shadow-lg p-8 text-white">
             <h1 class="text-3xl font-bold mb-2">Panel de Laboratorio</h1>
-            <p class="text-blue-100">Gestión de recepción y procesamiento de muestras</p>
+            <p class="text-purple-100">Gestión de recepción y procesamiento de muestras</p>
         </div>
 
         <!-- Quick Actions -->
         <div class="mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Acciones Rápidas</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <a href="{% url 'protocols:reception_search' %}" class="block bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                <a href="{% url 'protocols:reception_search' %}" class="block bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
                     <div class="flex items-center justify-center mb-4">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold text-center mb-2">Recepción de Muestras</h3>
-                    <p class="text-center text-blue-100 text-sm">Confirmar recepción de muestras</p>
+                    <p class="text-center text-purple-100 text-sm">Confirmar recepción de muestras</p>
                 </a>
                 
-                <a href="{% url 'protocols:processing_dashboard' %}" class="block bg-white hover:bg-gray-50 border-2 border-blue-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
-                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                <a href="{% url 'protocols:processing_dashboard' %}" class="block bg-white hover:bg-gray-50 border-2 border-purple-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-purple-600">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -38,8 +38,8 @@
                     <p class="text-center text-gray-600 text-sm">Gestionar procesamiento de muestras</p>
                 </a>
                 
-                <a href="{% url 'protocols:workorder_pending_protocols' %}" class="block bg-white hover:bg-gray-50 border-2 border-blue-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
-                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                <a href="{% url 'protocols:workorder_pending_protocols' %}" class="block bg-white hover:bg-gray-50 border-2 border-purple-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-purple-600">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>

@@ -8,27 +8,27 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Welcome Section -->
-        <div class="mb-8 bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-lg shadow-lg p-8 text-white">
+        <div class="mb-8 bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg shadow-lg p-8 text-white">
             <h1 class="text-3xl font-bold mb-2">Panel de Histopatólogo</h1>
-            <p class="text-indigo-100">Generación de reportes y análisis diagnósticos</p>
+            <p class="text-purple-100">Generación de reportes y análisis diagnósticos</p>
         </div>
 
         <!-- Quick Actions -->
         <div class="mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Acciones Rápidas</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <a href="{% url 'protocols:report_pending_list' %}" class="block bg-gradient-to-r from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                <a href="{% url 'protocols:report_pending_list' %}" class="block bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
                     <div class="flex items-center justify-center mb-4">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold text-center mb-2">Reportes Pendientes</h3>
-                    <p class="text-center text-indigo-100 text-sm">Casos esperando reporte</p>
+                    <p class="text-center text-purple-100 text-sm">Casos esperando reporte</p>
                 </a>
                 
-                <a href="{% url 'protocols:report_history' %}" class="block bg-white hover:bg-gray-50 border-2 border-indigo-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
-                    <div class="flex items-center justify-center mb-4 text-indigo-600">
+                <a href="{% url 'protocols:report_history' %}" class="block bg-white hover:bg-gray-50 border-2 border-purple-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-purple-600">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
@@ -37,8 +37,8 @@
                     <p class="text-center text-gray-600 text-sm">Ver reportes completados</p>
                 </a>
                 
-                <a href="{% url 'accounts:profile' %}" class="block bg-white hover:bg-gray-50 border-2 border-indigo-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
-                    <div class="flex items-center justify-center mb-4 text-indigo-600">
+                <a href="{% url 'accounts:profile' %}" class="block bg-white hover:bg-gray-50 border-2 border-purple-200 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-purple-600">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                         </svg>
