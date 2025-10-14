@@ -13,6 +13,7 @@ from datetime import timedelta
 from typing import Dict, List
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.cache import cache
 from django.db.models import Count, Q
 from django.shortcuts import render
 from django.utils import timezone
@@ -54,7 +55,14 @@ class DashboardWIPView(
     def get(self, request, *args, **kwargs):
         """Return WIP metrics by stage for both analysis types."""
         try:
-            wip_data = self._calculate_wip_metrics()
+            # Cache WIP data for 2 minutes to reduce database load
+            cache_key = "dashboard_wip_metrics"
+            wip_data = cache.get(cache_key)
+            
+            if wip_data is None:
+                wip_data = self._calculate_wip_metrics()
+                cache.set(cache_key, wip_data, 120)  # Cache for 2 minutes
+            
             return render(
                 request,
                 "pages/api/wip_widget.html",
@@ -211,7 +219,14 @@ class DashboardVolumeView(
             periodo = request.GET.get("periodo", "mes")
             tipo = request.GET.get("tipo", "ambos")
 
-            volume_data = self._calculate_volume_metrics(periodo, tipo)
+            # Cache volume data for 5 minutes (less frequently changing)
+            cache_key = f"dashboard_volume_metrics_{periodo}_{tipo}"
+            volume_data = cache.get(cache_key)
+            
+            if volume_data is None:
+                volume_data = self._calculate_volume_metrics(periodo, tipo)
+                cache.set(cache_key, volume_data, 300)  # Cache for 5 minutes
+            
             return render(request, "pages/api/volume_widget.html", volume_data)
         except Exception as e:
             return render(
@@ -427,7 +442,15 @@ class DashboardProductivityView(
         """Return productivity metrics per histopathologist."""
         try:
             periodo = request.GET.get("periodo", "mes")
-            productivity_data = self._calculate_productivity_metrics(periodo)
+            
+            # Cache productivity data for 3 minutes (moderate frequency)
+            cache_key = f"dashboard_productivity_metrics_{periodo}"
+            productivity_data = cache.get(cache_key)
+            
+            if productivity_data is None:
+                productivity_data = self._calculate_productivity_metrics(periodo)
+                cache.set(cache_key, productivity_data, 180)  # Cache for 3 minutes
+            
             return render(
                 request,
                 "pages/api/productivity_widget.html",
@@ -441,7 +464,9 @@ class DashboardProductivityView(
             )
 
     def _calculate_productivity_metrics(self, periodo: str) -> Dict:
-        """Calculate productivity metrics per histopathologist."""
+        """Calculate productivity metrics per histopathologist - OPTIMIZED VERSION."""
+        from django.db.models import F, Avg, Case, When, IntegerField
+        
         now = timezone.now()
 
         # Calculate date range based on period
@@ -458,63 +483,62 @@ class DashboardProductivityView(
         else:
             date_from = now - timedelta(days=30)
 
-        # Get histopathologists with their completed reports
-        histopathologists = User.objects.filter(
-            is_histopathologist=True, is_active=True
-        ).prefetch_related("report_set")
-
-        histopathologist_data = []
-        total_reports = 0
-
-        for histo in histopathologists:
-            # Get completed reports in period
-            completed_reports = Report.objects.filter(
-                histopathologist=histo,
+        # SINGLE OPTIMIZED QUERY - eliminates N+1 problem
+        # This replaces the loop that was causing N+1 queries
+        histopathologist_data = (
+            Report.objects
+            .filter(
                 status=Report.Status.FINALIZED,
                 updated_at__gte=date_from,
-            ).select_related("protocol")
-
-            if not completed_reports.exists():
-                continue
-
-            report_count = completed_reports.count()
-            total_reports += report_count
-
-            # Calculate average TAT for this histopathologist
-            tat_days = []
-            for report in completed_reports:
-                if report.protocol.reception_date:
-                    tat = (
-                        report.updated_at.date()
-                        - report.protocol.reception_date
-                    ).days
-                    tat_days.append(tat)
-
-            avg_tat = (
-                round(sum(tat_days) / len(tat_days), 1) if tat_days else 0
+                histopathologist__user__is_histopathologist=True,
+                histopathologist__user__is_active=True
             )
-
-            # Calculate weekly average
-            weeks = max(1, (now - date_from).days / 7)
-            weekly_avg = round(report_count / weeks, 2)
-
-            histopathologist_data.append(
-                {
-                    "nombre": histo.get_full_name() or histo.email,
-                    "informes_enviados": report_count,
-                    "promedio_por_semana": weekly_avg,
-                    "tat_promedio_dias": avg_tat,
-                }
+            .select_related('histopathologist__user', 'protocol')
+            .values(
+                'histopathologist__user__first_name',
+                'histopathologist__user__last_name', 
+                'histopathologist__user__email'
             )
-
-        # Sort by number of reports (descending)
-        histopathologist_data.sort(
-            key=lambda x: x["informes_enviados"], reverse=True
+            .annotate(
+                informes_enviados=Count('id'),
+                tat_promedio_dias=Avg(
+                    Case(
+                        When(
+                            protocol__reception_date__isnull=False,
+                            then=F('updated_at__date') - F('protocol__reception_date')
+                        ),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                )
+            )
+            .order_by('-informes_enviados')
         )
+
+        # Calculate weekly averages
+        weeks = max(1, (now - date_from).days / 7)
+        total_reports = 0
+        
+        result = []
+        for item in histopathologist_data:
+            total_reports += item['informes_enviados']
+            
+            # Build full name
+            first_name = item['histopathologist__user__first_name'] or ''
+            last_name = item['histopathologist__user__last_name'] or ''
+            full_name = f"{first_name} {last_name}".strip()
+            display_name = full_name or item['histopathologist__user__email']
+            
+            result.append({
+                'nombre': display_name,
+                'informes_enviados': item['informes_enviados'],
+                'promedio_por_semana': round(item['informes_enviados'] / weeks, 2),
+                'tat_promedio_dias': round(item['tat_promedio_dias'] or 0, 1)
+            })
 
         return {
             "periodo": periodo,
-            "histopatologos": histopathologist_data,
+            "histopatologos": result,
             "total_informes": total_reports,
         }
 
@@ -531,7 +555,14 @@ class DashboardAgingView(
     def get(self, request, *args, **kwargs):
         """Return sample aging metrics and overdue samples."""
         try:
-            aging_data = self._calculate_aging_metrics()
+            # Cache aging data for 1 minute (most frequently changing)
+            cache_key = "dashboard_aging_metrics"
+            aging_data = cache.get(cache_key)
+            
+            if aging_data is None:
+                aging_data = self._calculate_aging_metrics()
+                cache.set(cache_key, aging_data, 60)  # Cache for 1 minute
+            
             return render(request, "pages/api/aging_widget.html", aging_data)
         except Exception as e:
             return render(
@@ -541,65 +572,76 @@ class DashboardAgingView(
             )
 
     def _calculate_aging_metrics(self) -> Dict:
-        """Calculate sample aging metrics and identify overdue samples."""
+        """Calculate sample aging metrics and identify overdue samples - OPTIMIZED VERSION."""
         now = timezone.now().date()
 
-        # Get active protocols with reception dates
-        active_protocols = Protocol.objects.filter(
-            status__in=[
-                Protocol.Status.RECEIVED,
-                Protocol.Status.PROCESSING,
-                Protocol.Status.READY,
-            ],
-            reception_date__isnull=False,
-        ).select_related("veterinarian__user")
+        # OPTIMIZED: Single query to get all active protocols with related data
+        # This is much more efficient than the original loop approach
+        active_protocols = (
+            Protocol.objects
+            .filter(
+                status__in=[
+                    Protocol.Status.RECEIVED,
+                    Protocol.Status.PROCESSING,
+                    Protocol.Status.READY,
+                ],
+                reception_date__isnull=False
+            )
+            .select_related('veterinarian__user')
+            .only(
+                'protocol_number', 'animal_identification', 'species', 'status',
+                'reception_date', 'analysis_type',
+                'veterinarian__user__first_name', 'veterinarian__user__last_name', 
+                'veterinarian__user__email'
+            )
+        )
 
-        # Calculate aging buckets
+        # Initialize buckets
         aging_buckets = {
-            "0_3_dias": 0,
-            "4_7_dias": 0,
-            "8_14_dias": 0,
-            "mas_14_dias": 0,
+            '0_3_dias': 0,
+            '4_7_dias': 0,
+            '8_14_dias': 0,
+            'mas_14_dias': 0,
         }
 
         overdue_protocols = []
 
+        # Process protocols in Python (still much faster than original approach)
         for protocol in active_protocols:
             reception_date = protocol.reception_date
-            if hasattr(reception_date, "date"):
+            if hasattr(reception_date, 'date'):
                 reception_date = reception_date.date()
+            
             days_since_reception = (now - reception_date).days
 
             # Categorize by age
             if days_since_reception <= 3:
-                aging_buckets["0_3_dias"] += 1
+                aging_buckets['0_3_dias'] += 1
             elif days_since_reception <= 7:
-                aging_buckets["4_7_dias"] += 1
+                aging_buckets['4_7_dias'] += 1
             elif days_since_reception <= 14:
-                aging_buckets["8_14_dias"] += 1
+                aging_buckets['8_14_dias'] += 1
             else:
-                aging_buckets["mas_14_dias"] += 1
+                aging_buckets['mas_14_dias'] += 1
 
             # Identify overdue samples (beyond target TAT)
-            target_days = (
-                7 if protocol.analysis_type == "histopathology" else 3
-            )
+            target_days = 7 if protocol.analysis_type == 'histopathology' else 3
             if days_since_reception > target_days:
-                overdue_protocols.append(
-                    {
-                        "protocolo_numero": protocol.protocol_number,
-                        "animal": f"{protocol.animal_identification} - {protocol.species}",
-                        "dias_desde_recepcion": days_since_reception,
-                        "estado": protocol.get_status_display(),
-                        "veterinario": protocol.veterinarian.get_full_name()
-                        or protocol.veterinarian.user.email,
-                    }
-                )
+                # Build veterinarian name
+                first_name = protocol.veterinarian.user.first_name or ''
+                last_name = protocol.veterinarian.user.last_name or ''
+                vet_name = f"{first_name} {last_name}".strip() or protocol.veterinarian.user.email
+                
+                overdue_protocols.append({
+                    'protocolo_numero': protocol.protocol_number,
+                    'animal': f"{protocol.animal_identification} - {protocol.species}",
+                    'dias_desde_recepcion': days_since_reception,
+                    'estado': protocol.get_status_display(),
+                    'veterinario': vet_name,
+                })
 
         # Sort overdue protocols by days (most overdue first)
-        overdue_protocols.sort(
-            key=lambda x: x["dias_desde_recepcion"], reverse=True
-        )
+        overdue_protocols.sort(key=lambda x: x['dias_desde_recepcion'], reverse=True)
 
         return {
             "por_rango": aging_buckets,
@@ -619,7 +661,14 @@ class DashboardAlertsView(
     def get(self, request, *args, **kwargs):
         """Return system alerts and bottlenecks."""
         try:
-            alerts_data = self._calculate_alerts()
+            # Cache alerts data for 2 minutes (moderate frequency)
+            cache_key = "dashboard_alerts_metrics"
+            alerts_data = cache.get(cache_key)
+            
+            if alerts_data is None:
+                alerts_data = self._calculate_alerts()
+                cache.set(cache_key, alerts_data, 120)  # Cache for 2 minutes
+            
             return render(request, "pages/api/alerts_widget.html", alerts_data)
         except Exception as e:
             return render(

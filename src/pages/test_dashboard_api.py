@@ -7,11 +7,15 @@ Tests the dashboard API endpoints for WIP, volume, TAT, productivity, aging, and
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.db import connection
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Histopathologist, Veterinarian
+from pages.performance_monitor import (
+    monitor_performance, PerformanceThresholds, check_performance_thresholds
+)
 from protocols.models import (
     Cassette,
     HistopathologySample,
