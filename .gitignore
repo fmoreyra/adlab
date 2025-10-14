@@ -10,13 +10,24 @@ public_collected/*
 
 # Database backups
 backups/
+*.sql
+*.sql.gz
 
 # Generated reports and work orders
 src/reports/
 src/workorders/
 
+# Production SSL certificates and Nginx config
+certbot/conf/*
+certbot/www/*
+nginx/conf.d/laboratory.conf
+
+# Keep templates
+!nginx/conf.d/*.template
+
 .env*
 !.env.example
+!.env.production.example
 docker-compose.override.yml
 
 
