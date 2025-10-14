@@ -40,9 +40,9 @@ manage() {
     cmd python3 manage.py collectstatic --no-input
   fi
 
-  # Set DJANGO_TESTING environment variable for test commands
+  # Set test environment variables for test commands
   if [ "${1-''}" == "test" ]; then
-    DJANGO_TESTING=true cmd python3 manage.py "${@}"
+    docker compose "${DC}" ${TTY} -e DJANGO_TESTING=true -e RUNNING_TESTS=true web python3 manage.py "${@}"
   else
     cmd python3 manage.py "${@}"
   fi
@@ -51,12 +51,10 @@ manage() {
 test() {
   # Run the full local test suite
   echo "🧪 Running full Django test suite..."
-  echo "📋 Test modules: accounts, protocols, pages, up"
   echo ""
 
   # Run all tests (without parallel flag to ensure sequential execution)
-  manage test accounts.tests protocols.tests protocols.tests_reports protocols.tests_workorder pages.tests up.tests
-
+  manage test
   local exit_code=$?
 
   if [ $exit_code -eq 0 ]; then
@@ -73,13 +71,14 @@ test() {
 test:cleanup() {
   # Clean up test database connections and drop test database
   echo "🧹 Cleaning up test database..."
-
   # Terminate any lingering connections to test database
+  echo "1. Terminating connections to test database..."
   docker compose exec postgres psql -U adlab -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'test_adlab' AND pid <> pg_backend_pid();" 2>/dev/null || true
-
+  # Wait a moment for connections to close
+  sleep 2
   # Drop the test database
+  echo "2. Dropping test database..."
   docker compose exec postgres psql -U adlab -d postgres -c "DROP DATABASE IF EXISTS test_adlab;" 2>/dev/null || true
-
   echo "✅ Test database cleanup completed"
 }
 
@@ -414,7 +413,7 @@ ci:test() {
   lint "${@}"
   format --check --diff
   manage migrate
-  manage test
+  RUNNING_TESTS=true manage test
 }
 
 help() {

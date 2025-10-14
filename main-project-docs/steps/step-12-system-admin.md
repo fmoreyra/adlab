@@ -56,146 +56,6 @@ All models from previous steps are accessible via Django admin:
 - `WorkOrder`, `PricingCatalog` (Step 07)
 - `AnalyticsSnapshot` (Step 10, read-only)
 
-### New Model: SystemConfig
-
-```python
-class SystemConfig(models.Model):
-    """
-    System-wide configuration settings.
-    Editable via Django admin.
-    """
-    
-    class ConfigType(models.TextChoices):
-        STRING = 'string', 'String'
-        INTEGER = 'integer', 'Integer'
-        BOOLEAN = 'boolean', 'Boolean'
-        DECIMAL = 'decimal', 'Decimal'
-        JSON = 'json', 'JSON'
-    
-    class ConfigCategory(models.TextChoices):
-        EMAIL = 'email', 'Email Settings'
-        SYSTEM = 'system', 'System Settings'
-        TAT = 'tat', 'TAT Targets'
-        FILES = 'files', 'File Uploads'
-        NOTIFICATIONS = 'notifications', 'Notifications'
-    
-    key = models.CharField(max_length=100, unique=True, 
-                           help_text="Configuration key (e.g., smtp_host)")
-    value = models.TextField(help_text="Configuration value")
-    config_type = models.CharField(max_length=20, choices=ConfigType.choices, 
-                                    default=ConfigType.STRING)
-    category = models.CharField(max_length=50, choices=ConfigCategory.choices,
-                                default=ConfigCategory.SYSTEM)
-    description = models.TextField(help_text="Human-readable description")
-    is_editable = models.BooleanField(default=True, 
-                                      help_text="Can be edited via admin?")
-    is_secret = models.BooleanField(default=False,
-                                    help_text="Hide value in admin (passwords)")
-    
-    updated_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, 
-                                    null=True, blank=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        verbose_name = "System Configuration"
-        verbose_name_plural = "System Configuration"
-        ordering = ['category', 'key']
-    
-    def __str__(self):
-        return f"{self.key} = {self.get_display_value()}"
-    
-    def get_typed_value(self):
-        """Return value cast to correct type."""
-        if self.config_type == self.ConfigType.INTEGER:
-            return int(self.value)
-        elif self.config_type == self.ConfigType.BOOLEAN:
-            return self.value.lower() in ('true', '1', 'yes')
-        elif self.config_type == self.ConfigType.DECIMAL:
-            return Decimal(self.value)
-        elif self.config_type == self.ConfigType.JSON:
-            return json.loads(self.value)
-        return self.value
-    
-    def get_display_value(self):
-        """Return display value (hide secrets)."""
-        if self.is_secret:
-            return '******'
-        return self.value[:50] + '...' if len(self.value) > 50 else self.value
-    
-    @classmethod
-    def get_config(cls, key, default=None):
-        """Get configuration value by key."""
-        try:
-            config = cls.objects.get(key=key)
-            return config.get_typed_value()
-        except cls.DoesNotExist:
-            return default
-    
-    @classmethod
-    def set_config(cls, key, value, user=None):
-        """Set configuration value."""
-        config, created = cls.objects.get_or_create(key=key)
-        config.value = str(value)
-        config.updated_by = user
-        config.save()
-        return config
-```
-
-### New Model: SystemAlert
-
-```python
-class SystemAlert(models.Model):
-    """
-    System alerts for monitoring.
-    Managed via Django admin.
-    """
-    
-    class AlertType(models.TextChoices):
-        ERROR = 'error', 'Error'
-        WARNING = 'warning', 'Warning'
-        INFO = 'info', 'Info'
-    
-    class Severity(models.TextChoices):
-        LOW = 'low', 'Low'
-        MEDIUM = 'medium', 'Medium'
-        HIGH = 'high', 'High'
-        CRITICAL = 'critical', 'Critical'
-    
-    alert_type = models.CharField(max_length=20, choices=AlertType.choices)
-    severity = models.CharField(max_length=20, choices=Severity.choices)
-    message = models.TextField()
-    details = models.JSONField(default=dict, blank=True)
-    
-    is_resolved = models.BooleanField(default=False)
-    resolved_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL,
-                                     null=True, blank=True, related_name='resolved_alerts')
-    resolved_at = models.DateTimeField(null=True, blank=True)
-    resolved_note = models.TextField(blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        verbose_name = "System Alert"
-        verbose_name_plural = "System Alerts"
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['is_resolved', '-created_at']),
-            models.Index(fields=['severity', '-created_at']),
-        ]
-    
-    def __str__(self):
-        return f"[{self.severity.upper()}] {self.message[:50]}"
-    
-    def resolve(self, user, note=''):
-        """Mark alert as resolved."""
-        self.is_resolved = True
-        self.resolved_by = user
-        self.resolved_at = timezone.now()
-        self.resolved_note = note
-        self.save()
-```
-
 ### Django Admin Log (Built-in)
 Django provides `LogEntry` model that automatically logs admin actions:
 - User additions/changes/deletions
@@ -324,116 +184,6 @@ lab_admin_site = LabAdminSite(name='lab_admin')
 .alert-low {
     border-left-color: #388e3c;
 }
-```
-
-### System Configuration Admin
-
-```python
-# protocols/admin.py (or create config/admin.py)
-from django.contrib import admin
-from .models import SystemConfig, SystemAlert
-
-@admin.register(SystemConfig, site=lab_admin_site)
-class SystemConfigAdmin(admin.ModelAdmin):
-    list_display = ['key', 'category', 'display_value', 'config_type', 
-                    'updated_by', 'updated_at']
-    list_filter = ['category', 'config_type', 'is_editable']
-    search_fields = ['key', 'description']
-    readonly_fields = ['updated_by', 'updated_at', 'created_at']
-    
-    fieldsets = [
-        ('Configuration', {
-            'fields': ('key', 'value', 'config_type', 'category', 'description')
-        }),
-        ('Options', {
-            'fields': ('is_editable', 'is_secret')
-        }),
-        ('Metadata', {
-            'fields': ('updated_by', 'updated_at', 'created_at'),
-            'classes': ('collapse',)
-        }),
-    ]
-    
-    def display_value(self, obj):
-        """Show value with proper formatting."""
-        return obj.get_display_value()
-    display_value.short_description = 'Value'
-    
-    def get_readonly_fields(self, request, obj=None):
-        """Make non-editable configs readonly."""
-        readonly = list(self.readonly_fields)
-        if obj and not obj.is_editable:
-            readonly.extend(['key', 'value', 'config_type'])
-        return readonly
-    
-    def save_model(self, request, obj, form, change):
-        """Track who updated the config."""
-        obj.updated_by = request.user
-        super().save_model(request, obj, form, change)
-    
-    def has_delete_permission(self, request, obj=None):
-        """Only allow deletion of editable configs."""
-        if obj and not obj.is_editable:
-            return False
-        return super().has_delete_permission(request, obj)
-```
-
-### System Alerts Admin
-
-```python
-@admin.register(SystemAlert, site=lab_admin_site)
-class SystemAlertAdmin(admin.ModelAdmin):
-    list_display = ['colored_severity', 'alert_type', 'message_preview', 
-                    'is_resolved', 'created_at']
-    list_filter = ['severity', 'alert_type', 'is_resolved', 'created_at']
-    search_fields = ['message']
-    readonly_fields = ['created_at', 'resolved_by', 'resolved_at']
-    
-    fieldsets = [
-        ('Alert Information', {
-            'fields': ('alert_type', 'severity', 'message', 'details')
-        }),
-        ('Resolution', {
-            'fields': ('is_resolved', 'resolved_note', 'resolved_by', 'resolved_at'),
-            'classes': ('collapse',)
-        }),
-    ]
-    
-    actions = ['mark_resolved', 'mark_unresolved']
-    
-    def colored_severity(self, obj):
-        """Display severity with color."""
-        colors = {
-            'critical': '#d32f2f',
-            'high': '#f57c00',
-            'medium': '#fbc02d',
-            'low': '#388e3c',
-        }
-        return format_html(
-            '<span style="color: {}; font-weight: bold;">{}</span>',
-            colors.get(obj.severity, '#666'),
-            obj.get_severity_display()
-        )
-    colored_severity.short_description = 'Severity'
-    
-    def message_preview(self, obj):
-        """Show first 80 chars of message."""
-        return obj.message[:80] + '...' if len(obj.message) > 80 else obj.message
-    message_preview.short_description = 'Message'
-    
-    @admin.action(description='Mark selected alerts as resolved')
-    def mark_resolved(self, request, queryset):
-        """Bulk resolve alerts."""
-        for alert in queryset:
-            alert.resolve(request.user, 'Resolved by admin')
-        self.message_user(request, f'{queryset.count()} alerts marked as resolved.')
-    
-    @admin.action(description='Mark selected alerts as unresolved')
-    def mark_unresolved(self, request, queryset):
-        """Bulk unresolve alerts."""
-        queryset.update(is_resolved=False, resolved_by=None, 
-                       resolved_at=None, resolved_note='')
-        self.message_user(request, f'{queryset.count()} alerts marked as unresolved.')
 ```
 
 ### Enhanced User Admin
@@ -591,10 +341,6 @@ lab_admin_site.get_urls = lambda: [
         <div class="number">{{ quick_stats.pending_protocols }}</div>
         <div class="label">Pending Protocols</div>
     </div>
-    <div class="stat-box">
-        <div class="number">{{ quick_stats.unresolved_alerts }}</div>
-        <div class="label">Unresolved Alerts</div>
-    </div>
     
     <a href="{% url 'admin:system_health' %}" class="button">
         View System Health →
@@ -675,94 +421,18 @@ lab_admin_site.get_urls = lambda: [
 
 **Custom Enhancements:**
 - Laboratory-specific branding and colors
-- Configuration panel via `SystemConfig` model
 - System health monitoring dashboard
-- Alert management system
 - Bulk user operations (activate/deactivate)
 - Password reset emails from admin
 
 ### Configuration Management
 
-**System Config Model:**
-```python
-# Example configurations
-CONFIGS = {
-    'smtp_host': 'smtp.unl.edu.ar',
-    'smtp_port': 587,
-    'tat_target_histopatologia': 10,
-    'tat_target_citologia': 3,
-    'max_file_size_mb': 25,
-    'maintenance_mode': False,
-    'session_timeout_minutes': 120,
-}
-```
-
-**Configuration Rules:**
-- Editable configs can be changed via admin
-- Secret configs (passwords) are masked
-- Non-editable configs are read-only
-- All changes tracked (`updated_by`, `updated_at`)
-- Type casting ensures correct data types
-
-**Accessing Configuration:**
-```python
-# In views or models
-smtp_host = SystemConfig.get_config('smtp_host', 'localhost')
-tat_target = SystemConfig.get_config('tat_target_histopatologia', 10)
-
-# Setting configuration
-SystemConfig.set_config('maintenance_mode', True, user=request.user)
-```
 
 ### System Health Monitoring
 
 **Celery Task for Monitoring:**
-```python
-@periodic_task(run_every=timedelta(hours=1))
-def check_system_health():
-    """Periodic task to check system health and create alerts."""
-    import shutil
-    
-    # Check disk space
-    disk = shutil.disk_usage('/')
-    disk_percent = (disk.used / disk.total) * 100
-    
-    if disk_percent > 95:
-        SystemAlert.objects.create(
-            alert_type='error',
-            severity='critical',
-            message=f'Disk space critical: {disk_percent:.1f}% used',
-            details={'disk_percent': disk_percent, 'used_gb': disk.used // (1024**3)}
-        )
-    elif disk_percent > 90:
-        SystemAlert.objects.create(
-            alert_type='warning',
-            severity='high',
-            message=f'Disk space warning: {disk_percent:.1f}% used',
-            details={'disk_percent': disk_percent}
-        )
-    
-    # Check pending protocols
-    from protocols.models import Protocol
-    old_pending = Protocol.objects.filter(
-        status=Protocol.Status.PENDING_RECEPTION,
-        submission_date__lt=timezone.now() - timedelta(days=7)
-    ).count()
-    
-    if old_pending > 0:
-        SystemAlert.objects.create(
-            alert_type='warning',
-            severity='medium',
-            message=f'{old_pending} protocols pending reception for > 7 days',
-            details={'count': old_pending}
-        )
-```
+Send an email to the admin if system thresholds are passed
 
-**Alert Management:**
-- Alerts created automatically by monitoring tasks
-- Admins can view/resolve via Django admin
-- Bulk actions to resolve multiple alerts
-- Resolution tracking (who, when, note)
 
 ### Audit Logging
 
@@ -833,11 +503,8 @@ staff_group.permissions.add(
 
 1. [ ] Custom admin site with laboratory branding displays correctly
 2. [ ] Admin dashboard shows quick stats (users, pending protocols, alerts)
-3. [ ] System health view displays disk usage, database stats, and alerts
-4. [ ] `SystemConfig` model allows configuration management via admin
+3. [ ] System health view displays disk usage, database stats
 5. [ ] Secret configurations are masked in admin interface
-6. [ ] Non-editable configurations are read-only
-7. [ ] `SystemAlert` model manages system alerts via admin
 8. [ ] Bulk alert resolution action works
 9. [ ] Colored severity display for alerts
 10. [ ] Custom CSS styles admin interface with lab colors
@@ -852,18 +519,6 @@ staff_group.permissions.add(
 
 ## Testing Approach
 
-### Model Tests
-- **SystemConfig Model:**
-  - `get_typed_value()` casts to correct type
-  - `get_display_value()` masks secrets
-  - `get_config()` retrieves values with defaults
-  - `set_config()` updates and tracks user
-
-- **SystemAlert Model:**
-  - `resolve()` method updates fields correctly
-  - Ordering by creation date descending
-  - String representation formats correctly
-
 ### Admin Tests
 - **SystemConfigAdmin:**
   - List display shows all fields
@@ -871,12 +526,6 @@ staff_group.permissions.add(
   - Non-editable configs are readonly
   - `save_model()` tracks `updated_by`
   - Can't delete non-editable configs
-
-- **SystemAlertAdmin:**
-  - Colored severity displays correctly
-  - Message preview truncates long messages
-  - Bulk resolve action works
-  - Bulk unresolve action works
 
 - **CustomUserAdmin:**
   - Bulk activate users action
@@ -1082,79 +731,6 @@ laboratory-system/
 
 ### Initial Configuration Setup
 
-Create a management command to populate default configurations:
-
-```python
-# config/management/commands/setup_configs.py
-from django.core.management.base import BaseCommand
-from config.models import SystemConfig
-
-class Command(BaseCommand):
-    help = 'Setup default system configurations'
-    
-    def handle(self, *args, **options):
-        configs = [
-            {
-                'key': 'smtp_host',
-                'value': 'smtp.unl.edu.ar',
-                'config_type': 'string',
-                'category': 'email',
-                'description': 'SMTP server hostname',
-                'is_editable': True,
-            },
-            {
-                'key': 'smtp_port',
-                'value': '587',
-                'config_type': 'integer',
-                'category': 'email',
-                'description': 'SMTP server port',
-                'is_editable': True,
-            },
-            {
-                'key': 'tat_target_histopatologia',
-                'value': '10',
-                'config_type': 'integer',
-                'category': 'tat',
-                'description': 'Target TAT for histopathology (days)',
-                'is_editable': True,
-            },
-            {
-                'key': 'tat_target_citologia',
-                'value': '3',
-                'config_type': 'integer',
-                'category': 'tat',
-                'description': 'Target TAT for cytology (days)',
-                'is_editable': True,
-            },
-            {
-                'key': 'max_file_size_mb',
-                'value': '25',
-                'config_type': 'integer',
-                'category': 'files',
-                'description': 'Maximum file upload size (MB)',
-                'is_editable': True,
-            },
-            {
-                'key': 'maintenance_mode',
-                'value': 'false',
-                'config_type': 'boolean',
-                'category': 'system',
-                'description': 'Enable maintenance mode',
-                'is_editable': True,
-            },
-        ]
-        
-        for config_data in configs:
-            SystemConfig.objects.get_or_create(
-                key=config_data['key'],
-                defaults=config_data
-            )
-        
-        self.stdout.write(self.style.SUCCESS('✓ Default configurations created'))
-```
-
-Run with: `python manage.py setup_configs`
-
 ### URL Configuration
 
 ```python
@@ -1213,6 +789,5 @@ If existing admin customizations exist, they can be integrated:
 1. Keep existing `ModelAdmin` classes
 2. Register with `lab_admin_site` instead of default `admin.site`
 3. Add custom branding CSS
-4. Add `SystemConfig` and `SystemAlert` models
-5. Create system health view
+4. Create system health view
 

@@ -77,48 +77,30 @@ class DockerTestRunner(DiscoverRunner):
             if not test_db_name:
                 return
 
-            # Get database connection info
-            db_config = connections["default"].settings_dict
-            host = db_config.get("HOST", "localhost")
-            port = db_config.get("PORT", "5432")
-            user = db_config.get("USER", "postgres")
-
-            # Build psql command to drop the test database
-            psql_cmd = [
-                "psql",
-                "-h",
-                host,
-                "-p",
-                str(port),
-                "-U",
-                user,
-                "-d",
-                "postgres",  # Connect to postgres database
-                "-c",
-                f'DROP DATABASE IF EXISTS "{test_db_name}";',
-            ]
-
-            # Set PGPASSWORD if available
-            env = os.environ.copy()
-            if "PASSWORD" in db_config:
-                env["PGPASSWORD"] = db_config["PASSWORD"]
-
-            # Execute the command
-            result = subprocess.run(
-                psql_cmd,
-                env=env,
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-
-            if result.returncode == 0:
+            # Try to drop the database using Django's connection
+            from django.db import connection
+            
+            # Terminate all connections to the test database first
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT pg_terminate_backend(pid) 
+                    FROM pg_stat_activity 
+                    WHERE datname = %s 
+                    AND pid <> pg_backend_pid();
+                """, [test_db_name])
+            
+            # Wait a moment for connections to close
+            import time
+            time.sleep(1)
+            
+            # Now drop the database
+            with connection.cursor() as cursor:
+                cursor.execute(f'DROP DATABASE IF EXISTS "{test_db_name}";')
                 print(f"Dropped existing test database: {test_db_name}")
-            else:
-                print(f"Could not drop test database: {result.stderr}")
 
         except Exception as e:
             print(f"Error dropping test database: {e}")
+            # Continue anyway - Django will handle the database creation
 
     def _terminate_test_db_connections(self):
         """Terminate any lingering connections to the test database."""
@@ -132,70 +114,25 @@ class DockerTestRunner(DiscoverRunner):
         if not test_db_name:
             return
 
-        # Try to terminate connections using psql if available
+        # Try to terminate connections using Django's connection
         try:
-            # Get database connection info
-            db_config = connections["default"].settings_dict
-            host = db_config.get("HOST", "localhost")
-            port = db_config.get("PORT", "5432")
-            user = db_config.get("USER", "postgres")
+            from django.db import connection
+            
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT pg_terminate_backend(pid) 
+                    FROM pg_stat_activity 
+                    WHERE datname = %s 
+                    AND pid <> pg_backend_pid()
+                    AND state = 'idle';
+                """, [test_db_name])
+                
+                print(f"Terminated lingering connections to test database: {test_db_name}")
+                
+                # Wait a bit for connections to close
+                import time
+                time.sleep(0.5)
 
-            # Build psql command to terminate all connections
-            psql_cmd = [
-                "psql",
-                "-h",
-                host,
-                "-p",
-                str(port),
-                "-U",
-                user,
-                "-d",
-                "postgres",  # Connect to postgres database
-                "-c",
-                f"""
-                SELECT pg_terminate_backend(pid) 
-                FROM pg_stat_activity 
-                WHERE datname = '{test_db_name}' 
-                AND pid <> pg_backend_pid()
-                AND state = 'idle';
-                """,
-            ]
-
-            # Set PGPASSWORD if available
-            env = os.environ.copy()
-            if "PASSWORD" in db_config:
-                env["PGPASSWORD"] = db_config["PASSWORD"]
-
-            # Execute the command with retry
-            for attempt in range(3):
-                result = subprocess.run(
-                    psql_cmd,
-                    env=env,
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-
-                if result.returncode == 0:
-                    print(
-                        f"Terminated lingering connections to test database: {test_db_name} (attempt {attempt + 1})"
-                    )
-                    # Wait a bit for connections to close
-                    import time
-
-                    time.sleep(0.5)
-                else:
-                    print(
-                        f"Failed to terminate connections (attempt {attempt + 1}): {result.stderr}"
-                    )
-
-        except (
-            subprocess.TimeoutExpired,
-            subprocess.CalledProcessError,
-            FileNotFoundError,
-        ):
-            # psql not available or command failed - this is OK, continue
-            pass
-        except Exception:
-            # Any other error - continue with normal cleanup
-            pass
+        except Exception as e:
+            print(f"Error terminating connections: {e}")
+            # Continue anyway - this is not critical

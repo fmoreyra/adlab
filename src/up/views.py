@@ -12,6 +12,16 @@ def index(request):
 
 def databases(request):
     redis.ping()
-    connection.ensure_connection()
+
+    # Test database connection and ensure it's closed after use
+    try:
+        connection.ensure_connection()
+        # Test the connection with a simple query
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+    finally:
+        # Ensure connection is closed after the health check
+        connection.close()
 
     return HttpResponse("")

@@ -31,6 +31,7 @@ TESTING = (
     "test" in sys.argv
     or "pytest" in sys.argv[0]
     or os.getenv("DJANGO_TESTING", "").lower() == "true"
+    or os.getenv("RUNNING_TESTS", "").lower() == "true"
 )
 
 # Test configuration
@@ -38,6 +39,7 @@ if TESTING:
     # Use custom test runner that handles database cleanup properly
     TEST_RUNNER = "config.test_runner.DockerTestRunner"
     print(f"Using custom test runner: {TEST_RUNNER}")
+    print("TESTING mode enabled - Celery will run synchronously")
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#std:setting-ALLOWED_HOSTS
 allowed_hosts = os.getenv("ALLOWED_HOSTS", ".localhost,127.0.0.1,[::1]")
@@ -181,6 +183,15 @@ CELERY_TASK_SOFT_TIME_LIMIT = 240  # 4 minutes
 # Retry configuration
 CELERY_TASK_ACKS_LATE = True  # Tasks acknowledged after completion
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
+
+# Test-specific Celery configuration
+if TESTING:
+    # Run tasks synchronously during tests (no worker needed)
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
+    # Use in-memory broker for tests
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
 
 # Authentication settings
 # Session configuration
