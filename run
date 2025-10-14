@@ -42,7 +42,7 @@ manage() {
 
   # Set test environment variables for test commands
   if [ "${1-''}" == "test" ]; then
-    docker compose "${DC}" ${TTY} -e DJANGO_TESTING=true -e RUNNING_TESTS=true web python3 manage.py "${@}"
+    docker compose "${DC}" "${TTY}" -e DJANGO_TESTING=true -e RUNNING_TESTS=true web python3 manage.py "${@}"
   else
     cmd python3 manage.py "${@}"
   fi

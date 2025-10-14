@@ -3,8 +3,6 @@ Custom test runner that properly handles database cleanup in Docker environments
 """
 
 import contextlib
-import os
-import subprocess
 
 from django.db import connections
 from django.test.runner import DiscoverRunner
@@ -79,20 +77,24 @@ class DockerTestRunner(DiscoverRunner):
 
             # Try to drop the database using Django's connection
             from django.db import connection
-            
+
             # Terminate all connections to the test database first
             with connection.cursor() as cursor:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT pg_terminate_backend(pid) 
                     FROM pg_stat_activity 
                     WHERE datname = %s 
                     AND pid <> pg_backend_pid();
-                """, [test_db_name])
-            
+                """,
+                    [test_db_name],
+                )
+
             # Wait a moment for connections to close
             import time
+
             time.sleep(1)
-            
+
             # Now drop the database
             with connection.cursor() as cursor:
                 cursor.execute(f'DROP DATABASE IF EXISTS "{test_db_name}";')
@@ -117,20 +119,26 @@ class DockerTestRunner(DiscoverRunner):
         # Try to terminate connections using Django's connection
         try:
             from django.db import connection
-            
+
             with connection.cursor() as cursor:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT pg_terminate_backend(pid) 
                     FROM pg_stat_activity 
                     WHERE datname = %s 
                     AND pid <> pg_backend_pid()
                     AND state = 'idle';
-                """, [test_db_name])
-                
-                print(f"Terminated lingering connections to test database: {test_db_name}")
-                
+                """,
+                    [test_db_name],
+                )
+
+                print(
+                    f"Terminated lingering connections to test database: {test_db_name}"
+                )
+
                 # Wait a bit for connections to close
                 import time
+
                 time.sleep(0.5)
 
         except Exception as e:
