@@ -40,7 +40,12 @@ manage() {
     cmd python3 manage.py collectstatic --no-input
   fi
 
-  cmd python3 manage.py "${@}"
+  # Set DJANGO_TESTING environment variable for test commands
+  if [ "${1-''}" == "test" ]; then
+    DJANGO_TESTING=true cmd python3 manage.py "${@}"
+  else
+    cmd python3 manage.py "${@}"
+  fi
 }
 
 test() {

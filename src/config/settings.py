@@ -26,12 +26,18 @@ SECRET_KEY = os.environ["SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(strtobool(os.getenv("DEBUG", "false")))
 
-TESTING = "test" in sys.argv
+# Detect if we're running tests
+TESTING = (
+    "test" in sys.argv
+    or "pytest" in sys.argv[0]
+    or os.getenv("DJANGO_TESTING", "").lower() == "true"
+)
 
 # Test configuration
 if TESTING:
     # Use custom test runner that handles database cleanup properly
     TEST_RUNNER = "config.test_runner.DockerTestRunner"
+    print(f"Using custom test runner: {TEST_RUNNER}")
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#std:setting-ALLOWED_HOSTS
 allowed_hosts = os.getenv("ALLOWED_HOSTS", ".localhost,127.0.0.1,[::1]")
