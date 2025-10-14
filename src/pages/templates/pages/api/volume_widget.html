@@ -1,0 +1,66 @@
+<!-- Volume Widget HTMX Response Template -->
+<div class="space-y-6">
+    <!-- Period Info -->
+    <div class="text-sm text-gray-600">
+        <strong>Período:</strong> {{ periodo|title }} 
+        ({{ fecha_desde }} - {{ fecha_hasta }})
+    </div>
+
+    <!-- Volume Metrics Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Histopathology -->
+        <div class="metric-card">
+            <div class="metric-value text-blue-600">{{ histopatologia.protocolos_recibidos }}</div>
+            <div class="metric-label">Protocolos Histopatología</div>
+            <div class="text-xs text-gray-500 mt-1">
+                {{ histopatologia.informes_enviados }} reportes enviados
+            </div>
+            <div class="text-xs text-gray-500">
+                Promedio: {{ histopatologia.promedio_dia }}/día
+            </div>
+        </div>
+
+        <!-- Cytology -->
+        <div class="metric-card">
+            <div class="metric-value text-green-600">{{ citologia.protocolos_recibidos }}</div>
+            <div class="metric-label">Protocolos Citología</div>
+            <div class="text-xs text-gray-500 mt-1">
+                {{ citologia.informes_enviados }} reportes enviados
+            </div>
+            <div class="text-xs text-gray-500">
+                Promedio: {{ citologia.promedio_dia }}/día
+            </div>
+        </div>
+
+        <!-- Total -->
+        <div class="metric-card">
+            <div class="metric-value text-purple-600">{{ total.protocolos_recibidos }}</div>
+            <div class="metric-label">Total Protocolos</div>
+            <div class="text-xs text-gray-500 mt-1">
+                {{ total.informes_enviados }} reportes enviados
+            </div>
+            <div class="text-xs text-gray-500">
+                Eficiencia: {{ total.informes_enviados|floatformat:0 }}/{{ total.protocolos_recibidos|floatformat:0 }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Chart Representation -->
+    <div class="chart-container">
+        <div class="text-center">
+            <div class="text-lg font-medium text-gray-700 mb-2">Distribución por Tipo</div>
+            <div class="flex justify-center items-end gap-4 h-32">
+                <div class="flex flex-col items-center">
+                    <div class="w-16 bg-blue-500 rounded-t" style="height: {{ histopatologia.protocolos_recibidos|floatformat:0|add:0|add:histopatologia.protocolos_recibidos|floatformat:0 }}px;"></div>
+                    <div class="text-xs text-gray-600 mt-2">Histopatología</div>
+                    <div class="text-xs font-medium">{{ histopatologia.protocolos_recibidos }}</div>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 bg-green-500 rounded-t" style="height: {{ citologia.protocolos_recibidos|floatformat:0|add:0|add:citologia.protocolos_recibidos|floatformat:0 }}px;"></div>
+                    <div class="text-xs text-gray-600 mt-2">Citología</div>
+                    <div class="text-xs font-medium">{{ citologia.protocolos_recibidos }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

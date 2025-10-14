@@ -39,8 +39,33 @@
           
           <div class="flex items-center space-x-4">
             {% if user.is_authenticated %}
-              <span class="text-gray-600">Hola, {{ user.first_name|default:user.email }}</span>
-              <a href="{% url 'accounts:logout' %}" class="text-gray-600 hover:text-gray-900">Cerrar Sesión</a>
+              <!-- Navigation Menu -->
+              <div class="hidden md:flex items-center space-x-6">
+                <a href="{% url 'pages:dashboard' %}" class="text-gray-600 hover:text-gray-900 font-medium">Dashboard</a>
+                
+                {% if user.is_lab_staff or user.is_histopathologist or user.is_admin_user %}
+                  <a href="{% url 'pages:dashboard_management' %}" class="text-gray-600 hover:text-gray-900 font-medium">Gestión</a>
+                {% endif %}
+                
+                {% if user.is_veterinarian %}
+                  <a href="{% url 'protocols:protocol_list' %}" class="text-gray-600 hover:text-gray-900 font-medium">Mis Protocolos</a>
+                {% endif %}
+                
+                {% if user.is_lab_staff or user.is_admin_user %}
+                  <a href="{% url 'protocols:reception_pending' %}" class="text-gray-600 hover:text-gray-900 font-medium">Recepción</a>
+                {% endif %}
+                
+                {% if user.is_histopathologist or user.is_admin_user %}
+                  <a href="{% url 'protocols:report_pending_list' %}" class="text-gray-600 hover:text-gray-900 font-medium">Reportes</a>
+                {% endif %}
+              </div>
+              
+              <!-- User Menu -->
+              <div class="flex items-center space-x-4">
+                <span class="text-gray-600">Hola, {{ user.first_name|default:user.email }}</span>
+                <a href="{% url 'accounts:profile' %}" class="text-gray-600 hover:text-gray-900">Perfil</a>
+                <a href="{% url 'accounts:logout' %}" class="text-gray-600 hover:text-gray-900">Cerrar Sesión</a>
+              </div>
             {% else %}
               <a href="{% url 'accounts:login' %}" class="text-gray-600 hover:text-gray-900">Iniciar Sesión</a>
               <a href="{% url 'accounts:register' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Registrarse</a>

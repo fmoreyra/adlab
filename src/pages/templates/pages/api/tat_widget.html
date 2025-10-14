@@ -1,0 +1,94 @@
+<!-- TAT Widget HTMX Response Template -->
+<div class="space-y-6">
+    <!-- TAT Metrics Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Histopathology TAT -->
+        <div class="metric-card">
+            <div class="text-center mb-4">
+                <h3 class="text-lg font-semibold text-blue-800 mb-2">Histopatología</h3>
+                <div class="text-3xl font-bold text-blue-600">{{ histopatologia.tat_promedio_dias }} días</div>
+                <div class="text-sm text-gray-600">TAT Promedio</div>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Mediana:</span>
+                    <span class="font-medium">{{ histopatologia.tat_mediana_dias }} días</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Mínimo:</span>
+                    <span class="font-medium text-green-600">{{ histopatologia.tat_minimo_dias }} días</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Máximo:</span>
+                    <span class="font-medium text-red-600">{{ histopatologia.tat_maximo_dias }} días</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Dentro del objetivo:</span>
+                    <span class="font-medium {% if histopatologia.dentro_objetivo >= 80 %}text-green-600{% elif histopatologia.dentro_objetivo >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                        {{ histopatologia.dentro_objetivo }}%
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Target TAT Indicator -->
+            <div class="mt-4 p-2 bg-blue-50 rounded text-xs text-blue-700">
+                <strong>Objetivo:</strong> ≤ 7 días
+            </div>
+        </div>
+
+        <!-- Cytology TAT -->
+        <div class="metric-card">
+            <div class="text-center mb-4">
+                <h3 class="text-lg font-semibold text-green-800 mb-2">Citología</h3>
+                <div class="text-3xl font-bold text-green-600">{{ citologia.tat_promedio_dias }} días</div>
+                <div class="text-sm text-gray-600">TAT Promedio</div>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Mediana:</span>
+                    <span class="font-medium">{{ citologia.tat_mediana_dias }} días</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Mínimo:</span>
+                    <span class="font-medium text-green-600">{{ citologia.tat_minimo_dias }} días</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Máximo:</span>
+                    <span class="font-medium text-red-600">{{ citologia.tat_maximo_dias }} días</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Dentro del objetivo:</span>
+                    <span class="font-medium {% if citologia.dentro_objetivo >= 80 %}text-green-600{% elif citologia.dentro_objetivo >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                        {{ citologia.dentro_objetivo }}%
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Target TAT Indicator -->
+            <div class="mt-4 p-2 bg-green-50 rounded text-xs text-green-700">
+                <strong>Objetivo:</strong> ≤ 3 días
+            </div>
+        </div>
+    </div>
+
+    <!-- TAT Performance Summary -->
+    <div class="p-4 bg-gray-50 rounded-lg">
+        <h4 class="font-medium text-gray-800 mb-2">Resumen de Rendimiento</h4>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <span class="text-gray-600">Histopatología:</span>
+                <span class="font-medium {% if histopatologia.dentro_objetivo >= 80 %}text-green-600{% elif histopatologia.dentro_objetivo >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                    {{ histopatologia.dentro_objetivo }}% dentro del objetivo
+                </span>
+            </div>
+            <div>
+                <span class="text-gray-600">Citología:</span>
+                <span class="font-medium {% if citologia.dentro_objetivo >= 80 %}text-green-600{% elif citologia.dentro_objetivo >= 60 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                    {{ citologia.dentro_objetivo }}% dentro del objetivo
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

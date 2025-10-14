@@ -26,4 +26,9 @@ urlpatterns = [
         views.AdminDashboardView.as_view(),
         name="dashboard_admin",
     ),
+    path(
+        "dashboard/management/",
+        views.ManagementDashboardView.as_view(),
+        name="dashboard_management",
+    ),
 ]

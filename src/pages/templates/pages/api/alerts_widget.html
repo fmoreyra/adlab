@@ -1,0 +1,84 @@
+<!-- Alerts Widget HTMX Response Template -->
+<div class="space-y-4">
+    {% if alerts %}
+        {% for alert in alerts %}
+        <div class="alert-item alert-{{ alert.severidad }}">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="font-medium mb-1">{{ alert.mensaje }}</div>
+                    {% if alert.protocolos %}
+                    <div class="text-sm mt-2">
+                        <strong>Protocolos afectados:</strong>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            {% for protocolo in alert.protocolos %}
+                            <span class="bg-white bg-opacity-50 px-2 py-1 rounded text-xs font-mono">
+                                {{ protocolo }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if alert.etapa %}
+                    <div class="text-sm mt-1">
+                        <strong>Etapa:</strong> {{ alert.etapa|title }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="ml-4">
+                    {% if alert.severidad == 'alta' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            🔴 Alta
+                        </span>
+                    {% elif alert.severidad == 'media' %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            🟡 Media
+                        </span>
+                    {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            🔵 Baja
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-8">
+            <div class="text-green-600 text-lg font-medium">✅ Sin alertas</div>
+            <div class="text-gray-600 text-sm mt-1">El sistema está funcionando normalmente</div>
+        </div>
+    {% endif %}
+
+    <!-- Alert Summary -->
+    {% if alerts %}
+    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+        <h4 class="font-medium text-gray-800 mb-2">Resumen de Alertas</h4>
+        <div class="grid grid-cols-3 gap-4 text-sm">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-red-600">
+                    {% for alert in alerts %}
+                        {% if alert.severidad == 'alta' %}{{ forloop.counter0|add:1 }}{% endif %}
+                    {% endfor %}
+                </div>
+                <div class="text-gray-600">Alta Prioridad</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-yellow-600">
+                    {% for alert in alerts %}
+                        {% if alert.severidad == 'media' %}{{ forloop.counter0|add:1 }}{% endif %}
+                    {% endfor %}
+                </div>
+                <div class="text-gray-600">Media Prioridad</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-blue-600">
+                    {% for alert in alerts %}
+                        {% if alert.severidad == 'baja' %}{{ forloop.counter0|add:1 }}{% endif %}
+                    {% endfor %}
+                </div>
+                <div class="text-gray-600">Baja Prioridad</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

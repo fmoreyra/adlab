@@ -400,3 +400,36 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
         )
 
         return context
+
+
+class ManagementDashboardView(LoginRequiredMixin, TemplateView):
+    """
+    Management dashboard for laboratory oversight and KPIs.
+    
+    Accessible by: lab staff, histopathologists, and admin users.
+    """
+
+    template_name = "pages/management_dashboard.html"
+
+    def get(self, request, *args, **kwargs):
+        """Handle GET request with permission checks."""
+        user = request.user
+
+        # Early return if not management user
+        if not (user.is_lab_staff or user.is_histopathologist or user.is_admin_user):
+            return redirect("pages:dashboard")
+
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        """Add management dashboard context data."""
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        # Add user information
+        context.update({
+            "user": user,
+            "is_management_user": True,
+        })
+
+        return context

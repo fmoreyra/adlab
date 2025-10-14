@@ -27,6 +27,7 @@ urlpatterns = [
     path("protocols/", include("protocols.urls")),
     path("up/", include("up.urls")),
     path("", include("pages.urls")),
+    path("api/", include("pages.api_urls")),  # Dashboard API endpoints
     path("admin/", admin.site.urls),
 ]
 if not settings.TESTING:

@@ -1,0 +1,458 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Dashboard de Gestión - AdLab{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-widget {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .widget-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .widget-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+    
+    .refresh-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #e5e7eb;
+        border-top: 2px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-card {
+        background: #f9fafb;
+        border-radius: 6px;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .metric-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .stage-bar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem;
+        background: #f9fafb;
+        border-radius: 6px;
+    }
+    
+    .stage-name {
+        flex: 1;
+        font-weight: 500;
+        color: #374151;
+    }
+    
+    .stage-count {
+        font-weight: 600;
+        color: #1f2937;
+        background: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .alert-item {
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 0.75rem;
+        border-left: 4px solid;
+    }
+    
+    .alert-high {
+        background: #fef2f2;
+        border-left-color: #dc2626;
+        color: #991b1b;
+    }
+    
+    .alert-medium {
+        background: #fffbeb;
+        border-left-color: #d97706;
+        color: #92400e;
+    }
+    
+    .alert-low {
+        background: #f0f9ff;
+        border-left-color: #2563eb;
+        color: #1e40af;
+    }
+    
+    .overdue-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background: #fef2f2;
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        border-left: 4px solid #dc2626;
+    }
+    
+    .overdue-info {
+        flex: 1;
+    }
+    
+    .overdue-protocol {
+        font-weight: 600;
+        color: #991b1b;
+    }
+    
+    .overdue-details {
+        font-size: 0.875rem;
+        color: #7f1d1d;
+    }
+    
+    .overdue-days {
+        font-weight: 700;
+        color: #dc2626;
+        background: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+    
+    .chart-container {
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f9fafb;
+        border-radius: 6px;
+        color: #6b7280;
+    }
+    
+    .no-data {
+        text-align: center;
+        color: #6b7280;
+        font-style: italic;
+        padding: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            Dashboard de Gestión
+        </h1>
+        <p class="text-gray-600">
+            Monitoreo en tiempo real del laboratorio de anatomía patológica
+        </p>
+    </div>
+
+    <!-- WIP Section -->
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h2 class="widget-title">Work in Progress (WIP)</h2>
+            <div class="refresh-indicator">
+                <span class="spinner" id="wip-spinner" style="display: none;"></span>
+                <span id="wip-last-updated">Última actualización: --</span>
+            </div>
+        </div>
+        
+        <div id="wip-content" 
+             hx-get="{% url 'pages_api:dashboard_wip' %}" 
+             hx-trigger="load, every 60s"
+             hx-indicator="#wip-spinner"
+             hx-target="#wip-content">
+            <div class="no-data">Cargando datos de WIP...</div>
+        </div>
+    </div>
+
+    <!-- Volume Metrics Section -->
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h2 class="widget-title">Métricas de Volumen</h2>
+            <div class="flex gap-2">
+                <select id="volume-period" class="px-3 py-1 border border-gray-300 rounded text-sm">
+                    <option value="semana">Esta semana</option>
+                    <option value="mes" selected>Este mes</option>
+                    <option value="año">Este año</option>
+                </select>
+                <div class="refresh-indicator">
+                    <span class="spinner" id="volume-spinner" style="display: none;"></span>
+                    <span id="volume-last-updated">Última actualización: --</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="volume-content" 
+             hx-get="{% url 'pages_api:dashboard_volume' %}?periodo=mes" 
+             hx-trigger="load, every 60s"
+             hx-indicator="#volume-spinner"
+             hx-target="#volume-content">
+            <div class="no-data">Cargando métricas de volumen...</div>
+        </div>
+    </div>
+
+    <!-- TAT and Productivity Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- TAT Metrics -->
+        <div class="dashboard-widget">
+            <div class="widget-header">
+                <h2 class="widget-title">Tiempo de Respuesta (TAT)</h2>
+                <div class="refresh-indicator">
+                    <span class="spinner" id="tat-spinner" style="display: none;"></span>
+                    <span id="tat-last-updated">Última actualización: --</span>
+                </div>
+            </div>
+            
+            <div id="tat-content" 
+                 hx-get="{% url 'pages_api:dashboard_tat' %}" 
+                 hx-trigger="load, every 60s"
+                 hx-indicator="#tat-spinner"
+                 hx-target="#tat-content">
+                <div class="no-data">Cargando métricas de TAT...</div>
+            </div>
+        </div>
+
+        <!-- Productivity Metrics -->
+        <div class="dashboard-widget">
+            <div class="widget-header">
+                <h2 class="widget-title">Productividad por Histopatólogo</h2>
+                <div class="flex gap-2">
+                    <select id="productivity-period" class="px-3 py-1 border border-gray-300 rounded text-sm">
+                        <option value="semana">Esta semana</option>
+                        <option value="mes" selected>Este mes</option>
+                        <option value="año">Este año</option>
+                    </select>
+                    <div class="refresh-indicator">
+                        <span class="spinner" id="productivity-spinner" style="display: none;"></span>
+                        <span id="productivity-last-updated">Última actualización: --</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="productivity-content" 
+                 hx-get="{% url 'pages_api:dashboard_productivity' %}?periodo=mes" 
+                 hx-trigger="load, every 60s"
+                 hx-indicator="#productivity-spinner"
+                 hx-target="#productivity-content">
+                <div class="no-data">Cargando métricas de productividad...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aging and Alerts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Sample Aging -->
+        <div class="dashboard-widget">
+            <div class="widget-header">
+                <h2 class="widget-title">Envejecimiento de Muestras</h2>
+                <div class="refresh-indicator">
+                    <span class="spinner" id="aging-spinner" style="display: none;"></span>
+                    <span id="aging-last-updated">Última actualización: --</span>
+                </div>
+            </div>
+            
+            <div id="aging-content" 
+                 hx-get="{% url 'pages_api:dashboard_aging' %}" 
+                 hx-trigger="load, every 60s"
+                 hx-indicator="#aging-spinner"
+                 hx-target="#aging-content">
+                <div class="no-data">Cargando datos de envejecimiento...</div>
+            </div>
+        </div>
+
+        <!-- System Alerts -->
+        <div class="dashboard-widget">
+            <div class="widget-header">
+                <h2 class="widget-title">Alertas del Sistema</h2>
+                <div class="refresh-indicator">
+                    <span class="spinner" id="alerts-spinner" style="display: none;"></span>
+                    <span id="alerts-last-updated">Última actualización: --</span>
+                </div>
+            </div>
+            
+            <div id="alerts-content" 
+                 hx-get="{% url 'pages_api:dashboard_alerts' %}" 
+                 hx-trigger="load, every 60s"
+                 hx-indicator="#alerts-spinner"
+                 hx-target="#alerts-content">
+                <div class="no-data">Cargando alertas...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HTMX Templates for Dynamic Content -->
+<template id="wip-template">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Histopathology WIP -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Histopatología</h3>
+            <div class="space-y-2">
+                <div class="stage-bar">
+                    <span class="stage-name">Pendiente Recepción</span>
+                    <span class="stage-count" id="histo-pendiente">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Recibido</span>
+                    <span class="stage-count" id="histo-recibido">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Procesando</span>
+                    <span class="stage-count" id="histo-procesando">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Listo Diagnóstico</span>
+                    <span class="stage-count" id="histo-listo">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Diagnóstico</span>
+                    <span class="stage-count" id="histo-diagnostico">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Informe Borrador</span>
+                    <span class="stage-count" id="histo-borrador">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Listo Envío</span>
+                    <span class="stage-count" id="histo-envio">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cytology WIP -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Citología</h3>
+            <div class="space-y-2">
+                <div class="stage-bar">
+                    <span class="stage-name">Pendiente Recepción</span>
+                    <span class="stage-count" id="cyto-pendiente">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Recibido</span>
+                    <span class="stage-count" id="cyto-recibido">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Procesando</span>
+                    <span class="stage-count" id="cyto-procesando">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Listo Diagnóstico</span>
+                    <span class="stage-count" id="cyto-listo">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Diagnóstico</span>
+                    <span class="stage-count" id="cyto-diagnostico">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Informe Borrador</span>
+                    <span class="stage-count" id="cyto-borrador">0</span>
+                </div>
+                <div class="stage-bar">
+                    <span class="stage-name">Listo Envío</span>
+                    <span class="stage-count" id="cyto-envio">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Update last updated timestamps
+function updateTimestamp(elementId) {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    document.getElementById(elementId).textContent = `Última actualización: ${timeString}`;
+}
+
+// Handle volume period change
+document.getElementById('volume-period').addEventListener('change', function() {
+    const period = this.value;
+    const volumeContent = document.getElementById('volume-content');
+    volumeContent.setAttribute('hx-get', `/api/dashboard/volume/?periodo=${period}`);
+    volumeContent.click();
+    updateTimestamp('volume-last-updated');
+});
+
+// Handle productivity period change
+document.getElementById('productivity-period').addEventListener('change', function() {
+    const period = this.value;
+    const productivityContent = document.getElementById('productivity-content');
+    productivityContent.setAttribute('hx-get', `/api/dashboard/productivity/?periodo=${period}`);
+    productivityContent.click();
+    updateTimestamp('productivity-last-updated');
+});
+
+// Update timestamps when HTMX requests complete
+document.body.addEventListener('htmx:afterRequest', function(event) {
+    const targetId = event.target.id;
+    if (targetId && targetId.includes('content')) {
+        const widgetType = targetId.replace('-content', '');
+        updateTimestamp(`${widgetType}-last-updated`);
+    }
+});
+
+// Initial timestamp update
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    
+    // Update all timestamps
+    ['wip', 'volume', 'tat', 'productivity', 'aging', 'alerts'].forEach(widget => {
+        updateTimestamp(`${widget}-last-updated`);
+    });
+});
+</script>
+{% endblock %}

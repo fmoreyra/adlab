@@ -1,0 +1,86 @@
+<!-- Productivity Widget HTMX Response Template -->
+<div class="space-y-4">
+    <!-- Period Info -->
+    <div class="text-sm text-gray-600">
+        <strong>Período:</strong> {{ periodo|title }}
+        <span class="ml-4"><strong>Total reportes:</strong> {{ total_informes }}</span>
+    </div>
+
+    <!-- Productivity Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Histopatólogo
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Reportes Enviados
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Promedio/Semana
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        TAT Promedio
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for histo in histopatologos %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ histo.nombre }}</div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ histo.informes_enviados }}</div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ histo.promedio_por_semana }}</div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <div class="text-sm {% if histo.tat_promedio_dias <= 7 %}text-green-600{% elif histo.tat_promedio_dias <= 10 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ histo.tat_promedio_dias }} días
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                        No hay datos de productividad para el período seleccionado
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Productivity Summary -->
+    {% if histopatologos %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="metric-card">
+            <div class="metric-value text-blue-600">{{ total_informes }}</div>
+            <div class="metric-label">Total Reportes</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value text-green-600">
+                {% if histopatologos %}
+                    {{ histopatologos.0.informes_enviados }}
+                {% else %}
+                    0
+                {% endif %}
+            </div>
+            <div class="metric-label">Más Productivo</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value text-purple-600">
+                {% if histopatologos %}
+                    {% widthratio total_informes histopatologos|length 1 %}
+                {% else %}
+                    0
+                {% endif %}
+            </div>
+            <div class="metric-label">Promedio por Histopatólogo</div>
+        </div>
+    </div>
+    {% endif %}
+</div>

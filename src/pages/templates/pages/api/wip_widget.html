@@ -1,0 +1,103 @@
+<!-- WIP Widget HTMX Response Template -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Histopathology WIP -->
+    <div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Histopatología</h3>
+        <div class="space-y-2">
+            <div class="stage-bar">
+                <span class="stage-name">Pendiente Recepción</span>
+                <span class="stage-count">{{ histopatologia.pendiente_recepcion }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Recibido</span>
+                <span class="stage-count">{{ histopatologia.recibido }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Procesando</span>
+                <span class="stage-count">
+                    {% if histopatologia.procesando %}
+                        {{ histopatologia.procesando.encasetado|add:histopatologia.procesando.fijacion|add:histopatologia.procesando.corte|add:histopatologia.procesando.coloracion }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Listo Diagnóstico</span>
+                <span class="stage-count">{{ histopatologia.listo_diagnostico }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Diagnóstico</span>
+                <span class="stage-count">{{ histopatologia.diagnostico }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Informe Borrador</span>
+                <span class="stage-count">{{ histopatologia.informe_borrador }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Listo Envío</span>
+                <span class="stage-count">{{ histopatologia.listo_envio }}</span>
+            </div>
+        </div>
+        
+        <!-- Detailed Processing Stages for Histopathology -->
+        {% if histopatologia.procesando %}
+        <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+            <h4 class="text-sm font-medium text-blue-800 mb-2">Detalle de Procesamiento:</h4>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-blue-700">Encasetado:</span>
+                    <span class="font-medium">{{ histopatologia.procesando.encasetado }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-blue-700">Fijación:</span>
+                    <span class="font-medium">{{ histopatologia.procesando.fijacion }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-blue-700">Corte:</span>
+                    <span class="font-medium">{{ histopatologia.procesando.corte }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-blue-700">Coloración:</span>
+                    <span class="font-medium">{{ histopatologia.procesando.coloracion }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Cytology WIP -->
+    <div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Citología</h3>
+        <div class="space-y-2">
+            <div class="stage-bar">
+                <span class="stage-name">Pendiente Recepción</span>
+                <span class="stage-count">{{ citologia.pendiente_recepcion }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Recibido</span>
+                <span class="stage-count">{{ citologia.recibido }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Procesando</span>
+                <span class="stage-count">{{ citologia.procesando }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Listo Diagnóstico</span>
+                <span class="stage-count">{{ citologia.listo_diagnostico }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Diagnóstico</span>
+                <span class="stage-count">{{ citologia.diagnostico }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Informe Borrador</span>
+                <span class="stage-count">{{ citologia.informe_borrador }}</span>
+            </div>
+            <div class="stage-bar">
+                <span class="stage-name">Listo Envío</span>
+                <span class="stage-count">{{ citologia.listo_envio }}</span>
+            </div>
+        </div>
+    </div>
+</div>
