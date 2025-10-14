@@ -3,824 +3,577 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import (
-    login,
-    logout,
-)
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.debug import sensitive_post_parameters
+from django.views.generic import (
+    CreateView,
+    DetailView,
+    FormView,
+    ListView,
+    UpdateView,
+    View,
+)
 
 from .forms import (
-    AddressForm,
     PasswordResetConfirmForm,
     PasswordResetRequestForm,
+    ResendVerificationEmailForm,
     UserLoginForm,
     UserProfileForm,
     VeterinarianProfileCompleteForm,
-    VeterinarianProfileForm,
+    VeterinarianProfileEditForm,
     VeterinarianRegistrationForm,
 )
+from .mixins import VeterinarianRequiredMixin
 from .models import (
     Address,
     AuthAuditLog,
     PasswordResetToken,
     User,
+    Veterinarian,
     VeterinarianChangeLog,
 )
+from .services.auth_service import AuthenticationService
+
+# =============================================================================
+# HELPER FUNCTIONS (REMOVED - REPLACED BY SERVICE CLASSES)
+# =============================================================================
+# The following helper functions have been moved to service classes:
+# - get_client_ip -> AuthenticationService._get_client_ip
+# - get_user_agent -> AuthenticationService._get_user_agent
+# - send_verification_email -> AuthenticationService.send_verification_email
 
 
-def get_client_ip(request):
-    """Get the client's IP address from the request."""
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(",")[0]
-    else:
-        ip = request.META.get("REMOTE_ADDR")
-    return ip
+# =============================================================================
+# CLASS-BASED VIEWS
+# =============================================================================
 
 
-def get_user_agent(request):
-    """Get the user agent from the request."""
-    return request.META.get("HTTP_USER_AGENT", "")
-
-
-def send_verification_email(request, user):
+class LoginView(FormView):
     """
-    Send email verification to user.
-
-    Args:
-        request: HTTP request object (for building absolute URI)
-        user: User object to send verification to
-
-    Returns:
-        bool: True if email sent successfully, False otherwise
+    User login view with service integration and early returns.
     """
-    token = user.generate_email_verification_token()
-    verification_url = request.build_absolute_uri(
-        f"/accounts/verify-email/{token}/"
-    )
 
-    html_message = render_to_string(
-        "accounts/emails/email_verification.html",
-        {"user": user, "verification_url": verification_url},
-    )
-    plain_message = strip_tags(html_message)
+    form_class = UserLoginForm
+    template_name = "accounts/login.html"
+    success_url = "/"
 
-    try:
-        send_mail(
-            subject="Verifique su email - AdLab",
-            message=plain_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
-        return True
-    except Exception:
-        return False
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.auth_service = AuthenticationService()
 
+    def get(self, request, *args, **kwargs):
+        """Handle GET request with early return for authenticated users."""
+        if request.user.is_authenticated:
+            return redirect("home")
+        return super().get(request, *args, **kwargs)
 
-@sensitive_post_parameters()
-@csrf_protect
-@never_cache
-def login_view(request):
-    """Handle user login with audit logging and account lockout."""
-    # Early return: already authenticated
-    if request.user.is_authenticated:
-        return redirect(settings.LOGIN_REDIRECT_URL)
-
-    # GET request: show form
-    if request.method != "POST":
-        return render(
-            request, "accounts/login.html", {"form": UserLoginForm()}
+    def form_valid(self, form):
+        """Process valid login form with early returns and service integration."""
+        # Process login using authentication service
+        success, redirect_url, error_message = self.auth_service.process_login(
+            form, self.request
         )
 
-    # POST request: process login
-    form = UserLoginForm(request, data=request.POST)
-    email = request.POST.get("username", "").lower()
+        if not success:
+            messages.error(self.request, error_message)
+            return self.form_invalid(form)
 
-    # Check pre-authentication conditions
-    user = User.objects.filter(email=email).first()
+        messages.success(self.request, _("¡Bienvenido!"))
 
-    if user:
-        # Early return: account locked
-        if user.is_locked_out():
-            _log_failed_login(request, email, user, "Account is locked")
-            messages.error(
-                request,
+        # Redirect to appropriate URL
+        if redirect_url:
+            return redirect(redirect_url)
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        """Handle invalid login form with service integration."""
+        email = form.data.get("username", "N/A")
+        self.auth_service.handle_failed_login(email, self.request)
+        return super().form_invalid(form)
+
+
+class RegisterView(CreateView):
+    """
+    User registration view.
+    """
+
+    model = User
+    form_class = VeterinarianRegistrationForm
+    template_name = "accounts/register.html"
+    success_url = "/accounts/login/"
+
+    def form_valid(self, form):
+        """Process valid registration form."""
+        user = form.save(commit=False)
+        user.is_active = False  # Require email verification
+        user.save()
+
+        # Send verification email using service
+        auth_service = AuthenticationService()
+        if auth_service.send_verification_email(user, self.request):
+            # Log email verification sent
+            AuthAuditLog.objects.create(
+                user=user,
+                email=user.email,
+                action=AuthAuditLog.Action.EMAIL_VERIFICATION_SENT,
+                ip_address=auth_service._get_client_ip(self.request),
+                user_agent=auth_service._get_user_agent(self.request),
+            )
+            messages.success(
+                self.request,
                 _(
-                    "Su cuenta está bloqueada. Por favor contacte al administrador."
+                    "Registro exitoso. Por favor verifique su email para activar su cuenta."
                 ),
             )
-            return render(request, "accounts/login.html", {"form": form})
+        else:
+            messages.error(
+                self.request,
+                _(
+                    "Error al enviar email de verificación. Contacte al administrador."
+                ),
+            )
 
-        # Early return: account inactive
-        if not user.is_active:
-            _log_failed_login(request, email, user, "Account is inactive")
-            messages.error(request, _("Esta cuenta está desactivada."))
-            return render(request, "accounts/login.html", {"form": form})
+        return super().form_valid(form)
 
-    # Validate form (also authenticates internally)
-    if not form.is_valid():
-        # Form validation failed (wrong password or other error)
-        _handle_failed_login(request, email, user)
-        return render(request, "accounts/login.html", {"form": form})
 
-    # Get authenticated user from form
-    authenticated_user = form.get_user()
+class PasswordResetRequestView(FormView):
+    """
+    Password reset request view.
+    """
 
-    # Early return: email not verified
-    if not authenticated_user.can_login():
-        _log_failed_login(
-            request, email, authenticated_user, "Email not verified"
-        )
-        messages.error(
-            request,
+    form_class = PasswordResetRequestForm
+    template_name = "accounts/password_reset_request.html"
+    success_url = "/accounts/login/"
+
+    def form_valid(self, form):
+        """Process valid password reset request."""
+        email = form.cleaned_data["email"]
+        try:
+            user = User.objects.get(email=email)
+            # Create password reset token
+            token = PasswordResetToken.objects.create(
+                user=user,
+                token=secrets.token_urlsafe(32),
+                expires_at=timezone.now() + timedelta(hours=24),
+            )
+
+            # Send password reset email
+            reset_url = self.request.build_absolute_uri(
+                reverse(
+                    "accounts:password_reset_confirm",
+                    kwargs={"token": token.token},
+                )
+            )
+
+            html_message = render_to_string(
+                "accounts/emails/password_reset.html",
+                {"user": user, "reset_url": reset_url},
+            )
+            plain_message = strip_tags(html_message)
+
+            send_mail(
+                subject="Restablecer contraseña - AdLab",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+
+            messages.success(
+                self.request,
+                _("Se ha enviado un enlace de restablecimiento a su email."),
+            )
+        except User.DoesNotExist:
+            # Don't reveal if email exists
+            messages.success(
+                self.request,
+                _("Se ha enviado un enlace de restablecimiento a su email."),
+            )
+
+        return super().form_valid(form)
+
+
+class PasswordResetConfirmView(FormView):
+    """
+    Password reset confirmation view.
+    """
+
+    form_class = PasswordResetConfirmForm
+    template_name = "accounts/password_reset_confirm.html"
+    success_url = "/accounts/login/"
+
+    def get_context_data(self, **kwargs):
+        """Add token to context."""
+        context = super().get_context_data(**kwargs)
+        context["token"] = self.kwargs.get("token")
+        return context
+
+    def get(self, request, *args, **kwargs):
+        """Handle GET request."""
+        token = self.kwargs.get("token")
+        try:
+            PasswordResetToken.objects.get(
+                token=token,
+                expires_at__gt=timezone.now(),
+                used_at__isnull=True,
+            )
+            return super().get(request, *args, **kwargs)
+        except PasswordResetToken.DoesNotExist:
+            messages.error(
+                request,
+                _("El enlace de restablecimiento es inválido o ha expirado."),
+            )
+            return redirect("accounts:password_reset_request")
+
+    def form_valid(self, form):
+        """Process valid password reset confirmation."""
+        token = self.kwargs.get("token")
+        try:
+            reset_token = PasswordResetToken.objects.get(
+                token=token,
+                expires_at__gt=timezone.now(),
+                used_at__isnull=True,
+            )
+
+            # Update password
+            user = reset_token.user
+            user.set_password(form.cleaned_data["new_password"])
+            user.save()
+
+            # Mark token as used
+            reset_token.used_at = timezone.now()
+            reset_token.save()
+
+            messages.success(
+                self.request,
+                _(
+                    "Contraseña restablecida exitosamente. Puede iniciar sesión ahora."
+                ),
+            )
+
+            return super().form_valid(form)
+        except PasswordResetToken.DoesNotExist:
+            messages.error(
+                self.request,
+                _("El enlace de restablecimiento es inválido o ha expirado."),
+            )
+            return redirect("accounts:password_reset_request")
+
+
+class ProfileView(LoginRequiredMixin, UpdateView):
+    """
+    User profile view.
+    """
+
+    model = User
+    form_class = UserProfileForm
+    template_name = "accounts/profile.html"
+    success_url = "/accounts/profile/"
+
+    def get_object(self):
+        """Get the current user."""
+        return self.request.user
+
+    def form_valid(self, form):
+        """Process valid profile form."""
+        messages.success(self.request, _("Perfil actualizado exitosamente."))
+        return super().form_valid(form)
+
+
+class VerifyEmailView(View):
+    """
+    Email verification view.
+    """
+
+    def get(self, request, *args, **kwargs):
+        """Handle email verification."""
+        token = self.kwargs.get("token")
+        auth_service = AuthenticationService()
+
+        try:
+            user = User.objects.get(email_verification_token=token)
+            if not user.is_verification_token_expired():
+                user.verify_email()
+                user.is_active = True
+                user.save()
+
+                # Log successful email verification
+                AuthAuditLog.objects.create(
+                    user=user,
+                    email=user.email,
+                    action=AuthAuditLog.Action.EMAIL_VERIFIED,
+                    ip_address=auth_service._get_client_ip(request),
+                    user_agent=auth_service._get_user_agent(request),
+                )
+
+                messages.success(
+                    request,
+                    _(
+                        "Email verificado exitosamente. Ya puede iniciar sesión."
+                    ),
+                )
+                return redirect("accounts:login")
+            else:
+                messages.error(
+                    request, _("El enlace de verificación ha expirado.")
+                )
+                return redirect("accounts:resend_verification")
+        except User.DoesNotExist:
+            messages.error(request, _("Enlace de verificación inválido."))
+            return redirect("accounts:login")
+
+
+class ResendVerificationView(FormView):
+    """
+    Resend email verification view.
+    """
+
+    form_class = ResendVerificationEmailForm
+    template_name = "accounts/resend_verification.html"
+    success_url = "/accounts/login/"
+
+    def get(self, request, *args, **kwargs):
+        """Handle GET request."""
+        if request.user.is_authenticated and not request.user.is_active:
+            # Resend verification for current user
+            auth_service = AuthenticationService()
+            if auth_service.send_verification_email(request.user, request):
+                messages.success(
+                    request, _("Email de verificación reenviado.")
+                )
+            else:
+                messages.error(
+                    request, _("Error al reenviar email de verificación.")
+                )
+            return redirect("accounts:login")
+        return super().get(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        """Process valid resend verification form."""
+        email = form.cleaned_data["email"]
+        try:
+            user = User.objects.get(email=email)
+            # Send verification email for inactive users or unverified veterinarians
+            if not user.is_active or (
+                user.role == User.Role.VETERINARIO and not user.email_verified
+            ):
+                auth_service = AuthenticationService()
+                auth_service.send_verification_email(user, self.request)
+
+                # Log verification email sent
+                AuthAuditLog.objects.create(
+                    user=user,
+                    email=email,
+                    action=AuthAuditLog.Action.EMAIL_VERIFICATION_SENT,
+                    ip_address=auth_service._get_client_ip(self.request),
+                    user_agent=auth_service._get_user_agent(self.request),
+                    details="Verification email resent",
+                )
+        except User.DoesNotExist:
+            pass  # Don't reveal if email exists
+
+        # Always show same message for security
+        messages.success(
+            self.request,
             _(
-                "Por favor verifique su email antes de iniciar sesión. "
-                '¿No recibió el email? <a href="/accounts/resend-verification/" '
-                'class="font-medium underline">Reenviar</a>'
+                "Si el email existe, se ha reenviado un enlace de verificación."
             ),
         )
-        return render(request, "accounts/login.html", {"form": form})
-
-    # Success: login user
-    return _handle_successful_login(request, authenticated_user, form)
+        return super().form_valid(form)
 
 
-def _log_failed_login(request, email, user, details):
-    """Helper to log failed login attempts."""
-    AuthAuditLog.log(
-        action=AuthAuditLog.Action.LOGIN_FAILED,
-        email=email,
-        user=user,
-        ip_address=get_client_ip(request),
-        user_agent=get_user_agent(request),
-        details=details,
-    )
+class CompleteProfileView(LoginRequiredMixin, FormView):
+    """
+    Complete veterinarian profile view.
+    """
 
+    form_class = VeterinarianProfileCompleteForm
+    template_name = "accounts/complete_profile.html"
+    success_url = "/dashboard/"
 
-def _handle_failed_login(request, email, user):
-    """Handle failed login attempt with lockout logic."""
-    if user:
-        user.increment_failed_login_attempts()
-        remaining_attempts = 5 - user.failed_login_attempts
-
-        _log_failed_login(
-            request,
-            email,
-            user,
-            f"Failed login attempt {user.failed_login_attempts}/5",
-        )
-
-        if user.is_locked_out():
-            AuthAuditLog.log(
-                action=AuthAuditLog.Action.ACCOUNT_LOCKED,
-                email=email,
-                user=user,
-                ip_address=get_client_ip(request),
-                user_agent=get_user_agent(request),
-                details="Account locked after 5 failed attempts",
-            )
+    def get(self, request, *args, **kwargs):
+        """Handle GET request with validation."""
+        # Check if user is a veterinarian
+        if not request.user.is_veterinarian:
             messages.error(
-                request,
-                _(
-                    "Su cuenta ha sido bloqueada. Por favor contacte al administrador."
-                ),
+                request, _("Solo los veterinarios pueden completar su perfil.")
             )
-        elif remaining_attempts > 0:
-            messages.error(
-                request,
-                _(
-                    f"Email o contraseña incorrectos. Le quedan {remaining_attempts} intentos."
-                ),
+            return redirect("home")
+
+        # Check if profile is already complete
+        if hasattr(request.user, "veterinarian_profile"):
+            messages.info(request, _("Su perfil ya está completo."))
+            return redirect("accounts:veterinarian_profile_detail")
+
+        return super().get(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        """Add user to form kwargs and remove instance."""
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        # Remove 'instance' if present (CreateView passes this but Form doesn't need it)
+        kwargs.pop("instance", None)
+        return kwargs
+
+    def form_valid(self, form):
+        """Process valid profile completion form."""
+        # Create veterinarian profile and address
+        form.save()
+
+        messages.success(self.request, _("Perfil completado exitosamente."))
+
+        return super().form_valid(form)
+
+
+class VeterinarianProfileDetailView(VeterinarianRequiredMixin, DetailView):
+    """
+    Veterinarian profile detail view.
+    """
+
+    model = User
+    template_name = "accounts/veterinarian_profile_detail.html"
+    context_object_name = "veterinarian_user"
+
+    def get(self, request, *args, **kwargs):
+        """Handle GET request with validation."""
+        if not hasattr(request.user, "veterinarian_profile"):
+            messages.error(request, _("No tiene un perfil de veterinario."))
+            return redirect("accounts:complete_profile")
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self):
+        """Get the veterinarian user."""
+        return self.request.user
+
+    def get_context_data(self, **kwargs):
+        """Add veterinarian profile to context."""
+        context = super().get_context_data(**kwargs)
+        context["veterinarian"] = self.request.user.veterinarian_profile
+        return context
+
+
+class VeterinarianProfileEditView(VeterinarianRequiredMixin, UpdateView):
+    """
+    Veterinarian profile edit view.
+    """
+
+    model = Veterinarian
+    form_class = VeterinarianProfileEditForm
+    template_name = "accounts/veterinarian_profile_edit.html"
+    success_url = "/accounts/profile/"
+
+    def get_object(self):
+        """Get the current user's veterinarian profile."""
+        return self.request.user.veterinarian_profile
+
+    def get_context_data(self, **kwargs):
+        """Add form as vet_form to context."""
+        context = super().get_context_data(**kwargs)
+        context["vet_form"] = context["form"]
+        return context
+
+    def form_valid(self, form):
+        """Process valid profile edit form."""
+        # Get the veterinarian profile and address
+        veterinarian = self.request.user.veterinarian_profile
+
+        # Get old values for change logging from form's initial data
+        old_values = form.initial.copy()
+
+        # Get address values from the current address
+        try:
+            address = veterinarian.address
+            old_values.update(
+                {
+                    "province": address.province or "",
+                    "locality": address.locality or "",
+                    "street": address.street or "",
+                    "number": address.number or "",
+                    "floor": address.floor or "",
+                    "apartment": address.apartment or "",
+                    "postal_code": address.postal_code or "",
+                    "notes": address.notes or "",
+                }
             )
-        else:
-            messages.error(request, _("Email o contraseña incorrectos."))
-    else:
-        _log_failed_login(request, email, None, "User does not exist")
-        messages.error(request, _("Email o contraseña incorrectos."))
+        except Address.DoesNotExist:
+            old_values.update(
+                {
+                    "province": "",
+                    "locality": "",
+                    "street": "",
+                    "number": "",
+                    "floor": "",
+                    "apartment": "",
+                    "postal_code": "",
+                    "notes": "",
+                }
+            )
+
+        # Log changes BEFORE saving
+        for field_name, new_value in form.cleaned_data.items():
+            old_value = old_values.get(field_name, "")
+            # Convert both to strings for comparison to avoid type mismatches
+            old_value_str = str(old_value) if old_value is not None else ""
+            new_value_str = str(new_value) if new_value is not None else ""
+            if old_value_str != new_value_str:
+                VeterinarianChangeLog.objects.create(
+                    veterinarian=veterinarian,
+                    changed_by=self.request.user,
+                    field_name=field_name,
+                    old_value=old_value_str,
+                    new_value=new_value_str,
+                )
+
+        messages.success(self.request, _("Perfil actualizado exitosamente."))
+        # Save the form (this will update both veterinarian and address)
+        return super().form_valid(form)
 
 
-def _handle_successful_login(request, user, form):
-    """Handle successful login."""
-    # Reset failed attempts and update last login
-    user.reset_failed_login_attempts()
-    user.last_login_at = timezone.now()
-    user.save(update_fields=["last_login_at"])
+class VeterinarianProfileHistoryView(VeterinarianRequiredMixin, ListView):
+    """
+    Veterinarian profile history view.
+    """
 
-    # Log success
-    AuthAuditLog.log(
-        action=AuthAuditLog.Action.LOGIN_SUCCESS,
-        email=user.email,
-        user=user,
-        ip_address=get_client_ip(request),
-        user_agent=get_user_agent(request),
-    )
+    model = VeterinarianChangeLog
+    template_name = "accounts/veterinarian_profile_history.html"
+    context_object_name = "change_logs"
+    paginate_by = 20
 
-    # Login user
-    login(request, user)
-
-    # Handle "remember me"
-    if not form.cleaned_data.get("remember_me"):
-        request.session.set_expiry(0)
-
-    messages.success(request, _(f"Bienvenido, {user.get_full_name()}!"))
-
-    # Smart redirect based on user role
-    next_url = request.GET.get("next")
-    if not next_url:
-        if user.is_veterinarian:
-            # Veterinarians go to protocol selection
-            next_url = reverse("protocols:protocol_select_type")
-        elif user.is_lab_staff:
-            # Lab staff go to processing dashboard
-            next_url = reverse("protocols:processing_dashboard")
-        elif user.is_admin_user:
-            # Admins go to admin panel
-            next_url = reverse("admin:index")
-        else:
-            # Default to home page
-            next_url = settings.LOGIN_REDIRECT_URL
-
-    return redirect(next_url)
+    def get_queryset(self):
+        """Get change logs for current user's veterinarian profile."""
+        return VeterinarianChangeLog.objects.filter(
+            veterinarian=self.request.user.veterinarian_profile
+        ).order_by("-changed_at")
 
 
-@login_required
+# =============================================================================
+# FUNCTION-BASED VIEWS
+# =============================================================================
+
+
 def logout_view(request):
-    """Handle user logout with audit logging."""
-    AuthAuditLog.log(
-        action=AuthAuditLog.Action.LOGOUT,
-        email=request.user.email,
+    """Handle user logout with audit logging using service."""
+    auth_service = AuthenticationService()
+
+    # Log logout action
+    AuthAuditLog.objects.create(
         user=request.user,
-        ip_address=get_client_ip(request),
-        user_agent=get_user_agent(request),
+        email=request.user.email,
+        action=AuthAuditLog.Action.LOGOUT,
+        ip_address=auth_service._get_client_ip(request),
+        user_agent=auth_service._get_user_agent(request),
     )
+
     logout(request)
     messages.success(request, _("Ha cerrado sesión exitosamente."))
     return redirect(settings.LOGOUT_REDIRECT_URL)
-
-
-@sensitive_post_parameters()
-@csrf_protect
-def register_view(request):
-    """Handle veterinarian registration."""
-    # Early return: already authenticated
-    if request.user.is_authenticated:
-        return redirect(settings.LOGIN_REDIRECT_URL)
-
-    # GET request: show form
-    if request.method != "POST":
-        return render(
-            request,
-            "accounts/register.html",
-            {"form": VeterinarianRegistrationForm()},
-        )
-
-    # POST request: process registration
-    form = VeterinarianRegistrationForm(request.POST)
-
-    # Early return: form invalid
-    if not form.is_valid():
-        return render(request, "accounts/register.html", {"form": form})
-
-    # Create user and send verification email
-    user = form.save()
-    send_verification_email(request, user)
-
-    # Log registration
-    AuthAuditLog.log(
-        action=AuthAuditLog.Action.EMAIL_VERIFICATION_SENT,
-        email=user.email,
-        user=user,
-        ip_address=get_client_ip(request),
-        user_agent=get_user_agent(request),
-        details="New veterinarian registration",
-    )
-
-    messages.success(
-        request,
-        _(
-            "Registro exitoso. Por favor verifique su email para activar su cuenta. "
-            "Revise su carpeta de spam si no lo encuentra."
-        ),
-    )
-    return redirect("accounts:login")
-
-
-@csrf_protect
-def password_reset_request_view(request):
-    """Handle password reset request."""
-    # GET request: show form
-    if request.method != "POST":
-        return render(
-            request,
-            "accounts/password_reset_request.html",
-            {"form": PasswordResetRequestForm()},
-        )
-
-    # POST request: process reset request
-    form = PasswordResetRequestForm(request.POST)
-
-    # Early return: form invalid
-    if not form.is_valid():
-        return render(
-            request, "accounts/password_reset_request.html", {"form": form}
-        )
-
-    email = form.cleaned_data["email"].lower()
-    user = User.objects.filter(email=email, is_active=True).first()
-
-    if user:
-        # Generate reset token
-        token = secrets.token_urlsafe(32)
-        expires_at = timezone.now() + timedelta(
-            seconds=settings.PASSWORD_RESET_TIMEOUT
-        )
-
-        PasswordResetToken.objects.create(
-            user=user, token=token, expires_at=expires_at
-        )
-
-        # Send reset email
-        reset_url = request.build_absolute_uri(
-            f"/accounts/password-reset/confirm/{token}/"
-        )
-        html_message = render_to_string(
-            "accounts/emails/password_reset.html",
-            {
-                "user": user,
-                "reset_url": reset_url,
-                "expiry_hours": settings.PASSWORD_RESET_TIMEOUT // 3600,
-            },
-        )
-
-        send_mail(
-            subject="Restablecer contraseña - AdLab",
-            message=strip_tags(html_message),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
-
-        # Log request
-        AuthAuditLog.log(
-            action=AuthAuditLog.Action.PASSWORD_RESET_REQUEST,
-            email=user.email,
-            user=user,
-            ip_address=get_client_ip(request),
-            user_agent=get_user_agent(request),
-        )
-
-    # Always show success (security: don't reveal if email exists)
-    messages.success(
-        request,
-        _("Si el email existe en nuestro sistema, recibirá instrucciones."),
-    )
-    return redirect("accounts:login")
-
-
-@sensitive_post_parameters()
-@csrf_protect
-def password_reset_confirm_view(request, token):
-    """Handle password reset confirmation."""
-    # Validate token
-    reset_token = PasswordResetToken.objects.filter(token=token).first()
-
-    # Early return: token invalid
-    if not reset_token:
-        messages.error(request, _("Enlace de restablecimiento inválido."))
-        return redirect("accounts:password_reset_request")
-
-    # Early return: token expired or used
-    if not reset_token.is_valid():
-        messages.error(
-            request, _("Este enlace ha expirado o ya fue utilizado.")
-        )
-        return redirect("accounts:password_reset_request")
-
-    # GET request: show form
-    if request.method != "POST":
-        return render(
-            request,
-            "accounts/password_reset_confirm.html",
-            {
-                "form": PasswordResetConfirmForm(),
-                "token": token,
-            },
-        )
-
-    # POST request: process password reset
-    form = PasswordResetConfirmForm(request.POST)
-
-    # Early return: form invalid
-    if not form.is_valid():
-        return render(
-            request,
-            "accounts/password_reset_confirm.html",
-            {"form": form, "token": token},
-        )
-
-    # Update password
-    user = reset_token.user
-    user.set_password(form.cleaned_data["password1"])
-    user.failed_login_attempts = 0
-    user.save()
-
-    # Mark token as used
-    reset_token.mark_as_used()
-
-    # Log password reset
-    AuthAuditLog.log(
-        action=AuthAuditLog.Action.PASSWORD_RESET_COMPLETE,
-        email=user.email,
-        user=user,
-        ip_address=get_client_ip(request),
-        user_agent=get_user_agent(request),
-    )
-
-    messages.success(
-        request,
-        _("Su contraseña ha sido actualizada. Ya puede iniciar sesión."),
-    )
-    return redirect("accounts:login")
-
-
-@login_required
-def profile_view(request):
-    """Display and update user profile."""
-    # GET request: show form
-    if request.method != "POST":
-        return render(
-            request,
-            "accounts/profile.html",
-            {"form": UserProfileForm(instance=request.user)},
-        )
-
-    # POST request: update profile
-    form = UserProfileForm(request.POST, instance=request.user)
-
-    # Early return: form invalid
-    if not form.is_valid():
-        return render(request, "accounts/profile.html", {"form": form})
-
-    form.save()
-    messages.success(request, _("Perfil actualizado exitosamente."))
-    return redirect("accounts:profile")
-
-
-@csrf_protect
-def verify_email_view(request, token):
-    """Verify user email with token."""
-    # Find user by token
-    user = User.objects.filter(
-        email_verification_token=token,
-        email_verified=False,
-    ).first()
-
-    # Early return: invalid token
-    if not user:
-        AuthAuditLog.log(
-            action=AuthAuditLog.Action.EMAIL_VERIFICATION_FAILED,
-            email="unknown",
-            ip_address=get_client_ip(request),
-            user_agent=get_user_agent(request),
-            details=f"Invalid token: {token[:20]}...",
-        )
-        messages.error(
-            request, _("Enlace de verificación inválido o ya utilizado.")
-        )
-        return redirect("accounts:login")
-
-    # Early return: token expired
-    if user.is_verification_token_expired():
-        AuthAuditLog.log(
-            action=AuthAuditLog.Action.EMAIL_VERIFICATION_FAILED,
-            email=user.email,
-            user=user,
-            ip_address=get_client_ip(request),
-            user_agent=get_user_agent(request),
-            details="Token expired",
-        )
-        messages.error(
-            request,
-            _("Este enlace ha expirado. Por favor solicite uno nuevo."),
-        )
-        return redirect("accounts:resend_verification")
-
-    # Verify email
-    user.verify_email()
-
-    # Log success
-    AuthAuditLog.log(
-        action=AuthAuditLog.Action.EMAIL_VERIFIED,
-        email=user.email,
-        user=user,
-        ip_address=get_client_ip(request),
-        user_agent=get_user_agent(request),
-        details="Email verified successfully",
-    )
-
-    messages.success(
-        request, _("¡Email verificado exitosamente! Ya puede iniciar sesión.")
-    )
-    return redirect("accounts:login")
-
-
-@csrf_protect
-def resend_verification_view(request):
-    """Request new verification email."""
-    # GET request: show form
-    if request.method != "POST":
-        return render(request, "accounts/resend_verification.html")
-
-    # POST request: resend verification
-    email = request.POST.get("email", "").lower()
-
-    user = User.objects.filter(
-        email=email,
-        role=User.Role.VETERINARIO,
-        email_verified=False,
-        is_active=True,
-    ).first()
-
-    if user:
-        send_verification_email(request, user)
-        AuthAuditLog.log(
-            action=AuthAuditLog.Action.EMAIL_VERIFICATION_SENT,
-            email=user.email,
-            user=user,
-            ip_address=get_client_ip(request),
-            user_agent=get_user_agent(request),
-            details="Verification email resent",
-        )
-        messages.success(
-            request,
-            _("Email de verificación reenviado. Por favor revise su bandeja."),
-        )
-    else:
-        # Security: don't reveal if email exists
-        messages.success(
-            request,
-            _("Si el email existe y no está verificado, recibirá un enlace."),
-        )
-
-    return redirect("accounts:login")
-
-
-# ============================================================================
-# VETERINARIAN PROFILE VIEWS
-# ============================================================================
-
-
-@login_required
-@csrf_protect
-def complete_profile_view(request):
-    """
-    Complete veterinarian profile after registration.
-    Required for veterinarians to submit protocols.
-    """
-    # Only veterinarians can access this view
-    if not request.user.is_veterinarian:
-        messages.error(
-            request, _("Solo veterinarios pueden completar este perfil.")
-        )
-        return redirect("/")
-
-    # Check if profile already exists
-    if hasattr(request.user, "veterinarian_profile"):
-        messages.info(request, _("Su perfil ya está completo."))
-        return redirect("accounts:veterinarian_profile_detail")
-
-    # GET request: show form
-    if request.method != "POST":
-        form = VeterinarianProfileCompleteForm(user=request.user)
-        return render(
-            request, "accounts/complete_profile.html", {"form": form}
-        )
-
-    # POST request: process profile completion
-    form = VeterinarianProfileCompleteForm(
-        user=request.user, data=request.POST
-    )
-
-    # Early return: form invalid
-    if not form.is_valid():
-        return render(
-            request, "accounts/complete_profile.html", {"form": form}
-        )
-
-    # Save profile
-    form.save()
-
-    # Log profile creation
-    AuthAuditLog.log(
-        action=AuthAuditLog.Action.EMAIL_VERIFIED,  # Reusing action
-        email=request.user.email,
-        user=request.user,
-        ip_address=get_client_ip(request),
-        user_agent=get_user_agent(request),
-        details="Veterinarian profile completed",
-    )
-
-    messages.success(
-        request,
-        _(
-            "¡Perfil completado exitosamente! Ya puede enviar protocolos al laboratorio."
-        ),
-    )
-    return redirect("accounts:veterinarian_profile_detail")
-
-
-@login_required
-def veterinarian_profile_detail_view(request):
-    """Display veterinarian profile details."""
-    # Only veterinarians can access this view
-    if not request.user.is_veterinarian:
-        messages.error(request, _("Solo veterinarios pueden ver este perfil."))
-        return redirect("/")
-
-    # Check if profile exists
-    if not hasattr(request.user, "veterinarian_profile"):
-        messages.warning(
-            request, _("Por favor complete su perfil para continuar.")
-        )
-        return redirect("accounts:complete_profile")
-
-    veterinarian = request.user.veterinarian_profile
-
-    # Get address (if exists)
-    try:
-        address = veterinarian.address
-    except Address.DoesNotExist:
-        address = None
-
-    context = {
-        "veterinarian": veterinarian,
-        "address": address,
-        "profile_completeness": veterinarian.profile_completeness,
-    }
-
-    return render(
-        request, "accounts/veterinarian_profile_detail.html", context
-    )
-
-
-@login_required
-@csrf_protect
-def veterinarian_profile_edit_view(request):
-    """Edit veterinarian profile."""
-    # Only veterinarians can access this view
-    if not request.user.is_veterinarian:
-        messages.error(
-            request, _("Solo veterinarios pueden editar este perfil.")
-        )
-        return redirect("/")
-
-    # Check if profile exists
-    if not hasattr(request.user, "veterinarian_profile"):
-        messages.warning(
-            request, _("Por favor complete su perfil para continuar.")
-        )
-        return redirect("accounts:complete_profile")
-
-    veterinarian = request.user.veterinarian_profile
-
-    # Get or create address
-    try:
-        address = veterinarian.address
-    except Address.DoesNotExist:
-        address = None
-
-    # GET request: show form
-    if request.method != "POST":
-        vet_form = VeterinarianProfileForm(instance=veterinarian)
-        address_form = (
-            AddressForm(instance=address) if address else AddressForm()
-        )
-
-        context = {
-            "vet_form": vet_form,
-            "address_form": address_form,
-            "veterinarian": veterinarian,
-        }
-        return render(
-            request, "accounts/veterinarian_profile_edit.html", context
-        )
-
-    # POST request: process form
-    vet_form = VeterinarianProfileForm(request.POST, instance=veterinarian)
-    address_form = (
-        AddressForm(request.POST, instance=address)
-        if address
-        else AddressForm(request.POST)
-    )
-
-    # Validate both forms
-    if not (vet_form.is_valid() and address_form.is_valid()):
-        context = {
-            "vet_form": vet_form,
-            "address_form": address_form,
-            "veterinarian": veterinarian,
-        }
-        return render(
-            request, "accounts/veterinarian_profile_edit.html", context
-        )
-
-    # Track changes for audit log
-    changed_fields = []
-
-    # Check veterinarian changes
-    if vet_form.has_changed():
-        for field in vet_form.changed_data:
-            old_value = getattr(veterinarian, field)
-            new_value = vet_form.cleaned_data[field]
-            VeterinarianChangeLog.log_change(
-                veterinarian=veterinarian,
-                changed_by=request.user,
-                field_name=field,
-                old_value=old_value,
-                new_value=new_value,
-                ip_address=get_client_ip(request),
-            )
-            changed_fields.append(field)
-
-    # Save veterinarian
-    vet_form.save()
-
-    # Save or create address
-    if not address:
-        address = address_form.save(commit=False)
-        address.veterinarian = veterinarian
-        address.save()
-    else:
-        # Check address changes
-        if address_form.has_changed():
-            for field in address_form.changed_data:
-                old_value = getattr(address, field)
-                new_value = address_form.cleaned_data[field]
-                VeterinarianChangeLog.log_change(
-                    veterinarian=veterinarian,
-                    changed_by=request.user,
-                    field_name=f"address.{field}",
-                    old_value=old_value,
-                    new_value=new_value,
-                    ip_address=get_client_ip(request),
-                )
-                changed_fields.append(f"address.{field}")
-
-        address_form.save()
-
-    # Log profile update
-    if changed_fields:
-        AuthAuditLog.log(
-            action=AuthAuditLog.Action.PASSWORD_CHANGED,  # Reusing action
-            email=request.user.email,
-            user=request.user,
-            ip_address=get_client_ip(request),
-            user_agent=get_user_agent(request),
-            details=f"Profile updated: {', '.join(changed_fields)}",
-        )
-
-    messages.success(request, _("Perfil actualizado exitosamente."))
-    return redirect("accounts:veterinarian_profile_detail")
-
-
-@login_required
-def veterinarian_profile_history_view(request):
-    """View veterinarian profile change history."""
-    # Only veterinarians can access this view
-    if not request.user.is_veterinarian:
-        messages.error(
-            request, _("Solo veterinarios pueden ver este historial.")
-        )
-        return redirect("/")
-
-    # Check if profile exists
-    if not hasattr(request.user, "veterinarian_profile"):
-        messages.warning(
-            request, _("Por favor complete su perfil para continuar.")
-        )
-        return redirect("accounts:complete_profile")
-
-    veterinarian = request.user.veterinarian_profile
-    changes = veterinarian.change_logs.all()[:50]  # Last 50 changes
-
-    context = {
-        "veterinarian": veterinarian,
-        "changes": changes,
-    }
-
-    return render(
-        request, "accounts/veterinarian_profile_history.html", context
-    )

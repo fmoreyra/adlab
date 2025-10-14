@@ -110,7 +110,7 @@ urlpatterns = [
     ),
     path(
         "processing/slide/<int:slide_pk>/quality/",
-        views.slide_update_quality_view,
+        views.SlideUpdateQualityView.as_view(),
         name="slide_update_quality",
     ),
     # Reports

@@ -8,8 +8,61 @@ from django.utils.translation import gettext_lazy as _
 from .models import Address, User, Veterinarian
 
 
+class ResendVerificationEmailForm(forms.Form):
+    """Form for resending verification email."""
+
+    email = forms.EmailField(
+        label=_("Email"),
+        widget=forms.EmailInput(
+            attrs={
+                "class": "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
+                "placeholder": "correo@ejemplo.com",
+                "autofocus": True,
+            }
+        ),
+    )
+
+
 class UserLoginForm(AuthenticationForm):
     """Custom login form using email instead of username."""
+
+    error_messages = {
+        "invalid_login": _(
+            "Por favor, ingrese un email y contraseña correctos. "
+            "Tenga en cuenta que ambos campos pueden distinguir entre mayúsculas y minúsculas. "
+            "Si los datos son incorrectos, verifique su información."
+        ),
+        "inactive": _("Esta cuenta está desactivada."),
+    }
+
+    def clean(self):
+        """Override clean to check for inactive users before authentication."""
+        username = self.cleaned_data.get("username")
+        password = self.cleaned_data.get("password")
+
+        if username and password:
+            # Check if user exists and is inactive before attempting authentication
+            try:
+                from .models import User
+
+                user = User.objects.get(email=username)
+                if not user.is_active:
+                    raise forms.ValidationError(
+                        self.error_messages["inactive"],
+                        code="inactive",
+                    )
+            except User.DoesNotExist:
+                pass  # Let the parent clean() handle this
+
+        return super().clean()
+
+    def confirm_login_allowed(self, user):
+        """Check if the given user may log in."""
+        if not user.is_active:
+            raise forms.ValidationError(
+                self.error_messages["inactive"],
+                code="inactive",
+            )
 
     username = forms.EmailField(
         label=_("Email"),
@@ -627,5 +680,260 @@ class VeterinarianProfileCompleteForm(forms.Form):
             postal_code=self.cleaned_data.get("postal_code", ""),
             notes=self.cleaned_data.get("notes", ""),
         )
+
+        return veterinarian
+
+
+class VeterinarianProfileEditForm(forms.ModelForm):
+    """
+    Form for editing veterinarian profile with address.
+    """
+
+    # Address fields
+    province = forms.CharField(
+        label=_("Province"),
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "placeholder": "Santa Fe",
+            }
+        ),
+    )
+    locality = forms.CharField(
+        label=_("Locality"),
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "placeholder": "Esperanza",
+            }
+        ),
+    )
+    street = forms.CharField(
+        label=_("Street"),
+        max_length=200,
+        widget=forms.TextInput(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "placeholder": "San Martín",
+            }
+        ),
+    )
+    number = forms.CharField(
+        label=_("Number"),
+        max_length=20,
+        widget=forms.TextInput(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "placeholder": "1234",
+            }
+        ),
+    )
+    floor = forms.CharField(
+        label=_("Floor"),
+        max_length=10,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "placeholder": "2",
+            }
+        ),
+    )
+    apartment = forms.CharField(
+        label=_("Apartment"),
+        max_length=10,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "placeholder": "A",
+            }
+        ),
+    )
+    postal_code = forms.CharField(
+        label=_("Postal Code"),
+        max_length=10,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "placeholder": "3080",
+            }
+        ),
+    )
+    notes = forms.CharField(
+        label=_("Notes"),
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "rows": "3",
+                "placeholder": "Additional address information...",
+            }
+        ),
+    )
+
+    class Meta:
+        model = Veterinarian
+        fields = [
+            "first_name",
+            "last_name",
+            "license_number",
+            "phone",
+            "email",
+        ]
+        widgets = {
+            "first_name": forms.TextInput(
+                attrs={
+                    "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                    "placeholder": "Juan",
+                }
+            ),
+            "last_name": forms.TextInput(
+                attrs={
+                    "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                    "placeholder": "Pérez",
+                }
+            ),
+            "license_number": forms.TextInput(
+                attrs={
+                    "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                    "placeholder": "MP-12345",
+                }
+            ),
+            "phone": forms.TextInput(
+                attrs={
+                    "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                    "placeholder": "+54 342 1234567",
+                }
+            ),
+            "email": forms.EmailInput(
+                attrs={
+                    "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                    "placeholder": "vet@example.com",
+                }
+            ),
+        }
+        labels = {
+            "first_name": _("First Name"),
+            "last_name": _("Last Name"),
+            "license_number": _("License Number (Matrícula)"),
+            "phone": _("Phone"),
+            "email": _("Email"),
+        }
+        help_texts = {
+            "license_number": _("Format: MP-XXXXX (example: MP-12345)"),
+            "phone": _("Argentine format: +54 XXX XXXXXXX"),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Initialize address fields with current values
+        if self.instance and self.instance.pk:
+            try:
+                address = self.instance.address
+                if address:
+                    self.fields["province"].initial = address.province
+                    self.fields["locality"].initial = address.locality
+                    self.fields["street"].initial = address.street
+                    self.fields["number"].initial = address.number
+                    self.fields["floor"].initial = address.floor
+                    self.fields["apartment"].initial = address.apartment
+                    self.fields["postal_code"].initial = address.postal_code
+                    self.fields["notes"].initial = address.notes
+            except Address.DoesNotExist:
+                pass
+
+    def clean_license_number(self):
+        """Validate license number format and uniqueness."""
+        license_number = (
+            self.cleaned_data.get("license_number", "").strip().upper()
+        )
+
+        # Validate format (MP-XXXXX or similar provincial patterns)
+        # Accept various provincial prefixes followed by numbers
+        pattern = r"^[A-Z]{2,3}-\d{4,6}$"
+        if not re.match(pattern, license_number):
+            raise ValidationError(
+                _(
+                    "Invalid license number format. Expected format: MP-12345 (province code + dash + numbers)"
+                )
+            )
+
+        # Check uniqueness (excluding current instance if editing)
+        qs = Veterinarian.objects.filter(license_number=license_number)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise ValidationError(
+                _("This license number is already registered.")
+            )
+
+        return license_number
+
+    def clean_phone(self):
+        """Validate phone number format."""
+        phone = self.cleaned_data.get("phone", "").strip()
+
+        # Basic validation for Argentine phone format
+        # Accept formats like: +54 342 1234567, +54 11 12345678, etc.
+        pattern = r"^\+54\s\d{2,4}\s\d{6,8}$"
+        if not re.match(pattern, phone):
+            raise ValidationError(
+                _(
+                    "Invalid phone format. Expected: +54 XXX XXXXXXX (example: +54 342 1234567)"
+                )
+            )
+
+        return phone
+
+    def clean_email(self):
+        """Validate email uniqueness."""
+        email = self.cleaned_data.get("email", "").strip().lower()
+
+        # Check uniqueness (excluding current instance if editing)
+        qs = Veterinarian.objects.filter(email=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise ValidationError(_("This email is already registered."))
+
+        return email
+
+    def save(self, commit=True):
+        """Save veterinarian and address."""
+        veterinarian = super().save(commit=commit)
+
+        if commit:
+            # Update or create address
+            try:
+                address = veterinarian.address
+                address.province = self.cleaned_data["province"]
+                address.locality = self.cleaned_data["locality"]
+                address.street = self.cleaned_data["street"]
+                address.number = self.cleaned_data["number"]
+                address.floor = self.cleaned_data.get("floor", "")
+                address.apartment = self.cleaned_data.get("apartment", "")
+                address.postal_code = self.cleaned_data.get("postal_code", "")
+                address.notes = self.cleaned_data.get("notes", "")
+                address.save()
+            except Address.DoesNotExist:
+                # Create new address
+                Address.objects.create(
+                    veterinarian=veterinarian,
+                    province=self.cleaned_data["province"],
+                    locality=self.cleaned_data["locality"],
+                    street=self.cleaned_data["street"],
+                    number=self.cleaned_data["number"],
+                    floor=self.cleaned_data.get("floor", ""),
+                    apartment=self.cleaned_data.get("apartment", ""),
+                    postal_code=self.cleaned_data.get("postal_code", ""),
+                    notes=self.cleaned_data.get("notes", ""),
+                )
 
         return veterinarian

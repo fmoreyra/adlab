@@ -4,15 +4,11 @@ from io import BytesIO
 
 import qrcode
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import FileResponse, HttpResponseForbidden
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.http import require_http_methods
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -34,15 +30,9 @@ from accounts.mixins import (
     VeterinarianRequiredMixin,
 )
 from accounts.models import Veterinarian
-from protocols.emails import (
-    queue_email,
-    send_sample_reception_notification,
-)
 from protocols.forms import (
     CytologyProtocolForm,
-    CytologySampleEditForm,
     HistopathologyProtocolForm,
-    HistopathologySampleEditForm,
     ProtocolEditForm,
     ReceptionForm,
     ReceptionSearchForm,
@@ -50,134 +40,18 @@ from protocols.forms import (
 from protocols.models import (
     Cassette,
     CassetteSlide,
-    EmailLog,
     ProcessingLog,
     Protocol,
     ProtocolStatusHistory,
-    ReceptionLog,
     Slide,
+)
+from protocols.services.email_service import EmailNotificationService
+from protocols.services.protocol_service import (
+    ProtocolProcessingService,
+    ProtocolReceptionService,
 )
 
 logger = logging.getLogger(__name__)
-
-
-# ============================================================================
-# HELPER FUNCTIONS
-# ============================================================================
-
-
-def _send_reception_email(protocol):
-    """
-    Send reception confirmation email to veterinarian asynchronously.
-
-    Uses Celery-based email system for non-blocking delivery with
-    automatic retry logic and preference checking.
-
-    Args:
-        protocol: Protocol instance that was received
-
-    Returns:
-        bool: True if email was queued successfully, False otherwise
-    """
-    try:
-        email_log = send_sample_reception_notification(protocol)
-        if email_log:
-            logger.info(
-                f"Reception email queued for protocol {protocol.pk} "
-                f"(EmailLog ID: {email_log.id})"
-            )
-            return True
-        else:
-            logger.info(
-                f"Reception email skipped for protocol {protocol.pk} "
-                "(veterinarian preferences)"
-            )
-            return False
-    except Exception as e:
-        logger.error(
-            f"Failed to queue reception email for protocol {protocol.pk}: {e}"
-        )
-        return False
-
-
-def _send_submission_confirmation_email(protocol):
-    """
-    Send protocol submission confirmation email to veterinarian.
-
-    Args:
-        protocol: Protocol instance that was submitted
-
-    Returns:
-        bool: True if email was queued successfully, False otherwise
-    """
-    try:
-        email_log = queue_email(
-            email_type=EmailLog.EmailType.CUSTOM,
-            recipient_email=protocol.veterinarian.email,
-            subject=f"Protocolo {protocol.temporary_code} enviado exitosamente",
-            context={
-                "protocol": protocol,
-                "veterinarian": protocol.veterinarian,
-            },
-            template_name="emails/protocol_submitted.html",
-            protocol=protocol,
-            veterinarian=protocol.veterinarian,
-        )
-        logger.info(
-            f"Submission email queued for protocol {protocol.pk} "
-            f"(EmailLog ID: {email_log.id})"
-        )
-        return True
-    except Exception as e:
-        logger.error(
-            f"Failed to queue submission email for protocol {protocol.pk}: {e}"
-        )
-        return False
-
-
-def _send_discrepancy_alert_email(protocol, discrepancies, sample_condition):
-    """
-    Send discrepancy alert email when sample issues are found.
-
-    Args:
-        protocol: Protocol instance with discrepancies
-        discrepancies: String describing the discrepancies found
-        sample_condition: Sample condition value
-
-    Returns:
-        bool: True if email was queued successfully, False otherwise
-    """
-    try:
-        email_log = queue_email(
-            email_type=EmailLog.EmailType.CUSTOM,
-            recipient_email=protocol.veterinarian.email,
-            subject=f"Discrepancias encontradas - Protocolo {protocol.protocol_number}",
-            context={
-                "protocol": protocol,
-                "veterinarian": protocol.veterinarian,
-                "discrepancies": discrepancies,
-                "sample_condition": protocol.get_sample_condition_display(),
-            },
-            template_name="emails/reception_discrepancies.html",
-            protocol=protocol,
-            veterinarian=protocol.veterinarian,
-        )
-        logger.info(
-            f"Discrepancy alert queued for protocol {protocol.pk} "
-            f"(EmailLog ID: {email_log.id})"
-        )
-        return True
-    except Exception as e:
-        logger.error(
-            f"Failed to queue discrepancy email for protocol {protocol.pk}: {e}"
-        )
-        return False
-
-
-# ============================================================================
-# PROTOCOL VIEWS
-# ============================================================================
-
 
 # ============================================================================
 # CLASS-BASED VIEWS
@@ -541,7 +415,7 @@ class ReceptionSearchView(StaffRequiredMixin, FormView):
         return context
 
     def form_valid(self, form):
-        """Handle form submission and search for protocol."""
+        """Handle form submission and search for protocol with early returns."""
         temporary_code = form.cleaned_data["temporary_code"]
 
         try:
@@ -550,34 +424,6 @@ class ReceptionSearchView(StaffRequiredMixin, FormView):
                 "cytology_sample",
                 "histopathology_sample",
             ).get(temporary_code=temporary_code)
-
-            # Check protocol status and redirect or show info
-            if protocol.status == Protocol.Status.DRAFT:
-                messages.warning(
-                    self.request,
-                    _(
-                        "Este protocolo aún está en borrador y no ha sido enviado."
-                    ),
-                )
-                self.protocol = protocol
-                return self.form_invalid(form)
-            elif protocol.status == Protocol.Status.RECEIVED:
-                messages.info(
-                    self.request,
-                    _(
-                        "Este protocolo ya fue recibido el %(date)s. Número: %(number)s"
-                    )
-                    % {
-                        "date": protocol.reception_date.strftime("%d/%m/%Y"),
-                        "number": protocol.protocol_number,
-                    },
-                )
-                self.protocol = protocol
-                return self.form_invalid(form)
-            else:
-                # Protocol is ready for reception - redirect to confirmation
-                return redirect("protocols:reception_confirm", pk=protocol.pk)
-
         except Protocol.DoesNotExist:
             messages.error(
                 self.request,
@@ -585,6 +431,31 @@ class ReceptionSearchView(StaffRequiredMixin, FormView):
                 % {"code": temporary_code},
             )
             return self.form_invalid(form)
+
+        if protocol.status == Protocol.Status.DRAFT:
+            messages.warning(
+                self.request,
+                _("Este protocolo aún está en borrador y no ha sido enviado."),
+            )
+            self.protocol = protocol
+            return self.form_invalid(form)
+
+        if protocol.status == Protocol.Status.RECEIVED:
+            messages.info(
+                self.request,
+                _(
+                    "Este protocolo ya fue recibido el %(date)s. Número: %(number)s"
+                )
+                % {
+                    "date": protocol.reception_date.strftime("%d/%m/%Y"),
+                    "number": protocol.protocol_number,
+                },
+            )
+            self.protocol = protocol
+            return self.form_invalid(form)
+
+        # Protocol is ready for reception - redirect to confirmation
+        return redirect("protocols:reception_confirm", pk=protocol.pk)
 
 
 class ReceptionPendingView(StaffRequiredMixin, ListView):
@@ -652,8 +523,12 @@ class ProtocolSubmitView(ProtocolOwnerOrStaffMixin, View):
     Generates temporary code and changes status to SUBMITTED.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.email_service = EmailNotificationService()
+
     def post(self, request, *args, **kwargs):
-        """Handle protocol submission."""
+        """Handle protocol submission with service integration."""
         protocol = self.get_object()
 
         try:
@@ -667,8 +542,8 @@ class ProtocolSubmitView(ProtocolOwnerOrStaffMixin, View):
                 description="Protocol submitted by veterinarian",
             )
 
-            # Send submission confirmation email
-            _send_submission_confirmation_email(protocol)
+            # Send submission confirmation email using service
+            self.email_service.send_submission_confirmation_email(protocol)
 
             messages.success(
                 request,
@@ -1091,6 +966,11 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
     form_class = ReceptionForm
     template_name = "protocols/reception_confirm.html"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.reception_service = ProtocolReceptionService()
+        self.email_service = EmailNotificationService()
+
     def get_success_url(self):
         """Redirect to reception detail after successful confirmation."""
         return reverse(
@@ -1101,7 +981,6 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
         """Handle GET request with protocol validation."""
         protocol = self.get_protocol()
         if protocol is None:
-            # If protocol validation failed, redirect
             return redirect("protocols:reception_search")
         return super().get(request, *args, **kwargs)
 
@@ -1122,86 +1001,42 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
             pk=self.kwargs["pk"],
         )
 
-        # Check if protocol can be received
-        if protocol.status not in [
-            Protocol.Status.SUBMITTED,
-            Protocol.Status.DRAFT,
-        ]:
-            messages.warning(
-                self.request, _("Este protocolo ya fue procesado.")
-            )
+        # Early return for invalid protocol status
+        is_valid, error_message = (
+            self.reception_service.validate_protocol_for_reception(protocol)
+        )
+        if not is_valid:
+            messages.warning(self.request, error_message)
             return None
 
         return protocol
 
     def form_valid(self, form):
-        """Process reception confirmation."""
+        """Process reception confirmation with early returns and service integration."""
         protocol = self.get_protocol()
-
         if protocol is None:
             return redirect("protocols:reception_search")
 
-        # Process reception
-        sample_condition = form.cleaned_data["sample_condition"]
-        reception_notes = form.cleaned_data.get("reception_notes", "")
-        discrepancies = form.cleaned_data.get("discrepancies", "")
-
-        # Update protocol
-        protocol.receive(
-            received_by=self.request.user,
-            sample_condition=sample_condition,
-            reception_notes=reception_notes,
-            discrepancies=discrepancies,
+        # Process reception using service
+        form_data = form.cleaned_data
+        success, error_message = self.reception_service.process_reception(
+            protocol, form_data, self.request.user
         )
 
-        # Update sample-specific fields for cytology
-        if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
-            slides_received = form.cleaned_data.get("number_slides_received")
-            if slides_received is not None and hasattr(
-                protocol, "cytology_sample"
-            ):
-                protocol.cytology_sample.number_slides_received = (
-                    slides_received
-                )
-                protocol.cytology_sample.save(
-                    update_fields=["number_slides_received"]
-                )
+        if not success:
+            messages.error(
+                self.request, f"Error al procesar recepción: {error_message}"
+            )
+            return redirect("protocols:reception_search")
 
-        # Update sample-specific fields for histopathology
-        if protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY:
-            jars_received = form.cleaned_data.get("number_jars_received")
-            if jars_received is not None and hasattr(
-                protocol, "histopathology_sample"
-            ):
-                protocol.histopathology_sample.number_jars_received = (
-                    jars_received
-                )
-                protocol.histopathology_sample.save(
-                    update_fields=["number_jars_received"]
-                )
-
-        # Log reception action
-        ReceptionLog.log_action(
-            protocol=protocol,
-            action=ReceptionLog.Action.RECEIVED,
-            user=self.request.user,
-            notes=reception_notes,
-        )
-
-        # Log status change
-        ProtocolStatusHistory.log_status_change(
-            protocol=protocol,
-            new_status=Protocol.Status.RECEIVED,
-            changed_by=self.request.user,
-            description=_("Muestra recibida en laboratorio"),
-        )
-
-        # Send email notification to veterinarian
-        _send_reception_email(protocol)
+        # Send email notifications using service
+        self.email_service.send_reception_email(protocol)
 
         # Send discrepancy alert if issues found
+        discrepancies = form_data.get("discrepancies", "")
         if discrepancies:
-            _send_discrepancy_alert_email(
+            sample_condition = form_data.get("sample_condition", "")
+            self.email_service.send_discrepancy_alert_email(
                 protocol, discrepancies, sample_condition
             )
 
@@ -1490,72 +1325,65 @@ class SlideRegisterView(StaffRequiredMixin, View):
 
 class SlideUpdateStageView(StaffRequiredMixin, View):
     """
-    Update slide processing stage (montaje, coloración, listo).
+    Update slide processing stage (montaje, coloración, listo) with service integration.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.processing_service = ProtocolProcessingService()
+
     def post(self, request, *args, **kwargs):
-        """Update slide stage."""
+        """Update slide stage using service."""
         slide = get_object_or_404(Slide, pk=self.kwargs["slide_pk"])
 
         stage = request.POST.get("stage")
         observaciones = request.POST.get("observaciones", "")
 
-        if stage in ["montaje", "coloracion"]:
-            slide.update_stage(stage)
+        # Use service to update slide stage
+        success, error_message = self.processing_service.update_slide_stage(
+            slide, stage, request.user, observaciones
+        )
 
-            # Log action
-            etapa_mapping = {
-                "montaje": ProcessingLog.Stage.MONTAJE,
-                "coloracion": ProcessingLog.Stage.COLORACION,
-            }
-
-            ProcessingLog.log_action(
-                protocol=slide.protocol,
-                etapa=etapa_mapping[stage],
-                usuario=request.user,
-                slide=slide,
-                observaciones=observaciones,
-            )
-
+        if success:
             messages.success(
                 request,
                 _(f"Slide {slide.codigo_portaobjetos} actualizado a {stage}."),
             )
-        elif stage == "listo":
-            slide.mark_ready()
-            messages.success(
-                request,
-                _(f"Slide {slide.codigo_portaobjetos} marcado como listo."),
-            )
         else:
-            messages.error(request, _("Etapa no válida."))
+            messages.error(request, error_message)
 
         return redirect("protocols:processing_status", pk=slide.protocol.pk)
 
 
 class SlideUpdateQualityView(StaffRequiredMixin, View):
     """
-    Update slide quality assessment.
+    Update slide quality assessment with service integration.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.processing_service = ProtocolProcessingService()
+
     def post(self, request, *args, **kwargs):
-        """Update slide quality."""
+        """Update slide quality using service."""
         slide = get_object_or_404(Slide, pk=self.kwargs["slide_pk"])
 
         quality = request.POST.get("quality")
         observaciones = request.POST.get("observaciones", "")
 
-        if quality in [choice[0] for choice in Slide.Quality.choices]:
-            slide.calidad = quality
-            if observaciones:
-                slide.observaciones = observaciones
-            slide.save(update_fields=["calidad", "observaciones"])
+        # Use service to update slide quality
+        success, error_message = self.processing_service.update_slide_quality(
+            slide, quality, observaciones
+        )
 
+        if success:
             messages.success(
                 request,
-                _(f"Calidad de slide {slide.codigo_portaobjetos} actualizada."),
+                _(
+                    f"Calidad de slide {slide.codigo_portaobjetos} actualizada."
+                ),
             )
         else:
-            messages.error(request, _("Calidad no válida."))
+            messages.error(request, error_message)
 
         return redirect("protocols:processing_status", pk=slide.protocol.pk)

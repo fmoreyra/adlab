@@ -104,7 +104,7 @@ class AccountsViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "accounts/login.html")
-        self.assertContains(response, "verifique su email")
+        self.assertContains(response, "verificar su email")
 
     def test_login_view_post_inactive_user(self):
         """Test POST request with inactive user."""
@@ -349,7 +349,9 @@ class AccountsViewsTest(TestCase):
             email_verified=False,
         )
 
-        with patch("accounts.views.send_verification_email") as mock_send:
+        with patch(
+            "accounts.services.auth_service.AuthenticationService.send_verification_email"
+        ) as mock_send:
             response = self.client.post(
                 reverse("accounts:resend_verification"),
                 {"email": "unverified@example.com"},

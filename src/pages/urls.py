@@ -21,5 +21,9 @@ urlpatterns = [
         views.HistopathologistDashboardView.as_view(),
         name="dashboard_histopathologist",
     ),
-    path("dashboard/admin/", views.AdminDashboardView.as_view(), name="dashboard_admin"),
+    path(
+        "dashboard/admin/",
+        views.AdminDashboardView.as_view(),
+        name="dashboard_admin",
+    ),
 ]

@@ -59,7 +59,7 @@ class DockerTestRunner(DiscoverRunner):
             port = db_config.get("PORT", "5432")
             user = db_config.get("USER", "postgres")
 
-            # Build psql command
+            # Build psql command to terminate all connections
             psql_cmd = [
                 "psql",
                 "-h",
@@ -71,7 +71,13 @@ class DockerTestRunner(DiscoverRunner):
                 "-d",
                 "postgres",  # Connect to postgres database
                 "-c",
-                f"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{test_db_name}' AND pid <> pg_backend_pid();",
+                f"""
+                SELECT pg_terminate_backend(pid) 
+                FROM pg_stat_activity 
+                WHERE datname = '{test_db_name}' 
+                AND pid <> pg_backend_pid()
+                AND state = 'idle';
+                """,
             ]
 
             # Set PGPASSWORD if available
@@ -79,15 +85,28 @@ class DockerTestRunner(DiscoverRunner):
             if "PASSWORD" in db_config:
                 env["PGPASSWORD"] = db_config["PASSWORD"]
 
-            # Execute the command
-            result = subprocess.run(
-                psql_cmd, env=env, capture_output=True, text=True, timeout=10
-            )
-
-            if result.returncode == 0:
-                print(
-                    f"Terminated lingering connections to test database: {test_db_name}"
+            # Execute the command with retry
+            for attempt in range(3):
+                result = subprocess.run(
+                    psql_cmd,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
                 )
+
+                if result.returncode == 0:
+                    print(
+                        f"Terminated lingering connections to test database: {test_db_name} (attempt {attempt + 1})"
+                    )
+                    # Wait a bit for connections to close
+                    import time
+
+                    time.sleep(0.5)
+                else:
+                    print(
+                        f"Failed to terminate connections (attempt {attempt + 1}): {result.stderr}"
+                    )
 
         except (
             subprocess.TimeoutExpired,

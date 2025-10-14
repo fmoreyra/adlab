@@ -449,7 +449,9 @@ class EmailVerificationTest(TestCase):
         """Test that registration sends verification email."""
         from unittest.mock import patch
 
-        with patch("accounts.views.send_mail") as mock_send_mail:
+        with patch(
+            "accounts.services.auth_service.send_mail"
+        ) as mock_send_mail:
             self.client.post(
                 reverse("accounts:register"),
                 {
@@ -489,7 +491,7 @@ class EmailVerificationTest(TestCase):
 
         # Should not be logged in
         self.assertFalse(response.wsgi_request.user.is_authenticated)
-        self.assertContains(response, "verifique su email")
+        self.assertContains(response, "verificar su email")
 
         # Check audit log
         log = AuthAuditLog.objects.filter(
@@ -581,7 +583,9 @@ class EmailVerificationTest(TestCase):
         # Generate initial token
         old_token = self.vet.generate_email_verification_token()
 
-        with patch("accounts.views.send_mail") as mock_send_mail:
+        with patch(
+            "accounts.services.auth_service.send_mail"
+        ) as mock_send_mail:
             response = self.client.post(
                 reverse("accounts:resend_verification"),
                 {"email": "vet@example.com"},
@@ -1265,7 +1269,7 @@ class VeterinarianProfileHistoryViewTest(TestCase):
         )
 
         # Create some change logs
-        VeterinarianChangeLog.log_change(
+        VeterinarianChangeLog.objects.create(
             veterinarian=self.veterinarian,
             changed_by=self.user,
             field_name="phone",

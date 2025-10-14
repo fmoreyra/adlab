@@ -7,6 +7,7 @@ used in class-based views.
 
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
+from django.utils import timezone
 
 from accounts.mixins import (
     AdminRequiredMixin,
@@ -80,8 +81,7 @@ class StaffRequiredMixinTest(TestCase):
         """Test permission denied message."""
         mixin = StaffRequiredMixin()
         message = mixin.get_permission_denied_message()
-        self.assertIsInstance(message, str)
-        self.assertIn("permisos", message)
+        self.assertIn("permisos", str(message))
 
 
 class VeterinarianRequiredMixinTest(TestCase):
@@ -266,12 +266,14 @@ class ProtocolOwnerOrStaffMixinTest(TestCase):
             veterinarian=self.veterinarian,
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             status=Protocol.Status.DRAFT,
+            submission_date=timezone.now().date(),
         )
 
         self.other_protocol = Protocol.objects.create(
             veterinarian=self.other_veterinarian,
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             status=Protocol.Status.DRAFT,
+            submission_date=timezone.now().date(),
         )
 
     def test_staff_user_can_access_any_protocol(self):
@@ -451,8 +453,6 @@ class ReportAccessMixinTest(TestCase):
             first_name="Dr. Jane",
             last_name="Smith",
             license_number="HP-12345",
-            phone="+54 341 7654321",
-            email="histo@example.com",
         )
 
         # Create protocol and report
@@ -460,12 +460,13 @@ class ReportAccessMixinTest(TestCase):
             veterinarian=self.veterinarian,
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             status=Protocol.Status.READY,
+            submission_date=timezone.now().date(),
         )
 
         self.report = Report.objects.create(
             protocol=self.protocol,
             histopathologist=self.histopathologist,
-            created_by=self.staff_user,
+            veterinarian=self.veterinarian,
             status=Report.Status.DRAFT,
         )
 
@@ -508,7 +509,7 @@ class ReportAccessMixinTest(TestCase):
         other_report = Report.objects.create(
             protocol=self.protocol,
             histopathologist=self.histopathologist,
-            created_by=self.histo_user,
+            veterinarian=self.veterinarian,
             status=Report.Status.DRAFT,
         )
 

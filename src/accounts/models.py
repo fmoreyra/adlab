@@ -77,6 +77,19 @@ class User(AbstractUser):
         self.failed_login_attempts += 1
         self.save(update_fields=["failed_login_attempts"])
 
+        # Log account lockout if this is the 5th failed attempt
+        if self.failed_login_attempts == 5:
+            from accounts.models import AuthAuditLog
+
+            AuthAuditLog.objects.create(
+                user=self,
+                email=self.email,
+                action=AuthAuditLog.Action.ACCOUNT_LOCKED,
+                ip_address=None,  # We don't have request context here
+                user_agent="",
+                details="Account locked due to 5 failed login attempts",
+            )
+
     def is_locked_out(self):
         """Check if account is locked due to too many failed login attempts."""
         return self.failed_login_attempts >= 5

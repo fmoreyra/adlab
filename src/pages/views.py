@@ -37,15 +37,17 @@ class HomeView(TemplateView):
             "veterinarian"
         ).order_by("-created_at")[:5]
 
-        context.update({
-            "debug": settings.DEBUG,
-            "django_ver": get_version(),
-            "python_ver": os.environ["PYTHON_VERSION"],
-            "total_protocols": total_protocols,
-            "total_users": total_users,
-            "total_veterinarians": total_veterinarians,
-            "recent_protocols": recent_protocols,
-        })
+        context.update(
+            {
+                "debug": settings.DEBUG,
+                "django_ver": get_version(),
+                "python_ver": os.environ["PYTHON_VERSION"],
+                "total_protocols": total_protocols,
+                "total_users": total_users,
+                "total_veterinarians": total_veterinarians,
+                "recent_protocols": recent_protocols,
+            }
+        )
 
         return context
 
@@ -60,9 +62,13 @@ class DashboardView(LoginRequiredMixin, View):
         user = request.user
 
         if user.is_veterinarian:
-            return VeterinarianDashboardView.as_view()(request, *args, **kwargs)
+            return VeterinarianDashboardView.as_view()(
+                request, *args, **kwargs
+            )
         elif user.is_histopathologist:
-            return HistopathologistDashboardView.as_view()(request, *args, **kwargs)
+            return HistopathologistDashboardView.as_view()(
+                request, *args, **kwargs
+            )
         elif user.is_lab_staff:
             return LabStaffDashboardView.as_view()(request, *args, **kwargs)
         elif user.is_admin_user:
@@ -118,7 +124,9 @@ class VeterinarianDashboardView(LoginRequiredMixin, TemplateView):
 
         # Get current month start
         now = timezone.now()
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        month_start = now.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
 
         monthly_protocols = Protocol.objects.filter(
             veterinarian=veterinarian, submission_date__gte=month_start.date()
@@ -131,14 +139,16 @@ class VeterinarianDashboardView(LoginRequiredMixin, TemplateView):
             .order_by("-updated_at")[:5]
         )
 
-        context.update({
-            "user": user,
-            "veterinarian": veterinarian,
-            "active_protocols_count": active_protocols,
-            "ready_reports_count": ready_reports,
-            "monthly_protocols_count": monthly_protocols,
-            "recent_protocols": recent_protocols,
-        })
+        context.update(
+            {
+                "user": user,
+                "veterinarian": veterinarian,
+                "active_protocols_count": active_protocols,
+                "ready_reports_count": ready_reports,
+                "monthly_protocols_count": monthly_protocols,
+                "recent_protocols": recent_protocols,
+            }
+        )
 
         return context
 
@@ -184,19 +194,24 @@ class LabStaffDashboardView(LoginRequiredMixin, TemplateView):
         # Get processing queue
         processing_queue = (
             Protocol.objects.filter(
-                status__in=[Protocol.Status.RECEIVED, Protocol.Status.PROCESSING]
+                status__in=[
+                    Protocol.Status.RECEIVED,
+                    Protocol.Status.PROCESSING,
+                ]
             )
             .select_related("veterinarian")
             .order_by("reception_date")[:10]
         )
 
-        context.update({
-            "user": user,
-            "pending_reception_count": pending_reception,
-            "processing_count": processing_count,
-            "today_received_count": today_received,
-            "processing_queue": processing_queue,
-        })
+        context.update(
+            {
+                "user": user,
+                "pending_reception_count": pending_reception,
+                "processing_count": processing_count,
+                "today_received_count": today_received,
+                "processing_queue": processing_queue,
+            }
+        )
 
         return context
 
@@ -224,11 +239,15 @@ class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
         user = self.request.user
 
         # Get statistics
-        pending_reports = Report.objects.filter(status=Report.Status.DRAFT).count()
+        pending_reports = Report.objects.filter(
+            status=Report.Status.DRAFT
+        ).count()
 
         # Get current month start
         now = timezone.now()
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        month_start = now.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
 
         monthly_reports = Report.objects.filter(
             status=Report.Status.FINALIZED, updated_at__gte=month_start
@@ -263,13 +282,15 @@ class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
             .order_by("created_at")[:10]
         )
 
-        context.update({
-            "user": user,
-            "pending_reports_count": pending_reports,
-            "monthly_reports_count": monthly_reports,
-            "avg_report_time": avg_report_time,
-            "pending_reports": pending_reports_list,
-        })
+        context.update(
+            {
+                "user": user,
+                "pending_reports_count": pending_reports,
+                "monthly_reports_count": monthly_reports,
+                "avg_report_time": avg_report_time,
+                "pending_reports": pending_reports_list,
+            }
+        )
 
         return context
 
@@ -301,7 +322,9 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
         year_start = now.replace(
             month=1, day=1, hour=0, minute=0, second=0, microsecond=0
         )
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        month_start = now.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
 
         # Get system statistics
         total_protocols = Protocol.objects.filter(
@@ -332,7 +355,8 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             for protocol in completed_protocols:
                 if protocol.reception_date:
                     days = (
-                        protocol.updated_at.date() - protocol.reception_date.date()
+                        protocol.updated_at.date()
+                        - protocol.reception_date.date()
                     ).days
                     if days >= 0:
                         total_days += days
@@ -363,14 +387,16 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             },
         ]
 
-        context.update({
-            "user": user,
-            "total_protocols_count": total_protocols,
-            "completed_reports_count": completed_reports,
-            "total_users_count": total_users,
-            "active_users_count": active_users,
-            "avg_tat_days": avg_tat_days,
-            "recent_activities": recent_activities,
-        })
+        context.update(
+            {
+                "user": user,
+                "total_protocols_count": total_protocols,
+                "completed_reports_count": completed_reports,
+                "total_users_count": total_users,
+                "active_users_count": active_users,
+                "avg_tat_days": avg_tat_days,
+                "recent_activities": recent_activities,
+            }
+        )
 
         return context

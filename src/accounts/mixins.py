@@ -53,6 +53,19 @@ class VeterinarianRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         """Return custom permission denied message."""
         return _("Esta función está disponible solo para veterinarios.")
 
+    def handle_no_permission(self):
+        """Handle permission denied by redirecting appropriately."""
+        from django.contrib import messages
+        from django.shortcuts import redirect
+
+        # If user is not authenticated, let LoginRequiredMixin handle it
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+
+        # If user is authenticated but not a veterinarian, redirect to home
+        messages.error(self.request, self.get_permission_denied_message())
+        return redirect("home")
+
 
 class WorkOrderStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """

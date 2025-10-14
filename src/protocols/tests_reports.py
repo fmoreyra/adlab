@@ -73,6 +73,8 @@ class ReportModelTest(TestCase):
             status=Protocol.Status.READY,
         )
         self.protocol.protocol_number = "HP 24/001"
+        self.protocol.animal_identification = "Max"
+        self.protocol.presumptive_diagnosis = "Masa mamaria"
         self.protocol.save()
 
         # Create report
@@ -171,6 +173,8 @@ class CassetteObservationModelTest(TestCase):
             status=Protocol.Status.READY,
         )
         self.protocol.protocol_number = "HP 24/001"
+        self.protocol.animal_identification = "Max"
+        self.protocol.presumptive_diagnosis = "Masa mamaria"
         self.protocol.save()
 
         self.sample = HistopathologySample.objects.create(
@@ -249,7 +253,7 @@ class ReportViewsTest(TestCase):
             role=User.Role.PERSONAL_LAB,
             is_staff=True,
         )
-        self.histopathologist = Histopathologist.objects.create(
+        self.staff_histopathologist = Histopathologist.objects.create(
             user=staff_user,
             first_name="Ana",
             last_name="López",
@@ -266,6 +270,8 @@ class ReportViewsTest(TestCase):
             status=Protocol.Status.READY,
         )
         self.protocol.protocol_number = "HP 24/001"
+        self.protocol.animal_identification = "Max"
+        self.protocol.presumptive_diagnosis = "Masa mamaria"
         self.protocol.save()
 
     def test_report_pending_list_requires_staff(self):
@@ -297,7 +303,7 @@ class ReportViewsTest(TestCase):
         self.client.login(username="staff@test.com", password="testpass123")
         url = reverse("protocols:report_create", args=[self.protocol.pk])
         data = {
-            "histopathologist": self.histopathologist.pk,
+            "histopathologist": self.staff_histopathologist.pk,
             "macroscopic_observations": "Masa de 3x2cm",
             "microscopic_observations": "Proliferación neoplásica",
             "diagnosis": "Carcinoma de células escamosas",
@@ -312,7 +318,7 @@ class ReportViewsTest(TestCase):
         """Test report detail view."""
         report = Report.objects.create(
             protocol=self.protocol,
-            histopathologist=self.histopathologist,
+            histopathologist=self.staff_histopathologist,
             veterinarian=self.veterinarian,
             diagnosis="Test diagnosis",
         )
@@ -371,6 +377,8 @@ class ReportPDFGenerationTest(TestCase):
             status=Protocol.Status.READY,
         )
         self.protocol.protocol_number = "HP 24/001"
+        self.protocol.animal_identification = "Max"
+        self.protocol.presumptive_diagnosis = "Masa mamaria"
         self.protocol.save()
 
         # Create report
@@ -457,6 +465,8 @@ class ReportEmailTest(TestCase):
             status=Protocol.Status.READY,
         )
         self.protocol.protocol_number = "HP 24/001"
+        self.protocol.animal_identification = "Max"
+        self.protocol.presumptive_diagnosis = "Masa mamaria"
         self.protocol.save()
 
         # Create finalized report with mock PDF
