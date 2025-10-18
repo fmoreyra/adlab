@@ -1166,6 +1166,21 @@ class Protocolo(models.Model):  # Spanish model name
 - Keep Step 13 (Email Config) for production setup
 - Monitor email delivery rates
 
+### Server Changes Workflow
+- **NEVER make changes directly on the server** that aren't in the codebase
+- **ALWAYS follow this workflow**:
+  1. Make changes locally
+  2. Test changes locally
+  3. Commit changes with proper commit message
+  4. Push to remote repository
+  5. Pull changes on server: `git pull`
+  6. Rebuild containers if needed: `docker compose build && docker compose up -d`
+- **This ensures**:
+  - All changes are version controlled
+  - Changes can be reviewed and rolled back
+  - Server and local codebase stay in sync
+  - No "works on my machine" issues
+
 ---
 
 **Remember**: These rules exist to maintain code quality, security, and consistency. 
