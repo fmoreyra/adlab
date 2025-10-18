@@ -228,6 +228,26 @@ EMAIL_USE_SSL = bool(strtobool(os.getenv("EMAIL_USE_SSL", "false")))
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@adlab.com")
 SERVER_EMAIL = os.getenv("SERVER_EMAIL", "server@adlab.com")
 
+# Security settings for production
+# https://docs.djangoproject.com/en/5.2/ref/settings/#security
+if not DEBUG:
+    # HTTPS settings
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # CSRF settings
+    csrf_trusted_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+    if csrf_trusted_origins:
+        CSRF_TRUSTED_ORIGINS = list(map(str.strip, csrf_trusted_origins.split(",")))
+    
+    # Content Security Policy
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = "DENY"
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 LANGUAGE_CODE = "en-us"
