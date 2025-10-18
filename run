@@ -319,6 +319,11 @@ yarn() {
   _dc js yarn "${@}"
 }
 
+yarn:install() {
+  # Install yarn dependencies
+  _dc_run js yarn install
+}
+
 yarn:outdated() {
   # List any installed packages that are outdated
   _dc_run js yarn outdated
@@ -342,6 +347,11 @@ yarn:build:css() {
 
   mkdir -p ../public/css
   DEBUG=0 tailwindcss -i css/app.css -o ../public/css/app.css "${args[@]}"
+}
+
+yarn:optimize:images() {
+  # Copy images to public directory, this is meant to be run from within the assets container
+  node optimize-images.js
 }
 
 clean() {

@@ -6,6 +6,7 @@
     "esbuild-copy-static-files": "0.1.0",
     "tailwindcss": "4.1.14",
     "@tailwindcss/cli": "4.1.14",
-    "@tailwindcss/postcss": "4.1.14"
+    "@tailwindcss/postcss": "4.1.14",
+    "imagemin": "8.0.1"
   }
 }

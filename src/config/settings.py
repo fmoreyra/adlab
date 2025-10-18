@@ -243,10 +243,6 @@ STATICFILES_DIRS = ["/public", os.path.join(BASE_DIR, "..", "public")]
 STATIC_ROOT = "/public_collected"
 STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
 
-# WhiteNoise configuration
-WHITENOISE_USE_FINDERS = True
-WHITENOISE_AUTOREFRESH = True
-
 # Django Debug Toolbar
 # https://django-debug-toolbar.readthedocs.io/
 if DEBUG:
