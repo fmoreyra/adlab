@@ -37,6 +37,4 @@ if not settings.TESTING and settings.DEBUG:
         path("__debug__/", include("debug_toolbar.urls")),
     ]
 
-# Serve static files in production
-if not settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+# WhiteNoise handles static files in production, no need for static() here

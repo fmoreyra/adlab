@@ -241,7 +241,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = ["/public", os.path.join(BASE_DIR, "..", "public")]
 STATIC_ROOT = "/public_collected"
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
 
 # Django Debug Toolbar
 # https://django-debug-toolbar.readthedocs.io/
