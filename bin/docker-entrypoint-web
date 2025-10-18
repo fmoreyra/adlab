@@ -4,6 +4,9 @@ set -e
 
 # Always keep this here as it ensures your latest built assets make their way
 # into your volume persisted public directory.
-cp -r /public_collected /app
+# Create the directory if it doesn't exist and ensure proper permissions
+mkdir -p /app/public_collected
+# Copy files with proper permissions
+cp -r /public_collected/* /app/public_collected/ 2>/dev/null || true
 
 exec "$@"
