@@ -30,7 +30,7 @@ urlpatterns = [
     path("api/", include("pages.api_urls")),  # Dashboard API endpoints
     path("admin/", admin.site.urls),
 ]
-if not settings.TESTING:
+if not settings.TESTING and settings.DEBUG:
     urlpatterns = [
         *urlpatterns,
         path("__debug__/", include("debug_toolbar.urls")),

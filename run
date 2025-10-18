@@ -416,6 +416,40 @@ ci:test() {
   RUNNING_TESTS=true manage test
 }
 
+server:connect() {
+  # Connect to the production server via SSH
+  # Loads SERVER_IP and SERVER_USER from .env file
+  
+  # Load environment variables from .env file
+  # shellcheck disable=SC1091
+  if [ -f .env ]; then
+    . .env
+  fi
+  
+  local server_ip="${SERVER_IP:-}"
+  local server_user="${SERVER_USER:-root}"
+  
+  if [ -z "${server_ip}" ]; then
+    echo "❌ SERVER_IP is not set in .env file"
+    echo ""
+    echo "Please add the following to your .env file:"
+    echo "  SERVER_IP=your-server-ip-here"
+    echo ""
+    echo "Example:"
+    echo "  SERVER_IP=147.93.7.60"
+    echo ""
+    echo "You can also set SERVER_USER if different from root:"
+    echo "  SERVER_USER=your-username"
+    return 1
+  fi
+  
+  echo "🔗 Connecting to server: ${server_user}@${server_ip}"
+  echo ""
+  
+  # Connect via SSH
+  ssh "${server_user}@${server_ip}"
+}
+
 help() {
   printf "%s <task> [args]\n\nTasks:\n" "${0}"
 
