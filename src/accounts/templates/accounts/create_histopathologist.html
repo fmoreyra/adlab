@@ -1,0 +1,211 @@
+{% extends "accounts/base_auth.html" %}
+
+{% block title %}Crear Histopatólogo{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h3 class="text-lg font-medium text-gray-900">
+        Crear Histopatólogo
+    </h3>
+    <p class="mt-1 text-sm text-gray-600">
+        Crear cuenta para personal interno del laboratorio
+    </p>
+</div>
+
+<form method="post" action="{% url 'accounts:create_histopathologist' %}" class="space-y-6" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- Account Information -->
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <h4 class="text-md font-medium text-gray-800 mb-4">Información de Cuenta</h4>
+        
+        <div class="space-y-4">
+            <div>
+                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Email *
+                </label>
+                <div class="mt-1">
+                    {{ form.email }}
+                </div>
+                {% if form.email.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                {% endif %}
+                {% if form.email.help_text %}
+                    <p class="mt-1 text-xs text-gray-500">{{ form.email.help_text }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Contraseña *
+                    </label>
+                    <div class="mt-1">
+                        {{ form.password1 }}
+                    </div>
+                    {% if form.password1.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
+                    {% endif %}
+                    {% if form.password1.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.password1.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Confirmar Contraseña *
+                    </label>
+                    <div class="mt-1">
+                        {{ form.password2 }}
+                    </div>
+                    {% if form.password2.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
+                    {% endif %}
+                    {% if form.password2.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.password2.help_text }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Information -->
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <h4 class="text-md font-medium text-gray-800 mb-4">Información Personal</h4>
+        
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Nombre *
+                </label>
+                <div class="mt-1">
+                    {{ form.first_name }}
+                </div>
+                {% if form.first_name.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Apellido *
+                </label>
+                <div class="mt-1">
+                    {{ form.last_name }}
+                </div>
+                {% if form.last_name.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Information -->
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <h4 class="text-md font-medium text-gray-800 mb-4">Información Profesional</h4>
+        
+        <div class="space-y-4">
+            <div>
+                <label for="{{ form.license_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Número de Matrícula *
+                </label>
+                <div class="mt-1">
+                    {{ form.license_number }}
+                </div>
+                {% if form.license_number.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.license_number.errors.0 }}</p>
+                {% endif %}
+                {% if form.license_number.help_text %}
+                    <p class="mt-1 text-xs text-gray-500">{{ form.license_number.help_text }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <label for="{{ form.position.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Cargo
+                    </label>
+                    <div class="mt-1">
+                        {{ form.position }}
+                    </div>
+                    {% if form.position.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.position.errors.0 }}</p>
+                    {% endif %}
+                    {% if form.position.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.position.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.specialty.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Especialidad
+                    </label>
+                    <div class="mt-1">
+                        {{ form.specialty }}
+                    </div>
+                    {% if form.specialty.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ form.specialty.errors.0 }}</p>
+                    {% endif %}
+                    {% if form.specialty.help_text %}
+                        <p class="mt-1 text-xs text-gray-500">{{ form.specialty.help_text }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Teléfono
+                </label>
+                <div class="mt-1">
+                    {{ form.phone_number }}
+                </div>
+                {% if form.phone_number.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
+                {% endif %}
+                {% if form.phone_number.help_text %}
+                    <p class="mt-1 text-xs text-gray-500">{{ form.phone_number.help_text }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Signature -->
+    <div class="bg-gray-50 p-4 rounded-lg">
+        <h4 class="text-md font-medium text-gray-800 mb-4">Firma Digital</h4>
+        
+        <div>
+            <label for="{{ form.signature_image.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Imagen de Firma
+            </label>
+            <div class="mt-1">
+                {{ form.signature_image }}
+            </div>
+            {% if form.signature_image.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.signature_image.errors.0 }}</p>
+            {% endif %}
+            {% if form.signature_image.help_text %}
+                <p class="mt-1 text-xs text-gray-500">{{ form.signature_image.help_text }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+        <div class="rounded-md bg-red-50 p-4">
+            <p class="text-sm text-red-800">
+                {{ form.non_field_errors.0 }}
+            </p>
+        </div>
+    {% endif %}
+
+    <!-- Submit Button -->
+    <div class="flex justify-end space-x-3">
+        <a href="{% url 'admin:accounts_histopathologist_changelist' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Cancelar
+        </a>
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Crear Histopatólogo
+        </button>
+    </div>
+</form>
+{% endblock %}

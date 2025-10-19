@@ -240,6 +240,7 @@ class AuthAuditLog(models.Model):
             "email_verification_failed",
             _("Email Verification Failed"),
         )
+        USER_CREATED = "user_created", _("Usuario Creado")
 
     user = models.ForeignKey(
         User,

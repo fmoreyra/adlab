@@ -5,7 +5,8 @@ from django import get_version
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
+from django.db.models import Avg, Case, Count, F, IntegerField, Q, When
+from django.db.models.functions import Extract
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.generic import TemplateView, View
@@ -237,7 +238,6 @@ class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         """Add histopathologist-specific context data - OPTIMIZED VERSION."""
         from django.core.cache import cache
-        from django.db.models import Avg, F, Case, When, IntegerField
         
         context = super().get_context_data(**kwargs)
         user = self.request.user
@@ -270,7 +270,10 @@ class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
                             When(
                                 status=Report.Status.FINALIZED,
                                 protocol__reception_date__isnull=False,
-                                then=F('updated_at__date') - F('protocol__reception_date')
+                                then=Extract(
+                                    F('updated_at') - F('protocol__reception_date'),
+                                    'days'
+                                )
                             ),
                             default=None,
                             output_field=IntegerField()

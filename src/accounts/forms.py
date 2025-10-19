@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .models import Address, User, Veterinarian
+from .models import Address, Histopathologist, User, Veterinarian
 
 
 class ResendVerificationEmailForm(forms.Form):
@@ -183,6 +183,194 @@ class VeterinarianRegistrationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class HistopathologistCreationForm(forms.Form):
+    """
+    Form for creating histopathologist users with complete profile.
+    
+    Creates both User account and Histopathologist profile in a single form.
+    Used by administrators to create internal laboratory staff.
+    """
+
+    # User account fields
+    email = forms.EmailField(
+        label=_("Email"),
+        required=True,
+        widget=forms.EmailInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "placeholder": "correo@ejemplo.com",
+            }
+        ),
+        help_text=_("Email que usará para iniciar sesión"),
+    )
+    first_name = forms.CharField(
+        label=_("Nombre"),
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "placeholder": "Nombre",
+            }
+        ),
+    )
+    last_name = forms.CharField(
+        label=_("Apellido"),
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "placeholder": "Apellido",
+            }
+        ),
+    )
+    password1 = forms.CharField(
+        label=_("Contraseña"),
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "placeholder": "Contraseña (mínimo 8 caracteres)",
+            }
+        ),
+        help_text=_("La contraseña debe tener al menos 8 caracteres."),
+    )
+    password2 = forms.CharField(
+        label=_("Confirmar contraseña"),
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "placeholder": "Confirmar contraseña",
+            }
+        ),
+        strip=False,
+        help_text=_("Ingrese la misma contraseña que antes, para verificación."),
+    )
+
+    # Histopathologist profile fields
+    license_number = forms.CharField(
+        label=_("Número de matrícula"),
+        max_length=50,
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "placeholder": "Ej: HP-12345",
+            }
+        ),
+        help_text=_("Número de matrícula profesional único"),
+    )
+    position = forms.CharField(
+        label=_("Cargo"),
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "placeholder": "Ej: Profesor Titular, Jefe de TP",
+            }
+        ),
+        help_text=_("Cargo o posición en el laboratorio"),
+    )
+    specialty = forms.CharField(
+        label=_("Especialidad"),
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "placeholder": "Ej: Patología Veterinaria",
+            }
+        ),
+        help_text=_("Especialidad o área de expertise"),
+    )
+    phone_number = forms.CharField(
+        label=_("Teléfono"),
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "placeholder": "+54 341 1234567",
+            }
+        ),
+        help_text=_("Número de teléfono de contacto"),
+    )
+    signature_image = forms.ImageField(
+        label=_("Firma digital"),
+        required=False,
+        widget=forms.FileInput(
+            attrs={
+                "class": "block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100",
+                "accept": "image/*",
+            }
+        ),
+        help_text=_("Imagen de la firma para incluir en informes (opcional)"),
+    )
+
+    def clean_email(self):
+        """Validate email is unique."""
+        email = self.cleaned_data.get("email")
+        if email and User.objects.filter(email=email).exists():
+            raise ValidationError(_("Este email ya está registrado."))
+        return email.lower() if email else email
+
+    def clean_license_number(self):
+        """Validate license number is unique."""
+        license_number = self.cleaned_data.get("license_number")
+        if license_number and Histopathologist.objects.filter(
+            license_number=license_number
+        ).exists():
+            raise ValidationError(_("Este número de matrícula ya está registrado."))
+        return license_number
+
+    def clean(self):
+        """Validate password confirmation."""
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        if password1 and password2 and password1 != password2:
+            raise ValidationError(_("Las contraseñas no coinciden."))
+
+        return cleaned_data
+
+    def save(self):
+        """
+        Create both User account and Histopathologist profile.
+        
+        Returns:
+            tuple: (user, histopathologist) instances created
+        """
+        # Create User account
+        user = User.objects.create_user(
+            email=self.cleaned_data["email"].lower(),
+            username=self.cleaned_data["email"].lower(),
+            password=self.cleaned_data["password1"],
+            first_name=self.cleaned_data["first_name"],
+            last_name=self.cleaned_data["last_name"],
+            role=User.Role.HISTOPATOLOGO,
+            is_active=True,
+            email_verified=True,  # Internal users don't need verification
+            is_staff=True,  # Allow admin access
+        )
+
+        # Create Histopathologist profile
+        histopathologist = Histopathologist.objects.create(
+            user=user,
+            first_name=self.cleaned_data["first_name"],
+            last_name=self.cleaned_data["last_name"],
+            license_number=self.cleaned_data["license_number"],
+            position=self.cleaned_data.get("position", ""),
+            specialty=self.cleaned_data.get("specialty", ""),
+            phone_number=self.cleaned_data.get("phone_number", ""),
+            signature_image=self.cleaned_data.get("signature_image"),
+        )
+
+        return user, histopathologist
 
 
 class PasswordResetRequestForm(forms.Form):

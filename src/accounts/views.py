@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
@@ -22,6 +22,7 @@ from django.views.generic import (
 )
 
 from .forms import (
+    HistopathologistCreationForm,
     PasswordResetConfirmForm,
     PasswordResetRequestForm,
     ResendVerificationEmailForm,
@@ -31,7 +32,7 @@ from .forms import (
     VeterinarianProfileEditForm,
     VeterinarianRegistrationForm,
 )
-from .mixins import VeterinarianRequiredMixin
+from .mixins import AdminRequiredMixin, VeterinarianRequiredMixin
 from .models import (
     Address,
     AuthAuditLog,
@@ -101,6 +102,17 @@ class LoginView(FormView):
         return super().form_invalid(form)
 
 
+class HistopathologistLoginView(LoginView):
+    """
+    Histopathologist login view with no registration link.
+    
+    Uses the same authentication logic as LoginView but displays
+    a different template without the registration section.
+    """
+
+    template_name = "accounts/histopathologist_login.html"
+
+
 class RegisterView(CreateView):
     """
     User registration view.
@@ -142,6 +154,52 @@ class RegisterView(CreateView):
                 ),
             )
 
+        return super().form_valid(form)
+
+
+class CreateHistopathologistView(AdminRequiredMixin, FormView):
+    """
+    View for creating histopathologist users with complete profile.
+    
+    Creates both User account and Histopathologist profile in a single form.
+    Only accessible by administrators and superusers.
+    """
+
+    form_class = HistopathologistCreationForm
+    template_name = "accounts/create_histopathologist.html"
+    success_url = reverse_lazy("admin:accounts_histopathologist_changelist")
+
+    def form_valid(self, form):
+        """Process valid form and create histopathologist."""
+        try:
+            user, histopathologist = form.save()
+            
+            # Log creation in audit log
+            auth_service = AuthenticationService()
+            AuthAuditLog.objects.create(
+                user=user,
+                email=user.email,
+                action=AuthAuditLog.Action.USER_CREATED,
+                ip_address=auth_service._get_client_ip(self.request),
+                user_agent=auth_service._get_user_agent(self.request),
+                details=f"Histopathologist created by {self.request.user.email}",
+            )
+            
+            messages.success(
+                self.request,
+                _(
+                    f"Histopatólogo {user.get_full_name()} creado exitosamente. "
+                    f"Email: {user.email}"
+                ),
+            )
+            
+        except Exception:
+            messages.error(
+                self.request,
+                _("Error al crear el histopatólogo. Intente nuevamente."),
+            )
+            return self.form_invalid(form)
+        
         return super().form_valid(form)
 
 

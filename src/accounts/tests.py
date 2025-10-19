@@ -169,6 +169,69 @@ class LoginViewTest(TestCase):
         self.assertContains(response, "desactivada")
 
 
+class HistopathologistLoginViewTest(TestCase):
+    """Tests for the histopathologist login view."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            email="histo@example.com",
+            username="histo@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="Histopathologist",
+            role=User.Role.HISTOPATOLOGO,
+        )
+        # Internal users don't need email verification
+        self.user.email_verified = True
+        self.user.save()
+
+    def test_histopathologist_login_page_loads(self):
+        """Test histopathologist login page loads correctly."""
+        response = self.client.get(reverse("accounts:histopathologist_login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Iniciar Sesión - Personal Interno")
+        self.assertNotContains(response, "Registrarse como Veterinario")
+
+    def test_histopathologist_login_successful(self):
+        """Test successful histopathologist login."""
+        response = self.client.post(
+            reverse("accounts:histopathologist_login"),
+            {"username": "histo@example.com", "password": "testpass123"},
+        )
+        self.assertEqual(response.status_code, 302)  # Redirect after login
+
+        # Check audit log
+        log = AuthAuditLog.objects.filter(
+            action=AuthAuditLog.Action.LOGIN_SUCCESS,
+            email="histo@example.com",
+        ).first()
+        self.assertIsNotNone(log)
+
+    def test_histopathologist_login_failed(self):
+        """Test failed histopathologist login with wrong password."""
+        response = self.client.post(
+            reverse("accounts:histopathologist_login"),
+            {"username": "histo@example.com", "password": "wrongpass"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "incorrectos")
+
+        # Check audit log
+        log = AuthAuditLog.objects.filter(
+            action=AuthAuditLog.Action.LOGIN_FAILED,
+            email="histo@example.com",
+        ).first()
+        self.assertIsNotNone(log)
+
+    def test_histopathologist_login_no_registration_link(self):
+        """Test that histopathologist login page has no registration link."""
+        response = self.client.get(reverse("accounts:histopathologist_login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "¿No tiene cuenta?")
+        self.assertNotContains(response, "Registrarse")
+
+
 class RegistrationViewTest(TestCase):
     """Tests for the registration view."""
 

@@ -50,6 +50,32 @@
             </div>
         </div>
 
+        <!-- User Management Actions -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Gestión de Usuarios</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <a href="{% url 'accounts:create_histopathologist' %}" class="block bg-white hover:bg-gray-50 border-2 border-indigo-300 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-indigo-700">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-2 text-gray-800">Crear Histopatólogo</h3>
+                    <p class="text-center text-gray-600 text-sm">Agregar nuevo histopatólogo</p>
+                </a>
+                
+                <a href="{% url 'admin:accounts_histopathologist_changelist' %}" class="block bg-white hover:bg-gray-50 border-2 border-purple-300 rounded-lg shadow-lg p-6 transform hover:-translate-y-1 transition-all duration-200">
+                    <div class="flex items-center justify-center mb-4 text-purple-700">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mb-2 text-gray-800">Histopatólogos</h3>
+                    <p class="text-center text-gray-600 text-sm">Gestionar histopatólogos</p>
+                </a>
+            </div>
+        </div>
+
         <!-- System Health -->
         <div class="mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Estado del Sistema</h2>
