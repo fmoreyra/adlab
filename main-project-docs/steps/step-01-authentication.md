@@ -244,6 +244,13 @@ Get current authenticated user information.
 - **Histopatólogo**: All laboratory staff permissions + create reports
 - **Administrador**: Full system access including user management
 
+### Histopathologist Authentication Flow
+- **Separate Login Page**: `/accounts/histopathologist/login/` - dedicated login page without registration link
+- **Admin Creation**: Only administrators can create histopathologist accounts via `/accounts/histopathologist/create/`
+- **Complete Profile Creation**: Single form creates both User account and Histopathologist profile
+- **Internal User Setup**: Histopathologists are created with `is_active=True`, `email_verified=True`, `is_staff=True`
+- **Audit Logging**: All histopathologist creation events logged with `USER_CREATED` action
+
 ## Acceptance Criteria
 
 1. ✅ Users can register with valid email and password
@@ -258,6 +265,10 @@ Get current authenticated user information.
 10. ✅ Different user roles have appropriate access levels
 11. ✅ All authentication events are logged in audit table
 12. ✅ Session timeout works correctly
+13. ✅ Histopathologists have dedicated login page without registration link
+14. ✅ Administrators can create complete histopathologist accounts (User + Profile)
+15. ✅ Histopathologist creation is properly audited and logged
+16. ✅ Main webpage pathologist button uses dedicated login URL
 
 ## Testing Approach
 
