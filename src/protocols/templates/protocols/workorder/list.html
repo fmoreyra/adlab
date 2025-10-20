@@ -31,9 +31,9 @@
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                     Filtrar
                 </button>
-                <a href="{% url 'protocols:workorder_list' %}" class="ml-2 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                <button type="button" onclick="clearWorkOrderFilters()" class="ml-2 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
                     Limpiar
-                </a>
+                </button>
             </div>
         </form>
     </div>
@@ -146,5 +146,28 @@
         </a>
     </div>
 </div>
+
+<script>
+function clearWorkOrderFilters() {
+    // Get the form element
+    const form = document.querySelector('form[method="get"]');
+    if (!form) return;
+    
+    // Clear all form fields
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.type === 'date') {
+            input.value = '';
+        } else if (input.type === 'text') {
+            input.value = '';
+        } else if (input.tagName === 'SELECT') {
+            input.selectedIndex = 0; // Select the first option (usually empty)
+        }
+    });
+    
+    // Submit the form to apply the cleared filters
+    form.submit();
+}
+</script>
 {% endblock %}
 
