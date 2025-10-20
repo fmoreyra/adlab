@@ -5,6 +5,20 @@ veterinary pathology protocols, sample processing, and report generation.
 This system provides a complete workflow for managing laboratory operations
 from protocol submission to final report delivery.
 
+## 📚 Documentation
+
+**Complete documentation is available in the [docs/](./docs/) directory:**
+
+- **[Setup Guide](./docs/setup/)** - Get started with development and testing
+- **[Deployment Guide](./docs/deployment/)** - Deploy to production
+- **[Configuration](./docs/configuration/)** - Configure system settings
+- **[Operations](./docs/operations/)** - Day-to-day operations and maintenance
+
+**Quick Links:**
+- [Quick Start](./docs/setup/quickstart.md) - 5-minute setup
+- [Production Deployment](./docs/deployment/production-deployment.md) - Deploy to production
+- [CLAUDE.md](./CLAUDE.md) - Architecture guide for developers
+
 ## 🏥 System Overview
 
 This laboratory management system is designed to streamline veterinary

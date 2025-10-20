@@ -1,0 +1,3915 @@
+Test ID,Step,Feature Area,Test Scenario,Test Steps,Expected Result,Status,Tester,Date,Notes
+S01-001,Step 01,Registration,New veterinarian registration with valid data,"1. Go to /accounts/register/
+2. Fill email: newvet@example.com
+3. Fill password: TestPass123!
+4. Fill password confirmation: TestPass123!
+5. Select role: Veterinario
+6. Click 'Registrar'","- Registration successful
+- Success message shown in Spanish
+- Redirected appropriately
+- User created in database",,,
+S01-002,Step 01,Registration,Registration with existing email,"1. Go to /accounts/register/
+2. Use email from previous test
+3. Fill password fields
+4. Click 'Registrar'","- Error message shown
+- 'Email already exists' error in Spanish
+- No duplicate user created",,,
+S01-003,Step 01,Registration,Registration with weak password,"1. Go to /accounts/register/
+2. Fill valid email
+3. Fill password: 123
+4. Fill confirmation: 123
+5. Click 'Registrar'","- Form validation error
+- Password complexity requirement message
+- Registration blocked",,,
+S01-004,Step 01,Registration,Registration with mismatched passwords,"1. Go to /accounts/register/
+2. Fill valid email
+3. Fill password: TestPass123!
+4. Fill confirmation: DifferentPass123!
+5. Click 'Registrar'","- Form validation error
+- Passwords don't match error
+- Registration blocked",,,
+S01-005,Step 01,Login,Login with valid credentials,"1. Go to /accounts/login/
+2. Enter email of verified user
+3. Enter correct password
+4. Click 'Iniciar sesión'","- Login successful
+- Redirected to home/dashboard
+- Session created
+- AuthAuditLog entry created (login_success)",,,
+S01-006,Step 01,Login,Login with invalid password,"1. Go to /accounts/login/
+2. Enter valid email
+3. Enter wrong password
+4. Click 'Iniciar sesión'","- Login failed
+- Error message shown
+- failed_login_attempts incremented
+- AuthAuditLog entry created (login_failed)",,,
+S01-007,Step 01,Login,Account lockout after 5 failed attempts,"1. Go to /accounts/login/
+2. Enter valid email
+3. Enter wrong password 5 times","- After 5th attempt: account locked
+- Clear lockout message shown
+- User cannot login even with correct password
+- AuthAuditLog entries for all attempts",,,
+S01-008,Step 01,Login,Login attempt on locked account,"1. Try to login with locked account
+2. Enter correct credentials","- Login blocked
+- Account locked message shown
+- Told to contact administrator",,,
+S01-009,Step 01,Login,Remember me functionality,"1. Go to /accounts/login/
+2. Enter valid credentials
+3. Check 'Remember me' checkbox
+4. Login successfully
+5. Close browser
+6. Reopen browser
+7. Visit site","- Session persists after browser close
+- Still logged in",,,
+S01-010,Step 01,Login,Login without remember me,"1. Login without checking 'Remember me'
+2. Check session timeout","- Session expires after 2 hours
+- User logged out automatically",,,
+S01-011,Step 01,Logout,User logout,"1. Login successfully
+2. Click 'Logout' or visit /accounts/logout/","- User logged out
+- Session terminated
+- Redirected to login page
+- AuthAuditLog entry created (logout)",,,
+S01-012,Step 01,Password Reset,Request password reset,"1. Go to /accounts/password-reset/
+2. Enter registered email
+3. Click submit","- Success message shown (generic)
+- Email sent with reset link
+- PasswordResetToken created
+- Token expires in 1 hour",,,
+S01-013,Step 01,Password Reset,Reset password with valid token,"1. Click link from reset email
+2. Enter new password
+3. Confirm new password
+4. Submit","- Password changed successfully
+- Token marked as used
+- Success message shown
+- Can login with new password
+- AuthAuditLog entry created",,,
+S01-014,Step 01,Password Reset,Reset with expired token,"1. Wait 1+ hours after requesting reset
+2. Click reset link
+3. Try to set new password","- Token expired error
+- Cannot reset password
+- Prompted to request new token",,,
+S01-015,Step 01,Password Reset,Reset with already-used token,"1. Request password reset
+2. Use token to reset password
+3. Try to use same token again","- Token already used error
+- Cannot reset password again
+- Must request new token",,,
+S01-016,Step 01,Password Reset,Request reset for non-existent email,"1. Go to /accounts/password-reset/
+2. Enter email not in system
+3. Submit","- Generic success message (security)
+- No email sent
+- No error revealing email doesn't exist",,,
+S01-017,Step 01,Profile,View own profile,"1. Login as any user
+2. Go to /accounts/profile/","- Profile page shown
+- Shows user information
+- Email, role, last login displayed",,,
+S01-018,Step 01,Session Security,Session cookie security,"1. Login successfully
+2. Inspect browser cookies","- Session cookie is HttpOnly
+- Session cookie is Secure
+- SameSite attribute set",,,
+S01-019,Step 01,Audit Log,Verify audit logging,"1. Perform various actions (login, logout, reset)
+2. Admin checks AuthAuditLog in Django admin","- All actions logged
+- IP address captured
+- User agent captured
+- Timestamps accurate",,,
+S01-020,Step 01,Admin,Admin unlock account,"1. Lock account (5 failed logins)
+2. Admin goes to Django admin
+3. Admin resets failed_login_attempts to 0
+4. User tries to login again","- Account unlocked
+- User can login successfully",,,
+S01.1-001,Step 01.1,Email Verification,New veterinarian receives verification email,"1. Register as veterinarian
+2. Check email/console logs","- Verification email sent
+- Email contains clickable link
+- Link format: /accounts/verify-email/<token>/
+- Token is 43 characters (urlsafe)",,,
+S01.1-002,Step 01.1,Email Verification,Verify email with valid token,"1. Register as veterinarian
+2. Click verification link from email
+3. Observe result","- Email verified successfully
+- email_verified set to True
+- Token cleared
+- Success message shown
+- Can now login",,,
+S01.1-003,Step 01.1,Email Verification,Login attempt before verification,"1. Register as veterinarian (unverified)
+2. Go to /accounts/login/
+3. Enter correct credentials
+4. Try to login","- Authentication succeeds but login blocked
+- Message: 'Please verify email before logging in'
+- Link to resend verification shown",,,
+S01.1-004,Step 01.1,Email Verification,Verify with expired token (>24 hours),"1. Register as veterinarian
+2. Wait 24+ hours (or manually expire token in DB)
+3. Click verification link","- Token expired error
+- email_verified still False
+- Prompted to request new verification",,,
+S01.1-005,Step 01.1,Email Verification,Verify with invalid token,"1. Visit /accounts/verify-email/invalidtoken123/
+2. Observe result","- Invalid token error
+- Generic error message
+- No information disclosure",,,
+S01.1-006,Step 01.1,Email Verification,Resend verification email,"1. Go to /accounts/resend-verification/
+2. Enter registered unverified email
+3. Submit","- Success message shown
+- New verification email sent
+- New token generated (old token invalidated)
+- Can verify with new token",,,
+S01.1-007,Step 01.1,Email Verification,Resend for non-existent email,"1. Go to /accounts/resend-verification/
+2. Enter email not in system
+3. Submit","- Generic success message (security)
+- No email sent
+- No error revealing email doesn't exist",,,
+S01.1-008,Step 01.1,Email Verification,Resend for already verified email,"1. Go to /accounts/resend-verification/
+2. Enter email of verified user
+3. Submit","- Generic success message
+- No email sent (already verified)
+- No error revealing status",,,
+S01.1-009,Step 01.1,Email Verification,Internal user (lab staff) bypass verification,"1. Admin creates lab staff user
+2. Lab staff user tries to login immediately","- Login successful without verification
+- No email verification required
+- can_login() returns True for internal users",,,
+S01.1-010,Step 01.1,Email Verification,Internal user (admin) bypass verification,"1. Admin creates admin user
+2. Admin user tries to login immediately","- Login successful without verification
+- No email verification required",,,
+S01.1-011,Step 01.1,Email Verification,Internal user (histopathologist) bypass verification,"1. Admin creates histopathologist user
+2. Histopathologist tries to login immediately","- Login successful without verification
+- No email verification required",,,
+S01.1-012,Step 01.1,Email Verification,Admin manually verify email,"1. Admin goes to Django admin
+2. Selects unverified veterinarian
+3. Uses 'Mark email as verified' action
+4. Veterinarian tries to login","- Email marked as verified
+- Veterinarian can login successfully",,,
+S01.1-013,Step 01.1,Email Verification,Admin resend verification email,"1. Admin goes to Django admin
+2. Selects unverified veterinarian
+3. Uses 'Resend verification email' action","- New verification email sent
+- New token generated
+- Success message shown",,,
+S01.1-014,Step 01.1,Audit Log,Email verification events logged,"1. Register, verify, resend
+2. Check AuthAuditLog in admin","- EMAIL_VERIFICATION_SENT logged
+- EMAIL_VERIFIED logged
+- EMAIL_VERIFICATION_FAILED logged (if applicable)
+- All with timestamps and IP",,,
+S01.1-015,Step 01.1,Histopathologist Login,Dedicated histopathologist login page,"1. Go to /accounts/histopathologist/login/
+2. Observe page design","- Clean professional interface
+- No registration link visible
+- Same login functionality as regular login
+- Tailwind CSS styling",,,
+S01.1-016,Step 01.1,Histopathologist Creation,Admin create histopathologist,"1. Login as admin
+2. Go to /accounts/histopathologist/create/
+3. Fill form with histopathologist data
+4. Submit","- Histopathologist user created
+- Profile created with professional info
+- User can login immediately
+- Audit log entry created",,,
+S01.1-017,Step 01.1,Histopathologist Creation,Non-admin cannot create histopathologist,"1. Login as veterinarian or lab staff
+2. Try to access /accounts/histopathologist/create/","- Access denied
+- Error message shown
+- Redirected appropriately",,,
+S02-001,Step 02,Profile Completion,First-time profile completion prompt,"1. Register and verify as veterinarian
+2. Login for first time
+3. Check if prompted","- Redirected to complete profile page
+- Message explaining profile completion needed
+- Form displayed",,,
+S02-002,Step 02,Profile Completion,Complete profile with valid data,"1. Navigate to /accounts/veterinarian/complete-profile/
+2. Fill first name: Juan
+3. Fill last name: Pérez
+4. Fill license number: MP-12345
+5. Fill phone: +54 342 1234567
+6. Fill email: (auto-filled from user)
+7. Fill province: Santa Fe
+8. Fill locality: Santa Fe
+9. Fill street: San Martín
+10. Fill number: 1234
+11. Submit","- Profile created successfully
+- Veterinarian record created
+- Address record created
+- Redirected to profile view
+- Success message shown",,,
+S02-003,Step 02,Profile Completion,Invalid license number format,"1. Go to complete profile
+2. Fill license number: 12345 (wrong format)
+3. Submit","- Form validation error
+- Message: 'Format must be XX-XXXXX or XXX-XXXXX'
+- Profile not created",,,
+S02-004,Step 02,Profile Completion,Valid license number formats,"1. Test format: MP-12345
+2. Test format: MVT-123456
+3. Test format: AA-1234","- MP-12345: Valid ✓
+- MVT-123456: Valid ✓
+- AA-1234: Valid ✓
+- Uppercase conversion automatic",,,
+S02-005,Step 02,Profile Completion,Duplicate license number,"1. Create profile with license MP-12345
+2. Create another profile with same license
+3. Submit","- Error: 'License number already exists'
+- Profile not created
+- Uniqueness enforced",,,
+S02-006,Step 02,Profile Completion,Invalid phone format,"1. Go to complete profile
+2. Fill phone: 123456 (wrong format)
+3. Submit","- Form validation error
+- Message shows required format
+- Profile not created",,,
+S02-007,Step 02,Profile Completion,Valid phone format,"1. Go to complete profile
+2. Fill phone: +54 342 1234567
+3. Submit","- Phone accepted
+- Format validated successfully",,,
+S02-008,Step 02,Profile Completion,Complete profile without address,"1. Fill only veterinarian fields
+2. Leave address fields empty
+3. Submit","- Form validation error
+- Required address fields highlighted
+- Cannot submit without address",,,
+S02-009,Step 02,Profile Completion,Attempt to complete profile twice,"1. Complete profile once
+2. Try to access /accounts/veterinarian/complete-profile/ again","- Redirected away
+- Message: Profile already complete
+- Cannot duplicate profile",,,
+S02-010,Step 02,Profile Completion,Non-veterinarian access profile completion,"1. Login as lab staff or admin
+2. Try to access /accounts/veterinarian/complete-profile/","- Access denied
+- Error message
+- Redirected appropriately",,,
+S02-011,Step 02,Profile View,View complete profile,"1. Login as veterinarian with profile
+2. Go to /accounts/veterinarian/profile/","- Profile information displayed
+- Shows professional info
+- Shows address
+- Shows verification status
+- Shows profile completeness (100%)",,,
+S02-012,Step 02,Profile View,Profile without completion redirect,"1. Login as veterinarian without profile
+2. Try to access /accounts/veterinarian/profile/","- Redirected to complete-profile page
+- Message prompting completion",,,
+S02-013,Step 02,Profile View,Profile completeness calculation,"1. View profile with all fields filled
+2. Check completeness percentage","- Shows 100% complete
+- All 9 required fields counted",,,
+S02-014,Step 02,Profile View,Verification status badge,"1. View profile as unverified veterinarian
+2. Check verification badge","- Shows 'No Verificado' or similar
+- Red/warning badge color
+- Clear indication of status",,,
+S02-015,Step 02,Profile View,Verified status badge,"1. Admin verifies veterinarian
+2. Veterinarian views profile
+3. Check verification badge","- Shows 'Verificado' or similar
+- Green/success badge color
+- Shows verified date if visible",,,
+S02-016,Step 02,Profile Edit,Edit profile with valid data,"1. Go to /accounts/veterinarian/profile/edit/
+2. Change phone to +54 342 9999999
+3. Change locality to Rosario
+4. Submit","- Changes saved successfully
+- VeterinarianChangeLog entries created
+- Shows updated information
+- Success message displayed",,,
+S02-017,Step 02,Profile Edit,Edit with invalid license format,"1. Go to profile edit
+2. Change license to invalid format
+3. Submit","- Form validation error
+- Changes not saved
+- Original data preserved",,,
+S02-018,Step 02,Profile Edit,Edit with duplicate license,"1. Go to profile edit
+2. Change license to another user's license
+3. Submit","- Error: License already exists
+- Changes not saved",,,
+S02-019,Step 02,Profile Edit,Change log creation on edit,"1. Edit profile (change phone)
+2. View profile history
+3. Check Django admin change log","- Change logged in VeterinarianChangeLog
+- Shows field: phone
+- Shows old value
+- Shows new value
+- Shows who changed (user)
+- Shows IP address
+- Shows timestamp",,,
+S02-020,Step 02,Profile Edit,Edit email synchronization,"1. Go to profile edit
+2. Change email address
+3. Submit
+4. Check User model","- Email changed in Veterinarian
+- Email also changed in User model
+- Kept in sync",,,
+S02-021,Step 02,Profile History,View change history,"1. Edit profile multiple times
+2. Go to /accounts/veterinarian/profile/history/","- Shows list of changes (last 50)
+- Shows old → new values
+- Shows field names
+- Shows timestamps
+- Shows who made changes
+- Shows IP addresses
+- Chronological order (newest first)",,,
+S02-022,Step 02,Profile History,History shows multiple field changes,"1. Edit profile changing 3 fields
+2. View history","- Shows 3 separate change log entries
+- One entry per field changed
+- All from same edit session",,,
+S02-023,Step 02,Profile History,Empty history for new profile,"1. Complete new profile
+2. View history immediately","- History shows profile creation
+- Or shows empty/no changes yet",,,
+S02-024,Step 02,Address,Complete address display,"1. Create profile with full address (including optional fields)
+2. View profile","- Shows full address formatted properly
+- Street Number, Floor Apt
+- Locality, Province (Postal Code)
+- Shows notes if provided",,,
+S02-025,Step 02,Address,Partial address display,"1. Create profile with only required address fields
+2. View profile","- Shows address with required fields only
+- Optional fields not shown/blank
+- Still properly formatted",,,
+S02-026,Step 02,Admin,Search veterinarians,"1. Login to Django admin
+2. Go to Veterinarians
+3. Search by name
+4. Search by email
+5. Search by license","- Search works for all fields
+- Results filtered correctly
+- Quick lookup by any field",,,
+S02-027,Step 02,Admin,Filter by verification status,"1. Login to Django admin
+2. Go to Veterinarians
+3. Filter by 'is_verified'","- Shows only verified/unverified
+- Filter works correctly
+- Can separate verified from unverified",,,
+S02-028,Step 02,Admin,Bulk verify veterinarians,"1. Login to Django admin
+2. Go to Veterinarians
+3. Select multiple unverified vets
+4. Choose 'Verify veterinarians' action
+5. Execute","- All selected vets verified
+- is_verified set to True
+- verified_by set to admin
+- verified_at set to now",,,
+S02-029,Step 02,Admin,Bulk unverify veterinarians,"1. Login to Django admin
+2. Select verified vets
+3. Choose 'Unverify veterinarians' action
+4. Execute","- All selected vets unverified
+- is_verified set to False
+- Verification metadata cleared",,,
+S02-030,Step 02,Admin,View veterinarian with inline address,"1. Login to Django admin
+2. Open specific veterinarian record","- Shows veterinarian fields
+- Shows address inline
+- Can edit address from same page",,,
+S02-031,Step 02,Admin,View veterinarian change log inline,"1. Login to Django admin
+2. Open veterinarian with history
+3. Scroll to change logs section","- Shows change log entries inline
+- All fields read-only
+- Cannot edit history
+- Shows last N changes",,,
+S02-032,Step 02,Admin,Prevent manual veterinarian creation,"1. Login to Django admin
+2. Try to add new veterinarian manually","- Add button disabled or hidden
+- Error if attempted
+- Must register via UI",,,
+S02-033,Step 02,Admin,Prevent change log manipulation,"1. Login to Django admin
+2. Go to VeterinarianChangeLogs
+3. Try to edit or delete entry","- All entries read-only
+- Cannot edit
+- Cannot delete
+- Audit log immutable",,,
+S02-034,Step 02,Validation,License number case insensitive,"1. Create profile with license: mp-12345
+2. Check database","- Stored as: MP-12345
+- Automatically uppercased
+- Case insensitive uniqueness",,,
+S02-035,Step 02,Validation,Required fields enforcement,"1. Try to submit profile with missing required fields
+2. Test each required field","- All 9 required fields enforced:
+  * first_name
+  * last_name
+  * license_number
+  * phone
+  * email
+  * province
+  * locality
+  * street
+  * number
+- Submission blocked if any missing",,,
+S02-036,Step 02,Validation,Optional fields acceptance,"1. Submit profile without optional fields:
+   - floor
+   - apartment
+   - postal_code
+   - address notes","- Profile accepted
+- Optional fields can be blank
+- No validation errors",,,
+S02-037,Step 02,Security,Veterinarian can only edit own profile,"1. Login as veterinarian A
+2. Try to access profile of veterinarian B","- Access denied
+- Cannot view other profiles
+- Cannot edit other profiles
+- Proper isolation",,,
+S02-038,Step 02,Security,Lab staff view-only access,"1. Login as lab staff
+2. Access Django admin
+3. View veterinarians
+4. Try to edit","- Can view veterinarian list
+- Can search/filter
+- Cannot edit (view-only)
+- Proper permission control",,,
+S02-039,Step 02,Security,Change log IP capture,"1. Edit profile
+2. Check change log entry
+3. Verify IP address","- IP address captured correctly
+- Shows actual client IP
+- Logged for audit trail",,,
+S02-040,Step 02,Integration,Profile completion after registration flow,"1. Complete full registration flow:
+   - Register account
+   - Verify email
+   - Login
+   - Complete profile
+2. Verify entire flow","- Smooth progression through steps
+- No errors at any stage
+- All data persists correctly
+- User ends at functional profile",,,
+S03-001,Step 03,Protocol Type Selection,Access protocol type selection page,"1. Login as veterinarian with complete profile
+2. Navigate to /protocols/select-type/","- Page displays two options: Cytology and Histopathology
+- Each option has description and icon
+- Both options are clickable
+- Clean Tailwind-styled interface",,,
+S03-002,Step 03,Protocol Type Selection,Select cytology protocol type,"1. Go to /protocols/select-type/
+2. Click 'Citología' button","- Redirected to /protocols/create/cytology/
+- Cytology protocol form displayed
+- Form shows cytology-specific fields",,,
+S03-003,Step 03,Protocol Type Selection,Select histopathology protocol type,"1. Go to /protocols/select-type/
+2. Click 'Histopatología' button","- Redirected to /protocols/create/histopathology/
+- Histopathology protocol form displayed
+- Form shows histopathology-specific fields",,,
+S03-004,Step 03,Cytology Protocol,Create cytology protocol draft with valid data,"1. Navigate to /protocols/create/cytology/
+2. Fill Species: Canino
+3. Fill Animal ID: Max
+4. Fill Diagnosis: Suspected lymphoma
+5. Fill Technique Used: PAAF
+6. Fill Sampling Site: Left submandibular lymph node
+7. Fill Number of Slides: 2
+8. Fill Submission Date: Today
+9. Click 'Guardar Borrador'","- Protocol created successfully
+- Status: DRAFT
+- No temporary code assigned yet
+- Redirected to protocol detail page
+- Success message shown
+- Can edit or delete protocol",,,
+S03-005,Step 03,Cytology Protocol,Create cytology with missing required fields,"1. Go to /protocols/create/cytology/
+2. Fill only Species: Canino
+3. Leave other required fields empty
+4. Click 'Guardar Borrador'","- Form validation errors shown
+- Required fields highlighted:
+  * Animal Identification
+  * Presumptive Diagnosis
+  * Technique Used
+  * Sampling Site
+  * Number of Slides
+  * Submission Date
+- Protocol NOT created",,,
+S03-006,Step 03,Cytology Protocol,Create cytology with optional fields,"1. Create cytology protocol
+2. Include optional fields:
+   - Breed: Golden Retriever
+   - Sex: Hembra
+   - Age: 7 años
+   - Owner Last Name: García
+   - Owner First Name: Ana
+   - Clinical History: (text)
+   - Academic Interest: Yes
+   - Observations: (text)
+3. Save as draft","- All optional fields accepted
+- All data saved correctly
+- Fields displayed in protocol detail view",,,
+S03-007,Step 03,Cytology Protocol,Submit cytology protocol,"1. Create cytology protocol draft
+2. View protocol detail page
+3. Click 'Enviar Protocolo' button
+4. Confirm submission","- Status changed to SUBMITTED
+- Temporary code generated (format: TMP-CT-YYYYMMDD-###)
+- Temporary code displayed prominently
+- Protocol locked (no edit/delete buttons)
+- Success message with temporary code
+- Status history logged",,,
+S03-008,Step 03,Histopathology Protocol,Create histopathology protocol draft with valid data,"1. Navigate to /protocols/create/histopathology/
+2. Fill Species: Felino
+3. Fill Animal ID: Luna
+4. Fill Diagnosis: Mammary tumor
+5. Fill Material Submitted: Mass from left mammary chain 3x2cm
+6. Fill Number of Containers: 1
+7. Fill Preservation: Formol 10%
+8. Fill Submission Date: Today
+9. Click 'Guardar Borrador'","- Protocol created successfully
+- Status: DRAFT
+- No temporary code assigned yet
+- Redirected to protocol detail page
+- Success message shown
+- Can edit or delete protocol",,,
+S03-009,Step 03,Histopathology Protocol,Create histopathology with missing required fields,"1. Go to /protocols/create/histopathology/
+2. Fill only Species: Bovino
+3. Leave other required fields empty
+4. Click 'Guardar Borrador'","- Form validation errors shown
+- Required fields highlighted:
+  * Animal Identification
+  * Presumptive Diagnosis
+  * Material Submitted
+  * Number of Containers
+  * Submission Date
+- Protocol NOT created",,,
+S03-010,Step 03,Histopathology Protocol,Submit histopathology protocol,"1. Create histopathology protocol draft
+2. View protocol detail page
+3. Click 'Enviar Protocolo' button
+4. Confirm submission","- Status changed to SUBMITTED
+- Temporary code generated (format: TMP-HP-YYYYMMDD-###)
+- Temporary code displayed prominently
+- Protocol locked (no edit/delete buttons)
+- Success message with temporary code
+- Status history logged",,,
+S03-011,Step 03,Protocol List,View protocol list,"1. Login as veterinarian
+2. Navigate to /protocols/","- List of all veterinarian's protocols displayed
+- Shows: type, animal ID, species, diagnosis, status, date
+- Pagination (20 per page)
+- Filter options visible
+- Search bar available",,,
+S03-012,Step 03,Protocol List,Filter by status - Draft,"1. Go to /protocols/
+2. Select 'Borrador' from status filter
+3. Click filter/search","- Only draft protocols displayed
+- No submitted or received protocols shown
+- Count matches filter",,,
+S03-013,Step 03,Protocol List,Filter by status - Submitted,"1. Go to /protocols/
+2. Select 'Enviado' from status filter
+3. Click filter/search","- Only submitted protocols displayed
+- Shows temporary codes
+- No protocol numbers yet (not received)",,,
+S03-014,Step 03,Protocol List,Filter by analysis type - Cytology,"1. Go to /protocols/
+2. Select 'Citología' from type filter
+3. Click filter/search","- Only cytology protocols displayed
+- No histopathology protocols shown",,,
+S03-015,Step 03,Protocol List,Filter by analysis type - Histopathology,"1. Go to /protocols/
+2. Select 'Histopatología' from type filter
+3. Click filter/search","- Only histopathology protocols displayed
+- No cytology protocols shown",,,
+S03-016,Step 03,Protocol List,Filter by date range,"1. Go to /protocols/
+2. Select date range (last 30 days)
+3. Click filter/search","- Only protocols within date range shown
+- Older protocols excluded",,,
+S03-017,Step 03,Protocol List,Search by animal ID,"1. Go to /protocols/
+2. Enter 'Max' in search box
+3. Submit search","- Protocols with animal ID matching 'Max' displayed
+- Other protocols excluded",,,
+S03-018,Step 03,Protocol List,Pagination,"1. Create 25+ protocols
+2. Go to /protocols/","- First 20 protocols shown on page 1
+- Pagination controls displayed
+- Page numbers visible
+- Next/Previous buttons available",,,
+S03-019,Step 03,Protocol Detail,View draft protocol detail,"1. Create draft protocol
+2. Click on protocol in list
+3. View detail page","- All protocol information displayed
+- Animal/patient data section
+- Clinical information section
+- Sample details section
+- Status: DRAFT badge
+- Edit button visible
+- Delete button visible
+- Submit button visible",,,
+S03-020,Step 03,Protocol Detail,View submitted protocol detail,"1. Submit a protocol
+2. Click on protocol in list
+3. View detail page","- All protocol information displayed
+- Temporary code prominently shown
+- Status: ENVIADO badge
+- Edit button NOT visible
+- Delete button NOT visible
+- Status timeline visible at bottom
+- Shows submission event",,,
+S03-021,Step 03,Protocol Detail,View status timeline,"1. Submit a protocol
+2. View protocol detail
+3. Scroll to status timeline section","- Status history displayed chronologically
+- Shows status changes
+- Shows who made each change
+- Shows timestamps
+- Shows optional descriptions",,,
+S03-022,Step 03,Protocol Edit,Edit draft cytology protocol,"1. Create draft cytology protocol
+2. Click 'Editar' button on detail page
+3. Modify: Animal ID: Changed name
+4. Modify: Diagnosis: Updated text
+5. Save changes","- Edit form pre-filled with existing data
+- Changes saved successfully
+- Redirected to detail page
+- Updated information displayed
+- Status remains DRAFT",,,
+S03-023,Step 03,Protocol Edit,Edit draft histopathology protocol,"1. Create draft histopathology protocol
+2. Click 'Editar' button
+3. Modify: Material Submitted
+4. Modify: Number of Containers: 2
+5. Save changes","- Edit form pre-filled with existing data
+- Changes saved successfully
+- Updated information displayed
+- Status remains DRAFT",,,
+S03-024,Step 03,Protocol Edit,Attempt to edit submitted protocol,"1. Submit a protocol
+2. Try to access edit URL directly
+3. Or verify edit button is hidden","- Edit button not visible on detail page
+- If URL accessed directly: error message
+- Message: Cannot edit submitted protocols
+- Redirected to detail page",,,
+S03-025,Step 03,Protocol Edit,Edit with invalid data,"1. Edit draft protocol
+2. Clear required field (e.g. Species)
+3. Try to save","- Form validation error
+- Required field highlighted
+- Changes NOT saved
+- Original data preserved",,,
+S03-026,Step 03,Protocol Delete,Delete draft protocol,"1. Create draft protocol
+2. View protocol detail
+3. Click 'Eliminar' button
+4. Confirm deletion","- Confirmation dialog shown
+- Upon confirmation:
+  * Protocol deleted from database
+  * Associated sample deleted (cascade)
+  * Redirected to protocol list
+  * Success message shown
+  * Protocol no longer in list",,,
+S03-027,Step 03,Protocol Delete,Cancel protocol deletion,"1. Create draft protocol
+2. Click 'Eliminar' button
+3. Click 'Cancel' on confirmation","- Confirmation dialog closed
+- Protocol NOT deleted
+- Still on detail page
+- Protocol data unchanged",,,
+S03-028,Step 03,Protocol Delete,Attempt to delete submitted protocol,"1. Submit a protocol
+2. Try to access delete URL directly
+3. Or verify delete button is hidden","- Delete button not visible on detail page
+- If URL accessed directly: error message
+- Message: Cannot delete submitted protocols
+- Redirected to detail page",,,
+S03-029,Step 03,Protocol Submit,Submit draft protocol,"1. Create draft protocol
+2. Click 'Enviar Protocolo' button
+3. Confirm submission","- Status changed from DRAFT to SUBMITTED
+- Temporary code generated and displayed
+- Success message with code
+- Instructions to write code on sample
+- Status history entry created
+- Protocol locked (no edit/delete)",,,
+S03-030,Step 03,Protocol Submit,Temporary code format - Cytology,"1. Create and submit cytology protocol
+2. Check temporary code format","- Format: TMP-CT-YYYYMMDD-###
+- Example: TMP-CT-20241011-001
+- CT = Cytology
+- Date = submission date
+- Number = sequential ID",,,
+S03-031,Step 03,Protocol Submit,Temporary code format - Histopathology,"1. Create and submit histopathology protocol
+2. Check temporary code format","- Format: TMP-HP-YYYYMMDD-###
+- Example: TMP-HP-20241011-002
+- HP = Histopathology
+- Date = submission date
+- Number = sequential ID",,,
+S03-032,Step 03,Protocol Submit,Temporary code uniqueness,"1. Submit multiple protocols
+2. Check all temporary codes","- All temporary codes are unique
+- No duplicates exist
+- Database enforces uniqueness",,,
+S03-033,Step 03,Access Control,Veterinarian sees only own protocols,"1. Login as veterinarian A
+2. Create protocol
+3. Logout
+4. Login as veterinarian B
+5. View protocol list","- Veterinarian B does NOT see A's protocols
+- Only sees own protocols
+- Access control enforced",,,
+S03-034,Step 03,Access Control,Cannot access other veterinarian's protocol detail,"1. Login as veterinarian A
+2. Note a protocol ID
+3. Logout
+4. Login as veterinarian B
+5. Try to access /protocols/<A's protocol ID>/","- Access denied
+- Error message or redirect
+- Cannot view other's protocol",,,
+S03-035,Step 03,Access Control,Veterinarian profile required,"1. Create veterinarian user without profile
+2. Try to access /protocols/select-type/","- Redirected to complete profile page
+- Message: Must complete profile first
+- Cannot create protocols without profile",,,
+S03-036,Step 03,Admin Interface,Admin can view all protocols,"1. Login to Django admin as admin
+2. Navigate to Protocols section","- All protocols from all veterinarians visible
+- Can search and filter
+- Can view details
+- Can edit if needed",,,
+S03-037,Step 03,Admin Interface,Admin change protocol status,"1. Login to Django admin
+2. Open a submitted protocol
+3. Select action 'Mark as received'
+4. Execute action","- Status changed to RECEIVED
+- Protocol number assigned (CT 24/### or HP 24/###)
+- Reception date set to today
+- Status history entry created",,,
+S03-038,Step 03,Admin Interface,View status history inline,"1. Login to Django admin
+2. Open any protocol
+3. Scroll to Status History inline","- All status changes listed
+- Shows status, changed_by, date, description
+- Read-only (cannot edit)
+- Chronological order",,,
+S03-039,Step 03,Admin Interface,View sample data inline,"1. Login to Django admin
+2. Open cytology protocol
+3. Check inline sections","- CytologySample inline visible
+- Shows technique, site, slides
+- Can edit sample details
+- One-to-one relationship enforced",,,
+S03-040,Step 03,Species Validation,Valid species accepted,"1. Create protocol
+2. Fill Species: Canino, Felino, Bovino, Equino, Ovino, Caprino, Porcino, Aviar, Otro
+3. Save","- All listed species accepted
+- No validation errors",,,
+S03-041,Step 03,Species Validation,Free text species entry,"1. Create protocol
+2. Fill Species: Any text (e.g., 'Reptil')
+3. Save","- Species accepted (free text field)
+- No dropdown restriction
+- Flexibility for unusual species",,,
+S03-042,Step 03,Multiple Protocols,Create multiple protocols for same animal,"1. Create protocol 1: Animal 'Max', mass on leg
+2. Create protocol 2: Animal 'Max', mass on neck
+3. Submit both","- Both protocols created independently
+- Each gets unique temporary code
+- Each gets unique protocol number (when received)
+- No linking between protocols (as per design)",,,
+S03-043,Step 03,Draft Management,Save incomplete protocol as draft,"1. Start creating protocol
+2. Fill only some required fields
+3. Try to save as draft","- If browser supports draft functionality: saved
+- If validation required: error shown
+- Design decision: Drafts also validate required fields",,,
+S03-044,Step 03,Edge Cases,Protocol with very long text fields,"1. Create protocol
+2. Fill Clinical History: 5000+ characters
+3. Fill Observations: 5000+ characters
+4. Save","- Long text accepted (TEXT fields)
+- No character limit errors
+- All text saved and retrieved correctly",,,
+S03-045,Step 03,Edge Cases,Create protocol on leap year,"1. Set date to February 29 (leap year)
+2. Create and submit protocol","- Date accepted
+- Temporary code includes correct date
+- No date validation errors",,,
+S03-046,Step 03,Edge Cases,Create protocol on year boundary,"1. Create protocol on December 31
+2. Create protocol on January 1 (next year)","- Both protocols created successfully
+- Temporary codes reflect correct dates
+- Counter continues sequentially (no reset yet)",,,
+S04-001,Step 04,Reception Search,Search by valid temporary code - Submitted protocol,"1. Login as lab staff
+2. Navigate to /protocols/reception/
+3. Enter temporary code: TMP-CT-20241011-001
+4. Click search","- Protocol found and displayed
+- Shows status: SUBMITTED
+- Shows veterinarian info
+- Shows animal info
+- Shows sample details
+- 'Receive' button visible
+- Redirected to confirm reception page",,,
+S04-002,Step 04,Reception Search,Search by invalid temporary code,"1. Go to /protocols/reception/
+2. Enter invalid code: INVALID-CODE-123
+3. Click search","- Error message shown
+- Message: 'Protocol not found with that temporary code'
+- No results displayed
+- Search form remains visible",,,
+S04-003,Step 04,Reception Search,Search by temporary code - Already received,"1. Go to /protocols/reception/
+2. Enter code of already received protocol
+3. Click search","- Protocol found
+- Status shown as RECEIVED
+- Protocol number displayed
+- Message: 'Already received'
+- No 'Receive' button (already processed)
+- Shows reception details instead",,,
+S04-004,Step 04,Reception Search,Search by temporary code - Draft status,"1. Go to /protocols/reception/
+2. Enter temporary code of draft protocol
+3. Click search","- Error or warning message
+- Message: 'Protocol not submitted yet'
+- Cannot receive draft protocols
+- Must be SUBMITTED first",,,
+S04-005,Step 04,Reception Confirm,Confirm cytology reception - Optimal condition,"1. Search and find submitted cytology protocol
+2. Expected slides: 2
+3. Click to confirm reception
+4. Select condition: Óptima
+5. Enter slides received: 2
+6. Add notes: 'Slides in perfect condition'
+7. Submit","- Protocol status changed to RECEIVED
+- Protocol number assigned: CT 24/###
+- Reception date/time recorded (now)
+- Received by: current user
+- Sample condition: Óptima
+- Slides received: 2
+- Notes saved
+- Success message with protocol number
+- Email sent to veterinarian
+- ReceptionLog entry created (RECEIVED)",,,
+S04-006,Step 04,Reception Confirm,Confirm histopathology reception - Optimal condition,"1. Search submitted histopathology protocol
+2. Expected jars: 1
+3. Confirm reception
+4. Select condition: Óptima
+5. Enter jars received: 1
+6. Add notes: 'Sample in formol, good condition'
+7. Submit","- Protocol status changed to RECEIVED
+- Protocol number assigned: HP 24/###
+- Reception date/time recorded
+- Received by: current user
+- Sample condition: Óptima
+- Jars received: 1
+- Notes saved
+- Success message with protocol number
+- Email sent to veterinarian
+- ReceptionLog entry created",,,
+S04-007,Step 04,Reception Confirm,Reception with quantity discrepancy,"1. Search submitted protocol (expected 2 slides)
+2. Confirm reception
+3. Select condition: Aceptable
+4. Enter slides received: 1 (different from expected 2)
+5. Add discrepancy note: 'Only 1 slide received instead of 2'
+6. Submit","- System detects discrepancy
+- Discrepancy warning shown
+- Discrepancy note field required/visible
+- Reception proceeds after confirmation
+- Discrepancies field populated in protocol
+- Email includes discrepancy info
+- ReceptionLog entry: DISCREPANCY_REPORTED",,,
+S04-008,Step 04,Reception Confirm,Reception with suboptimal condition,"1. Search submitted protocol
+2. Confirm reception
+3. Select condition: Subóptima
+4. Add notes: 'Formol level low, tissue partially exposed'
+5. Submit","- Protocol received
+- Condition recorded as Subóptima
+- Notes saved
+- Warning/alert shown about condition
+- Veterinarian notified in email
+- May affect analysis quality",,,
+S04-009,Step 04,Reception Confirm,Reception with rejected condition,"1. Search submitted protocol
+2. Confirm reception
+3. Select condition: Rechazada
+4. Add notes: 'Sample damaged in transit, cannot process'
+5. Submit","- Protocol status may change to special state
+- Rejection logged
+- Veterinarian notified immediately
+- Clear indication sample cannot be processed
+- ReceptionLog entry: REJECTED",,,
+S04-010,Step 04,Protocol Numbering,First cytology protocol of year,"1. New year (or reset counter)
+2. Receive first cytology protocol","- Protocol number assigned: CT YY/001
+- Example: CT 24/001
+- Counter starts at 001",,,
+S04-011,Step 04,Protocol Numbering,Sequential cytology numbering,"1. Receive CT 24/001
+2. Receive another cytology
+3. Receive another cytology","- Second: CT 24/002
+- Third: CT 24/003
+- Sequential, no gaps
+- Counter increments properly",,,
+S04-012,Step 04,Protocol Numbering,First histopathology protocol of year,"1. New year (or reset counter)
+2. Receive first histopathology protocol","- Protocol number assigned: HP YY/001
+- Example: HP 24/001
+- Separate counter from cytology",,,
+S04-013,Step 04,Protocol Numbering,Sequential histopathology numbering,"1. Receive HP 24/001
+2. Receive another histopathology
+3. Receive another histopathology","- Second: HP 24/002
+- Third: HP 24/003
+- Sequential, no gaps
+- Independent of cytology counter",,,
+S04-014,Step 04,Protocol Numbering,Separate counters for each type,"1. Receive cytology: CT 24/001
+2. Receive histopathology: HP 24/001
+3. Receive cytology: CT 24/002
+4. Receive histopathology: HP 24/002","- Both types start at /001
+- Both increment independently
+- CT and HP can have same number (different type)
+- Two separate ProtocolCounter records",,,
+S04-015,Step 04,Protocol Numbering,No duplicate protocol numbers,"1. Receive 10 protocols
+2. Check all protocol numbers
+3. Try concurrent reception (if possible)","- All protocol numbers unique
+- No duplicates across types
+- Database constraint enforced
+- Atomic counter updates prevent race conditions",,,
+S04-016,Step 04,Protocol Numbering,Year boundary - Counter reset,"1. Receive protocol on Dec 31, 2024 → HP 24/050
+2. Receive protocol on Jan 1, 2025 → HP 25/001","- Counter resets to 001 for new year
+- Year changes in protocol number (24→25)
+- Separate counters per year in database",,,
+S04-017,Step 04,Label Generation,Generate and view PDF label,"1. Receive protocol (gets protocol number)
+2. Click 'Generate Labels' or 'Print Labels'
+3. View PDF","- PDF generated successfully
+- Opens in browser
+- Label dimensions: 100mm x 50mm
+- Contains all required elements",,,
+S04-018,Step 04,Label Generation,Label content - Protocol number,"1. Generate label for protocol
+2. Check PDF content","- Protocol number displayed prominently
+- Large, bold font
+- Easy to read (CT 24/001 or HP 24/123)
+- Center or top of label",,,
+S04-019,Step 04,Label Generation,Label content - QR code,"1. Generate label
+2. Check QR code","- QR code present on label
+- Readable size
+- Contains protocol number
+- Can be scanned with QR reader
+- Position: likely right side or bottom",,,
+S04-020,Step 04,Label Generation,Label content - Animal identification,"1. Generate label
+2. Check animal info","- Animal identification shown
+- Example: 'Max - Canino'
+- Species included",,,
+S04-021,Step 04,Label Generation,Label content - Reception date,"1. Generate label
+2. Check date","- Reception date displayed
+- Format: DD/MM/YYYY or similar
+- Matches actual reception date",,,
+S04-022,Step 04,Label Generation,Label content - Analysis type,"1. Generate label
+2. Check analysis type","- Shows Citología or Histopatología
+- Clear indication of sample type
+- Helps with routing in lab",,,
+S04-023,Step 04,Label Generation,Label content - Laboratory header,"1. Generate label
+2. Check header","- Lab name/logo at top
+- Professional appearance
+- Laboratory branding present",,,
+S04-024,Step 04,Label Generation,Print multiple labels,"1. Receive protocol
+2. Generate labels multiple times
+3. Print 3 copies","- Can generate labels multiple times
+- Each generation produces same content
+- Useful for multiple containers/slides",,,
+S04-025,Step 04,Email Notification,Reception confirmation email sent,"1. Receive protocol
+2. Check email (console or mailbox)","- Email sent to veterinarian
+- To: veterinarian email from profile
+- Subject: 'Muestra recibida - Protocolo [NUMBER]'
+- Professional HTML template
+- Spanish language",,,
+S04-026,Step 04,Email Notification,Email content - Protocol number,"1. Check reception email
+2. Verify protocol number","- Email clearly shows assigned protocol number
+- Prominently displayed
+- Example: HP 24/123",,,
+S04-027,Step 04,Email Notification,Email content - Temporary code,"1. Check reception email
+2. Verify temporary code","- Email includes original temporary code
+- For veterinarian reference
+- Links submitted protocol to received protocol",,,
+S04-028,Step 04,Email Notification,Email content - Reception details,"1. Check reception email
+2. Verify reception information","- Animal identification shown
+- Species shown
+- Reception date and time
+- Sample condition status
+- Quantity received",,,
+S04-029,Step 04,Email Notification,Email content - Discrepancy information,"1. Receive protocol with discrepancy
+2. Check email","- Email includes discrepancy note
+- Clear indication of issue
+- Description of what was expected vs received",,,
+S04-030,Step 04,Email Notification,Email content - Portal link,"1. Check reception email
+2. Verify link","- Email includes link to veterinarian portal
+- Link to track protocol status
+- Clickable URL
+- Direct link to protocol detail",,,
+S04-031,Step 04,Pending Queue,View pending protocols list,"1. Login as lab staff
+2. Navigate to /protocols/reception/pending/","- List of all SUBMITTED protocols displayed
+- Shows protocols awaiting reception
+- Columns: temporary code, vet name, animal, submission date, days pending
+- Quick access to receive button",,,
+S04-032,Step 04,Pending Queue,Days pending calculation - Same day,"1. Submit protocol today
+2. View pending queue
+3. Check days pending","- Shows: 0 days pending
+- Green indicator (fresh)
+- Recently submitted",,,
+S04-033,Step 04,Pending Queue,Days pending calculation - 3 days,"1. Create protocol with submission date 3 days ago
+2. View pending queue
+3. Check days pending","- Shows: 3 days pending
+- Yellow indicator (moderate wait)
+- Attention needed",,,
+S04-034,Step 04,Pending Queue,Days pending calculation - 7+ days,"1. Create protocol with submission date 7+ days ago
+2. View pending queue
+3. Check days pending","- Shows: 7+ days pending
+- Red indicator (urgent)
+- Requires immediate attention",,,
+S04-035,Step 04,Pending Queue,Filter pending by type,"1. Go to pending queue
+2. Filter by Cytology
+3. Filter by Histopathology","- Filtering works
+- Shows only selected type
+- Counts update accordingly",,,
+S04-036,Step 04,Pending Queue,Quick receive from pending list,"1. View pending queue
+2. Click 'Receive' button on a protocol
+3. Redirected to reception confirm page","- Direct access to reception form
+- Protocol pre-selected
+- Quick workflow",,,
+S04-037,Step 04,Pending Queue,Empty pending queue,"1. Receive all pending protocols
+2. View pending queue","- Message: 'No pending receptions'
+- Empty state displayed
+- No protocols in queue",,,
+S04-038,Step 04,Reception History,View reception history,"1. Login as lab staff
+2. Navigate to /protocols/reception/history/","- List of recent receptions (last 100)
+- Shows: protocol number, animal, reception date, received by, condition
+- Chronological order (newest first)
+- Audit trail visible",,,
+S04-039,Step 04,Reception History,History shows received protocols,"1. Receive 3 protocols
+2. View reception history","- All 3 receptions shown
+- Each with complete details
+- Shows who received each
+- Timestamps accurate",,,
+S04-040,Step 04,Reception History,History shows discrepancies,"1. Receive protocol with discrepancy
+2. View reception history
+3. Check for discrepancy indicator","- Discrepancy flagged in history
+- Icon or badge indicates issue
+- Details visible on click/hover",,,
+S04-041,Step 04,Reception History,Filter history by date range,"1. Go to reception history
+2. Filter by last 7 days
+3. Filter by last 30 days
+4. Filter custom date range","- Filtering works correctly
+- Shows only protocols in range
+- Counts update",,,
+S04-042,Step 04,Reception History,Search history by protocol number,"1. Go to reception history
+2. Search for specific protocol number
+3. Example: HP 24/001","- Search finds matching protocol
+- Details displayed
+- Quick lookup for reference",,,
+S04-043,Step 04,Access Control,Lab staff can access reception,"1. Login as user with is_staff=True
+2. Navigate to /protocols/reception/","- Access granted
+- Reception interface displayed
+- All features accessible",,,
+S04-044,Step 04,Access Control,Veterinarian cannot access reception,"1. Login as veterinarian (is_staff=False)
+2. Try to access /protocols/reception/","- Access denied
+- Error message: Staff only
+- Redirected to appropriate page",,,
+S04-045,Step 04,Access Control,Admin can access reception,"1. Login as admin (is_superuser=True)
+2. Navigate to /protocols/reception/","- Access granted
+- All reception features available
+- Can receive samples",,,
+S04-046,Step 04,Admin Interface,View ReceptionLog in admin,"1. Login to Django admin
+2. Navigate to Reception Logs","- List of all reception actions
+- Shows: protocol, action type, user, timestamp
+- Read-only (cannot edit)
+- Filterable by action type
+- Searchable",,,
+S04-047,Step 04,Admin Interface,View ProtocolCounter in admin,"1. Login to Django admin
+2. Navigate to Protocol Counters","- Shows counters per type and year
+- Displays: type, year, last number
+- Can manually adjust if needed (admin only)
+- Shows current count",,,
+S04-048,Step 04,Admin Interface,Reception fields in Protocol admin,"1. Login to Django admin
+2. Open received protocol
+3. Check reception fields","- reception_date shown
+- received_by shown
+- sample_condition displayed
+- reception_notes visible
+- discrepancies field visible
+- Read-only for audit fields",,,
+S04-049,Step 04,Admin Interface,Slides/Jars received in sample admin,"1. Login to Django admin
+2. Open CytologySample
+3. Check slides received field
+4. Open HistopathologySample
+5. Check jars received field","- Cytology: number_slides_received visible
+- Histopathology: number_jars_received visible
+- Can compare expected vs received",,,
+S04-050,Step 04,Edge Cases,Receive protocol at midnight,"1. Receive protocol exactly at 00:00:00
+2. Check date/time","- Reception timestamp accurate
+- Date correct
+- No timezone issues",,,
+S04-051,Step 04,Edge Cases,Concurrent receptions,"1. Two staff members search same protocol
+2. Both try to receive simultaneously","- Only one reception succeeds
+- Other gets error: Already received
+- Database locking prevents duplicate reception
+- No duplicate protocol numbers",,,
+S04-052,Step 04,Edge Cases,Search with extra spaces,"1. Enter temporary code with spaces
+2. Example: ' TMP-CT-20241011-001 '
+3. Search","- System trims whitespace
+- Protocol found successfully
+- User-friendly handling",,,
+S04-053,Step 04,Edge Cases,Search with different case,"1. Enter temporary code in lowercase
+2. Example: 'tmp-ct-20241011-001'
+3. Search","- Case-insensitive search
+- Protocol found
+- User-friendly",,,
+S04-054,Step 04,Edge Cases,Receive 100+ protocols in one day,"1. Submit 150 protocols
+2. Receive all on same day
+3. Check protocol numbers","- All receive unique sequential numbers
+- CT 24/001 through CT 24/150 (if all cytology)
+- Counter handles large numbers
+- No performance issues",,,
+S04-055,Step 04,Reception Detail,View reception success page,"1. Receive protocol
+2. After submission, view reception detail page","- Large display of protocol number
+- Success message
+- Complete reception information shown
+- Links to: print labels, view protocol, back to pending
+- Green success indicator",,,
+S04-056,Step 04,Reception Detail,Print labels from detail page,"1. On reception detail page
+2. Click 'Imprimir Etiquetas' button","- PDF labels open in new tab
+- Ready to print
+- Quick access",,,
+S04-057,Step 04,Reception Detail,View full protocol from detail,"1. On reception detail page
+2. Click 'Ver Protocolo Completo' button","- Redirected to full protocol detail page
+- Shows all protocol information
+- Status now RECEIVED
+- Protocol number visible",,,
+S04-058,Step 04,Integration,Full workflow - Submit to receive,"1. Veterinarian creates protocol
+2. Veterinarian submits protocol (gets temp code)
+3. Lab staff searches by temp code
+4. Lab staff receives sample (gets protocol number)
+5. Label generated
+6. Email sent
+7. Veterinarian checks email
+8. Veterinarian views protocol in portal","- Complete workflow functions smoothly
+- All steps work together
+- Data flows correctly
+- Status updates properly
+- Email received
+- Protocol number matches everywhere",,,
+S04-059,Step 04,Integration,Protocol status visible to veterinarian,"1. Veterinarian submits protocol (SUBMITTED)
+2. Lab receives protocol (RECEIVED)
+3. Veterinarian views protocol in their list","- Status shown as RECEIVED
+- Protocol number visible
+- Reception date visible
+- Status timeline shows both events",,,
+S04-060,Step 04,Integration,Cannot receive same protocol twice,"1. Receive protocol (assign protocol number)
+2. Search same temporary code again
+3. Try to receive again","- System prevents duplicate reception
+- Shows 'Already received' message
+- Protocol number already assigned
+- Reception date already set
+- Cannot change",,,
+S05-001,Step 05,Processing Dashboard,Access processing dashboard,"1. Login as lab staff
+2. Navigate to /processing/","- Dashboard displays processing statistics
+- Shows protocols, cassettes, and slides by status
+- Recent processing logs visible
+- Quick action links available
+- Clean Tailwind-styled interface",,,
+S05-002,Step 05,Processing Queue,View processing queue,"1. Login as lab staff
+2. Navigate to /processing/queue/","- List of protocols pending/in processing displayed
+- Shows protocol numbers, animal info, days in process
+- Filter options by analysis type and status
+- Action links to cassette/slide registration
+- Color-coded status indicators",,,
+S05-003,Step 05,Processing Queue,Filter queue by analysis type,"1. Go to processing queue
+2. Filter by Cytology
+3. Filter by Histopathology","- Filtering works correctly
+- Shows only selected analysis type
+- Counts update accordingly
+- No mixed types shown",,,
+S05-004,Step 05,Processing Queue,Filter queue by status,"1. Go to processing queue
+2. Filter by 'Received'
+3. Filter by 'Processing'","- Filtering works correctly
+- Shows only protocols with selected status
+- Counts update accordingly",,,
+S05-005,Step 05,Cassette Creation,Create cassettes for histopathology protocol,"1. Go to processing queue
+2. Find received histopathology protocol
+3. Click 'Create Cassettes' or navigate to cassette creation
+4. Fill form with cassette details
+5. Submit","- Cassettes created successfully
+- Auto-generated codes (HP 24/123-C1, C2, etc.)
+- ProcessingLog entries created
+- Redirected to protocol status page",,,
+S05-006,Step 05,Cassette Creation,Create multiple cassettes at once,"1. Go to cassette creation for protocol
+2. Select 'Create Multiple Cassettes'
+3. Enter number: 3
+4. Fill material description for each
+5. Select cassette types and colors
+6. Submit","- 3 cassettes created simultaneously
+- Sequential codes generated
+- All cassettes linked to protocol
+- ProcessingLog entries for each",,,
+S05-007,Step 05,Cassette Creation,Create cassette with different types,"1. Create cassettes with different types:
+   - Normal (blanco)
+   - Multicorte (amarillo)
+   - Special staining (naranja)
+2. Submit","- All cassette types accepted
+- Color coding applied correctly
+- Type-specific processing flags set
+- Visual differentiation in admin",,,
+S05-008,Step 05,Cassette Creation,Create cassette with material description,"1. Create cassette
+2. Fill material description: 'Fragmento de hígado con lesión nodular de 2cm'
+3. Submit","- Material description saved
+- Visible in cassette detail view
+- Helps with processing identification
+- Can be edited later if needed",,,
+S05-009,Step 05,Cassette Processing,Update cassette stage - Encasetado,"1. Go to Django admin → Cassettes
+2. Select cassettes
+3. Choose 'Mark as encasetado' action
+4. Execute","- Stage updated to encasetado
+- Timestamp recorded
+- ProcessingLog entry created
+- Status badge updated",,,
+S05-010,Step 05,Cassette Processing,Update cassette stage - Fijación,"1. Go to Django admin → Cassettes
+2. Select cassettes in encasetado stage
+3. Choose 'Mark as fijación' action
+4. Execute","- Stage updated to fijación
+- Timestamp recorded
+- ProcessingLog entry created
+- Previous stage timestamp preserved",,,
+S05-011,Step 05,Cassette Processing,Update cassette stage - Inclusión,"1. Go to Django admin → Cassettes
+2. Select cassettes in fijación stage
+3. Choose 'Mark as inclusión' action
+4. Execute","- Stage updated to inclusión
+- Timestamp recorded
+- ProcessingLog entry created
+- Processing timeline updated",,,
+S05-012,Step 05,Cassette Processing,Update cassette stage - Entacado (completed),""1. Go to Django admin → Cassettes
+2. Select cassettes in inclusión stage
+3. Choose 'Mark as entacado' action
+4. Execute","- Stage updated to entacado
+- Status changed to completado
+- Timestamp recorded
+- ProcessingLog entry created
+- Ready for slide creation",,,
+S05-013,Step 05,Cassette Processing,View cassette processing timeline,"1. Go to Django admin → Cassettes
+2. Open specific cassette
+3. View processing timeline section","- Timeline shows all stage changes
+- Chronological order (oldest to newest)
+- Shows timestamps for each stage
+- Shows who performed each action
+- Visual timeline display",,,
+S05-014,Step 05,Slide Registration,Access slide registration interface,"1. Go to processing queue
+2. Find protocol with completed cassettes
+3. Click 'Register Slides' or navigate to slide registration
+4. View Vue.js interface","- Interactive Vue.js interface loads
+- Visual cassette selection buttons
+- 4x6 slide grid (24 positions)
+- Patient information displayed
+- Real-time cassette-slide relationship tracking",,,
+S05-015,Step 05,Slide Registration,Create cytology slide,"1. Go to slide registration for cytology protocol
+2. Select staining technique: Diff-Quick
+3. Click 'Create Slide'
+4. Submit","- Slide created successfully
+- Auto-generated code (CT 24/089-S1)
+- Direct link to cytology sample
+- ProcessingLog entry created
+- Stage set to pendiente",,,
+S05-016,Step 05,Slide Registration,Create histopathology slide with single cassette,"1. Go to slide registration for histopathology protocol
+2. Select one cassette from available list
+3. Choose position: Superior
+4. Select staining: Hematoxilina-Eosina
+5. Click 'Create Slide'
+6. Submit","- Slide created successfully
+- Auto-generated code (HP 24/123-S1)
+- CassetteSlide relationship created
+- Position and staining recorded
+- ProcessingLog entry created",,,
+S05-017,Step 05,Slide Registration,Create histopathology slide with multiple cassettes,"1. Go to slide registration for histopathology protocol
+2. Select 2 cassettes from available list
+3. Choose positions: Superior, Inferior
+4. Select staining for each cassette
+5. Click 'Create Slide'
+6. Submit","- Slide created successfully
+- Auto-generated code (HP 24/123-S1)
+- 2 CassetteSlide relationships created
+- Each cassette has position and staining
+- ProcessingLog entry created",,,
+S05-018,Step 05,Slide Registration,Use interactive slide grid,"1. Go to slide registration interface
+2. Click on grid positions to select
+3. Drag cassettes to positions
+4. Observe real-time updates","- Grid positions respond to clicks
+- Cassettes can be dragged and dropped
+- Real-time visual feedback
+- Position validation works
+- JSON data updates correctly",,,
+S05-019,Step 05,Slide Registration,Validate cassette selection,"1. Try to create slide without selecting cassettes
+2. Try to select more than 3 cassettes
+3. Try to select same cassette twice","- Validation prevents slide creation without cassettes
+- Maximum 3 cassettes enforced
+- Duplicate cassette selection prevented
+- User-friendly error messages shown",,,
+S05-020,Step 05,Slide Processing,Update slide stage - Montaje,"1. Go to Django admin → Slides
+2. Select slides
+3. Choose 'Mark as montaje' action
+4. Execute","- Stage updated to montaje
+- Timestamp recorded
+- ProcessingLog entry created
+- Status badge updated",,,
+S05-021,Step 05,Slide Processing,Update slide stage - Coloración,"1. Go to Django admin → Slides
+2. Select slides in montaje stage
+3. Choose 'Mark as coloración' action
+4. Execute","- Stage updated to coloración
+- Timestamp recorded
+- ProcessingLog entry created
+- Previous stage timestamp preserved",,,
+S05-022,Step 05,Slide Processing,Mark slide as ready,"1. Go to Django admin → Slides
+2. Select slides in coloración stage
+3. Choose 'Mark as ready' action
+4. Execute","- Stage updated to listo
+- Status changed to listo
+- Timestamp recorded
+- ProcessingLog entry created
+- Ready for analysis",,,
+S05-023,Step 05,Slide Quality,Assess slide quality - Excelente,"1. Go to Django admin → Slides
+2. Open specific slide
+3. Set quality to 'Excelente'
+4. Save","- Quality assessment saved
+- Quality badge updated
+- No additional notes required
+- Quality visible in slide list",,,
+S05-024,Step 05,Slide Quality,Assess slide quality - Deficiente,"1. Go to Django admin → Slides
+2. Open specific slide
+3. Set quality to 'Deficiente'
+4. Add explanation: 'Poor staining quality'
+5. Save","- Quality assessment saved
+- Quality badge shows deficiente
+- Explanation notes saved
+- Quality visible in slide list
+- Notes help with analysis",,,
+S05-025,Step 05,Slide Quality,Quality assessment validation,"1. Try to set quality to 'Deficiente' without explanation
+2. Try to save","- Validation requires explanation for deficiente quality
+- Form shows error message
+- Cannot save without explanation
+- User-friendly validation",,,
+S05-026,Step 05,Protocol Status,View protocol processing status,"1. Go to processing queue
+2. Click on protocol number
+3. View protocol status page","- Complete processing status displayed
+- Visual cassette timeline (encasetado → fijación → inclusión → entacado)
+- Slide table with cassette associations
+- Color-coded status badges
+- Quality assessment display
+- Complete processing log timeline",,,
+S05-027,Step 05,Protocol Status,Cassette timeline visualization,"1. View protocol status page
+2. Check cassette timeline section","- Timeline shows all cassettes for protocol
+- Visual progress indicators
+- Stage completion status
+- Color-coded by completion
+- Click to view cassette details",,,
+S05-028,Step 05,Protocol Status,Slide table with associations,"1. View protocol status page
+2. Check slide table section","- Table shows all slides for protocol
+- Associated cassettes listed
+- Staining techniques displayed
+- Quality assessments shown
+- Status badges for each slide",,,
+S05-029,Step 05,Protocol Status,Processing log timeline,"1. View protocol status page
+2. Scroll to processing log section","- Chronological list of all processing actions
+- Shows stage changes, timestamps, users
+- Includes observations and notes
+- Complete audit trail visible
+- Expandable for detailed view",,,
+S05-030,Step 05,Traceability,Complete traceability chain - Histopathology,"1. Start with slide code: HP 24/123-S1
+2. Trace back through system:
+   - Find slide in admin
+   - View associated cassettes
+   - View cassette details
+   - View histopathology sample
+   - View protocol
+3. Verify complete chain","- Complete traceability maintained
+- Slide → Cassette → Sample → Protocol
+- All relationships intact
+- No broken links
+- Full audit trail available",,,
+S05-031,Step 05,Traceability,Complete traceability chain - Cytology,"1. Start with slide code: CT 24/089-S1
+2. Trace back through system:
+   - Find slide in admin
+   - View cytology sample
+   - View protocol
+3. Verify complete chain","- Complete traceability maintained
+- Slide → Sample → Protocol
+- Direct relationship intact
+- No broken links
+- Full audit trail available",,,
+S05-032,Step 05,Traceability,Multiple cassettes per slide traceability,"1. Start with slide that has multiple cassettes
+2. Trace each cassette separately
+3. Verify all cassettes link to same protocol
+4. Check positions and staining","- All cassettes traceable to same protocol
+- Position information preserved
+- Staining specifications maintained
+- Junction table relationships intact
+- Complete traceability for complex slides",,,
+S05-033,Step 05,Admin Interface,Cassette admin functionality,"1. Login to Django admin
+2. Navigate to Cassettes
+3. Test search, filter, and bulk actions","- List display shows key information
+- Search by code, material, protocol works
+- Filter by estado, tipo, color works
+- Bulk actions for stage updates work
+- Inline cassette-slide associations visible",,,
+S05-034,Step 05,Admin Interface,Slide admin functionality,"1. Login to Django admin
+2. Navigate to Slides
+3. Test search, filter, and bulk actions","- List display shows key information
+- Search by code, protocol, staining works
+- Filter by estado, calidad, analysis type works
+- Bulk actions for stage updates work
+- Associated cassettes displayed",,,
+S05-035,Step 05,Admin Interface,CassetteSlide admin functionality,"1. Login to Django admin
+2. Navigate to Cassette-Slides
+3. Test relationship management","- Junction table relationships visible
+- Position and staining specifications shown
+- Can edit associations
+- Multicorte flag support
+- Search and filter functionality",,,
+S05-036,Step 05,Admin Interface,ProcessingLog admin functionality,"1. Login to Django admin
+2. Navigate to Processing Logs
+3. Test log viewing and filtering","- Read-only log viewer
+- Filter by stage and date works
+- Search by protocol, cassette, slide works
+- Complete processing history visible
+- Deletion restricted to superusers",,,
+S05-037,Step 05,Edge Cases,Create cassettes for protocol without samples,"1. Try to create cassettes for protocol that has no histopathology sample
+2. Submit form","- System prevents cassette creation
+- Error message shown
+- Must have histopathology sample first
+- Validation prevents orphaned cassettes",,,
+S05-038,Step 05,Edge Cases,Create slides for protocol without cassettes,"1. Try to create histopathology slide for protocol with no cassettes
+2. Submit form","- System prevents slide creation
+- Error message shown
+- Must have completed cassettes first
+- Validation prevents orphaned slides",,,
+S05-039,Step 05,Edge Cases,Concurrent cassette creation,"1. Two users try to create cassettes for same protocol simultaneously
+2. Both submit forms","- Only one creation succeeds
+- Other gets appropriate error
+- Database constraints prevent duplicates
+- No orphaned or duplicate cassettes",,,
+S05-040,Step 05,Edge Cases,Very long material descriptions,"1. Create cassette with material description: 2000+ characters
+2. Submit","- Long description accepted
+- No character limit errors
+- All text saved and retrieved correctly
+- Display handles long text appropriately",,,
+S05-041,Step 05,Edge Cases,Special characters in cassette material,"1. Create cassette with material containing special characters:
+   - Accents: 'lesión nodular'
+   - Symbols: '3x2cm'
+   - Numbers: 'HP 24/123'
+2. Submit","- Special characters handled correctly
+- No encoding issues
+- Text saved and displayed properly
+- Search functionality works with special chars",,,
+S05-042,Step 05,Edge Cases,Create 20+ cassettes for single protocol,"1. Create protocol with very large sample
+2. Create 25 cassettes for same protocol
+3. Check code generation","- All 25 cassettes created successfully
+- Sequential codes generated (C1, C2, ..., C25)
+- No performance issues
+- All cassettes linked to protocol correctly",,,
+S05-043,Step 05,Edge Cases,Create 10+ slides for single protocol,"1. Create protocol with multiple samples
+2. Create 15 slides for same protocol
+3. Check code generation","- All 15 slides created successfully
+- Sequential codes generated (S1, S2, ..., S15)
+- No performance issues
+- All slides linked to protocol correctly",,,
+S05-044,Step 05,Edge Cases,Year boundary processing,"1. Create cassettes on Dec 31, 2024
+2. Create cassettes on Jan 1, 2025
+3. Check code generation","- Both sets of cassettes created successfully
+- Codes reflect correct protocol numbers
+- No year boundary issues
+- Processing continues seamlessly",,,
+S05-045,Step 05,Integration,Complete histopathology workflow,"1. Receive histopathology protocol
+2. Create 3 cassettes
+3. Update cassettes through all stages
+4. Create 2 slides with cassette associations
+5. Update slides through all stages
+6. Assess slide quality
+7. Verify complete traceability","- Complete workflow functions smoothly
+- All stages tracked correctly
+- ProcessingLog entries created for each step
+- Final slides ready for analysis
+- Complete traceability maintained",,,
+S05-046,Step 05,Integration,Complete cytology workflow,"1. Receive cytology protocol
+2. Create 3 slides directly
+3. Update slides through all stages
+4. Assess slide quality
+5. Verify complete traceability","- Complete workflow functions smoothly
+- Direct sample-to-slide relationship
+- All stages tracked correctly
+- ProcessingLog entries created for each step
+- Final slides ready for analysis
+- Complete traceability maintained",,,
+S05-047,Step 05,Integration,Processing statistics accuracy,"1. Create multiple protocols with different processing stages
+2. Check processing dashboard statistics
+3. Verify counts match actual data","- Statistics accurately reflect current state
+- Counts update in real-time
+- No stale or incorrect data
+- Dashboard provides accurate overview",,,
+S05-048,Step 05,Integration,Processing queue accuracy,"1. Create protocols in different processing stages
+2. Check processing queue
+3. Verify protocols appear in correct sections","- Queue accurately shows pending protocols
+- Days in process calculated correctly
+- Status filtering works properly
+- No missing or incorrect protocols",,,
+S06-001,Step 06,Report Pending List,Access pending reports list,"1. Login as histopathologist or lab staff
+2. Navigate to /reports/pending/","- List of protocols ready for report generation displayed
+- Shows protocol numbers, animal info, submission dates
+- 'Create Report' buttons visible
+- Filter options available
+- Clean Tailwind-styled interface",,,
+S06-002,Step 06,Report Pending List,Filter pending reports by analysis type,"1. Go to pending reports list
+2. Filter by Cytology
+3. Filter by Histopathology","- Filtering works correctly
+- Shows only selected analysis type
+- Counts update accordingly
+- No mixed types shown",,,
+S06-003,Step 06,Report Pending List,Filter pending reports by date,"1. Go to pending reports list
+2. Filter by last 7 days
+3. Filter by last 30 days
+4. Filter custom date range","- Filtering works correctly
+- Shows only protocols within date range
+- Counts update accordingly
+- Date range validation works",,,
+S06-004,Step 06,Report Pending List,Search pending reports,"1. Go to pending reports list
+2. Search by protocol number: HP 24/123
+3. Search by animal ID: Max
+4. Search by veterinarian name","- Search functionality works
+- Results filtered correctly
+- No false positives
+- Search is case-insensitive",,,
+S06-005,Step 06,Report Creation,Create report for histopathology protocol,"1. Go to pending reports list
+2. Find histopathology protocol
+3. Click 'Create Report'
+4. Fill form with report details
+5. Save as draft","- Report created successfully
+- Status: DRAFT
+- Pre-filled with protocol data
+- Redirected to report edit page
+- Success message shown",,,
+S06-006,Step 06,Report Creation,Create report for cytology protocol,"1. Go to pending reports list
+2. Find cytology protocol
+3. Click 'Create Report'
+4. Fill form with report details
+5. Save as draft","- Report created successfully
+- Status: DRAFT
+- Pre-filled with protocol data
+- Redirected to report edit page
+- Success message shown",,,
+S06-007,Step 06,Report Creation,Create report with all fields,"1. Create new report
+2. Fill all available fields:
+   - Macroscopic observations
+   - Microscopic observations
+   - Final diagnosis
+   - Comments
+   - Recommendations
+3. Save","- All fields accepted and saved
+- Data displayed correctly in report view
+- No validation errors
+- Complete report information captured",,,
+S06-008,Step 06,Report Creation,Create report with minimal fields,"1. Create new report
+2. Fill only required fields:
+   - Final diagnosis
+3. Leave other fields empty
+4. Save","- Report created successfully
+- Only required fields validated
+- Optional fields can be blank
+- Report can be completed later",,,
+S06-009,Step 06,Report Creation,Create report with very long text,"1. Create new report
+2. Fill fields with 2000+ characters each
+3. Save","- Long text accepted
+- No character limit errors
+- All text saved and retrieved correctly
+- Display handles long text appropriately",,,
+S06-010,Step 06,Report Edit,Edit draft report,"1. Go to report edit page
+2. Modify macroscopic observations
+3. Add microscopic observations
+4. Update final diagnosis
+5. Save changes","- Changes saved successfully
+- Updated information displayed
+- Status remains DRAFT
+- Success message shown
+- Can continue editing",,,
+S06-011,Step 06,Report Edit,Add cassette observations,"1. Go to report edit page for histopathology
+2. Scroll to cassette observations section
+3. Add observation for each cassette
+4. Fill partial diagnosis for each
+5. Save","- Cassette observations created
+- Each observation linked to specific cassette
+- Partial diagnoses recorded
+- Ordering preserved
+- All data saved correctly",,,
+S06-012,Step 06,Report Edit,Edit cassette observations,"1. Go to report edit page
+2. Modify existing cassette observation
+3. Change partial diagnosis
+4. Update observation text
+5. Save","- Changes saved successfully
+- Updated observations displayed
+- Original data preserved in history
+- Success message shown",,,
+S06-013,Step 06,Report Edit,Delete cassette observation,"1. Go to report edit page
+2. Find cassette observation to delete
+3. Click delete button
+4. Confirm deletion","- Observation deleted successfully
+- Removed from report
+- Success message shown
+- Can add new observation if needed",,,
+S06-014,Step 06,Report Edit,Add report images,"1. Go to report edit page
+2. Scroll to images section
+3. Upload microscopy image
+4. Fill image details (magnification, technique)
+5. Associate with specific cassette or slide
+6. Save","- Image uploaded successfully
+- Image details saved
+- Association with cassette/slide recorded
+- Image visible in report view
+- File stored securely",,,
+S06-015,Step 06,Report Edit,Edit report images,"1. Go to report edit page
+2. Find uploaded image
+3. Modify image details
+4. Change association
+5. Save","- Changes saved successfully
+- Updated image details displayed
+- Association updated correctly
+- Success message shown",,,
+S06-016,Step 06,Report Edit,Delete report image,"1. Go to report edit page
+2. Find image to delete
+3. Click delete button
+4. Confirm deletion","- Image deleted successfully
+- File removed from storage
+- Removed from report
+- Success message shown",,,
+S06-017,Step 06,Report Finalization,Finalize report,"1. Go to report detail page
+2. Click 'Finalize Report' button
+3. Confirm finalization","- Report status changed to FINALIZED
+- PDF generated automatically
+- PDF hash created for integrity
+- Report locked from further editing
+- Success message with PDF link shown",,,
+S06-018,Step 06,Report Finalization,PDF generation,"1. Finalize report
+2. Check PDF generation
+3. View generated PDF","- PDF generated successfully
+- Professional formatting applied
+- All report content included
+- Digital signature included (if available)
+- PDF hash displayed for verification",,,
+S06-019,Step 06,Report Finalization,PDF content verification,"1. View generated PDF
+2. Check all sections:
+   - Header and branding
+   - Patient information
+   - Macroscopic observations
+   - Microscopic observations
+   - Cassette observations
+   - Final diagnosis
+   - Comments and recommendations
+   - Digital signature","- All sections present and formatted correctly
+- Content matches report data
+- Professional appearance
+- Digital signature visible (if uploaded)
+- PDF is print-ready",,,
+S06-020,Step 06,Report Finalization,PDF hash verification,"1. Finalize report
+2. Note PDF hash displayed
+3. Download PDF
+4. Verify hash matches","- PDF hash displayed correctly
+- Hash matches downloaded file
+- Integrity verification works
+- Hash can be used for tamper detection",,,
+S06-021,Step 06,Report Finalization,Cannot edit finalized report,"1. Try to edit finalized report
+2. Access edit URL directly
+3. Verify edit button is hidden","- Edit button not visible on detail page
+- If URL accessed directly: error message
+- Message: Cannot edit finalized reports
+- Redirected to detail page
+- Report remains locked",,,
+S06-022,Step 06,Report Sending,Send report via email,"1. Go to finalized report detail page
+2. Click 'Send Report' button
+3. Fill email form with additional recipients
+4. Add custom message
+5. Send","- Email sent successfully
+- Report PDF attached
+- Additional recipients included
+- Custom message included
+- Email status tracked",,,
+S06-023,Step 06,Report Sending,Email content verification,"1. Send report
+2. Check email content
+3. Verify PDF attachment","- Professional HTML email template
+- Report summary included
+- Protocol information displayed
+- Histopathologist information shown
+- PDF attachment present and downloadable",,,
+S06-024,Step 06,Report Sending,Email delivery tracking,"1. Send report
+2. Check email status in admin
+3. Verify delivery tracking","- Email status recorded
+- Delivery success/failure tracked
+- Error messages captured if failed
+- Retry mechanism available
+- Audit trail maintained",,,
+S06-025,Step 06,Report Sending,Send to multiple recipients,"1. Go to send report page
+2. Add multiple email addresses
+3. Send report","- Email sent to all recipients
+- Each recipient gets individual email
+- All emails tracked separately
+- Success/failure status for each recipient",,,
+S06-026,Step 06,Report Sending,Custom message in email,"1. Go to send report page
+2. Add custom message: 'Please review and contact if questions'
+3. Send report","- Custom message included in email
+- Message appears in email body
+- Professional formatting maintained
+- Message visible to all recipients",,,
+S06-027,Step 06,Report History,View report history,"1. Login as histopathologist or lab staff
+2. Navigate to /reports/history/","- List of all generated reports displayed
+- Shows report numbers, protocols, dates, status
+- Search and filter options available
+- Pagination for large lists
+- Clean interface",,,
+S06-028,Step 06,Report History,Filter history by status,"1. Go to report history
+2. Filter by 'Draft'
+3. Filter by 'Finalized'
+4. Filter by 'Sent'","- Filtering works correctly
+- Shows only reports with selected status
+- Counts update accordingly
+- Status badges visible",,,
+S06-029,Step 06,Report History,Filter history by date,"1. Go to report history
+2. Filter by last 7 days
+3. Filter by last 30 days
+4. Filter custom date range","- Filtering works correctly
+- Shows only reports within date range
+- Counts update accordingly
+- Date range validation works",,,
+S06-030,Step 06,Report History,Search history by protocol,"1. Go to report history
+2. Search by protocol number: HP 24/123
+3. Search by animal ID: Max
+4. Search by diagnosis","- Search functionality works
+- Results filtered correctly
+- No false positives
+- Search is case-insensitive",,,
+S06-031,Step 06,Report Detail,View report detail page,"1. Go to report history
+2. Click on report number
+3. View complete report details","- All report information displayed
+- Macroscopic and microscopic observations
+- Cassette observations (if applicable)
+- Final diagnosis highlighted
+- Comments and recommendations
+- Report images (if any)
+- Action buttons for next steps",,,
+S06-032,Step 06,Report Detail,View report images,"1. Go to report detail page
+2. Scroll to images section
+3. Click on image thumbnails
+4. View full-size images","- Images displayed correctly
+- Thumbnails load properly
+- Full-size images viewable
+- Image details shown (magnification, technique)
+- Association with cassettes/slides visible",,,
+S06-033,Step 06,Report Detail,Download report PDF,"1. Go to report detail page
+2. Click 'Download PDF' button
+3. Verify PDF download","- PDF downloads successfully
+- File name includes report number
+- PDF content matches report
+- No download errors
+- File opens correctly",,,
+S06-034,Step 06,Report Detail,View report status timeline,"1. Go to report detail page
+2. Scroll to status timeline section","- Timeline shows report creation
+- Shows finalization event
+- Shows email sending events
+- Chronological order
+- Timestamps and user information",,,
+S06-035,Step 06,Admin Interface,Histopathologist admin functionality,"1. Login to Django admin
+2. Navigate to Histopathologists
+3. Test CRUD operations","- List display shows key information
+- Search by name, license, specialty works
+- Can create new histopathologists
+- Can edit existing records
+- Digital signature upload works",,,
+S06-036,Step 06,Admin Interface,Report admin functionality,"1. Login to Django admin
+2. Navigate to Reports
+3. Test search, filter, and management","- List display shows key information
+- Search by protocol, diagnosis, histopathologist works
+- Filter by status, email status, date works
+- Inline cassette observations visible
+- Inline report images visible",,,
+S06-037,Step 06,Admin Interface,CassetteObservation admin functionality,"1. Login to Django admin
+2. Navigate to Cassette Observations
+3. Test relationship management","- Observations linked to reports and cassettes
+- Search and filter functionality
+- Can edit observation details
+- Ordering preserved
+- Partial diagnosis tracking",,,
+S06-038,Step 06,Admin Interface,ReportImage admin functionality,"1. Login to Django admin
+2. Navigate to Report Images
+3. Test image management","- Images linked to reports and cassettes/slides
+- Search and filter functionality
+- Can edit image details
+- File upload/download works
+- Association tracking",,,
+S06-039,Step 06,Access Control,Histopathologist can create reports,"1. Login as histopathologist
+2. Navigate to pending reports
+3. Create new report","- Access granted
+- Can create reports
+- Can edit own reports
+- Can finalize reports
+- Can send reports",,,
+S06-040,Step 06,Access Control,Lab staff can create reports,"1. Login as lab staff
+2. Navigate to pending reports
+3. Create new report","- Access granted
+- Can create reports
+- Can edit reports
+- Can finalize reports
+- Can send reports",,,
+S06-041,Step 06,Access Control,Veterinarian cannot create reports,"1. Login as veterinarian
+2. Try to access /reports/pending/","- Access denied
+- Error message: Staff only
+- Redirected to appropriate page
+- Cannot access report creation",,,
+S06-042,Step 06,Access Control,Admin can manage all reports,"1. Login as admin
+2. Navigate to reports section
+3. Test all operations","- Full access to all reports
+- Can view, edit, finalize any report
+- Can send any report
+- Can manage histopathologists
+- Can access all admin functions",,,
+S06-043,Step 06,Edge Cases,Create report for protocol without slides,"1. Try to create report for protocol that has no slides
+2. Submit form","- System prevents report creation
+- Error message shown
+- Must have processed slides first
+- Validation prevents incomplete reports",,,
+S06-044,Step 06,Edge Cases,Finalize report without diagnosis,"1. Try to finalize report without final diagnosis
+2. Submit form","- System prevents finalization
+- Error message shown
+- Final diagnosis required
+- Validation ensures complete reports",,,
+S06-045,Step 06,Edge Cases,Email sending failure,"1. Configure invalid email settings
+2. Try to send report
+3. Check error handling","- Email sending fails gracefully
+- Error message captured
+- Report status updated
+- Retry mechanism available
+- User notified of failure",,,
+S06-046,Step 06,Edge Cases,PDF generation failure,"1. Create report with very large content
+2. Try to finalize report
+3. Check error handling","- PDF generation fails gracefully
+- Error message shown
+- Report remains in draft status
+- Can retry finalization
+- User notified of issue",,,
+S06-047,Step 06,Edge Cases,Very large report images,"1. Upload very large image files (10MB+)
+2. Try to save report
+3. Check handling","- Large images handled appropriately
+- File size validation works
+- Images compressed if needed
+- No system errors
+- User notified of any issues",,,
+S06-048,Step 06,Edge Cases,Concurrent report editing,"1. Two users try to edit same report simultaneously
+2. Both save changes","- Only one save succeeds
+- Other gets appropriate error
+- No data corruption
+- User notified of conflict
+- Can refresh and retry",,,
+S06-049,Step 06,Integration,Complete report workflow,"1. Create report for received protocol
+2. Add cassette observations
+3. Add report images
+4. Finalize report
+5. Send via email
+6. Verify complete workflow","- Complete workflow functions smoothly
+- All steps work together
+- Data flows correctly
+- Status updates properly
+- Email sent successfully
+- PDF generated correctly",,,
+S06-050,Step 06,Integration,Report statistics accuracy,"1. Create multiple reports in different stages
+2. Check report statistics in admin
+3. Verify counts match actual data","- Statistics accurately reflect current state
+- Counts update in real-time
+- No stale or incorrect data
+- Dashboard provides accurate overview",,,
+S06-051,Step 06,Integration,Report history accuracy,"1. Create, finalize, and send multiple reports
+2. Check report history
+3. Verify all reports appear correctly","- History accurately shows all reports
+- Status information correct
+- Date information accurate
+- Search and filter work properly
+- No missing or duplicate reports",,,
+S06-052,Step 06,Integration,Email delivery integration,"1. Send multiple reports
+2. Check email delivery status
+3. Verify tracking accuracy","- Email delivery status tracked correctly
+- Success/failure status accurate
+- Error messages captured properly
+- Retry mechanism works
+- Audit trail maintained",,,
+S07-001,Step 07,Work Order List,Access work orders list,"1. Login as lab staff or admin
+2. Navigate to /workorders/","- List of work orders displayed
+- Shows OT numbers, dates, status, totals
+- Filter options available
+- Search functionality
+- Clean Tailwind-styled interface",,,
+S07-002,Step 07,Work Order List,Filter work orders by status,"1. Go to work orders list
+2. Filter by 'Draft'
+3. Filter by 'Issued'
+4. Filter by 'Sent'
+5. Filter by 'Invoiced'","- Filtering works correctly
+- Shows only work orders with selected status
+- Counts update accordingly
+- Status badges visible",,,
+S07-003,Step 07,Work Order List,Filter work orders by date,"1. Go to work orders list
+2. Filter by last 7 days
+3. Filter by last 30 days
+4. Filter custom date range","- Filtering works correctly
+- Shows only work orders within date range
+- Counts update accordingly
+- Date range validation works",,,
+S07-004,Step 07,Work Order List,Search work orders,"1. Go to work orders list
+2. Search by OT number: OT-2024-001
+3. Search by veterinarian name
+4. Search by client name","- Search functionality works
+- Results filtered correctly
+- No false positives
+- Search is case-insensitive",,,
+S07-005,Step 07,Pending Protocols,View protocols ready for OT,"1. Login as lab staff or admin
+2. Navigate to /workorders/pending/","- List of protocols ready for work order generation displayed
+- Grouped by veterinarian
+- Shows protocol numbers, animal info, submission dates
+- 'Create Work Order' buttons visible
+- Filter options available",,,
+S07-006,Step 07,Pending Protocols,Filter pending by veterinarian,"1. Go to pending protocols
+2. Filter by specific veterinarian
+3. Check grouping","- Filtering works correctly
+- Shows only protocols for selected veterinarian
+- Grouping maintained
+- Counts update accordingly",,,
+S07-007,Step 07,Pending Protocols,Filter pending by analysis type,"1. Go to pending protocols
+2. Filter by Cytology
+3. Filter by Histopathology","- Filtering works correctly
+- Shows only selected analysis type
+- Counts update accordingly
+- No mixed types shown",,,
+S07-008,Step 07,Protocol Selection,Select protocols for work order,"1. Go to pending protocols
+2. Click 'Create Work Order' for veterinarian
+3. View protocol selection page
+4. Select multiple protocols
+5. Continue to work order creation","- Protocol selection interface loads
+- Multiple protocols can be selected
+- Selected protocols displayed
+- Validation prevents empty selection
+- Continue button enabled",,,
+S07-009,Step 07,Protocol Selection,Select single protocol,"1. Go to protocol selection
+2. Select only one protocol
+3. Continue to work order creation","- Single protocol selection works
+- Work order created with one service
+- Pricing calculated correctly
+- No grouping issues",,,
+S07-010,Step 07,Protocol Selection,Select multiple protocols,"1. Go to protocol selection
+2. Select 3 protocols from same veterinarian
+3. Continue to work order creation","- Multiple protocols selected successfully
+- All protocols grouped into single work order
+- Pricing calculated for each service
+- Total calculated correctly",,,
+S07-011,Step 07,Protocol Selection,Validation - no protocols selected,"1. Go to protocol selection
+2. Try to continue without selecting any protocols
+3. Submit form","- Validation prevents empty selection
+- Error message shown
+- Must select at least one protocol
+- Form remains on selection page",,,
+S07-012,Step 07,Protocol Selection,Validation - mixed veterinarians,"1. Try to select protocols from different veterinarians
+2. Submit form","- System prevents mixed veterinarian selection
+- Error message shown
+- Must select protocols from same veterinarian
+- Grouping validation works",,,
+S07-013,Step 07,Work Order Creation,Create work order with billing details,"1. Go to work order creation
+2. Fill billing information:
+   - Client name
+   - CUIT/CUIL
+   - IVA condition
+   - Address
+3. Review service details
+4. Save as draft","- Work order created successfully
+- Status: DRAFT
+- Billing information saved
+- Services linked correctly
+- Pricing calculated automatically",,,
+S07-014,Step 07,Work Order Creation,Automatic pricing calculation,"1. Create work order with protocols
+2. Check pricing calculation
+3. Verify totals","- Prices looked up from pricing catalog
+- Subtotal calculated correctly
+- Advance payment subtracted
+- Balance calculated properly
+- All amounts in correct currency",,,
+S07-015,Step 07,Work Order Creation,Work order with advance payment,"1. Create work order
+2. Set advance payment: $50.00
+3. Save work order
+4. Check balance calculation","- Advance payment recorded
+- Balance calculated correctly (total - advance)
+- Payment status updated
+- Financial summary accurate",,,
+S07-016,Step 07,Work Order Creation,Work order without advance payment,"1. Create work order
+2. Leave advance payment as $0.00
+3. Save work order
+4. Check payment status","- Advance payment set to $0.00
+- Balance equals total amount
+- Payment status: PENDING
+- No payment tracking issues",,,
+S07-017,Step 07,Work Order Creation,Work order with partial advance,"1. Create work order with total $100.00
+2. Set advance payment: $30.00
+3. Save work order
+4. Check payment status","- Advance payment: $30.00
+- Balance: $70.00
+- Payment status: PARTIAL
+- Financial calculations correct",,,
+S07-018,Step 07,Work Order Creation,Work order with full advance,"1. Create work order with total $100.00
+2. Set advance payment: $100.00
+3. Save work order
+4. Check payment status","- Advance payment: $100.00
+- Balance: $0.00
+- Payment status: PAID
+- Work order fully paid",,,
+S07-019,Step 07,Work Order Creation,Service details display,"1. Create work order
+2. Review service details section
+3. Check protocol information","- All selected protocols listed
+- Protocol numbers displayed
+- Animal information shown
+- Service types identified
+- Unit prices shown
+- Subtotals calculated",,,
+S07-020,Step 07,Work Order Creation,Work order numbering,"1. Create work order
+2. Check OT number generation
+3. Create another work order
+4. Verify sequential numbering","- OT number generated: OT-2024-001
+- Sequential numbering works
+- Next work order: OT-2024-002
+- No duplicate numbers
+- Year-based numbering correct",,,
+S07-021,Step 07,Work Order Edit,Edit draft work order,"1. Go to work order detail page
+2. Click 'Edit Work Order'
+3. Modify billing information
+4. Update advance payment
+5. Save changes","- Changes saved successfully
+- Updated information displayed
+- Status remains DRAFT
+- Success message shown
+- Can continue editing",,,
+S07-022,Step 07,Work Order Edit,Edit service details,"1. Go to work order edit page
+2. Modify service quantities
+3. Add discounts
+4. Update service descriptions
+5. Save","- Service changes saved
+- Pricing recalculated
+- Totals updated
+- All changes reflected correctly",,,
+S07-023,Step 07,Work Order Edit,Add observations,"1. Go to work order edit page
+2. Add observations: 'Special handling required'
+3. Save","- Observations saved
+- Visible in work order detail
+- Included in PDF generation
+- Can be edited later",,,
+S07-024,Step 07,Work Order Issue,Issue draft work order,"1. Go to work order detail page
+2. Click 'Issue Work Order' button
+3. Confirm issuance","- Work order status changed to ISSUED
+- Issue date recorded
+- Work order locked from editing
+- Success message shown
+- PDF generation available",,,
+S07-025,Step 07,Work Order Issue,Cannot edit issued work order,"1. Try to edit issued work order
+2. Access edit URL directly
+3. Verify edit button is hidden","- Edit button not visible on detail page
+- If URL accessed directly: error message
+- Message: Cannot edit issued work orders
+- Redirected to detail page
+- Work order remains locked",,,
+S07-026,Step 07,Work Order Send,Mark work order as sent,"1. Go to issued work order detail page
+2. Click 'Mark as Sent' button
+3. Confirm sending","- Work order status changed to SENT
+- Sent date recorded
+- Success message shown
+- Ready for invoicing",,,
+S07-027,Step 07,Work Order Send,Cannot edit sent work order,"1. Try to edit sent work order
+2. Access edit URL directly
+3. Verify restrictions","- Edit button not visible
+- If URL accessed directly: error message
+- Message: Cannot edit sent work orders
+- Work order remains locked
+- Status progression enforced",,,
+S07-028,Step 07,Work Order Invoice,Mark work order as invoiced,"1. Go to sent work order detail page
+2. Click 'Mark as Invoiced' button
+3. Confirm invoicing","- Work order status changed to INVOICED
+- Invoice date recorded
+- Success message shown
+- Work order complete",,,
+S07-029,Step 07,Work Order Invoice,Cannot edit invoiced work order,"1. Try to edit invoiced work order
+2. Access edit URL directly
+3. Verify final restrictions","- Edit button not visible
+- If URL accessed directly: error message
+- Message: Cannot edit invoiced work orders
+- Work order permanently locked
+- Final status reached",,,
+S07-030,Step 07,PDF Generation,Generate work order PDF,"1. Go to work order detail page
+2. Click 'Download PDF' button
+3. Verify PDF generation","- PDF generated successfully
+- Professional formatting applied
+- All work order content included
+- File downloads correctly
+- PDF opens without errors",,,
+S07-031,Step 07,PDF Generation,PDF content verification,"1. View generated PDF
+2. Check all sections:
+   - Header with OT number and date
+   - Client billing information
+   - Itemized services table
+   - Financial summary
+   - Observations section","- All sections present and formatted correctly
+- Content matches work order data
+- Professional appearance
+- Print-ready format
+- All calculations accurate",,,
+S07-032,Step 07,PDF Generation,PDF file naming,"1. Generate PDF for work order OT-2024-001
+2. Check downloaded file name","- File name: OT-2024-001.pdf
+- Includes OT number
+- Easy to identify
+- No special characters
+- Consistent naming",,,
+S07-033,Step 07,Work Order Detail,View work order details,"1. Go to work orders list
+2. Click on OT number
+3. View complete work order details","- All work order information displayed
+- Billing details shown
+- Service breakdown visible
+- Financial summary displayed
+- Status timeline shown
+- Action buttons for next steps",,,
+S07-034,Step 07,Work Order Detail,Service breakdown display,"1. View work order detail page
+2. Check service breakdown section","- Each service listed separately
+- Protocol numbers shown
+- Animal information displayed
+- Unit prices and quantities
+- Subtotals calculated
+- Total amount highlighted",,,
+S07-035,Step 07,Work Order Detail,Financial summary display,"1. View work order detail page
+2. Check financial summary section","- Subtotal amount shown
+- Advance payment displayed
+- Balance calculated
+- Payment status indicated
+- All amounts in correct format
+- Currency symbols present",,,
+S07-036,Step 07,Work Order Detail,Status timeline display,"1. View work order detail page
+2. Check status timeline section","- Timeline shows work order creation
+- Shows issuance event
+- Shows sending event
+- Shows invoicing event
+- Chronological order
+- Timestamps and user information",,,
+S07-037,Step 07,Admin Interface,PricingCatalog admin functionality,"1. Login to Django admin
+2. Navigate to Pricing Catalog
+3. Test CRUD operations","- List display shows key information
+- Search by service type works
+- Can create new pricing entries
+- Can edit existing prices
+- Date validity management works",,,
+S07-038,Step 07,Admin Interface,WorkOrderCounter admin functionality,"1. Login to Django admin
+2. Navigate to Work Order Counters
+3. Test counter management","- List display shows year and next number
+- Can view counter details
+- Cannot delete active counters
+- Next number preview works
+- Year-based organization",,,
+S07-039,Step 07,Admin Interface,WorkOrder admin functionality,"1. Login to Django admin
+2. Navigate to Work Orders
+3. Test search, filter, and management","- List display shows key information
+- Search by OT number, client, veterinarian works
+- Filter by status, payment status, date works
+- Inline service editing visible
+- Status actions available",,,
+S07-040,Step 07,Admin Interface,WorkOrderService admin functionality,"1. Login to Django admin
+2. Navigate to Work Order Services
+3. Test service management","- Services linked to work orders and protocols
+- Search and filter functionality
+- Can edit service details
+- Pricing information displayed
+- Quantity and discount tracking",,,
+S07-041,Step 07,Access Control,Lab staff can create work orders,"1. Login as lab staff
+2. Navigate to pending protocols
+3. Create new work order","- Access granted
+- Can create work orders
+- Can edit draft work orders
+- Can issue work orders
+- Can send work orders",,,
+S07-042,Step 07,Access Control,Admin can manage all work orders,"1. Login as admin
+2. Navigate to work orders section
+3. Test all operations","- Full access to all work orders
+- Can view, edit, issue any work order
+- Can send and invoice any work order
+- Can manage pricing catalog
+- Can access all admin functions",,,
+S07-043,Step 07,Access Control,Veterinarian cannot create work orders,"1. Login as veterinarian
+2. Try to access /workorders/pending/","- Access denied
+- Error message: Staff only
+- Redirected to appropriate page
+- Cannot access work order creation",,,
+S07-044,Step 07,Access Control,Histopathologist cannot create work orders,"1. Login as histopathologist
+2. Try to access /workorders/pending/","- Access denied
+- Error message: Staff only
+- Redirected to appropriate page
+- Cannot access work order creation",,,
+S07-045,Step 07,Edge Cases,Create work order for protocol without pricing,"1. Try to create work order for protocol with no pricing catalog entry
+2. Submit form","- System prevents work order creation
+- Error message shown
+- Must have pricing catalog entry first
+- Validation prevents incomplete work orders",,,
+S07-046,Step 07,Edge Cases,Issue work order without services,"1. Try to issue work order with no services
+2. Submit form","- System prevents issuance
+- Error message shown
+- Must have at least one service
+- Validation ensures complete work orders",,,
+S07-047,Step 07,Edge Cases,PDF generation failure,"1. Create work order with very large content
+2. Try to generate PDF
+3. Check error handling","- PDF generation fails gracefully
+- Error message shown
+- Work order remains unchanged
+- Can retry PDF generation
+- User notified of issue",,,
+S07-048,Step 07,Edge Cases,Concurrent work order creation,"1. Two users try to create work order for same protocols simultaneously
+2. Both submit forms","- Only one creation succeeds
+- Other gets appropriate error
+- No duplicate work orders
+- Database constraints prevent conflicts
+- User notified of conflict",,,
+S07-049,Step 07,Edge Cases,Very large advance payment,"1. Create work order with total $100.00
+2. Set advance payment: $150.00
+3. Try to save","- System prevents overpayment
+- Error message shown
+- Advance payment cannot exceed total
+- Validation ensures correct calculations",,,
+S07-050,Step 07,Edge Cases,Year boundary work order creation,"1. Create work order on Dec 31, 2024
+2. Create work order on Jan 1, 2025
+3. Check numbering","- Both work orders created successfully
+- Codes reflect correct years (OT-2024-XXX, OT-2025-XXX)
+- No year boundary issues
+- Counter management works correctly",,,
+S07-051,Step 07,Integration,Complete work order workflow,"1. Create work order for received protocols
+2. Add billing details
+3. Issue work order
+4. Generate PDF
+5. Send work order
+6. Mark as invoiced
+7. Verify complete workflow","- Complete workflow functions smoothly
+- All steps work together
+- Status progression enforced
+- Data flows correctly
+- PDF generated successfully
+- All actions tracked",,,
+S07-052,Step 07,Integration,Work order statistics accuracy,"1. Create multiple work orders in different stages
+2. Check work order statistics in admin
+3. Verify counts match actual data","- Statistics accurately reflect current state
+- Counts update in real-time
+- No stale or incorrect data
+- Dashboard provides accurate overview",,,
+S07-053,Step 07,Integration,Work order history accuracy,"1. Create, issue, send, and invoice multiple work orders
+2. Check work order history
+3. Verify all work orders appear correctly","- History accurately shows all work orders
+- Status information correct
+- Date information accurate
+- Search and filter work properly
+- No missing or duplicate work orders",,,
+S07-054,Step 07,Integration,Pricing catalog integration,"1. Update pricing catalog
+2. Create new work order
+3. Verify new prices used","- New prices applied correctly
+- Automatic price lookup works
+- Pricing catalog integration functional
+- No stale pricing data
+- Real-time price updates",,,
+S08-001,Step 08,Email Log,View email logs,"1. Login as admin
+2. Navigate to Django admin → Protocols → Email Logs
+3. View email history","- List of all sent emails displayed
+- Shows email type, recipient, status, date
+- Filter options available
+- Search functionality
+- Clean admin interface",,,
+S08-002,Step 08,Email Log,Filter email logs by type,"1. Go to email logs
+2. Filter by 'Email Verification'
+3. Filter by 'Sample Reception'
+4. Filter by 'Report Ready'
+5. Filter by 'Work Order'","- Filtering works correctly
+- Shows only emails of selected type
+- Counts update accordingly
+- Type badges visible",,,
+S08-003,Step 08,Email Log,Filter email logs by status,"1. Go to email logs
+2. Filter by 'PENDING'
+3. Filter by 'SUCCESS'
+4. Filter by 'FAILED'
+5. Filter by 'RETRY'","- Filtering works correctly
+- Shows only emails with selected status
+- Counts update accordingly
+- Status badges visible",,,
+S08-004,Step 08,Email Log,Search email logs,"1. Go to email logs
+2. Search by recipient email
+3. Search by subject
+4. Search by task ID","- Search functionality works
+- Results filtered correctly
+- No false positives
+- Search is case-insensitive",,,
+S08-005,Step 08,Email Log,View email log details,"1. Go to email logs
+2. Click on specific email log
+3. View detailed information","- All email information displayed
+- Email type and recipient shown
+- Subject and content preview
+- Status and timestamps
+- Error messages (if failed)
+- Celery task ID visible",,,
+S08-006,Step 08,Email Log,Email log read-only access,"1. Try to edit email log
+2. Try to delete email log
+3. Verify restrictions","- Email logs are read-only
+- Cannot edit log entries
+- Cannot delete logs (except superuser)
+- Data integrity maintained
+- Audit trail preserved",,,
+S08-007,Step 08,Notification Preferences,View notification preferences,"1. Login as admin
+2. Navigate to Django admin → Protocols → Notification Preferences
+3. View veterinarian preferences","- List of veterinarian preferences displayed
+- Shows notification settings
+- Alternative email addresses
+- Attachment preferences
+- Clean admin interface",,,
+S08-008,Step 08,Notification Preferences,Edit notification preferences,"1. Go to notification preferences
+2. Edit preferences for veterinarian
+3. Toggle notification settings
+4. Set alternative email
+5. Save changes","- Preferences updated successfully
+- Changes reflected immediately
+- Alternative email saved
+- Notification toggles work
+- Success message shown",,,
+S08-009,Step 08,Notification Preferences,Disable sample reception notifications,"1. Edit veterinarian preferences
+2. Disable 'Sample Reception' notifications
+3. Save changes
+4. Test sample reception","- Sample reception notifications disabled
+- No email sent for this veterinarian
+- Other notifications still work
+- Preference respected by system",,,
+S08-010,Step 08,Notification Preferences,Disable report ready notifications,"1. Edit veterinarian preferences
+2. Disable 'Report Ready' notifications
+3. Save changes
+4. Test report sending","- Report ready notifications disabled
+- No email sent for this veterinarian
+- Other notifications still work
+- Preference respected by system",,,
+S08-011,Step 08,Notification Preferences,Set alternative email,"1. Edit veterinarian preferences
+2. Set alternative email: 'clinic@example.com'
+3. Save changes
+4. Test email sending","- Alternative email used for notifications
+- Emails sent to alternative address
+- Original email not used
+- Preference respected by system",,,
+S08-012,Step 08,Notification Preferences,Disable attachment preferences,"1. Edit veterinarian preferences
+2. Disable 'Include Attachments'
+3. Save changes
+4. Test report with PDF","- Attachments not included in emails
+- Email sent without PDF
+- Other email content preserved
+- Preference respected by system",,,
+S08-013,Step 08,Email Verification,Email verification notification,"1. Register new veterinarian
+2. Check email logs
+3. Verify email sent","- Email verification queued
+- EmailLog entry created
+- Status: PENDING or SUCCESS
+- Email type: EMAIL_VERIFICATION
+- Recipient: new user email",,,
+S08-014,Step 08,Email Verification,Email verification content,"1. Check email verification email
+2. Verify content and template","- Professional HTML email template
+- Verification link included
+- Spanish language content
+- Clear call-to-action
+- Responsive design",,,
+S08-015,Step 08,Email Verification,Email verification retry,"1. Simulate email failure
+2. Check retry mechanism
+3. Verify exponential backoff","- Email retried automatically
+- Retry count incremented
+- Exponential backoff applied
+- Status updated to RETRY
+- Error logged if all retries fail",,,
+S08-016,Step 08,Password Reset,Password reset notification,"1. Request password reset
+2. Check email logs
+3. Verify email sent","- Password reset email queued
+- EmailLog entry created
+- Status: PENDING or SUCCESS
+- Email type: PASSWORD_RESET
+- Recipient: user email",,,
+S08-017,Step 08,Password Reset,Password reset content,"1. Check password reset email
+2. Verify content and template","- Professional HTML email template
+- Reset link included
+- Spanish language content
+- Clear instructions
+- Responsive design",,,
+S08-018,Step 08,Sample Reception,Sample reception notification,"1. Receive protocol sample
+2. Check email logs
+3. Verify notification sent","- Sample reception email queued
+- EmailLog entry created
+- Status: PENDING or SUCCESS
+- Email type: SAMPLE_RECEPTION
+- Recipient: veterinarian email",,,
+S08-019,Step 08,Sample Reception,Sample reception content,"1. Check sample reception email
+2. Verify content and template","- Professional HTML email template
+- Protocol information included
+- Reception details shown
+- Spanish language content
+- Clear information",,,
+S08-020,Step 08,Sample Reception,Sample reception with preferences,"1. Disable sample reception notifications for veterinarian
+2. Receive protocol sample
+3. Check email logs","- No email sent (preference respected)
+- EmailLog entry not created
+- Other notifications still work
+- Preference system functional",,,
+S08-021,Step 08,Report Ready,Report ready notification,"1. Finalize and send report
+2. Check email logs
+3. Verify notification sent","- Report ready email queued
+- EmailLog entry created
+- Status: PENDING or SUCCESS
+- Email type: REPORT_READY
+- Recipient: veterinarian email",,,
+S08-022,Step 08,Report Ready,Report ready with PDF attachment,"1. Send report with PDF
+2. Check email content
+3. Verify PDF attachment","- Professional HTML email template
+- Report information included
+- PDF attachment present
+- Spanish language content
+- Attachment downloadable",,,
+S08-023,Step 08,Report Ready,Report ready without attachment preference,"1. Disable attachment preference for veterinarian
+2. Send report with PDF
+3. Check email content","- Email sent without PDF attachment
+- Report information included
+- Preference respected
+- Other content preserved",,,
+S08-024,Step 08,Work Order,Work order notification,"1. Create and issue work order
+2. Check email logs
+3. Verify notification sent","- Work order email queued
+- EmailLog entry created
+- Status: PENDING or SUCCESS
+- Email type: WORK_ORDER
+- Recipient: veterinarian email",,,
+S08-025,Step 08,Work Order,Work order content,"1. Check work order email
+2. Verify content and template","- Professional HTML email template
+- Work order information included
+- Financial details shown
+- Spanish language content
+- Clear billing information",,,
+S08-026,Step 08,Work Order,Work order with PDF attachment,"1. Send work order with PDF
+2. Check email content
+3. Verify PDF attachment","- Professional HTML email template
+- Work order information included
+- PDF attachment present
+- Spanish language content
+- Attachment downloadable",,,
+S08-027,Step 08,Custom Notification,Custom notification,"1. Send custom notification via admin
+2. Check email logs
+3. Verify notification sent","- Custom email queued
+- EmailLog entry created
+- Status: PENDING or SUCCESS
+- Email type: CUSTOM
+- Recipient: specified email",,,
+S08-028,Step 08,Custom Notification,Custom notification content,"1. Check custom notification email
+2. Verify content and template","- Professional HTML email template
+- Custom message included
+- Spanish language content
+- Default template used
+- Responsive design",,,
+S08-029,Step 08,Celery Task,Celery task execution,"1. Send any email
+2. Check Celery worker logs
+3. Verify task execution","- Celery task queued successfully
+- Task executed by worker
+- Task status tracked
+- No task failures
+- Worker processes emails",,,
+S08-030,Step 08,Celery Task,Task retry mechanism,"1. Simulate email failure
+2. Check retry behavior
+3. Verify exponential backoff","- Task retried automatically
+- Retry count incremented
+- Exponential backoff applied
+- Status updated appropriately
+- Error logged if all retries fail",,,
+S08-031,Step 08,Celery Task,Task status tracking,"1. Send email
+2. Check task status via Celery
+3. Verify status updates","- Task status tracked correctly
+- PENDING → STARTED → SUCCESS/FAILURE
+- Status updates in real-time
+- EmailLog reflects task status
+- No status mismatches",,,
+S08-032,Step 08,Email Templates,Email template rendering,"1. Send various email types
+2. Check template rendering
+3. Verify HTML output","- All templates render correctly
+- HTML structure valid
+- CSS styling applied
+- Spanish content displayed
+- Responsive design works",,,
+S08-033,Step 08,Email Templates,Template context variables,"1. Send email with context data
+2. Check template variables
+3. Verify data substitution","- Context variables substituted correctly
+- Dynamic content displayed
+- No missing variables
+- Data formatting correct
+- Template logic works",,,
+S08-034,Step 08,Email Templates,Template fallback,"1. Send email with missing template
+2. Check fallback behavior
+3. Verify default template used","- Fallback to default template
+- Email still sent successfully
+- Basic formatting applied
+- No template errors
+- Graceful degradation",,,
+S08-035,Step 08,Error Handling,Email sending failure,"1. Configure invalid email settings
+2. Try to send email
+3. Check error handling","- Email sending fails gracefully
+- Error message captured
+- EmailLog status: FAILED
+- Error details logged
+- User notified of failure",,,
+S08-036,Step 08,Error Handling,Template rendering failure,"1. Send email with invalid template
+2. Check error handling
+3. Verify fallback","- Template error handled gracefully
+- Fallback template used
+- Email still sent
+- Error logged
+- No system crash",,,
+S08-037,Step 08,Error Handling,Invalid recipient email,"1. Try to send email to invalid address
+2. Check error handling
+3. Verify validation","- Invalid email rejected
+- Error message shown
+- Email not queued
+- Validation prevents errors
+- User notified of issue",,,
+S08-038,Step 08,Error Handling,Database connection failure,"1. Simulate database issues
+2. Try to create EmailLog
+3. Check error handling","- Database error handled gracefully
+- Email still queued to Celery
+- Error logged appropriately
+- No data loss
+- System remains functional",,,
+S08-039,Step 08,Performance,Multiple email sending,"1. Send 10 emails simultaneously
+2. Check processing time
+3. Verify all emails queued","- All emails queued successfully
+- No performance degradation
+- Celery handles load
+- All EmailLog entries created
+- System remains responsive",,,
+S08-040,Step 08,Performance,Large email content,"1. Send email with large content
+2. Check processing time
+3. Verify email sent","- Large content handled appropriately
+- No performance issues
+- Email sent successfully
+- Template rendering works
+- No memory issues",,,
+S08-041,Step 08,Performance,Email queue processing,"1. Send multiple emails
+2. Check queue processing
+3. Verify worker efficiency","- Queue processed efficiently
+- Workers handle load
+- No backlog issues
+- Emails sent in order
+- System scales appropriately",,,
+S08-042,Step 08,Integration,Email with protocol workflow,"1. Complete protocol workflow
+2. Check all email notifications
+3. Verify integration","- All workflow emails sent
+- EmailLog entries created
+- Notifications sent at correct times
+- Preferences respected
+- Complete integration works",,,
+S08-043,Step 08,Integration,Email with report workflow,"1. Complete report workflow
+2. Check email notifications
+3. Verify integration","- Report ready email sent
+- PDF attachment included
+- EmailLog entry created
+- Preferences respected
+- Integration works correctly",,,
+S08-044,Step 08,Integration,Email with work order workflow,"1. Complete work order workflow
+2. Check email notifications
+3. Verify integration","- Work order email sent
+- PDF attachment included
+- EmailLog entry created
+- Preferences respected
+- Integration works correctly",,,
+S08-045,Step 08,Integration,Email statistics accuracy,"1. Send multiple emails of different types
+2. Check email statistics
+3. Verify counts match","- Statistics accurately reflect sent emails
+- Counts by type correct
+- Success/failure rates accurate
+- No stale data
+- Real-time updates",,,
+S08-046,Step 08,Integration,Email history accuracy,"1. Send emails over time
+2. Check email history
+3. Verify chronological order","- History accurately shows all emails
+- Chronological order maintained
+- No missing emails
+- Search and filter work
+- Complete audit trail",,,
+S08-047,Step 08,Edge Cases,Email with special characters,"1. Send email with special characters in content
+2. Check email rendering
+3. Verify encoding","- Special characters handled correctly
+- No encoding issues
+- Email displays properly
+- UTF-8 encoding works
+- No character corruption",,,
+S08-048,Step 08,Edge Cases,Email with very long content,"1. Send email with 5000+ character content
+2. Check email handling
+3. Verify delivery","- Long content handled appropriately
+- No truncation issues
+- Email sent successfully
+- Template rendering works
+- No performance problems",,,
+S08-049,Step 08,Edge Cases,Concurrent email sending,"1. Multiple users send emails simultaneously
+2. Check system behavior
+3. Verify all emails processed","- All emails processed correctly
+- No race conditions
+- Celery handles concurrency
+- All EmailLog entries created
+- System remains stable",,,
+S08-050,Step 08,Edge Cases,Email with missing context,"1. Send email with missing context variables
+2. Check error handling
+3. Verify fallback","- Missing context handled gracefully
+- Default values used
+- Email still sent
+- Error logged appropriately
+- No template crashes",,,
+S08-051,Step 08,Edge Cases,Email with invalid attachments,"1. Try to send email with invalid attachment
+2. Check error handling
+3. Verify validation","- Invalid attachment rejected
+- Error message shown
+- Email sent without attachment
+- Validation prevents errors
+- User notified of issue",,,
+S08-052,Step 08,Edge Cases,Email queue overflow,"1. Send 100+ emails rapidly
+2. Check queue behavior
+3. Verify system stability","- Queue handles overflow gracefully
+- All emails eventually processed
+- No system crashes
+- Celery manages load
+- System remains responsive",,,
+S15-001,Step 15,Dashboard Router,Access main dashboard,"1. Login as any user
+2. Navigate to /dashboard/","- Automatically redirected to role-specific dashboard
+- No manual selection required
+- Routing works based on user role
+- Clean redirect without errors",,,
+S15-002,Step 15,Dashboard Router,Veterinarian dashboard routing,"1. Login as veterinarian
+2. Navigate to /dashboard/","- Redirected to /dashboard/veterinarian/
+- Veterinarian dashboard loads
+- No access denied errors
+- Correct role detection",,,
+S15-003,Step 15,Dashboard Router,Lab staff dashboard routing,"1. Login as lab staff
+2. Navigate to /dashboard/","- Redirected to /dashboard/lab-staff/
+- Lab staff dashboard loads
+- No access denied errors
+- Correct role detection",,,
+S15-004,Step 15,Dashboard Router,Histopathologist dashboard routing,"1. Login as histopathologist
+2. Navigate to /dashboard/","- Redirected to /dashboard/histopathologist/
+- Histopathologist dashboard loads
+- No access denied errors
+- Correct role detection",,,
+S15-005,Step 15,Dashboard Router,Admin dashboard routing,"1. Login as admin
+2. Navigate to /dashboard/","- Redirected to /dashboard/admin/
+- Admin dashboard loads
+- No access denied errors
+- Correct role detection",,,
+S15-006,Step 15,Dashboard Router,Default dashboard routing,"1. Login as user without assigned role
+2. Navigate to /dashboard/","- Redirected to /dashboard/default/
+- Default dashboard loads
+- Shows profile completion instructions
+- No access denied errors",,,
+S15-007,Step 15,Access Control,Unauthorized dashboard access,"1. Login as veterinarian
+2. Try to access /dashboard/lab-staff/","- Access denied
+- Error message: Access denied
+- Redirected to appropriate dashboard
+- Security enforced",,,
+S15-008,Step 15,Access Control,Unauthorized admin access,"1. Login as veterinarian
+2. Try to access /dashboard/admin/","- Access denied
+- Error message: Access denied
+- Redirected to veterinarian dashboard
+- Security enforced",,,
+S15-009,Step 15,Access Control,Unauthenticated access,"1. Logout
+2. Try to access /dashboard/","- Redirected to login page
+- Login required message
+- Cannot access dashboard
+- Authentication enforced",,,
+S15-010,Step 15,Veterinarian Dashboard,Access veterinarian dashboard,"1. Login as veterinarian
+2. Navigate to /dashboard/veterinarian/","- Dashboard loads successfully
+- Purple gradient background visible
+- Welcome section with veterinarian name
+- All sections displayed correctly",,,
+S15-011,Step 15,Veterinarian Dashboard,Welcome section display,"1. View veterinarian dashboard
+2. Check welcome section","- Personalized welcome message
+- Veterinarian's name displayed
+- Professional greeting
+- Clean, attractive design",,,
+S15-012,Step 15,Veterinarian Dashboard,Quick action cards,"1. View veterinarian dashboard
+2. Check quick action cards","- 3 quick action cards visible
+- Create Cytology Protocol card
+- Create Histopathology Protocol card
+- View My Protocols card
+- All cards clickable and functional",,,
+S15-013,Step 15,Veterinarian Dashboard,Statistics widgets,"1. View veterinarian dashboard
+2. Check statistics widgets","- Active Protocols count displayed
+- Ready Reports count displayed
+- Monthly Protocols Submitted count displayed
+- All counts accurate and real-time
+- Color-coded widgets",,,
+S15-014,Step 15,Veterinarian Dashboard,Recent activity feed,"1. View veterinarian dashboard
+2. Check recent activity section","- Recent protocols listed
+- Protocol numbers displayed
+- Status badges shown
+- Animal information visible
+- Chronological order maintained",,,
+S15-015,Step 15,Veterinarian Dashboard,Feature discovery grid,"1. View veterinarian dashboard
+2. Check feature discovery section","- 4 feature cards displayed
+- Cytology Analysis card
+- Histopathology Analysis card
+- Report Downloads card
+- Work Order Access card
+- All cards clickable",,,
+S15-016,Step 15,Veterinarian Dashboard,Navigation functionality,"1. Click on quick action cards
+2. Click on feature discovery cards
+3. Verify navigation","- All navigation links work
+- Redirected to correct pages
+- No broken links
+- Smooth user experience",,,
+S15-017,Step 15,Lab Staff Dashboard,Access lab staff dashboard,"1. Login as lab staff
+2. Navigate to /dashboard/lab-staff/","- Dashboard loads successfully
+- Blue gradient background visible
+- Laboratory-focused welcome section
+- All sections displayed correctly",,,
+S15-018,Step 15,Lab Staff Dashboard,Welcome section display,"1. View lab staff dashboard
+2. Check welcome section","- Laboratory-focused welcome message
+- Professional greeting
+- Clean, attractive design
+- Appropriate for lab staff role",,,
+S15-019,Step 15,Lab Staff Dashboard,Quick action cards,"1. View lab staff dashboard
+2. Check quick action cards","- 3 quick action cards visible
+- Sample Reception card
+- Processing Management card
+- Work Order Creation card
+- All cards clickable and functional",,,
+S15-020,Step 15,Lab Staff Dashboard,Statistics widgets,"1. View lab staff dashboard
+2. Check statistics widgets","- Pending Sample Reception count (highlighted)
+- Samples in Processing count
+- Today's Received Samples count
+- All counts accurate and real-time
+- Color-coded widgets",,,
+S15-021,Step 15,Lab Staff Dashboard,Processing queue,"1. View lab staff dashboard
+2. Check processing queue section","- Processing queue displayed
+- Protocol numbers shown
+- Status badges visible
+- Direct processing links available
+- Queue updates in real-time",,,
+S15-022,Step 15,Lab Staff Dashboard,Laboratory tools grid,"1. View lab staff dashboard
+2. Check laboratory tools section","- 4 tool cards displayed
+- Protocol Search card
+- Label Generation card
+- Cassette Registration card
+- Slide Registration card
+- All cards clickable",,,
+S15-023,Step 15,Lab Staff Dashboard,Navigation functionality,"1. Click on quick action cards
+2. Click on laboratory tools cards
+3. Verify navigation","- All navigation links work
+- Redirected to correct pages
+- No broken links
+- Smooth user experience",,,
+S15-024,Step 15,Histopathologist Dashboard,Access histopathologist dashboard,"1. Login as histopathologist
+2. Navigate to /dashboard/histopathologist/","- Dashboard loads successfully
+- Indigo gradient background visible
+- Clinical-focused welcome section
+- All sections displayed correctly",,,
+S15-025,Step 15,Histopathologist Dashboard,Welcome section display,"1. View histopathologist dashboard
+2. Check welcome section","- Clinical-focused welcome message
+- Professional greeting
+- Clean, attractive design
+- Appropriate for histopathologist role",,,
+S15-026,Step 15,Histopathologist Dashboard,Quick action cards,"1. View histopathologist dashboard
+2. Check quick action cards","- 3 quick action cards visible
+- Pending Reports Review card
+- Report History Access card
+- Digital Signature Management card
+- All cards clickable and functional",,,
+S15-027,Step 15,Histopathologist Dashboard,Statistics widgets,"1. View histopathologist dashboard
+2. Check statistics widgets","- Pending Reports count (highlighted)
+- Monthly Completed Reports count
+- Average Report Completion Time
+- All counts accurate and real-time
+- Color-coded widgets",,,
+S15-028,Step 15,Histopathologist Dashboard,Pending reports list,"1. View histopathologist dashboard
+2. Check pending reports section","- Pending reports list displayed
+- Protocol information shown
+- Case details visible
+- Edit and view actions available
+- List updates in real-time",,,
+S15-029,Step 15,Histopathologist Dashboard,Diagnostic tools grid,"1. View histopathologist dashboard
+2. Check diagnostic tools section","- 4 tool cards displayed
+- Report Creation card
+- PDF Generation card
+- Report Sending card
+- Productivity Statistics card
+- All cards clickable",,,
+S15-030,Step 15,Histopathologist Dashboard,Navigation functionality,"1. Click on quick action cards
+2. Click on diagnostic tools cards
+3. Verify navigation","- All navigation links work
+- Redirected to correct pages
+- No broken links
+- Smooth user experience",,,
+S15-031,Step 15,Admin Dashboard,Access admin dashboard,"1. Login as admin
+2. Navigate to /dashboard/admin/","- Dashboard loads successfully
+- Gray gradient background visible
+- Administrative welcome section
+- All sections displayed correctly",,,
+S15-032,Step 15,Admin Dashboard,Welcome section display,"1. View admin dashboard
+2. Check welcome section","- Administrative welcome message
+- Professional greeting
+- Clean, attractive design
+- Appropriate for admin role",,,
+S15-033,Step 15,Admin Dashboard,Quick action cards,"1. View admin dashboard
+2. Check quick action cards","- 3 quick action cards visible
+- Django Admin Panel card
+- System Analytics card
+- User Management card
+- All cards clickable and functional",,,
+S15-034,Step 15,Admin Dashboard,System health monitoring,"1. View admin dashboard
+2. Check system health section","- Database status indicator
+- Email configuration status
+- Storage availability indicator
+- Active users count
+- All indicators accurate",,,
+S15-035,Step 15,Admin Dashboard,System-wide statistics,"1. View admin dashboard
+2. Check system statistics section","- Total protocols this year
+- Completed reports this month
+- Total registered users
+- Average turnaround time (TAT)
+- All statistics accurate and real-time",,,
+S15-036,Step 15,Admin Dashboard,Recent activity feed,"1. View admin dashboard
+2. Check recent activity section","- Recent system activity listed
+- Activity details displayed
+- Timestamps shown
+- Chronological order maintained
+- Activity updates in real-time",,,
+S15-037,Step 15,Admin Dashboard,Administrative tools grid,"1. View admin dashboard
+2. Check administrative tools section","- 4 tool cards displayed
+- User Management card
+- System Configuration card
+- Analytics Access card
+- Security Monitoring card
+- All cards clickable",,,
+S15-038,Step 15,Admin Dashboard,Navigation functionality,"1. Click on quick action cards
+2. Click on administrative tools cards
+3. Verify navigation","- All navigation links work
+- Redirected to correct pages
+- No broken links
+- Smooth user experience",,,
+S15-039,Step 15,Default Dashboard,Access default dashboard,"1. Login as user without assigned role
+2. Navigate to /dashboard/default/","- Dashboard loads successfully
+- Default welcome section visible
+- Profile completion instructions shown
+- All sections displayed correctly",,,
+S15-040,Step 15,Default Dashboard,Welcome section display,"1. View default dashboard
+2. Check welcome section","- Informative welcome message
+- Instructions to complete profile
+- Contact information displayed
+- Clean, helpful design",,,
+S15-041,Step 15,Default Dashboard,Navigation options,"1. View default dashboard
+2. Check navigation options","- Home page link available
+- Profile page link available
+- Contact information accessible
+- All links functional",,,
+S15-042,Step 15,Default Dashboard,Profile completion guidance,"1. View default dashboard
+2. Check profile completion section","- Clear instructions provided
+- Steps to complete profile
+- Helpful guidance
+- User-friendly interface",,,
+S15-043,Step 15,Responsive Design,Mobile view - veterinarian dashboard,"1. Access veterinarian dashboard on mobile device
+2. Check responsive layout","- Single column layout
+- Stacked cards
+- Touch-friendly buttons
+- Readable text
+- No horizontal scrolling",,,
+S15-044,Step 15,Responsive Design,Tablet view - lab staff dashboard,"1. Access lab staff dashboard on tablet
+2. Check responsive layout","- 2-column grid layout
+- Appropriate spacing
+- Touch-friendly interface
+- Good readability
+- Optimized for tablet",,,
+S15-045,Step 15,Responsive Design,Desktop view - histopathologist dashboard,"1. Access histopathologist dashboard on desktop
+2. Check responsive layout","- 3-4 column grid layout
+- Full feature display
+- Hover effects work
+- Professional appearance
+- Optimized for desktop",,,
+S15-046,Step 15,Responsive Design,Admin dashboard responsive,"1. Access admin dashboard on different screen sizes
+2. Check responsive behavior","- Layout adapts to screen size
+- All content accessible
+- No layout issues
+- Consistent experience
+- Professional appearance",,,
+S15-047,Step 15,Statistics Accuracy,Veterinarian statistics accuracy,"1. Create protocols as veterinarian
+2. Check dashboard statistics
+3. Verify counts match actual data","- Statistics accurately reflect current state
+- Counts update in real-time
+- No stale or incorrect data
+- Dashboard provides accurate overview",,,
+S15-048,Step 15,Statistics Accuracy,Lab staff statistics accuracy,"1. Process samples as lab staff
+2. Check dashboard statistics
+3. Verify counts match actual data","- Statistics accurately reflect current state
+- Counts update in real-time
+- No stale or incorrect data
+- Dashboard provides accurate overview",,,
+S15-049,Step 15,Statistics Accuracy,Histopathologist statistics accuracy,"1. Complete reports as histopathologist
+2. Check dashboard statistics
+3. Verify counts match actual data","- Statistics accurately reflect current state
+- Counts update in real-time
+- No stale or incorrect data
+- Dashboard provides accurate overview",,,
+S15-050,Step 15,Statistics Accuracy,Admin statistics accuracy,"1. Perform various admin actions
+2. Check dashboard statistics
+3. Verify counts match actual data","- Statistics accurately reflect current state
+- Counts update in real-time
+- No stale or incorrect data
+- Dashboard provides accurate overview",,,
+S15-051,Step 15,Performance,Dashboard loading performance,"1. Access dashboard with large amount of data
+2. Check loading time
+3. Verify performance","- Dashboard loads quickly
+- No performance issues
+- Statistics calculated efficiently
+- Responsive interface
+- Good user experience",,,
+S15-052,Step 15,Performance,Statistics calculation performance,"1. Access dashboard with many protocols/reports
+2. Check statistics calculation time
+3. Verify performance","- Statistics calculated quickly
+- No database performance issues
+- Efficient queries used
+- Real-time updates
+- Good performance",,,
+S15-053,Step 15,Integration,Dashboard with protocol workflow,"1. Complete protocol workflow
+2. Check dashboard updates
+3. Verify integration","- Dashboard updates reflect workflow changes
+- Statistics update correctly
+- Recent activity shows new items
+- Integration works seamlessly",,,
+S15-054,Step 15,Integration,Dashboard with report workflow,"1. Complete report workflow
+2. Check dashboard updates
+3. Verify integration","- Dashboard updates reflect workflow changes
+- Statistics update correctly
+- Recent activity shows new items
+- Integration works seamlessly",,,
+S15-055,Step 15,Integration,Dashboard with work order workflow,"1. Complete work order workflow
+2. Check dashboard updates
+3. Verify integration","- Dashboard updates reflect workflow changes
+- Statistics update correctly
+- Recent activity shows new items
+- Integration works seamlessly",,,
+S15-056,Step 15,Edge Cases,Dashboard with no data,"1. Access dashboard with no protocols/reports
+2. Check display behavior
+3. Verify handling","- Dashboard displays gracefully
+- Zero counts shown correctly
+- No error messages
+- Empty states handled properly
+- User-friendly display",,,
+S15-057,Step 15,Edge Cases,Dashboard with very large data,"1. Access dashboard with 1000+ protocols
+2. Check performance and display
+3. Verify handling","- Dashboard handles large data efficiently
+- Statistics calculated quickly
+- Recent activity limited appropriately
+- No performance issues
+- Good user experience",,,
+S15-058,Step 15,Edge Cases,Concurrent dashboard access,"1. Multiple users access dashboards simultaneously
+2. Check system behavior
+3. Verify stability","- All users can access dashboards
+- No performance degradation
+- Statistics calculated correctly for each user
+- System remains stable
+- No conflicts",,,
+S15-059,Step 15,Edge Cases,Dashboard with special characters,"1. Access dashboard with special characters in data
+2. Check display behavior
+3. Verify handling","- Special characters displayed correctly
+- No encoding issues
+- Text renders properly
+- No display problems
+- UTF-8 encoding works",,,
+S15-060,Step 15,Edge Cases,Dashboard with missing data,"1. Access dashboard with incomplete data
+2. Check display behavior
+3. Verify handling","- Missing data handled gracefully
+- Default values shown where appropriate
+- No error messages
+- Dashboard remains functional
+- User-friendly display",,,
+INT-001,Integration,Complete Cytology Workflow,End-to-end cytology workflow,"1. Register new veterinarian
+2. Complete email verification
+3. Complete veterinarian profile
+4. Create cytology protocol
+5. Submit protocol
+6. Lab receives sample
+7. Create cytology slides
+8. Process slides through all stages
+9. Create report
+10. Finalize report
+11. Send report via email
+12. Generate work order
+13. Issue work order
+14. Verify complete traceability","- Complete workflow functions smoothly
+- All steps work together seamlessly
+- Data flows correctly between steps
+- Status updates properly throughout
+- Email notifications sent at correct times
+- PDFs generated successfully
+- Complete audit trail maintained
+- All user roles can perform their tasks",,,
+INT-002,Integration,Complete Histopathology Workflow,End-to-end histopathology workflow,"1. Register new veterinarian
+2. Complete email verification
+3. Complete veterinarian profile
+4. Create histopathology protocol
+5. Submit protocol
+6. Lab receives sample
+7. Create cassettes for sample
+8. Process cassettes through all stages
+9. Create slides with cassette associations
+10. Process slides through all stages
+11. Create report with cassette observations
+12. Add report images
+13. Finalize report
+14. Send report via email
+15. Generate work order
+16. Issue work order
+17. Verify complete traceability","- Complete workflow functions smoothly
+- All steps work together seamlessly
+- Data flows correctly between steps
+- Status updates properly throughout
+- Email notifications sent at correct times
+- PDFs generated successfully
+- Complete audit trail maintained
+- All user roles can perform their tasks
+- Cassette-slide relationships maintained",,,
+INT-003,Integration,Multi-Protocol Work Order,Multiple protocols in single work order,"1. Veterinarian creates 3 protocols (2 cytology, 1 histopathology)
+2. Submit all protocols
+3. Lab receives all samples
+4. Process all samples through completion
+5. Generate reports for all protocols
+6. Create single work order grouping all 3 protocols
+7. Issue work order
+8. Send work order via email
+9. Verify billing and grouping","- Multiple protocols grouped correctly
+- Single work order created
+- All protocols linked to work order
+- Pricing calculated correctly for each service
+- Total amount calculated properly
+- PDF includes all protocols
+- Email sent to veterinarian
+- Complete audit trail maintained",,,
+INT-004,Integration,Email Notification Workflow,Complete email notification flow,"1. Register new veterinarian
+2. Verify email verification sent
+3. Create and submit protocol
+4. Verify sample reception notification sent
+5. Complete processing and create report
+6. Verify report ready notification sent
+7. Create work order
+8. Verify work order notification sent
+9. Check all emails in EmailLog
+10. Verify notification preferences respected","- All email notifications sent correctly
+- EmailLog entries created for each email
+- Notification preferences respected
+- Email templates render correctly
+- PDF attachments included where appropriate
+- Celery tasks execute successfully
+- Retry mechanism works if needed
+- Complete email audit trail",,,
+INT-005,Integration,User Role Workflow,All user roles working together,"1. Admin creates histopathologist user
+2. Histopathologist completes profile
+3. Veterinarian creates protocol
+4. Lab staff receives sample
+5. Lab staff processes sample
+6. Histopathologist creates report
+7. Lab staff creates work order
+8. Admin monitors system
+9. Verify all roles can perform their tasks
+10. Check access control enforcement","- All user roles function correctly
+- Access control enforced properly
+- Each role sees appropriate data
+- Workflow progresses through all roles
+- No unauthorized access
+- All permissions respected
+- System remains secure
+- Complete role-based workflow",,,
+INT-006,Integration,Dashboard Integration,All dashboards working together,"1. Veterinarian accesses dashboard
+2. Creates protocol from dashboard
+3. Lab staff accesses dashboard
+4. Processes sample from dashboard
+5. Histopathologist accesses dashboard
+6. Creates report from dashboard
+7. Admin accesses dashboard
+8. Monitors system from dashboard
+9. Verify all dashboards update correctly
+10. Check statistics accuracy","- All dashboards function correctly
+- Statistics update in real-time
+- Quick actions work from dashboards
+- Feature discovery guides users
+- Role-based routing works
+- All navigation links functional
+- Responsive design works
+- Complete dashboard integration",,,
+INT-007,Integration,Data Consistency,Data consistency across all modules,"1. Create protocol with specific data
+2. Process through all stages
+3. Generate report with same data
+4. Create work order with same data
+5. Send emails with same data
+6. Check data consistency at each step
+7. Verify no data corruption
+8. Check all relationships intact","- Data remains consistent throughout workflow
+- No data corruption or loss
+- All relationships maintained
+- Foreign keys intact
+- Audit trails complete
+- No orphaned records
+- Data integrity maintained
+- Complete data consistency",,,
+INT-008,Integration,Error Recovery,Error recovery across workflow,"1. Start complete workflow
+2. Introduce error at each step
+3. Test error handling and recovery
+4. Verify system remains stable
+5. Check error messages appropriate
+6. Verify can continue after error
+7. Test rollback scenarios
+8. Check audit trail maintained","- Errors handled gracefully at each step
+- Appropriate error messages shown
+- System remains stable after errors
+- Can recover and continue workflow
+- No data corruption from errors
+- Audit trail maintained despite errors
+- User-friendly error handling
+- Complete error recovery",,,
+INT-009,Integration,Performance Under Load,Performance with multiple users,"1. 5 users create protocols simultaneously
+2. 3 lab staff process samples simultaneously
+3. 2 histopathologists create reports simultaneously
+4. Admin monitors system
+5. Check system performance
+6. Verify no conflicts or issues
+7. Check database performance
+8. Verify all workflows complete","- System handles multiple users well
+- No performance degradation
+- No conflicts between users
+- Database performance acceptable
+- All workflows complete successfully
+- No data corruption
+- System remains responsive
+- Good concurrent performance",,,
+INT-010,Integration,Complete Audit Trail,Complete audit trail verification,"1. Complete full workflow
+2. Check audit logs at each step
+3. Verify all actions logged
+4. Check user attribution
+5. Verify timestamps accurate
+6. Check data changes tracked
+7. Verify complete trail
+8. Test audit log search","- Complete audit trail maintained
+- All actions logged with user attribution
+- Timestamps accurate
+- Data changes tracked
+- Audit logs searchable
+- No missing audit entries
+- Complete accountability
+- Full audit compliance",,,
+INT-011,Integration,PDF Generation Integration,PDF generation across all modules,"1. Generate protocol PDF labels
+2. Generate report PDFs
+3. Generate work order PDFs
+4. Verify all PDFs generate correctly
+5. Check PDF content accuracy
+6. Verify PDF file naming
+7. Check PDF storage
+8. Test PDF download","- All PDFs generate successfully
+- PDF content accurate and complete
+- File naming consistent
+- PDFs stored correctly
+- Download functionality works
+- No PDF generation errors
+- Professional formatting maintained
+- Complete PDF integration",,,
+INT-012,Integration,Search and Filter Integration,Search and filter across all modules,"1. Search protocols by various criteria
+2. Search reports by various criteria
+3. Search work orders by various criteria
+4. Search users by various criteria
+5. Test filter combinations
+6. Verify search results accurate
+7. Check performance with large datasets
+8. Test search across relationships","- Search functionality works across all modules
+- Filter combinations work correctly
+- Search results accurate
+- Performance acceptable with large datasets
+- Cross-module search works
+- No search errors
+- Complete search integration
+- Good search performance",,,
+INT-013,Integration,Status Workflow Integration,Status workflows across all modules,"1. Track protocol status changes
+2. Track processing status changes
+3. Track report status changes
+4. Track work order status changes
+5. Verify status transitions valid
+6. Check status history maintained
+7. Verify status-based permissions
+8. Test status-based notifications","- All status workflows function correctly
+- Status transitions valid and enforced
+- Status history maintained
+- Status-based permissions work
+- Status-based notifications sent
+- No invalid status transitions
+- Complete status integration
+- Proper status management",,,
+INT-014,Integration,Notification Preference Integration,Notification preferences across workflow,"1. Set various notification preferences
+2. Complete workflow steps
+3. Verify preferences respected
+4. Test alternative email addresses
+5. Test attachment preferences
+6. Test notification toggles
+7. Verify preference inheritance
+8. Check preference persistence","- Notification preferences respected throughout workflow
+- Alternative email addresses work
+- Attachment preferences honored
+- Notification toggles function
+- Preferences persist correctly
+- No unwanted notifications
+- Complete preference integration
+- Proper preference management",,,
+INT-015,Integration,Admin Integration,Admin functionality across all modules,"1. Admin manages users
+2. Admin manages protocols
+3. Admin manages reports
+4. Admin manages work orders
+5. Admin manages email logs
+6. Admin manages system settings
+7. Verify admin access to all modules
+8. Check admin audit trail","- Admin has access to all modules
+- Admin can manage all entities
+- Admin audit trail maintained
+- Admin permissions enforced
+- Admin interface functional
+- No admin access issues
+- Complete admin integration
+- Proper admin management",,,
+INT-016,Integration,Data Migration Integration,Data migration and import,"1. Import existing protocol data
+2. Import existing user data
+3. Import existing report data
+4. Verify data integrity after import
+5. Check relationships maintained
+6. Verify audit trails created
+7. Test data validation
+8. Check import error handling","- Data imports successfully
+- Data integrity maintained
+- Relationships preserved
+- Audit trails created
+- Data validation works
+- Import errors handled gracefully
+- Complete migration integration
+- Proper data import",,,
+INT-017,Integration,Backup and Recovery,Backup and recovery procedures,"1. Create system backup
+2. Simulate data loss
+3. Restore from backup
+4. Verify data integrity
+5. Check relationships restored
+6. Verify audit trails intact
+7. Test partial recovery
+8. Check recovery procedures","- Backup creation successful
+- Data recovery works correctly
+- Data integrity maintained after recovery
+- Relationships restored
+- Audit trails intact
+- Partial recovery possible
+- Complete backup integration
+- Proper recovery procedures",,,
+INT-018,Integration,Multi-Language Integration,Multi-language support,"1. Test Spanish language display
+2. Test English model names
+3. Test Spanish user interface
+4. Test Spanish email content
+5. Test Spanish PDF content
+6. Test Spanish error messages
+7. Verify language consistency
+8. Check language switching","- Spanish language display correct
+- English model names maintained
+- Spanish user interface complete
+- Spanish email content accurate
+- Spanish PDF content correct
+- Spanish error messages appropriate
+- Language consistency maintained
+- Complete language integration",,,
+INT-019,Integration,API Integration,API functionality across modules,"1. Test protocol API endpoints
+2. Test report API endpoints
+3. Test work order API endpoints
+4. Test user API endpoints
+5. Verify API authentication
+6. Check API permissions
+7. Test API error handling
+8. Verify API documentation","- API endpoints function correctly
+- API authentication works
+- API permissions enforced
+- API error handling appropriate
+- API documentation complete
+- No API security issues
+- Complete API integration
+- Proper API management",,,
+INT-020,Integration,Third-Party Integration,Third-party service integration,"1. Test email service integration
+2. Test PDF generation service
+3. Test QR code generation
+4. Test file storage service
+5. Verify service error handling
+6. Check service fallbacks
+7. Test service configuration
+8. Verify service monitoring","- Third-party services integrate correctly
+- Service error handling appropriate
+- Service fallbacks work
+- Service configuration correct
+- Service monitoring functional
+- No service integration issues
+- Complete third-party integration
+- Proper service management",,,
+SEC-001,Security,Authentication Security,Login security testing,"1. Try to login with invalid credentials
+2. Try to login with empty username/password
+3. Try to login with SQL injection attempts
+4. Try to login with XSS attempts
+5. Test account lockout after failed attempts
+6. Test password reset security
+7. Test session management
+8. Test logout functionality","- Invalid credentials rejected
+- Empty fields rejected
+- SQL injection attempts blocked
+- XSS attempts blocked
+- Account lockout works after 5 attempts
+- Password reset secure
+- Sessions managed properly
+- Logout clears session",,,
+SEC-002,Security,Authorization Security,Role-based access control,"1. Test veterinarian access to lab staff functions
+2. Test lab staff access to admin functions
+3. Test histopathologist access to other roles
+4. Test admin access to all functions
+5. Test unauthenticated access attempts
+6. Test permission escalation attempts
+7. Test direct URL access attempts
+8. Test API access without authentication","- Role-based access control enforced
+- Unauthorized access blocked
+- Permission escalation prevented
+- Direct URL access blocked
+- API authentication required
+- Appropriate error messages shown
+- Security violations logged
+- Access control consistent",,,
+SEC-003,Security,Data Security,Data access and privacy,"1. Test veterinarian can only see own protocols
+2. Test lab staff can see all protocols for processing
+3. Test histopathologist can see all reports
+4. Test admin can see all data
+5. Test data isolation between users
+6. Test sensitive data protection
+7. Test data export security
+8. Test data deletion security","- Data access properly restricted by role
+- User data isolation maintained
+- Sensitive data protected
+- Data export controlled
+- Data deletion secured
+- No unauthorized data access
+- Privacy maintained
+- Data security enforced",,,
+SEC-004,Security,Input Validation Security,Input validation and sanitization,"1. Test SQL injection in all forms
+2. Test XSS in all text fields
+3. Test file upload security
+4. Test email validation
+5. Test phone number validation
+6. Test date validation
+7. Test numeric field validation
+8. Test special character handling","- SQL injection attempts blocked
+- XSS attempts sanitized
+- File uploads validated
+- Email format validated
+- Phone format validated
+- Date format validated
+- Numeric fields validated
+- Special characters handled safely",,,
+SEC-005,Security,Session Security,Session management and security,"1. Test session timeout
+2. Test session hijacking prevention
+3. Test concurrent session handling
+4. Test session regeneration
+5. Test secure session cookies
+6. Test session invalidation on logout
+7. Test session persistence
+8. Test session security headers","- Session timeout works
+- Session hijacking prevented
+- Concurrent sessions handled
+- Session regeneration works
+- Secure session cookies used
+- Session invalidated on logout
+- Session persistence controlled
+- Security headers present",,,
+SEC-006,Security,CSRF Protection,CSRF attack prevention,"1. Test CSRF token presence in forms
+2. Test CSRF token validation
+3. Test CSRF token regeneration
+4. Test CSRF protection on all POST requests
+5. Test CSRF protection on AJAX requests
+6. Test CSRF token expiration
+7. Test CSRF token uniqueness
+8. Test CSRF protection bypass attempts","- CSRF tokens present in all forms
+- CSRF token validation works
+- CSRF token regeneration works
+- All POST requests protected
+- AJAX requests protected
+- CSRF token expiration works
+- CSRF tokens unique
+- CSRF bypass attempts blocked",,,
+SEC-007,Security,File Upload Security,File upload security,"1. Test malicious file upload attempts
+2. Test file type validation
+3. Test file size limits
+4. Test file content scanning
+5. Test file storage security
+6. Test file access control
+7. Test file deletion security
+8. Test file virus scanning","- Malicious files rejected
+- File types validated
+- File size limits enforced
+- File content scanned
+- Files stored securely
+- File access controlled
+- File deletion secured
+- Virus scanning works",,,
+SEC-008,Security,Email Security,Email security and validation,"1. Test email injection attempts
+2. Test email validation
+3. Test email rate limiting
+4. Test email content sanitization
+5. Test email attachment security
+6. Test email spoofing prevention
+7. Test email bounce handling
+8. Test email encryption","- Email injection blocked
+- Email format validated
+- Email rate limiting works
+- Email content sanitized
+- Email attachments secured
+- Email spoofing prevented
+- Email bounces handled
+- Email encryption used",,,
+SEC-009,Security,Database Security,Database security and access,"1. Test database connection security
+2. Test SQL injection prevention
+3. Test database access control
+4. Test database backup security
+5. Test database encryption
+6. Test database audit logging
+7. Test database user permissions
+8. Test database connection pooling","- Database connections secured
+- SQL injection prevented
+- Database access controlled
+- Database backups secured
+- Database encryption used
+- Database audit logging works
+- Database user permissions enforced
+- Database connection pooling secure",,,
+SEC-010,Security,API Security,API security and authentication,"1. Test API authentication
+2. Test API rate limiting
+3. Test API input validation
+4. Test API response sanitization
+5. Test API access control
+6. Test API logging
+7. Test API versioning security
+8. Test API error handling","- API authentication required
+- API rate limiting works
+- API input validated
+- API responses sanitized
+- API access controlled
+- API calls logged
+- API versioning secure
+- API errors handled securely",,,
+SEC-011,Security,Password Security,Password security and policies,"1. Test password complexity requirements
+2. Test password history
+3. Test password expiration
+4. Test password reset security
+5. Test password hashing
+6. Test password storage
+7. Test password strength validation
+8. Test password policy enforcement","- Password complexity enforced
+- Password history maintained
+- Password expiration works
+- Password reset secure
+- Passwords properly hashed
+- Passwords stored securely
+- Password strength validated
+- Password policies enforced",,,
+SEC-012,Security,Audit Logging,Audit logging and monitoring,"1. Test authentication event logging
+2. Test authorization event logging
+3. Test data access logging
+4. Test data modification logging
+5. Test security event logging
+6. Test audit log integrity
+7. Test audit log access control
+8. Test audit log retention","- Authentication events logged
+- Authorization events logged
+- Data access logged
+- Data modifications logged
+- Security events logged
+- Audit logs maintain integrity
+- Audit log access controlled
+- Audit logs retained properly",,,
+SEC-013,Security,Error Handling Security,Secure error handling,"1. Test error message information disclosure
+2. Test error logging security
+3. Test error response security
+4. Test error handling consistency
+5. Test error recovery security
+6. Test error notification security
+7. Test error debugging security
+8. Test error escalation security","- Error messages don't disclose sensitive info
+- Error logging secure
+- Error responses secure
+- Error handling consistent
+- Error recovery secure
+- Error notifications secure
+- Error debugging controlled
+- Error escalation secure",,,
+SEC-014,Security,Configuration Security,Configuration and environment security,"1. Test configuration file security
+2. Test environment variable security
+3. Test secret management
+4. Test configuration validation
+5. Test configuration backup security
+6. Test configuration change logging
+7. Test configuration access control
+8. Test configuration encryption","- Configuration files secured
+- Environment variables secured
+- Secrets managed securely
+- Configuration validated
+- Configuration backups secured
+- Configuration changes logged
+- Configuration access controlled
+- Configuration encrypted",,,
+SEC-015,Security,Network Security,Network and communication security,"1. Test HTTPS enforcement
+2. Test SSL/TLS configuration
+3. Test certificate validation
+4. Test network encryption
+5. Test firewall rules
+6. Test network monitoring
+7. Test network access control
+8. Test network logging","- HTTPS enforced
+- SSL/TLS properly configured
+- Certificates validated
+- Network traffic encrypted
+- Firewall rules enforced
+- Network monitoring active
+- Network access controlled
+- Network activity logged",,,
+SEC-016,Security,Third-Party Security,Third-party service security,"1. Test third-party service authentication
+2. Test third-party service encryption
+3. Test third-party service validation
+4. Test third-party service monitoring
+5. Test third-party service access control
+6. Test third-party service logging
+7. Test third-party service error handling
+8. Test third-party service fallbacks","- Third-party services authenticated
+- Third-party communications encrypted
+- Third-party responses validated
+- Third-party services monitored
+- Third-party access controlled
+- Third-party activity logged
+- Third-party errors handled securely
+- Third-party fallbacks secure",,,
+SEC-017,Security,Data Encryption,Data encryption and protection,"1. Test data encryption at rest
+2. Test data encryption in transit
+3. Test encryption key management
+4. Test encryption algorithm strength
+5. Test encrypted data access
+6. Test encryption performance
+7. Test encryption key rotation
+8. Test encrypted data backup","- Data encrypted at rest
+- Data encrypted in transit
+- Encryption keys managed securely
+- Strong encryption algorithms used
+- Encrypted data access controlled
+- Encryption performance acceptable
+- Encryption keys rotated
+- Encrypted data backups secure",,,
+SEC-018,Security,Access Control Testing,Comprehensive access control testing,"1. Test vertical privilege escalation
+2. Test horizontal privilege escalation
+3. Test role-based access control
+4. Test attribute-based access control
+5. Test time-based access control
+6. Test location-based access control
+7. Test context-based access control
+8. Test access control inheritance","- Vertical privilege escalation prevented
+- Horizontal privilege escalation prevented
+- Role-based access control enforced
+- Attribute-based access control works
+- Time-based access control enforced
+- Location-based access control works
+- Context-based access control enforced
+- Access control inheritance works",,,
+SEC-019,Security,Security Headers,HTTP security headers,"1. Test Content-Security-Policy header
+2. Test X-Frame-Options header
+3. Test X-Content-Type-Options header
+4. Test X-XSS-Protection header
+5. Test Strict-Transport-Security header
+6. Test Referrer-Policy header
+7. Test Permissions-Policy header
+8. Test security header validation","- Content-Security-Policy header present
+- X-Frame-Options header present
+- X-Content-Type-Options header present
+- X-XSS-Protection header present
+- Strict-Transport-Security header present
+- Referrer-Policy header present
+- Permissions-Policy header present
+- Security headers validated",,,
+SEC-020,Security,Security Monitoring,Security monitoring and alerting,"1. Test security event detection
+2. Test security alert generation
+3. Test security monitoring coverage
+4. Test security response procedures
+5. Test security incident handling
+6. Test security metrics collection
+7. Test security reporting
+8. Test security compliance monitoring","- Security events detected
+- Security alerts generated
+- Security monitoring comprehensive
+- Security response procedures work
+- Security incidents handled properly
+- Security metrics collected
+- Security reporting functional
+- Security compliance monitored",,,
+PERF-001,Performance,Database Performance,Database query performance,"1. Test protocol list with 1000+ protocols
+2. Test report list with 1000+ reports
+3. Test work order list with 1000+ work orders
+4. Test user list with 1000+ users
+5. Test search performance with large datasets
+6. Test filter performance with large datasets
+7. Test pagination performance
+8. Test database connection pooling","- Protocol list loads in <2 seconds
+- Report list loads in <2 seconds
+- Work order list loads in <2 seconds
+- User list loads in <2 seconds
+- Search results in <1 second
+- Filter results in <1 second
+- Pagination works smoothly
+- Database connections managed efficiently",,,
+PERF-002,Performance,Page Load Performance,Page load time testing,"1. Test dashboard load time with large data
+2. Test protocol creation page load time
+3. Test report creation page load time
+4. Test work order creation page load time
+5. Test admin interface load time
+6. Test PDF generation time
+7. Test email sending time
+8. Test file upload time","- Dashboard loads in <3 seconds
+- Protocol creation page loads in <2 seconds
+- Report creation page loads in <2 seconds
+- Work order creation page loads in <2 seconds
+- Admin interface loads in <3 seconds
+- PDF generation completes in <5 seconds
+- Email sending completes in <10 seconds
+- File uploads complete in <30 seconds",,,
+PERF-003,Performance,Concurrent User Performance,Multiple users performance testing,"1. Test 10 users creating protocols simultaneously
+2. Test 5 lab staff processing samples simultaneously
+3. Test 3 histopathologists creating reports simultaneously
+4. Test 2 admins managing system simultaneously
+5. Test mixed user activities simultaneously
+6. Test database performance under load
+7. Test server resource usage
+8. Test response time degradation","- 10 concurrent users handled well
+- 5 lab staff can work simultaneously
+- 3 histopathologists can work simultaneously
+- 2 admins can work simultaneously
+- Mixed activities work smoothly
+- Database performance acceptable
+- Server resources within limits
+- Response time degradation minimal",,,
+PERF-004,Performance,Memory Usage Performance,Memory usage and optimization,"1. Test memory usage with large datasets
+2. Test memory usage with multiple users
+3. Test memory usage with file uploads
+4. Test memory usage with PDF generation
+5. Test memory usage with email sending
+6. Test memory leak detection
+7. Test garbage collection performance
+8. Test memory optimization","- Memory usage reasonable with large datasets
+- Memory usage scales with users
+- File uploads don't cause memory issues
+- PDF generation memory efficient
+- Email sending memory efficient
+- No memory leaks detected
+- Garbage collection works properly
+- Memory optimization effective",,,
+PERF-005,Performance,File Upload Performance,File upload and storage performance,"1. Test single large file upload (10MB+)
+2. Test multiple file uploads simultaneously
+3. Test file upload with slow connection
+4. Test file upload with interrupted connection
+5. Test file storage performance
+6. Test file retrieval performance
+7. Test file deletion performance
+8. Test file compression performance","- Large files upload successfully
+- Multiple uploads work simultaneously
+- Slow connections handled gracefully
+- Interrupted uploads can resume
+- File storage performance good
+- File retrieval fast
+- File deletion efficient
+- File compression works",,,
+PERF-006,Performance,Email Performance,Email sending and processing performance,"1. Test sending 100 emails simultaneously
+2. Test email queue processing performance
+3. Test email template rendering performance
+4. Test email attachment processing
+5. Test email delivery performance
+6. Test email retry performance
+7. Test email logging performance
+8. Test email monitoring performance","- 100 emails sent successfully
+- Email queue processes efficiently
+- Email templates render quickly
+- Email attachments processed well
+- Email delivery performance good
+- Email retry mechanism works
+- Email logging efficient
+- Email monitoring functional",,,
+PERF-007,Performance,PDF Generation Performance,PDF generation and processing performance,"1. Test PDF generation with large content
+2. Test PDF generation with multiple images
+3. Test PDF generation with complex formatting
+4. Test PDF generation with multiple pages
+5. Test PDF storage performance
+6. Test PDF download performance
+7. Test PDF compression performance
+8. Test PDF security performance","- Large content PDFs generate successfully
+- Multiple images handled well
+- Complex formatting renders correctly
+- Multiple pages process efficiently
+- PDF storage performance good
+- PDF downloads fast
+- PDF compression effective
+- PDF security maintained",,,
+PERF-008,Performance,Search Performance,Search and filtering performance,"1. Test search across 10,000+ records
+2. Test complex filter combinations
+3. Test search with special characters
+4. Test search with multiple criteria
+5. Test search result ranking
+6. Test search result pagination
+7. Test search result caching
+8. Test search index performance","- Search across 10,000+ records fast
+- Complex filters work efficiently
+- Special characters handled well
+- Multiple criteria search works
+- Search result ranking accurate
+- Search pagination smooth
+- Search result caching effective
+- Search index performance good",,,
+PERF-009,Performance,API Performance,API endpoint performance testing,"1. Test API response times
+2. Test API rate limiting
+3. Test API concurrent requests
+4. Test API data serialization
+5. Test API authentication performance
+6. Test API error handling performance
+7. Test API logging performance
+8. Test API monitoring performance","- API response times <500ms
+- API rate limiting works
+- API handles concurrent requests
+- API data serialization efficient
+- API authentication fast
+- API error handling efficient
+- API logging performance good
+- API monitoring functional",,,
+PERF-010,Performance,Caching Performance,Caching and optimization performance,"1. Test database query caching
+2. Test template caching
+3. Test static file caching
+4. Test session caching
+5. Test cache invalidation
+6. Test cache warming
+7. Test cache hit rates
+8. Test cache memory usage","- Database query caching effective
+- Template caching works
+- Static file caching functional
+- Session caching efficient
+- Cache invalidation works
+- Cache warming effective
+- Cache hit rates good
+- Cache memory usage reasonable",,,
+EDGE-001,Edge Cases,Data Boundary Testing,Data boundary and limit testing,"1. Test maximum protocol name length
+2. Test maximum report content length
+3. Test maximum file upload size
+4. Test maximum email content length
+5. Test maximum user name length
+6. Test maximum address length
+7. Test maximum phone number length
+8. Test maximum description length","- Maximum protocol name length handled
+- Maximum report content length handled
+- Maximum file upload size enforced
+- Maximum email content length handled
+- Maximum user name length handled
+- Maximum address length handled
+- Maximum phone number length handled
+- Maximum description length handled",,,
+EDGE-002,Edge Cases,Date and Time Edge Cases,Date and time boundary testing,"1. Test year boundary (Dec 31 to Jan 1)
+2. Test leap year handling
+3. Test timezone changes
+4. Test daylight saving time
+5. Test future date validation
+6. Test past date validation
+7. Test date format edge cases
+8. Test time format edge cases","- Year boundary handled correctly
+- Leap year handled correctly
+- Timezone changes handled
+- Daylight saving time handled
+- Future dates validated
+- Past dates validated
+- Date format edge cases handled
+- Time format edge cases handled",,,
+EDGE-003,Edge Cases,Special Character Testing,Special character and encoding testing,"1. Test Unicode characters in names
+2. Test special characters in addresses
+3. Test emoji in text fields
+4. Test HTML tags in text fields
+5. Test SQL injection characters
+6. Test XSS characters
+7. Test file name special characters
+8. Test email special characters","- Unicode characters handled correctly
+- Special characters in addresses handled
+- Emoji in text fields handled
+- HTML tags sanitized
+- SQL injection characters blocked
+- XSS characters sanitized
+- File name special characters handled
+- Email special characters handled",,,
+EDGE-004,Edge Cases,Network Edge Cases,Network and connection edge cases,"1. Test slow network connections
+2. Test intermittent network connections
+3. Test network timeouts
+4. Test connection drops
+5. Test proxy connections
+6. Test VPN connections
+7. Test mobile network connections
+8. Test satellite connections","- Slow connections handled gracefully
+- Intermittent connections handled
+- Network timeouts handled
+- Connection drops handled
+- Proxy connections work
+- VPN connections work
+- Mobile connections work
+- Satellite connections work",,,
+EDGE-005,Edge Cases,Browser Edge Cases,Browser compatibility and edge cases,"1. Test Internet Explorer compatibility
+2. Test Safari compatibility
+3. Test Firefox compatibility
+4. Test Chrome compatibility
+5. Test mobile browser compatibility
+6. Test browser with JavaScript disabled
+7. Test browser with cookies disabled
+8. Test browser with popup blockers","- Internet Explorer compatibility maintained
+- Safari compatibility maintained
+- Firefox compatibility maintained
+- Chrome compatibility maintained
+- Mobile browsers work
+- JavaScript disabled handled
+- Cookies disabled handled
+- Popup blockers handled",,,
+EDGE-006,Edge Cases,File System Edge Cases,File system and storage edge cases,"1. Test disk space full scenarios
+2. Test file permission issues
+3. Test file corruption scenarios
+4. Test file system errors
+5. Test network storage issues
+6. Test backup storage issues
+7. Test file locking issues
+8. Test file system limits","- Disk space full handled gracefully
+- File permission issues handled
+- File corruption detected
+- File system errors handled
+- Network storage issues handled
+- Backup storage issues handled
+- File locking issues handled
+- File system limits respected",,,
+EDGE-007,Edge Cases,Database Edge Cases,Database and data edge cases,"1. Test database connection loss
+2. Test database timeout scenarios
+3. Test database lock scenarios
+4. Test database corruption scenarios
+5. Test database migration issues
+6. Test database backup issues
+7. Test database performance issues
+8. Test database constraint violations","- Database connection loss handled
+- Database timeouts handled
+- Database locks handled
+- Database corruption detected
+- Database migration issues handled
+- Database backup issues handled
+- Database performance issues handled
+- Database constraint violations handled",,,
+EDGE-008,Edge Cases,User Input Edge Cases,User input and validation edge cases,"1. Test empty form submissions
+2. Test form with only whitespace
+3. Test form with null values
+4. Test form with undefined values
+5. Test form with array values
+6. Test form with object values
+7. Test form with function values
+8. Test form with boolean values","- Empty form submissions handled
+- Whitespace-only forms handled
+- Null values handled
+- Undefined values handled
+- Array values handled
+- Object values handled
+- Function values blocked
+- Boolean values handled",,,
+EDGE-009,Edge Cases,Concurrency Edge Cases,Concurrency and race condition testing,"1. Test simultaneous user registrations
+2. Test simultaneous protocol submissions
+3. Test simultaneous report creations
+4. Test simultaneous work order creations
+5. Test simultaneous file uploads
+6. Test simultaneous email sending
+7. Test simultaneous PDF generation
+8. Test simultaneous data modifications","- Simultaneous registrations handled
+- Simultaneous protocol submissions handled
+- Simultaneous report creations handled
+- Simultaneous work order creations handled
+- Simultaneous file uploads handled
+- Simultaneous email sending handled
+- Simultaneous PDF generation handled
+- Simultaneous data modifications handled",,,
+EDGE-010,Edge Cases,Error Recovery Edge Cases,Error recovery and resilience testing,"1. Test system crash recovery
+2. Test power failure recovery
+3. Test network failure recovery
+4. Test database failure recovery
+5. Test service failure recovery
+6. Test memory failure recovery
+7. Test disk failure recovery
+8. Test application failure recovery","- System crash recovery works
+- Power failure recovery works
+- Network failure recovery works
+- Database failure recovery works
+- Service failure recovery works
+- Memory failure recovery works
+- Disk failure recovery works
+- Application failure recovery works",,,
+EDGE-011,Edge Cases,Resource Exhaustion,Resource exhaustion and limit testing,"1. Test memory exhaustion scenarios
+2. Test disk space exhaustion scenarios
+3. Test CPU exhaustion scenarios
+4. Test network bandwidth exhaustion
+5. Test database connection exhaustion
+6. Test file handle exhaustion
+7. Test process limit exhaustion
+8. Test thread limit exhaustion","- Memory exhaustion handled gracefully
+- Disk space exhaustion handled
+- CPU exhaustion handled
+- Network bandwidth exhaustion handled
+- Database connection exhaustion handled
+- File handle exhaustion handled
+- Process limit exhaustion handled
+- Thread limit exhaustion handled",,,
+EDGE-012,Edge Cases,Data Integrity Edge Cases,Data integrity and consistency testing,"1. Test data corruption scenarios
+2. Test data inconsistency scenarios
+3. Test data loss scenarios
+4. Test data duplication scenarios
+5. Test data validation failures
+6. Test data constraint violations
+7. Test data relationship violations
+8. Test data audit trail violations","- Data corruption detected and handled
+- Data inconsistency detected and handled
+- Data loss prevented and detected
+- Data duplication prevented
+- Data validation failures handled
+- Data constraint violations handled
+- Data relationship violations handled
+- Data audit trail violations handled",,,
+EDGE-013,Edge Cases,Performance Edge Cases,Performance under extreme conditions,"1. Test performance with 1000+ concurrent users
+2. Test performance with 100,000+ records
+3. Test performance with 1GB+ files
+4. Test performance with 10,000+ emails
+5. Test performance with 1000+ PDFs
+6. Test performance with 1000+ searches
+7. Test performance with 1000+ filters
+8. Test performance with 1000+ exports","- 1000+ concurrent users handled
+- 100,000+ records handled
+- 1GB+ files handled
+- 10,000+ emails handled
+- 1000+ PDFs handled
+- 1000+ searches handled
+- 1000+ filters handled
+- 1000+ exports handled",,,
+EDGE-014,Edge Cases,Security Edge Cases,Security under extreme conditions,"1. Test security with malicious inputs
+2. Test security with attack patterns
+3. Test security with privilege escalation
+4. Test security with data exfiltration
+5. Test security with service disruption
+6. Test security with information disclosure
+7. Test security with authentication bypass
+8. Test security with authorization bypass","- Malicious inputs blocked
+- Attack patterns detected and blocked
+- Privilege escalation prevented
+- Data exfiltration prevented
+- Service disruption prevented
+- Information disclosure prevented
+- Authentication bypass prevented
+- Authorization bypass prevented",,,
+EDGE-015,Edge Cases,Integration Edge Cases,Integration and service edge cases,"1. Test third-party service failures
+2. Test third-party service timeouts
+3. Test third-party service errors
+4. Test third-party service rate limits
+5. Test third-party service authentication failures
+6. Test third-party service data corruption
+7. Test third-party service version mismatches
+8. Test third-party service deprecation","- Third-party service failures handled
+- Third-party service timeouts handled
+- Third-party service errors handled
+- Third-party service rate limits handled
+- Third-party service authentication failures handled
+- Third-party service data corruption handled
+- Third-party service version mismatches handled
+- Third-party service deprecation handled",,,

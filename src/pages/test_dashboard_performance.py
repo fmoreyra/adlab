@@ -8,21 +8,18 @@ and monitors query counts, response times, and caching effectiveness.
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.db import connection
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Histopathologist, Veterinarian
 from pages.performance_monitor import (
-    monitor_performance, PerformanceThresholds, check_performance_thresholds
+    check_performance_thresholds,
+    monitor_performance,
 )
 from protocols.models import (
-    Cassette,
-    HistopathologySample,
     Protocol,
     Report,
-    Slide,
 )
 
 User = get_user_model()
@@ -127,7 +124,7 @@ class DashboardPerformanceTest(TestCase):
         self.assertTrue(checks['passed'], f"Performance check failed: {checks['errors']}")
         
         # Log performance metrics
-        print(f"\nWIP View Performance:")
+        print("\nWIP View Performance:")
         print(f"  Response time: {monitor.metrics['total_time']}s")
         print(f"  Query count: {monitor.metrics['query_count']}")
         print(f"  Query time: {monitor.metrics['query_time']}s")
@@ -147,7 +144,7 @@ class DashboardPerformanceTest(TestCase):
         self.assertTrue(checks['passed'], f"Performance check failed: {checks['errors']}")
         
         # Log performance metrics
-        print(f"\nVolume View Performance:")
+        print("\nVolume View Performance:")
         print(f"  Response time: {monitor.metrics['total_time']}s")
         print(f"  Query count: {monitor.metrics['query_count']}")
         print(f"  Query time: {monitor.metrics['query_time']}s")
@@ -167,7 +164,7 @@ class DashboardPerformanceTest(TestCase):
         self.assertTrue(checks['passed'], f"Performance check failed: {checks['errors']}")
         
         # Log performance metrics
-        print(f"\nProductivity View Performance:")
+        print("\nProductivity View Performance:")
         print(f"  Response time: {monitor.metrics['total_time']}s")
         print(f"  Query count: {monitor.metrics['query_count']}")
         print(f"  Query time: {monitor.metrics['query_time']}s")
@@ -191,7 +188,7 @@ class DashboardPerformanceTest(TestCase):
         self.assertTrue(checks['passed'], f"Performance check failed: {checks['errors']}")
         
         # Log performance metrics
-        print(f"\nAging View Performance:")
+        print("\nAging View Performance:")
         print(f"  Response time: {monitor.metrics['total_time']}s")
         print(f"  Query count: {monitor.metrics['query_count']}")
         print(f"  Query time: {monitor.metrics['query_time']}s")
@@ -211,7 +208,7 @@ class DashboardPerformanceTest(TestCase):
         self.assertTrue(checks['passed'], f"Performance check failed: {checks['errors']}")
         
         # Log performance metrics
-        print(f"\nAlerts View Performance:")
+        print("\nAlerts View Performance:")
         print(f"  Response time: {monitor.metrics['total_time']}s")
         print(f"  Query count: {monitor.metrics['query_count']}")
         print(f"  Query time: {monitor.metrics['query_time']}s")
@@ -236,7 +233,7 @@ class DashboardPerformanceTest(TestCase):
         self.assertLess(monitor2.metrics['total_time'], monitor1.metrics['total_time'],
                        "Cached request should be faster than first request")
         
-        print(f"\nCache Effectiveness:")
+        print("\nCache Effectiveness:")
         print(f"  First request: {monitor1.metrics['total_time']}s")
         print(f"  Second request: {monitor2.metrics['total_time']}s")
         print(f"  Speed improvement: {monitor1.metrics['total_time'] / monitor2.metrics['total_time']:.1f}x")
@@ -275,7 +272,7 @@ class DashboardPerformanceTest(TestCase):
                           f"{view_name} view failed performance checks: {result['checks']['errors']}")
         
         # Log summary
-        print(f"\nPerformance Summary:")
+        print("\nPerformance Summary:")
         for view_name, result in results.items():
             metrics = result['metrics']
             print(f"  {view_name}: {metrics['total_time']}s, {metrics['query_count']} queries")

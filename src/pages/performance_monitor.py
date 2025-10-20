@@ -7,9 +7,10 @@ and database query counts for dashboard metrics.
 
 import time
 from contextlib import contextmanager
-from typing import Dict, List, Optional
-from django.db import connection
+from typing import Dict, List
+
 from django.core.cache import cache
+from django.db import connection
 
 
 class PerformanceMonitor:

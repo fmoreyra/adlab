@@ -163,13 +163,23 @@ def create_simple_test_data():
     print("📋 Creating work orders...")
     
     work_order1, created = WorkOrder.objects.get_or_create(
-        order_number='WO-2024-001'
+        order_number='WO-2024-001',
+        defaults={
+            'veterinarian': vet_profile1,
+            'total_amount': 1500.00,
+            'advance_payment': 0.00,
+        }
     )
     if created:
         print(f"  ✅ Created work order: {work_order1.order_number}")
     
     work_order2, created = WorkOrder.objects.get_or_create(
-        order_number='WO-2024-002'
+        order_number='WO-2024-002',
+        defaults={
+            'veterinarian': vet_profile2,
+            'total_amount': 2000.00,
+            'advance_payment': 500.00,
+        }
     )
     if created:
         print(f"  ✅ Created work order: {work_order2.order_number}")

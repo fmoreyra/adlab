@@ -19,7 +19,6 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.views import View
 
-from accounts.models import User
 from protocols.models import (
     Cassette,
     Protocol,
@@ -269,7 +268,7 @@ class DashboardVolumeView(
 
         # OPTIMIZED: Single query to get both protocol and report counts
         # Use UNION to combine protocol and report data
-        from django.db.models import F, Value, CharField
+        from django.db.models import CharField, F, Value
         
         protocol_counts = (
             Protocol.objects.filter(protocol_filter)
@@ -377,7 +376,16 @@ class DashboardTATView(
 
     def _calculate_tat_metrics(self) -> Dict:
         """Calculate TAT metrics for both analysis types - OPTIMIZED VERSION."""
-        from django.db.models import F, Avg, Min, Max, Case, When, IntegerField, Count
+        from django.db.models import (
+            Avg,
+            Case,
+            Count,
+            F,
+            IntegerField,
+            Max,
+            Min,
+            When,
+        )
         
         # Get completed reports from last 30 days
         thirty_days_ago = timezone.now() - timedelta(days=30)
@@ -530,7 +538,7 @@ class DashboardProductivityView(
 
     def _calculate_productivity_metrics(self, periodo: str) -> Dict:
         """Calculate productivity metrics per histopathologist - OPTIMIZED VERSION."""
-        from django.db.models import F, Avg, Case, When, IntegerField
+        from django.db.models import Avg, Case, F, IntegerField, When
         
         now = timezone.now()
 
