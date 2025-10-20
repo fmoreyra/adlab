@@ -95,11 +95,8 @@ class VeterinarianDashboardView(LoginRequiredMixin, TemplateView):
         if not user.is_veterinarian:
             return redirect("pages:dashboard")
 
-        # Get veterinarian profile
-        try:
-            self.veterinarian = user.veterinarian_profile
-        except Exception:
-            return redirect("accounts:complete_profile")
+        # Get veterinarian profile (middleware ensures it exists)
+        self.veterinarian = user.veterinarian_profile
 
         return super().get(request, *args, **kwargs)
 

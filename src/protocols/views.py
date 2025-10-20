@@ -82,14 +82,8 @@ class ProtocolListView(ListView):
             )
         else:
             # Non-admin users must be veterinarians and see only their own protocols
-            try:
-                veterinarian = self.request.user.veterinarian_profile
-            except Veterinarian.DoesNotExist:
-                messages.error(
-                    self.request,
-                    _("Debe completar su perfil de veterinario primero."),
-                )
-                return Protocol.objects.none()
+            # Middleware ensures veterinarian profile exists
+            veterinarian = self.request.user.veterinarian_profile
 
             # Get all protocols for this veterinarian
             protocols = (
@@ -200,17 +194,6 @@ class ProtocolListView(ListView):
         if not request.user.is_authenticated:
             return redirect("accounts:login")
 
-        # Check if veterinarian profile is complete for non-admin users
-        if not request.user.is_admin_user:
-            try:
-                request.user.veterinarian_profile
-            except Veterinarian.DoesNotExist:
-                messages.error(
-                    request,
-                    _("Debe completar su perfil de veterinario primero."),
-                )
-                return redirect("accounts:complete_profile")
-
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -279,14 +262,8 @@ class ProtocolCreateCytologyView(VeterinarianProfileRequiredMixin, CreateView):
 
     def form_valid(self, form):
         """Save the protocol with the current veterinarian."""
-        try:
-            veterinarian = self.request.user.veterinarian_profile
-        except Veterinarian.DoesNotExist:
-            messages.error(
-                self.request,
-                _("Debe completar su perfil de veterinario primero."),
-            )
-            return redirect("accounts:complete_profile")
+        # Middleware ensures veterinarian profile exists
+        veterinarian = self.request.user.veterinarian_profile
 
         self.object = form.save(veterinarian=veterinarian)
         messages.success(
@@ -328,14 +305,8 @@ class ProtocolCreateHistopathologyView(
 
     def form_valid(self, form):
         """Save the protocol with the current veterinarian."""
-        try:
-            veterinarian = self.request.user.veterinarian_profile
-        except Veterinarian.DoesNotExist:
-            messages.error(
-                self.request,
-                _("Debe completar su perfil de veterinario primero."),
-            )
-            return redirect("accounts:complete_profile")
+        # Middleware ensures veterinarian profile exists
+        veterinarian = self.request.user.veterinarian_profile
 
         self.object = form.save(veterinarian=veterinarian)
         messages.success(
