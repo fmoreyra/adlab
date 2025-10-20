@@ -268,6 +268,10 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "OPTIONS": {
+            "location": "/public_collected",
+            "base_url": "/static/",
+        },
     },
 }
 
