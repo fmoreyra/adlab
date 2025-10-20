@@ -168,8 +168,12 @@ class ProtocolModelTest(TestCase):
         # Draft should be editable
         self.assertTrue(protocol.is_editable)
 
-        # Submitted should not be editable
+        # Submitted should still be editable (until received by lab)
         protocol.submit()
+        self.assertTrue(protocol.is_editable)
+
+        # Received should not be editable
+        protocol.receive()
         self.assertFalse(protocol.is_editable)
 
     def test_is_deletable(self):
