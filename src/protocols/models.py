@@ -306,8 +306,7 @@ class Protocol(models.Model):
     @property
     def is_editable(self):
         """Check if protocol can be edited by veterinarian."""
-        # Veterinarians can edit protocols until they are received by the lab
-        return self.status in [self.Status.DRAFT, self.Status.SUBMITTED]
+        return self.status == self.Status.DRAFT
 
     @property
     def is_deletable(self):

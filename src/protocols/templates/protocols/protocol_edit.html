@@ -12,7 +12,7 @@
                 Editar Protocolo: {% if protocol.protocol_number %}{{ protocol.protocol_number }}{% elif protocol.temporary_code %}{{ protocol.temporary_code }}{% else %}#{{ protocol.id }}{% endif %}
             </h1>
             <p class="mt-2 text-sm text-gray-600">
-                {{ protocol.get_analysis_type_display }} - Los protocolos pueden ser editados hasta que sean recibidos por el laboratorio
+                {{ protocol.get_analysis_type_display }} - Solo los protocolos en borrador pueden ser editados
             </p>
         </div>
 
