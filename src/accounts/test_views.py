@@ -368,9 +368,16 @@ class AccountsViewsTest(TestCase):
     # USER PROFILE TESTS
     # ============================================================================
 
-    def test_profile_view_get(self):
-        """Test GET request to profile view."""
+    def test_profile_view_get_veterinarian_redirect(self):
+        """Test GET request to profile view redirects veterinarians."""
         self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(reverse("accounts:profile"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("veterinarian/profile/", response.url)
+
+    def test_profile_view_get_non_veterinarian(self):
+        """Test GET request to profile view for non-veterinarians."""
+        self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(reverse("accounts:profile"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "accounts/profile.html")
@@ -378,22 +385,22 @@ class AccountsViewsTest(TestCase):
 
     def test_profile_view_post_valid_data(self):
         """Test POST request with valid profile data."""
-        self.client.login(email="vet@example.com", password="testpass123")
+        self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.post(
             reverse("accounts:profile"),
             {
                 "first_name": "Updated",
                 "last_name": "Name",
-                "email": "vet@example.com",
+                "email": "staff@example.com",
             },
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("accounts:profile"))
 
         # Check that profile was updated
-        self.vet_user.refresh_from_db()
-        self.assertEqual(self.vet_user.first_name, "Updated")
-        self.assertEqual(self.vet_user.last_name, "Name")
+        self.staff_user.refresh_from_db()
+        self.assertEqual(self.staff_user.first_name, "Updated")
+        self.assertEqual(self.staff_user.last_name, "Name")
 
     def test_profile_view_requires_login(self):
         """Test that profile view requires login."""

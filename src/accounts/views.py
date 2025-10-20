@@ -336,6 +336,17 @@ class ProfileView(LoginRequiredMixin, UpdateView):
     template_name = "accounts/profile.html"
     success_url = "/accounts/profile/"
 
+    def get(self, request, *args, **kwargs):
+        """Handle GET request with role-based redirects."""
+        user = request.user
+        
+        # Redirect veterinarians to their specific profile view
+        if user.role == User.Role.VETERINARIO:
+            return redirect("accounts:veterinarian_profile_detail")
+        
+        # For other roles, show the generic profile view
+        return super().get(request, *args, **kwargs)
+
     def get_object(self):
         """Get the current user."""
         return self.request.user
