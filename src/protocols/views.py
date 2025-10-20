@@ -333,6 +333,19 @@ class ProtocolEditView(ProtocolOwnerOrStaffMixin, UpdateView):
     form_class = ProtocolEditForm
     template_name = "protocols/protocol_edit.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        """Check if protocol can be edited before processing the request."""
+        self.object = self.get_object()
+
+        # Check if protocol is editable - only draft protocols can be edited
+        if not self.object.is_editable:
+            messages.warning(
+                request, _("Solo los protocolos en borrador pueden ser editados.")
+            )
+            return redirect("protocols:protocol_detail", pk=self.object.pk)
+
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         """Add protocol and sample forms to context."""
         context = super().get_context_data(**kwargs)
