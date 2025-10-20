@@ -103,89 +103,89 @@
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <!-- Province -->
                         <div>
-                            <label for="{{ address_form.province.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ address_form.province.label }} <span class="text-red-600">*</span>
+                            <label for="{{ vet_form.province.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.province.label }} <span class="text-red-600">*</span>
                             </label>
-                            {{ address_form.province }}
-                            {% if address_form.province.errors %}
-                                <p class="mt-2 text-sm text-red-600">{{ address_form.province.errors.0 }}</p>
+                            {{ vet_form.province }}
+                            {% if vet_form.province.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.province.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <!-- Locality -->
                         <div>
-                            <label for="{{ address_form.locality.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ address_form.locality.label }} <span class="text-red-600">*</span>
+                            <label for="{{ vet_form.locality.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.locality.label }} <span class="text-red-600">*</span>
                             </label>
-                            {{ address_form.locality }}
-                            {% if address_form.locality.errors %}
-                                <p class="mt-2 text-sm text-red-600">{{ address_form.locality.errors.0 }}</p>
+                            {{ vet_form.locality }}
+                            {% if vet_form.locality.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.locality.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <!-- Street -->
                         <div>
-                            <label for="{{ address_form.street.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ address_form.street.label }} <span class="text-red-600">*</span>
+                            <label for="{{ vet_form.street.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.street.label }} <span class="text-red-600">*</span>
                             </label>
-                            {{ address_form.street }}
-                            {% if address_form.street.errors %}
-                                <p class="mt-2 text-sm text-red-600">{{ address_form.street.errors.0 }}</p>
+                            {{ vet_form.street }}
+                            {% if vet_form.street.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.street.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <!-- Number -->
                         <div>
-                            <label for="{{ address_form.number.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ address_form.number.label }} <span class="text-red-600">*</span>
+                            <label for="{{ vet_form.number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.number.label }} <span class="text-red-600">*</span>
                             </label>
-                            {{ address_form.number }}
-                            {% if address_form.number.errors %}
-                                <p class="mt-2 text-sm text-red-600">{{ address_form.number.errors.0 }}</p>
+                            {{ vet_form.number }}
+                            {% if vet_form.number.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.number.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <!-- Floor -->
                         <div>
-                            <label for="{{ address_form.floor.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ address_form.floor.label }}
+                            <label for="{{ vet_form.floor.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.floor.label }}
                             </label>
-                            {{ address_form.floor }}
-                            {% if address_form.floor.errors %}
-                                <p class="mt-2 text-sm text-red-600">{{ address_form.floor.errors.0 }}</p>
+                            {{ vet_form.floor }}
+                            {% if vet_form.floor.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.floor.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <!-- Apartment -->
                         <div>
-                            <label for="{{ address_form.apartment.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ address_form.apartment.label }}
+                            <label for="{{ vet_form.apartment.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.apartment.label }}
                             </label>
-                            {{ address_form.apartment }}
-                            {% if address_form.apartment.errors %}
-                                <p class="mt-2 text-sm text-red-600">{{ address_form.apartment.errors.0 }}</p>
+                            {{ vet_form.apartment }}
+                            {% if vet_form.apartment.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.apartment.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <!-- Postal Code -->
                         <div>
-                            <label for="{{ address_form.postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ address_form.postal_code.label }}
+                            <label for="{{ vet_form.postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.postal_code.label }}
                             </label>
-                            {{ address_form.postal_code }}
-                            {% if address_form.postal_code.errors %}
-                                <p class="mt-2 text-sm text-red-600">{{ address_form.postal_code.errors.0 }}</p>
+                            {{ vet_form.postal_code }}
+                            {% if vet_form.postal_code.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.postal_code.errors.0 }}</p>
                             {% endif %}
                         </div>
 
                         <!-- Notes -->
                         <div class="sm:col-span-2">
-                            <label for="{{ address_form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ address_form.notes.label }}
+                            <label for="{{ vet_form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.notes.label }}
                             </label>
-                            {{ address_form.notes }}
-                            {% if address_form.notes.errors %}
-                                <p class="mt-2 text-sm text-red-600">{{ address_form.notes.errors.0 }}</p>
+                            {{ vet_form.notes }}
+                            {% if vet_form.notes.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.notes.errors.0 }}</p>
                             {% endif %}
                         </div>
                     </div>
