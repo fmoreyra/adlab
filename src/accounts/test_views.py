@@ -85,7 +85,7 @@ class AccountsViewsTest(TestCase):
             {"username": "vet@example.com", "password": "testpass123"},
         )
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/protocols/select-type/")
+        self.assertRedirects(response, "/dashboard/")
 
     def test_login_view_post_invalid_credentials(self):
         """Test POST request with invalid credentials."""
@@ -270,8 +270,8 @@ class AccountsViewsTest(TestCase):
                 kwargs={"token": token.token},
             ),
             {
-                "new_password1": "newpassword123",
-                "new_password2": "newpassword123",
+                "password1": "newpassword123",
+                "password2": "newpassword123",
             },
         )
         # Form validation might fail, so check for either redirect or form errors
@@ -279,10 +279,9 @@ class AccountsViewsTest(TestCase):
 
         if response.status_code == 302:
             self.assertRedirects(response, reverse("accounts:login"))
-            # Check that token was deleted
-            self.assertFalse(
-                PasswordResetToken.objects.filter(token=token.token).exists()
-            )
+            # Check that token was marked as used
+            token.refresh_from_db()
+            self.assertIsNotNone(token.used_at)
 
     def test_password_reset_confirm_view_invalid_token(self):
         """Test password reset confirm with invalid token."""

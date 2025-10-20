@@ -64,7 +64,7 @@ class LoginView(FormView):
 
     form_class = UserLoginForm
     template_name = "accounts/login.html"
-    success_url = "/"
+    success_url = "/dashboard/"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -303,7 +303,7 @@ class PasswordResetConfirmView(FormView):
 
             # Update password
             user = reset_token.user
-            user.set_password(form.cleaned_data["new_password"])
+            user.set_password(form.cleaned_data["password1"])
             user.save()
 
             # Mark token as used

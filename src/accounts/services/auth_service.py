@@ -67,11 +67,8 @@ class AuthenticationService:
         user.reset_failed_login_attempts()
         self._log_successful_login(user, request)
 
-        # Determine redirect URL
-        if user.role == User.Role.VETERINARIO:
-            redirect_url = "protocols:protocol_select_type"
-        else:
-            redirect_url = "/"
+        # All users redirect to dashboard (which routes to role-specific dashboard)
+        redirect_url = "pages:dashboard"
 
         return True, redirect_url, ""
 
