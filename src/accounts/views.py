@@ -344,6 +344,7 @@ class ProfileView(LoginRequiredMixin, UpdateView):
         if user.role == User.Role.VETERINARIO:
             return redirect("accounts:veterinarian_profile_detail")
         
+        
         # For other roles, show the generic profile view
         return super().get(request, *args, **kwargs)
 
@@ -525,7 +526,9 @@ class VeterinarianProfileDetailView(VeterinarianRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         """Add veterinarian profile to context."""
         context = super().get_context_data(**kwargs)
-        context["veterinarian"] = self.request.user.veterinarian_profile
+        veterinarian = self.request.user.veterinarian_profile
+        context["veterinarian"] = veterinarian
+        context["profile_completeness"] = veterinarian.profile_completeness
         return context
 
 
