@@ -24,3 +24,20 @@ line-length = 79
 
 [tool.ruff.lint]
 extend-select = ["I", "SIM"]
+
+[tool.pyright]
+include = ["src"]
+exclude = ["**/node_modules", "**/__pycache__", "**/migrations"]
+extraPaths = ["src"]
+pythonVersion = "3.13"
+typeCheckingMode = "basic"
+useLibraryCodeForTypes = true
+autoImportCompletions = true
+diagnosticMode = "workspace"
+
+[tool.mypy]
+python_version = "3.13"
+mypy_path = "src"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

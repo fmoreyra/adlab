@@ -1,0 +1,32 @@
+{
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "**/migrations",
+        "**/venv",
+        "**/.venv"
+    ],
+    "extraPaths": [
+        "src"
+    ],
+    "pythonVersion": "3.13",
+    "pythonPlatform": "Linux",
+    "executionEnvironments": [
+        {
+            "root": "src",
+            "pythonVersion": "3.13",
+            "pythonPlatform": "Linux",
+            "extraPaths": [
+                "."
+            ]
+        }
+    ],
+    "typeCheckingMode": "basic",
+    "useLibraryCodeForTypes": true,
+    "autoImportCompletions": true,
+    "diagnosticMode": "workspace",
+    "stubPath": "src"
+}
