@@ -60,12 +60,12 @@ Usage: {% include 'components/ui/filter_form.html' with filters=filter_fields %}
         <div class="flex items-center justify-between pt-6 pb-2 border-t border-gray-200 mt-6">
             <div class="flex items-center space-x-2">
                 {% include 'components/ui/button.html' with text="Aplicar Filtros" type="submit" variant="primary" icon="filter" %}
-                <a href="{{ clear_url|default:'#' }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+                <button type="button" onclick="clearFilters()" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                     Limpiar
-                </a>
+                </button>
             </div>
             
             {% if results_count %}
@@ -76,3 +76,26 @@ Usage: {% include 'components/ui/filter_form.html' with filters=filter_fields %}
         </div>
     </form>
 </div>
+
+<script>
+function clearFilters() {
+    // Get the form element
+    const form = document.querySelector('form[method="get"]');
+    if (!form) return;
+    
+    // Clear all form fields
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.type === 'date') {
+            input.value = '';
+        } else if (input.type === 'text') {
+            input.value = '';
+        } else if (input.tagName === 'SELECT') {
+            input.selectedIndex = 0; // Select the first option (usually empty)
+        }
+    });
+    
+    // Submit the form to apply the cleared filters
+    form.submit();
+}
+</script>
