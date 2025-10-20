@@ -233,7 +233,7 @@ SERVER_EMAIL = os.getenv("SERVER_EMAIL", "server@adlab.com")
 # https://docs.djangoproject.com/en/5.2/ref/settings/#security
 if not DEBUG:
     # HTTPS settings
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = bool(strtobool(os.getenv("SECURE_SSL_REDIRECT", "true")))
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
