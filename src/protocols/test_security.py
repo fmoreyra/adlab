@@ -631,13 +631,10 @@ class SecurityTest(TestCase):
         # This would be tested in file upload views if they exist
         # For now, we'll test that the system doesn't crash with malicious input
         response = self.client.get(reverse("protocols:protocol_list"))
-        # Staff users need veterinarian profile to access protocol list
-        self.assertEqual(response.status_code, 302)
-        # The redirect might be to complete_profile or another URL
-        self.assertTrue(
-            response.url.endswith("complete-profile/")
-            or response.url.endswith("complete_profile")
-        )
+        # Staff users can access protocol list (they have is_staff=True)
+        self.assertEqual(response.status_code, 200)
+        # Staff users should see all protocols
+        self.assertContains(response, "Protocolos")
 
     # ============================================================================
     # EDGE CASE SECURITY TESTS

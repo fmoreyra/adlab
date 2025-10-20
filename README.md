@@ -279,10 +279,10 @@ variables to fix this.
 
 ```sh
 # You can run this from a 2nd terminal.
-./run manage migrate
+make manage ARGS="migrate"
 ```
 
-*We'll go over that `./run` script in a bit!*
+*We'll go over the available `make` commands in a bit!*
 
 #### Check it out in a browser:
 
@@ -301,23 +301,23 @@ The laboratory system will be available with the following default access:
 
 ```sh
 # You should get no output (that means everything is operational).
-./run lint
+make lint
 ```
 
 #### Formatting the code base:
 
 ```sh
 # You should see that everything is unchanged (it's all already formatted).
-./run format
+make format
 ```
 
-*There's also a `./run quality` command to run the above commands together.*
+*There's also a `make quality` command to run the above commands together.*
 
 #### Running the test suite:
 
 ```sh
 # You should see all passing tests. Warnings are typically ok.
-./run manage test
+make test
 ```
 
 #### Stopping everything:
@@ -348,24 +348,25 @@ Feel free to add new variables as needed. This is where you should put all of
 your secrets as well as configuration that might change depending on your
 environment (specific dev boxes, CI, production, etc.).
 
-### `run`
+### `Makefile`
 
-You can run `./run` to get a list of commands and each command has
-documentation in the `run` file itself.
+You can run `make help` to get a list of all available commands and their descriptions.
 
-It's a shell script that has a number of functions defined to help you interact
-with this project. It's basically a `Makefile` except with [less
-limitations](https://nickjanetakis.com/blog/replacing-make-with-a-shell-script-for-running-your-projects-tasks).
-For example as a shell script it allows us to pass any arguments to another
-program.
+This project uses a standard `Makefile` with organized targets for different tasks:
+- Docker & Container Management
+- Django Management  
+- Testing
+- Code Quality
+- Database Operations
+- Dependencies
+- CI/CD
+- And more
 
-This comes in handy to run various Docker commands because sometimes these
-commands can be a bit long to type. Feel free to add as many convenience
-functions as you want. This file's purpose is to make your experience better!
+Each target is documented with examples. The Makefile provides a clean, standard interface for all project tasks.
 
-*If you get tired of typing `./run` you can always create a shell alias with
-`alias run=./run` in your `~/.bash_aliases` or equivalent file. Then you'll be
-able to run `run` instead of `./run`.*
+*If you get tired of typing `make` you can always create a shell alias with
+`alias m=make` in your `~/.bash_aliases` or equivalent file. Then you'll be
+able to run `m` instead of `make`.*
 
 #### Start and setup the project:
 
@@ -377,7 +378,7 @@ Docker.
 docker compose up --build
 
 # Then in a 2nd terminal once it's up and ready.
-./run manage migrate
+make manage ARGS="migrate"
 ```
 
 #### Sanity check to make sure the tests still pass:
@@ -387,8 +388,8 @@ adding custom changes.
 
 ```sh
 # You can run this from the same terminal as before.
-./run quality
-./run manage test
+make quality
+make test
 ```
 
 If everything passes now you can optionally `git add -A && git commit -m
@@ -413,7 +414,7 @@ much appreciated!
 
 ## 🛠 Updating dependencies
 
-You can run `./run uv:outdated` or `./run yarn:outdated` to get a list of
+You can run `make uv-outdated` or `make yarn-outdated` to get a list of
 outdated dependencies based on what you currently have installed. Once you've
 figured out what you want to update, go make those updates in your
 `pyproject.toml` and / or `package.json` file.
@@ -426,27 +427,26 @@ either for Python or Node.
 #### Option 1
 
 1. Directly edit `pyproject.toml` or `assets/package.json` to add your package
-2. `./run deps:install` or `./run deps:install --no-build`
-   - The `--no-build` option will only write out a new lock file without re-building your image
+2. `make deps-install` or `make deps-install NO_BUILD=true`
+   - The `NO_BUILD=true` option will only write out a new lock file without re-building your image
 
 #### Option 2
 
-1. Run `./run uv add mypackage --no-sync` or `run yarn add mypackage --no-lockfile` which will update your `pyproject.toml` or `assets/package.json` with the latest version of that package but not install it
+1. Run `make uv ARGS="add mypackage --no-sync"` or `make yarn ARGS="add mypackage --no-lockfile"` which will update your `pyproject.toml` or `assets/package.json` with the latest version of that package but not install it
 2. The same step as step 2 from option 1
 
 Either option is fine, it's up to you based on what's more convenient at the
 time. You can modify the above workflows for updating an existing package or
 removing one as well.
 
-You can also access `uv` and `yarn` in Docker with `./run uv` and `./run yarn`
+You can also access `uv` and `yarn` in Docker with `make uv` and `make yarn`
 after you've upped the project.
 
 ### In CI
 
 You'll want to run `docker compose build` since it will use any existing lock
 files if they exist. You can also check out the complete CI test pipeline in
-the [run](https://github.com/nickjj/docker-django-example/blob/main/run) file
-under the `ci:test` function.
+the `scripts/ci-test.sh` file or run `make ci-test`.
 
 ### In production
 

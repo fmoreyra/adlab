@@ -31,7 +31,7 @@ This guide covers setting up the laboratory system for local development using D
 
 ### Optional Tools
 
-- **Make** (for Makefile workflows, if preferred over `./run` script)
+- **Make** (for Makefile workflows - the standard way to run project tasks)
 - **HTTPie or Postman** (for API testing)
 - **pgAdmin** or **DBeaver** (for database management)
 - **Redis Desktop Manager** (for Redis inspection)
@@ -108,14 +108,14 @@ In a new terminal:
 
 ```bash
 # Run migrations
-./run manage migrate
+make manage ARGS="migrate"
 
 # Create superuser
-./run manage createsuperuser
+make manage ARGS="createsuperuser"
 # Follow prompts to create admin account
 
 # (Optional) Load test data
-./run manage shell < simple_test_data.py
+make manage ARGS="shell" < simple_test_data.py
 ```
 
 ### 6. Verify Setup
@@ -204,36 +204,36 @@ After changing models, create and apply migrations:
 
 ```bash
 # Create migration
-./run manage makemigrations
+make manage ARGS="makemigrations"
 
 # Review the migration
 cat src/accounts/migrations/0002_*.py
 
 # Apply migration
-./run manage migrate
+make manage ARGS="migrate"
 
 # (Optional) View SQL
-./run manage sqlmigrate accounts 0002
+make manage ARGS="sqlmigrate accounts 0002"
 ```
 
 ### Running Tests
 
 ```bash
 # Run all tests
-./run manage test
+make test
 
 # Run tests for specific app
-./run manage test accounts
-./run manage test protocols
+make manage ARGS="test accounts"
+make manage ARGS="test protocols"
 
 # Run specific test class
-./run manage test protocols.tests.ProtocolTestCase
+make manage ARGS="test protocols.tests.ProtocolTestCase"
 
 # Run specific test method
-./run manage test protocols.tests.ProtocolTestCase.test_create_protocol
+make manage ARGS="test protocols.tests.ProtocolTestCase.test_create_protocol"
 
 # Run with verbose output
-./run manage test --verbosity=2
+make manage ARGS="test --verbosity=2"
 
 # Run with coverage
 docker compose exec web pytest --cov
@@ -243,25 +243,25 @@ docker compose exec web pytest --cov
 
 ```bash
 # Lint Python code
-./run lint
+make lint
 
 # Auto-fix linting issues
-./run format
+make format
 
 # Run all quality checks
-./run quality
+make quality
 
 # Individual checks
-./run lint:dockerfile
-./run lint:shell
-./run format:shell
+make lint-dockerfile
+make lint-shell
+make format-shell
 ```
 
 ### Database Operations
 
 ```bash
 # Access PostgreSQL CLI
-./run psql
+make psql
 
 # Within psql:
 \dt                    # List tables
@@ -269,38 +269,38 @@ docker compose exec web pytest --cov
 SELECT COUNT(*) FROM accounts_user;
 
 # Backup database
-./run db:dump
+make db-dump
 # Creates: backups/adlab_dump_YYYYMMDD_HHMMSS.sql
 
 # Reset database (careful!)
 docker compose down -v
 docker compose up -d
-./run manage migrate
+make manage ARGS="migrate"
 ```
 
 ### Django Management Commands
 
 ```bash
 # Django shell
-./run manage shell
+make manage ARGS="shell"
 
 # Create superuser
-./run manage createsuperuser
+make manage ARGS="createsuperuser"
 
 # Check for issues
-./run manage check
+make manage ARGS="check"
 
 # Show migrations
-./run manage showmigrations
+make manage ARGS="showmigrations"
 
 # Collect static files
-./run manage collectstatic
+make manage ARGS="collectstatic"
 
 # Send test email
-./run manage sendtestemail you@example.com
+make manage ARGS="sendtestemail you@example.com"
 
 # Custom commands (if you create them)
-./run manage your_custom_command
+make manage ARGS="your_custom_command"
 ```
 
 ### Celery Tasks
@@ -313,7 +313,7 @@ docker compose logs -f worker
 docker compose logs -f beat
 
 # Access Redis CLI
-./run redis-cli
+make redis-cli
 
 # Within redis-cli:
 KEYS *          # List all keys
@@ -392,7 +392,7 @@ Same connection settings, nice UI.
 
 ```bash
 # Create app structure
-./run manage startapp myapp src/myapp
+make manage ARGS="startapp myapp src/myapp"
 
 # Add to INSTALLED_APPS in src/config/settings.py
 INSTALLED_APPS = [
@@ -417,7 +417,7 @@ dependencies = [
 ]
 
 # Install dependencies
-./run deps:install
+make deps-install
 
 # Rebuild containers
 docker compose up --build
@@ -431,7 +431,7 @@ cd assets
 vim package.json
 
 # Install
-./run yarn install
+make yarn-install
 
 # Rebuild
 docker compose up --build
@@ -441,35 +441,35 @@ docker compose up --build
 
 ```bash
 # Create migration
-./run manage makemigrations
+make manage ARGS="makemigrations"
 
 # Create empty migration (for data or custom operations)
-./run manage makemigrations --empty myapp
+make manage ARGS="makemigrations --empty myapp"
 
 # Apply migrations
-./run manage migrate
+make manage ARGS="migrate"
 
 # Rollback last migration
-./run manage migrate myapp 0001
+make manage ARGS="migrate myapp 0001"
 
 # Show migration SQL
-./run manage sqlmigrate myapp 0002
+make manage ARGS="sqlmigrate myapp 0002"
 
 # Squash migrations
-./run manage squashmigrations myapp 0001 0005
+make manage ARGS="squashmigrations myapp 0001 0005"
 ```
 
 ### Creating Fixtures
 
 ```bash
 # Dump data to fixture
-./run manage dumpdata accounts.User --indent=2 > src/accounts/fixtures/users.json
+make manage ARGS="dumpdata accounts.User --indent=2" > src/accounts/fixtures/users.json
 
 # Load fixture
-./run manage loaddata users
+make manage ARGS="loaddata users"
 
 # Dump entire database
-./run manage dumpdata --indent=2 > backup.json
+make manage ARGS="dumpdata --indent=2" > backup.json
 ```
 
 ## Troubleshooting
@@ -529,10 +529,10 @@ docker compose up --build
 # Reset database completely
 docker compose down -v
 docker compose up -d
-./run manage migrate
+make manage ARGS="migrate"
 
 # Check database connectivity
-./run psql -c "SELECT version();"
+make psql ARGS="-c \"SELECT version();\""
 
 # View postgres logs
 docker compose logs postgres
@@ -555,10 +555,10 @@ docker compose exec assets npm run build
 
 ```bash
 # Clean up test database
-./run test:cleanup
+make test-cleanup
 
 # Run tests again
-./run manage test
+make test
 ```
 
 ## Performance Tips
@@ -620,7 +620,7 @@ docker compose up
 # For running tests (no beat, no assets)
 COMPOSE_PROFILES=postgres,redis,web,worker
 docker compose up -d
-./run manage test
+make test
 ```
 
 ## Next Steps

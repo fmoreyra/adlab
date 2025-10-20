@@ -271,6 +271,17 @@ STORAGES = {
     },
 }
 
+# Test-specific static files configuration
+if TESTING:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
 # Django Debug Toolbar
 # https://django-debug-toolbar.readthedocs.io/
 if DEBUG:

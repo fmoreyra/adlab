@@ -24,6 +24,7 @@ class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
         '/accounts/logout/',
         '/accounts/password-reset/',
         '/accounts/resend-verification/',
+        '/accounts/histopathologist/create/',  # Admin-only view
         '/admin/',
         '/static/',
         '/media/',

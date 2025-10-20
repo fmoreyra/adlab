@@ -48,10 +48,10 @@ Open a second terminal in the same directory:
 
 ```bash
 # Run database migrations
-./run manage migrate
+make manage ARGS="migrate"
 
 # Create a superuser account
-./run manage createsuperuser
+make manage ARGS="createsuperuser"
 ```
 
 Follow the prompts to create your admin account.
@@ -80,7 +80,7 @@ You should see the laboratory system home page!
 
 ```bash
 # Create test users for all roles
-./run manage shell < simple_test_data.py
+make manage ARGS="shell" < simple_test_data.py
 ```
 
 This creates:
@@ -94,27 +94,27 @@ See [Test Credentials](./test-credentials.md) for complete list.
 
 ```bash
 # Run the full test suite
-./run manage test
+make test
 
 # Run specific app tests
-./run manage test accounts
-./run manage test protocols
+make manage ARGS="test accounts"
+make manage ARGS="test protocols"
 
 # Run specific test file
-./run manage test protocols.tests.ProtocolTestCase
+make manage ARGS="test protocols.tests.ProtocolTestCase"
 ```
 
 ### Check Code Quality
 
 ```bash
 # Lint Python code
-./run lint
+make lint
 
 # Format Python code
-./run format
+make format
 
 # Run all quality checks
-./run quality
+make quality
 ```
 
 ## Common Development Tasks
@@ -157,32 +157,32 @@ docker volume rm laboratory-system_postgres
 
 # Start and migrate
 docker compose up -d
-./run manage migrate
-./run manage createsuperuser
+make manage ARGS="migrate"
+make manage ARGS="createsuperuser"
 ```
 
 ### Access Django Shell
 
 ```bash
 # Python shell with Django
-./run manage shell
+make manage ARGS="shell"
 
 # Access PostgreSQL
-./run psql
+make psql
 
 # Access Redis CLI
-./run redis-cli
+make redis-cli
 ```
 
 ### Update Dependencies
 
 ```bash
 # Check outdated packages
-./run uv:outdated
-./run yarn:outdated
+make uv-outdated
+make yarn-outdated
 
 # After updating pyproject.toml or package.json
-./run deps:install
+make deps-install
 
 # Rebuild containers
 docker compose up --build
@@ -203,26 +203,26 @@ vim src/accounts/views.py
 # Watch the logs to see the reload
 
 # 4. Run tests for what you changed
-./run manage test accounts.test_views
+make manage ARGS="test accounts.test_views"
 
 # 5. Check code quality before committing
-./run quality
+make quality
 ```
 
 ### Database Migrations
 
 ```bash
 # After changing models
-./run manage makemigrations
+make manage ARGS="makemigrations"
 
 # Apply migrations
-./run manage migrate
+make manage ARGS="migrate"
 
 # View migration SQL (optional)
-./run manage sqlmigrate accounts 0001
+make manage ARGS="sqlmigrate accounts 0001"
 
 # Show migration status
-./run manage showmigrations
+make manage ARGS="showmigrations"
 ```
 
 ## Troubleshooting
@@ -285,13 +285,13 @@ docker compose up --build
 
 ```bash
 # Clean up test database
-./run test:cleanup
+make test-cleanup
 
 # Run tests again
-./run manage test
+make test
 
 # Run with verbose output
-./run manage test --verbosity=2
+make manage ARGS="test --verbosity=2"
 ```
 
 ## Development Tools

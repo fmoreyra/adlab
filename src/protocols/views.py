@@ -73,8 +73,8 @@ class ProtocolListView(ListView):
     def get_queryset(self):
         """Get protocols based on user permissions."""
         # Check access permissions
-        if self.request.user.is_admin_user:
-            # Admin users can see all protocols
+        if self.request.user.is_admin_user or self.request.user.is_staff:
+            # Admin and staff users can see all protocols
             protocols = (
                 Protocol.objects.all()
                 .select_related("veterinarian")
