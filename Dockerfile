@@ -27,7 +27,9 @@ ENV NODE_ENV="${NODE_ENV}" \
 COPY --chown=node:node . ..
 
 RUN if [ "${NODE_ENV}" != "development" ]; then \
-  ../run yarn:build:js && ../run yarn:build:css && ../run yarn:optimize:images; else mkdir -p /app/public; fi
+  node esbuild.config.mjs && \
+  npx tailwindcss -i css/app.css -o ../public/css/app.css --minify && \
+  node optimize-images.js; else mkdir -p /app/public; fi
 
 CMD ["bash"]
 
