@@ -275,8 +275,8 @@ class AuthAuditLogAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """Allow deletion for cleanup."""
-        return request.user.is_superuser
+        """Audit logs are immutable - no deletion allowed."""
+        return False
 
 
 # ============================================================================
@@ -573,8 +573,8 @@ class VeterinarianChangeLogAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """Allow deletion for cleanup."""
-        return request.user.is_superuser
+        """Audit logs are immutable - no deletion allowed."""
+        return False
 
 
 # ============================================================================

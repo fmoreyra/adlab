@@ -73,7 +73,7 @@ class LoginView(FormView):
     def get(self, request, *args, **kwargs):
         """Handle GET request with early return for authenticated users."""
         if request.user.is_authenticated:
-            return redirect("home")
+            return redirect("pages:dashboard")
         return super().get(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -473,10 +473,15 @@ class CompleteProfileView(LoginRequiredMixin, FormView):
         """Handle GET request with validation."""
         # Check if user is a veterinarian
         if not request.user.is_veterinarian:
+            from django.http import HttpResponseForbidden
+            from django.template.loader import render_to_string
+            
             messages.error(
                 request, _("Solo los veterinarios pueden completar su perfil.")
             )
-            return redirect("home")
+            return HttpResponseForbidden(
+                render_to_string('403.html', {'user': request.user}, request=request)
+            )
 
         # Check if profile is already complete
         if hasattr(request.user, "veterinarian_profile"):
@@ -529,6 +534,13 @@ class VeterinarianProfileDetailView(VeterinarianRequiredMixin, DetailView):
         veterinarian = self.request.user.veterinarian_profile
         context["veterinarian"] = veterinarian
         context["profile_completeness"] = veterinarian.profile_completeness
+        
+        # Add address to context if it exists
+        try:
+            context["address"] = veterinarian.address
+        except veterinarian.address.RelatedObjectDoesNotExist:
+            context["address"] = None
+            
         return context
 
 

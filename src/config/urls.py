@@ -30,6 +30,9 @@ urlpatterns = [
     path("api/", include("pages.api_urls")),  # Dashboard API endpoints
     path("admin/", admin.site.urls),
 ]
+
+# Custom error handlers
+handler403 = 'pages.views.permission_denied_view'
 if not settings.TESTING and settings.DEBUG:
     urlpatterns = [
         *urlpatterns,

@@ -10,6 +10,7 @@ from django.db.models.functions import Extract
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.generic import TemplateView, View
+from django.http import HttpResponseForbidden
 
 from protocols.models import Protocol, Report
 
@@ -461,3 +462,11 @@ class ManagementDashboardView(LoginRequiredMixin, TemplateView):
         )
 
         return context
+
+
+def permission_denied_view(request, exception=None):
+    """
+    Custom 403 Forbidden error handler.
+    Renders the 403.html template with proper context.
+    """
+    return render(request, '403.html', {'user': request.user}, status=403)

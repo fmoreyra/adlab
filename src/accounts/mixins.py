@@ -29,12 +29,15 @@ class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return _("No tiene permisos para acceder a esta función.")
 
     def handle_no_permission(self):
-        """Handle permission denied by redirecting to home with message."""
+        """Handle permission denied by showing 403 error page with message."""
         from django.contrib import messages
-        from django.shortcuts import redirect
+        from django.http import HttpResponseForbidden
+        from django.template.loader import render_to_string
 
         messages.error(self.request, self.get_permission_denied_message())
-        return redirect("home")
+        return HttpResponseForbidden(
+            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+        )
 
 
 class VeterinarianRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -54,17 +57,20 @@ class VeterinarianRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return _("Esta función está disponible solo para veterinarios.")
 
     def handle_no_permission(self):
-        """Handle permission denied by redirecting appropriately."""
+        """Handle permission denied by showing 403 error page with message."""
         from django.contrib import messages
-        from django.shortcuts import redirect
+        from django.http import HttpResponseForbidden
+        from django.template.loader import render_to_string
 
         # If user is not authenticated, let LoginRequiredMixin handle it
         if not self.request.user.is_authenticated:
             return super().handle_no_permission()
 
-        # If user is authenticated but not a veterinarian, redirect to home
+        # If user is authenticated but not a veterinarian, show 403
         messages.error(self.request, self.get_permission_denied_message())
-        return redirect("home")
+        return HttpResponseForbidden(
+            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+        )
 
 
 class WorkOrderStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -105,6 +111,22 @@ class HistopathologistRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         """Return custom permission denied message."""
         return _("Esta función está disponible solo para histopatólogos.")
 
+    def handle_no_permission(self):
+        """Handle permission denied by showing 403 error page with message."""
+        from django.contrib import messages
+        from django.http import HttpResponseForbidden
+        from django.template.loader import render_to_string
+
+        # If user is not authenticated, let LoginRequiredMixin handle it
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+
+        # If user is authenticated but not a histopathologist, show 403
+        messages.error(self.request, self.get_permission_denied_message())
+        return HttpResponseForbidden(
+            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+        )
+
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
@@ -121,6 +143,22 @@ class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     def get_permission_denied_message(self):
         """Return custom permission denied message."""
         return _("Esta función está disponible solo para administradores.")
+
+    def handle_no_permission(self):
+        """Handle permission denied by showing 403 error page with message."""
+        from django.contrib import messages
+        from django.http import HttpResponseForbidden
+        from django.template.loader import render_to_string
+
+        # If user is not authenticated, let LoginRequiredMixin handle it
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+
+        # If user is authenticated but not an admin, show 403
+        messages.error(self.request, self.get_permission_denied_message())
+        return HttpResponseForbidden(
+            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+        )
 
 
 class ProtocolOwnerOrStaffMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -154,6 +192,22 @@ class ProtocolOwnerOrStaffMixin(LoginRequiredMixin, UserPassesTestMixin):
         """Return custom permission denied message."""
         return _("No tiene permisos para acceder a este protocolo.")
 
+    def handle_no_permission(self):
+        """Handle permission denied by showing 403 error page with message."""
+        from django.contrib import messages
+        from django.http import HttpResponseForbidden
+        from django.template.loader import render_to_string
+
+        # If user is not authenticated, let LoginRequiredMixin handle it
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+
+        # If user is authenticated but doesn't have access, show 403
+        messages.error(self.request, self.get_permission_denied_message())
+        return HttpResponseForbidden(
+            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+        )
+
 
 class VeterinarianProfileRequiredMixin(
     LoginRequiredMixin, UserPassesTestMixin
@@ -186,6 +240,22 @@ class VeterinarianProfileRequiredMixin(
     def get_permission_denied_message(self):
         """Return custom permission denied message."""
         return _("Debe completar su perfil de veterinario primero.")
+
+    def handle_no_permission(self):
+        """Handle permission denied by showing 403 error page with message."""
+        from django.contrib import messages
+        from django.http import HttpResponseForbidden
+        from django.template.loader import render_to_string
+
+        # If user is not authenticated, let LoginRequiredMixin handle it
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+
+        # If user is authenticated but doesn't have complete profile, show 403
+        messages.error(self.request, self.get_permission_denied_message())
+        return HttpResponseForbidden(
+            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+        )
 
 
 class ReportAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -232,6 +302,22 @@ class ReportAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
         """Return custom permission denied message."""
         return _("No tiene permisos para acceder a este informe.")
 
+    def handle_no_permission(self):
+        """Handle permission denied by showing 403 error page with message."""
+        from django.contrib import messages
+        from django.http import HttpResponseForbidden
+        from django.template.loader import render_to_string
+
+        # If user is not authenticated, let LoginRequiredMixin handle it
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+
+        # If user is authenticated but doesn't have access, show 403
+        messages.error(self.request, self.get_permission_denied_message())
+        return HttpResponseForbidden(
+            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+        )
+
 
 class WorkOrderAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
@@ -265,3 +351,19 @@ class WorkOrderAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
     def get_permission_denied_message(self):
         """Return custom permission denied message."""
         return _("No tiene permisos para acceder a esta orden de trabajo.")
+
+    def handle_no_permission(self):
+        """Handle permission denied by showing 403 error page with message."""
+        from django.contrib import messages
+        from django.http import HttpResponseForbidden
+        from django.template.loader import render_to_string
+
+        # If user is not authenticated, let LoginRequiredMixin handle it
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+
+        # If user is authenticated but doesn't have access, show 403
+        messages.error(self.request, self.get_permission_denied_message())
+        return HttpResponseForbidden(
+            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+        )

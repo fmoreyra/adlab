@@ -535,6 +535,7 @@ class ProtocolStatusHistoryAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
+        """Audit logs are immutable - no deletion allowed."""
         return False
 
 
@@ -967,8 +968,8 @@ class ReceptionLogAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """Allow deletion for cleanup purposes."""
-        return request.user.is_superuser
+        """Audit logs are immutable - no deletion allowed."""
+        return False
 
 
 @admin.register(ProtocolCounter)
@@ -1645,8 +1646,8 @@ class ProcessingLogAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """Allow deletion for cleanup purposes."""
-        return request.user.is_superuser
+        """Audit logs are immutable - no deletion allowed."""
+        return False
 
 
 @admin.register(EmailLog)
@@ -1741,8 +1742,8 @@ class EmailLogAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """Allow deletion for cleanup purposes."""
-        return request.user.is_superuser
+        """Audit logs are immutable - no deletion allowed."""
+        return False
 
 
 @admin.register(NotificationPreference)
