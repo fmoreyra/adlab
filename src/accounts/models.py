@@ -172,6 +172,19 @@ class User(AbstractUser):
         self.email_verification_token = None
         self.save(update_fields=["email_verified", "email_verification_token"])
 
+    def save(self, *args, **kwargs):
+        """
+        Override save to automatically set is_superuser=True 
+        when role is set to ADMIN.
+        """
+        # If role is ADMIN, automatically set is_superuser=True
+        if self.role == self.Role.ADMIN:
+            self.is_superuser = True
+            self.is_staff = True  # Also set is_staff for admin access
+        
+        # Call the parent save method
+        super().save(*args, **kwargs)
+
 
 class PasswordResetToken(models.Model):
     """
