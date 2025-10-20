@@ -36,16 +36,33 @@ class UserLoginForm(AuthenticationForm):
     }
 
     def clean(self):
-        """Override clean to check for inactive users before authentication."""
+        """Override clean to check for inactive users and email verification before authentication."""
         username = self.cleaned_data.get("username")
         password = self.cleaned_data.get("password")
 
         if username and password:
-            # Check if user exists and is inactive before attempting authentication
+            # Check if user exists and handle verification status
             try:
                 from .models import User
 
                 user = User.objects.get(email=username)
+                
+                # Check email verification first (for veterinarians)
+                if user.role == User.Role.VETERINARIO and not user.email_verified:
+                    # Log failed login attempt for audit
+                    from .models import AuthAuditLog
+                    AuthAuditLog.objects.create(
+                        user=user,
+                        email=user.email,
+                        action=AuthAuditLog.Action.LOGIN_FAILED,
+                        details="Email not verified",
+                    )
+                    raise forms.ValidationError(
+                        _("Debe verificar su email antes de iniciar sesión."),
+                        code="email_not_verified",
+                    )
+                
+                # Check if account is inactive (for other reasons)
                 if not user.is_active:
                     raise forms.ValidationError(
                         self.error_messages["inactive"],
@@ -58,6 +75,22 @@ class UserLoginForm(AuthenticationForm):
 
     def confirm_login_allowed(self, user):
         """Check if the given user may log in."""
+        # Check email verification first (for veterinarians)
+        if user.role == User.Role.VETERINARIO and not user.email_verified:
+            # Log failed login attempt for audit
+            from .models import AuthAuditLog
+            AuthAuditLog.objects.create(
+                user=user,
+                email=user.email,
+                action=AuthAuditLog.Action.LOGIN_FAILED,
+                details="Email not verified",
+            )
+            raise forms.ValidationError(
+                _("Debe verificar su email antes de iniciar sesión."),
+                code="email_not_verified",
+            )
+        
+        # Check if account is inactive (for other reasons)
         if not user.is_active:
             raise forms.ValidationError(
                 self.error_messages["inactive"],

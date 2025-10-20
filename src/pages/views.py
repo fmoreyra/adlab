@@ -95,8 +95,12 @@ class VeterinarianDashboardView(LoginRequiredMixin, TemplateView):
         if not user.is_veterinarian:
             return redirect("pages:dashboard")
 
-        # Get veterinarian profile (middleware ensures it exists)
-        self.veterinarian = user.veterinarian_profile
+        # Check if veterinarian profile exists
+        try:
+            self.veterinarian = user.veterinarian_profile
+        except user.veterinarian_profile.RelatedObjectDoesNotExist:
+            # User is marked as veterinarian but has no profile - redirect to dashboard
+            return redirect("pages:dashboard")
 
         return super().get(request, *args, **kwargs)
 
@@ -228,6 +232,13 @@ class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
 
         # Early return if not histopathologist
         if not user.is_histopathologist:
+            return redirect("pages:dashboard")
+
+        # Check if histopathologist profile exists
+        try:
+            self.histopathologist = user.histopathologist_profile
+        except user.histopathologist_profile.RelatedObjectDoesNotExist:
+            # User is marked as histopathologist but has no profile - redirect to dashboard
             return redirect("pages:dashboard")
 
         return super().get(request, *args, **kwargs)
