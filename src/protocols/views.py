@@ -333,6 +333,35 @@ class ProtocolEditView(ProtocolOwnerOrStaffMixin, UpdateView):
     form_class = ProtocolEditForm
     template_name = "protocols/protocol_edit.html"
 
+    def get_context_data(self, **kwargs):
+        """Add protocol and sample forms to context."""
+        context = super().get_context_data(**kwargs)
+        protocol = self.object
+        
+        # Add protocol form as protocol_form for template compatibility
+        context['protocol_form'] = context['form']
+        
+        # Add sample form based on analysis type
+        if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
+            from protocols.forms import CytologySampleEditForm
+            try:
+                sample = protocol.cytology_sample
+                context['sample_form'] = CytologySampleEditForm(instance=sample)
+            except protocol.cytology_sample.RelatedObjectDoesNotExist:
+                context['sample_form'] = CytologySampleEditForm()
+        else:  # HISTOPATHOLOGY
+            from protocols.forms import HistopathologySampleEditForm
+            try:
+                sample = protocol.histopathology_sample
+                context['sample_form'] = HistopathologySampleEditForm(instance=sample)
+            except protocol.histopathology_sample.RelatedObjectDoesNotExist:
+                context['sample_form'] = HistopathologySampleEditForm()
+        
+        # Add analysis type for template
+        context['analysis_type'] = protocol.analysis_type
+        
+        return context
+
     def get_success_url(self):
         """Redirect to protocol detail after successful update."""
         return reverse(
