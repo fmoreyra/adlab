@@ -172,7 +172,7 @@ class CreateHistopathologistView(AdminRequiredMixin, FormView):
     def form_valid(self, form):
         """Process valid form and create histopathologist."""
         try:
-            user, histopathologist = form.save()
+            user, _ = form.save()
             
             # Log creation in audit log
             auth_service = AuthenticationService()
@@ -187,10 +187,8 @@ class CreateHistopathologistView(AdminRequiredMixin, FormView):
             
             messages.success(
                 self.request,
-                _(
-                    f"Histopatólogo {user.get_full_name()} creado exitosamente. "
-                    f"Email: {user.email}"
-                ),
+                f"Histopatólogo {user.get_full_name()} creado exitosamente. "
+                f"Email: {user.email}"
             )
             
         except Exception:
@@ -457,7 +455,7 @@ class CompleteProfileView(LoginRequiredMixin, FormView):
 
     form_class = VeterinarianProfileCompleteForm
     template_name = "accounts/complete_profile.html"
-    success_url = "/dashboard/"
+    success_url = reverse_lazy("pages:dashboard")
 
     def get(self, request, *args, **kwargs):
         """Handle GET request with validation."""
