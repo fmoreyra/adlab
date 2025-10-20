@@ -1,0 +1,95 @@
+{
+    "name": "AdLab Laboratory System",
+    "dockerComposeFile": "../compose.yaml",
+    "service": "web",
+    "workspaceFolder": "/app/src",
+    "shutdownAction": "none",
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.pylint",
+                "ms-python.flake8",
+                "ms-python.black-formatter",
+                "ms-python.isort",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.vscode-jupyter-cell-tags",
+                "ms-toolsai.vscode-jupyter-slideshow",
+                "bradlc.vscode-tailwindcss",
+                "formulahendry.auto-rename-tag",
+                "ms-vscode.vscode-json",
+                "redhat.vscode-yaml",
+                "ms-vscode-remote.remote-containers",
+                "ms-vscode-remote.remote-ssh"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/home/python/.local/bin/python",
+                "python.analysis.extraPaths": [
+                    "/app/src"
+                ],
+                "python.analysis.autoImportCompletions": true,
+                "python.analysis.typeCheckingMode": "basic",
+                "python.linting.enabled": true,
+                "python.linting.pylintEnabled": false,
+                "python.linting.flake8Enabled": true,
+                "python.linting.mypyEnabled": false,
+                "python.analysis.diagnosticMode": "workspace",
+                "python.analysis.stubPath": "/app/src",
+                "python.analysis.include": [
+                    "/app/src/**"
+                ],
+                "python.analysis.exclude": [
+                    "**/node_modules",
+                    "**/__pycache__",
+                    "**/migrations"
+                ],
+                "files.exclude": {
+                    "**/__pycache__": true,
+                    "**/*.pyc": true,
+                    "**/migrations": false
+                },
+                "python.terminal.activateEnvironment": true,
+                "python.terminal.activateEnvInCurrentTerminal": true,
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "terminal.integrated.profiles.linux": {
+                    "bash": {
+                        "path": "/bin/bash",
+                        "args": ["-l"]
+                    }
+                },
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.organizeImports": "explicit"
+                },
+                "python.formatting.provider": "black",
+                "python.sortImports.args": ["--profile", "black"],
+                "files.associations": {
+                    "*.html": "html"
+                },
+                "emmet.includeLanguages": {
+                    "django-html": "html"
+                }
+            }
+        }
+    },
+    "forwardPorts": [8000, 5555],
+    "portsAttributes": {
+        "8000": {
+            "label": "Django App",
+            "onAutoForward": "notify"
+        },
+        "5555": {
+            "label": "Flower (Celery)",
+            "onAutoForward": "silent"
+        }
+    },
+    "postCreateCommand": "cd /app/src && python manage.py migrate",
+    "remoteUser": "python",
+    "mounts": [
+        "source=${localWorkspaceFolder}/.env,target=/app/.env,type=bind,consistency=cached"
+    ]
+}

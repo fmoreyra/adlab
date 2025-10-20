@@ -1,7 +1,8 @@
 {
     "python.defaultInterpreterPath": "./venv/bin/python",
     "python.analysis.extraPaths": [
-        "./src"
+        "./src",
+        "/home/python/.local/lib/python3.14/site-packages"
     ],
     "python.analysis.autoImportCompletions": true,
     "python.analysis.typeCheckingMode": "basic",
@@ -25,5 +26,20 @@
         "**/migrations": false
     },
     "python.terminal.activateEnvironment": true,
-    "python.terminal.activateEnvInCurrentTerminal": true
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "warning",
+        "reportMissingTypeStubs": "none"
+    },
+    "python.analysis.packageIndexDepths": [
+        {
+            "name": "django",
+            "depth": 2
+        },
+        {
+            "name": "celery",
+            "depth": 2
+        }
+    ]
 }

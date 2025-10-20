@@ -10,23 +10,29 @@
         "**/.venv"
     ],
     "extraPaths": [
-        "src"
+        "src",
+        "/home/python/.local/lib/python3.14/site-packages"
     ],
-    "pythonVersion": "3.13",
+    "pythonVersion": "3.14",
     "pythonPlatform": "Linux",
     "executionEnvironments": [
         {
             "root": "src",
-            "pythonVersion": "3.13",
+            "pythonVersion": "3.14",
             "pythonPlatform": "Linux",
             "extraPaths": [
-                "."
-            ]
+                ".",
+                "/home/python/.local/lib/python3.14/site-packages"
+            ],
+            "pythonPath": "/home/python/.local/bin/python"
         }
     ],
     "typeCheckingMode": "basic",
     "useLibraryCodeForTypes": true,
     "autoImportCompletions": true,
     "diagnosticMode": "workspace",
-    "stubPath": "src"
+    "stubPath": "src",
+    "reportMissingImports": "warning",
+    "reportMissingTypeStubs": "none",
+    "reportGeneralTypeIssues": "warning"
 }

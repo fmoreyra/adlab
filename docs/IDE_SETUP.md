@@ -1,6 +1,6 @@
-# IDE Setup Guide - Fixing Django Import Warnings
+# IDE Setup Guide - Using Docker Container Packages
 
-This guide helps you configure your IDE to properly resolve Django imports and eliminate import warnings.
+This guide helps you configure your IDE to use the Python packages installed in the Docker container, eliminating import warnings and providing proper Django development support.
 
 ## 🚨 The Problem
 
@@ -11,45 +11,87 @@ Import "django.contrib" could not be resolved
 ```
 
 This happens because your IDE doesn't know about:
-1. The Django environment setup
+1. The Django environment setup in the Docker container
 2. The correct Python path (`src/` directory)
 3. Django's settings module
+4. The UV-managed packages in `/home/python/.local/`
 
 ## ✅ Solutions Implemented
 
-### 1. VS Code Configuration (`.vscode/settings.json`)
-- ✅ Added `src/` to Python analysis paths
+### 1. VS Code Remote Container (`.devcontainer/devcontainer.json`)
+- ✅ Full Docker container development environment
+- ✅ Pre-configured with all necessary extensions
+- ✅ Automatic Python path configuration
+- ✅ Port forwarding for Django (8000) and Flower (5555)
+
+### 2. VS Code Configuration (`.vscode/settings.json`)
+- ✅ Added Docker container Python paths
 - ✅ Configured Django-aware type checking
 - ✅ Set up proper Python interpreter path
 - ✅ Enabled auto-import completions
+- ✅ Added Docker terminal integration
 
-### 2. Pyright Configuration (`pyrightconfig.json`)
-- ✅ Configured Python path and version
-- ✅ Set up execution environment for `src/` directory
+### 3. Pyright Configuration (`pyrightconfig.json`)
+- ✅ Configured Python path and version (3.14)
+- ✅ Set up execution environment for Docker container
 - ✅ Enabled workspace-wide type checking
+- ✅ Added Docker container site-packages path
 
-### 3. Project Configuration (`pyproject.toml`)
+### 4. Project Configuration (`pyproject.toml`)
 - ✅ Added Pyright and MyPy tool configurations
 - ✅ Set Python version and paths
 - ✅ Configured type checking mode
 
+### 5. Docker IDE Setup Script (`scripts/setup-docker-ide.sh`)
+- ✅ Automated IDE configuration
+- ✅ Creates VS Code workspace file
+- ✅ Generates PyCharm configuration
+- ✅ Tests Django imports in container
+
 ## 🔧 How to Apply the Fix
 
-### For VS Code Users:
-1. **Restart VS Code** - The new settings will take effect
-2. **Reload the window**: `Cmd+Shift+P` → "Developer: Reload Window"
-3. **Select Python interpreter**: `Cmd+Shift+P` → "Python: Select Interpreter"
+### Option 1: Automated Setup (Recommended)
+Run the setup script to automatically configure your IDE:
+
+```bash
+./scripts/setup-docker-ide.sh
+```
+
+This will:
+- Check Docker is running
+- Build containers if needed
+- Extract Python paths from container
+- Create VS Code workspace file
+- Generate PyCharm configuration
+- Test Django imports
+
+### Option 2: VS Code Remote Container (Best Experience)
+1. **Install Remote Containers extension**
+2. **Open command palette**: `Cmd+Shift+P`
+3. **Select**: "Remote-Containers: Reopen in Container"
+4. **Wait for container to build and start**
+5. **Enjoy full Docker development environment!**
+
+### Option 3: Manual VS Code Configuration
+1. **Open VS Code workspace**: `code laboratory-system.code-workspace`
+2. **Select Python interpreter**: `Cmd+Shift+P` → "Python: Select Interpreter"
+3. **Choose Docker container Python**: `/home/python/.local/bin/python`
+4. **Restart language server**: `Cmd+Shift+P` → "Python: Restart Language Server"
 
 ### For Other IDEs:
 
 #### PyCharm:
-1. Go to `File` → `Settings` → `Project` → `Python Interpreter`
-2. Add `src/` to the `Content Root`
-3. Set `DJANGO_SETTINGS_MODULE=config.settings` in environment variables
+1. **Run setup script**: `./scripts/setup-docker-ide.sh`
+2. **Open project** in PyCharm
+3. **Configure interpreter**: `File` → `Settings` → `Project` → `Python Interpreter`
+4. **Add remote interpreter**: Docker → Use Docker Compose
+5. **Select service**: `web`
+6. **Set interpreter path**: `/home/python/.local/bin/python`
 
 #### Cursor:
-1. The VS Code settings should work automatically
-2. Restart Cursor if needed
+1. **Use VS Code settings** (compatible)
+2. **Or use Remote Container** approach
+3. **Restart Cursor** after configuration
 
 #### Vim/Neovim with LSP:
 Add to your LSP config:
@@ -59,7 +101,10 @@ require('lspconfig').pyright.setup({
     settings = {
         python = {
             analysis = {
-                extraPaths = {"./src"},
+                extraPaths = {
+                    "./src",
+                    "/home/python/.local/lib/python3.14/site-packages"
+                },
                 typeCheckingMode = "basic"
             }
         }
