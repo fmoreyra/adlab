@@ -130,7 +130,7 @@ class AccountsViewsTest(TestCase):
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("accounts:login"))
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/")
+        self.assertRedirects(response, "/dashboard/")
 
     def test_logout_view(self):
         """Test logout view."""
@@ -466,8 +466,7 @@ class AccountsViewsTest(TestCase):
         """Test complete profile view for non-veterinarian user."""
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(reverse("accounts:complete_profile"))
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/")
+        self.assertEqual(response.status_code, 403)
 
     def test_veterinarian_profile_detail_view(self):
         """Test veterinarian profile detail view."""
@@ -601,17 +600,16 @@ class AccountsViewsTest(TestCase):
     def test_veterinarian_profile_views_require_veterinarian_role(self):
         """Test that veterinarian profile views require veterinarian role."""
         self.client.login(email="staff@example.com", password="testpass123")
-
+        
         urls = [
             reverse("accounts:veterinarian_profile_detail"),
             reverse("accounts:veterinarian_profile_edit"),
             reverse("accounts:veterinarian_profile_history"),
         ]
-
+        
         for url in urls:
             response = self.client.get(url)
-            self.assertEqual(response.status_code, 302)
-            self.assertRedirects(response, "/")
+            self.assertEqual(response.status_code, 403)
 
     # ============================================================================
     # EDGE CASE TESTS

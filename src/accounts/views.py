@@ -538,7 +538,7 @@ class VeterinarianProfileDetailView(VeterinarianRequiredMixin, DetailView):
         # Add address to context if it exists
         try:
             context["address"] = veterinarian.address
-        except veterinarian.address.RelatedObjectDoesNotExist:
+        except Address.DoesNotExist:
             context["address"] = None
             
         return context

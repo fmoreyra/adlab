@@ -34,6 +34,11 @@ class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         from django.http import HttpResponseForbidden
         from django.template.loader import render_to_string
 
+        # If user is not authenticated, let LoginRequiredMixin handle it
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+
+        # If user is authenticated but not staff, show 403
         messages.error(self.request, self.get_permission_denied_message())
         return HttpResponseForbidden(
             render_to_string('403.html', {'user': self.request.user}, request=self.request)

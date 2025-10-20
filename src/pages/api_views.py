@@ -457,7 +457,6 @@ class DashboardTATView(
                 else "citologia"
             )
             
-            target_days = 7 if analysis_type == "histopathology" else 3
             within_target_count = (
                 item['within_target_7'] if analysis_type == "histopathology" 
                 else item['within_target_3']

@@ -1560,8 +1560,7 @@ class ProcessingViewsTest(TestCase):
 
         response = self.client.get(reverse("protocols:processing_dashboard"))
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_processing_queue_view(self):
         """Test processing queue view shows protocols awaiting processing."""
@@ -1610,8 +1609,7 @@ class ProcessingViewsTest(TestCase):
 
         response = self.client.get(reverse("protocols:processing_queue"))
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_protocol_processing_status_view(self):
         """Test protocol processing status view shows complete timeline."""
@@ -1665,8 +1663,7 @@ class ProcessingViewsTest(TestCase):
             )
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_cassette_create_view_get(self):
         """Test GET request to cassette create view."""
@@ -1767,8 +1764,7 @@ class ProcessingViewsTest(TestCase):
             )
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_slide_register_view_get(self):
         """Test GET request to slide register view."""
@@ -1882,8 +1878,7 @@ class ProcessingViewsTest(TestCase):
             )
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_slide_update_stage_view(self):
         """Test slide update stage view."""
@@ -1992,8 +1987,7 @@ class ProcessingViewsTest(TestCase):
             data={"stage": "montaje"},
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_slide_update_quality_view(self):
         """Test slide update quality view."""
@@ -2074,8 +2068,7 @@ class ProcessingViewsTest(TestCase):
             data={"quality": Slide.Quality.EXCELENTE},
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
 
 # ============================================================================
@@ -2770,8 +2763,7 @@ class ReceptionViewsTest(TestCase):
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:reception_search"))
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_reception_search_view_permission_admin_allowed(self):
         """Test that admin can access reception search."""
@@ -2881,8 +2873,7 @@ class ReceptionViewsTest(TestCase):
             )
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_reception_confirm_view_already_processed(self):
         """Test reception confirm for already processed protocol."""
@@ -2931,8 +2922,7 @@ class ReceptionViewsTest(TestCase):
             )
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_reception_pending_view(self):
         """Test reception pending view shows submitted protocols."""
@@ -2969,8 +2959,7 @@ class ReceptionViewsTest(TestCase):
 
         response = self.client.get(reverse("protocols:reception_pending"))
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_reception_history_view(self):
         """Test reception history view."""
@@ -2999,8 +2988,7 @@ class ReceptionViewsTest(TestCase):
 
         response = self.client.get(reverse("protocols:reception_history"))
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_reception_label_pdf_view(self):
         """Test reception label PDF generation."""
@@ -3032,8 +3020,7 @@ class ReceptionViewsTest(TestCase):
             )
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(response.status_code, 403)
 
     def test_complete_cytology_workflow(self):
         """Test complete cytology processing workflow."""
@@ -3286,7 +3273,7 @@ class ReportViewsTest(TestCase):
         # Test with vet user (should be denied)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_pending_list"))
-        self.assertEqual(response.status_code, 302)  # Redirects instead of 403
+        self.assertEqual(response.status_code, 403)
 
         # Test with staff user (should be allowed - they have is_staff=True)
         self.client.login(email="staff@example.com", password="testpass123")
@@ -3313,7 +3300,7 @@ class ReportViewsTest(TestCase):
         # Test with vet user (should be denied)
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_history"))
-        self.assertEqual(response.status_code, 302)  # Redirects instead of 403
+        self.assertEqual(response.status_code, 403)
 
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
@@ -3406,7 +3393,7 @@ class ReportViewsTest(TestCase):
                 kwargs={"protocol_id": self.create_protocol.pk},
             )
         )
-        self.assertEqual(response.status_code, 302)  # Redirects instead of 403
+        self.assertEqual(response.status_code, 403)
 
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
@@ -3525,7 +3512,7 @@ class ReportViewsTest(TestCase):
                 "protocols:report_edit", kwargs={"pk": self.draft_report.pk}
             )
         )
-        self.assertEqual(response.status_code, 302)  # Redirects instead of 403
+        self.assertEqual(response.status_code, 403)
 
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
@@ -3625,7 +3612,7 @@ class ReportViewsTest(TestCase):
                 kwargs={"pk": self.draft_report.pk},
             )
         )
-        self.assertEqual(response.status_code, 302)  # Redirects instead of 403
+        self.assertEqual(response.status_code, 403)
 
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")
@@ -3834,7 +3821,7 @@ class ReportViewsTest(TestCase):
                 kwargs={"pk": self.finalized_report.pk},
             )
         )
-        self.assertEqual(response.status_code, 302)  # Redirects instead of 403
+        self.assertEqual(response.status_code, 403)
 
         # Test with histopathologist (should be allowed)
         self.client.login(email="histo@example.com", password="testpass123")

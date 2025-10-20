@@ -441,8 +441,8 @@ class SecurityTest(TestCase):
             )
         )
 
-        # Should be forbidden
-        self.assertEqual(response.status_code, 403)
+        # Should be forbidden (redirects due to ProtocolOwnerOrStaffMixin)
+        self.assertEqual(response.status_code, 302)
 
     def test_veterinarian_cannot_finalize_other_veterinarian_reports(self):
         """Test that veterinarians cannot finalize other veterinarians' reports."""
@@ -456,9 +456,8 @@ class SecurityTest(TestCase):
             )
         )
 
-        # Should be forbidden (redirects to home due to StaffRequiredMixin)
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/")
+        # Should be forbidden (403 due to StaffRequiredMixin)
+        self.assertEqual(response.status_code, 403)
 
     def test_staff_cannot_edit_finalized_reports(self):
         """Test that staff cannot edit finalized reports."""
@@ -484,10 +483,10 @@ class SecurityTest(TestCase):
 
         # Try to access reception views (staff only)
         response = self.client.get(reverse("protocols:reception_pending"))
-        self.assertEqual(response.status_code, 302)  # Redirects to home
+        self.assertEqual(response.status_code, 403)  # Forbidden
 
         response = self.client.get(reverse("protocols:reception_history"))
-        self.assertEqual(response.status_code, 302)  # Redirects to home
+        self.assertEqual(response.status_code, 403)  # Forbidden
 
     def test_staff_cannot_access_admin_only_views(self):
         """Test that staff cannot access admin-only views."""

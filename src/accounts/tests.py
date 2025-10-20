@@ -1137,7 +1137,7 @@ class CompleteProfileViewTest(TestCase):
         self.client.login(username="admin@example.com", password="admin123")
 
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)  # Redirect
+        self.assertEqual(response.status_code, 403)  # Forbidden
 
     def test_complete_profile_already_complete(self):
         """Test redirect if profile already complete."""

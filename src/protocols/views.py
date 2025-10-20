@@ -67,7 +67,7 @@ class ProtocolListView(ListView):
 
     model = Protocol
     template_name = "protocols/protocol_list.html"
-    context_object_name = "page_obj"
+    context_object_name = "protocols"
     paginate_by = 20
 
     def get_queryset(self):
@@ -172,7 +172,6 @@ class ProtocolListView(ListView):
 
         context.update(
             {
-                "protocols": self.get_queryset(),  # For results count
                 "filter_fields": filter_fields,
                 "status_choices": Protocol.Status.choices,
                 "type_choices": Protocol.AnalysisType.choices,
