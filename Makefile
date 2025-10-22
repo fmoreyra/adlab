@@ -246,11 +246,11 @@ docs-serve: ## Preview documentation with live reload
 docs-build: ## Build documentation site
 	@echo "🔨 Building documentation site..."
 	@echo ""
-	@source scripts/docker-helper.sh && _dc web bash -c "cd /app && mkdocs build -d public_collected/docs --clean"
+	@source scripts/docker-helper.sh && _dc web bash -c "cd /app && mkdocs build -d public_collected/docs --clean && cp -r public_collected/docs /public_collected/"
 	@echo ""
 	@echo "✅ Documentation built successfully!"
-	@echo "📦 Output: public_collected/docs/"
-	@echo "📝 Access at /static/docs/ after deployment"
+	@echo "📦 Output: public_collected/docs/ (host) and /public_collected/docs/ (container)"
+	@echo "📝 Access at http://localhost:8000/static/docs/"
 
 docs-update-paths-preview: ## Preview image path updates (dry run)
 	@echo "🔍 Previewing image path updates..."
