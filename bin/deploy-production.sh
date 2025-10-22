@@ -90,6 +90,20 @@ build_images() {
   log_success "Images built successfully"
 }
 
+# Build documentation
+build_documentation() {
+  log_step "Building documentation..."
+
+  # Check if mkdocs and make are available in the container
+  if docker compose $COMPOSE_FILES exec -T web which mkdocs > /dev/null 2>&1; then
+    make docs-build
+    log_success "Documentation built successfully"
+  else
+    log_warning "MkDocs not found in container, skipping docs build"
+    log_info "Pre-built documentation from repository will be used"
+  fi
+}
+
 # Run migrations
 run_migrations() {
   log_step "Running migrations..."
@@ -138,12 +152,14 @@ main() {
   backup_database
   pull_changes
   build_images
+  build_documentation
   run_migrations
   restart_services
 
   echo
   echo -e "${GREEN}🎉 Deployment completed successfully!${NC}"
   echo -e "${GREEN}Check your site at: https://\$DOMAIN_NAME${NC}"
+  echo -e "${GREEN}Documentation at: https://\$DOMAIN_NAME/static/docs/${NC}"
   echo
 }
 
