@@ -1,0 +1,233 @@
+# MkDocs Configuration for Laboratory Management System Documentation
+site_name: Sistema de Gestión de Laboratorio
+site_description: Documentación completa del sistema de gestión para laboratorios de patología veterinaria
+site_author: Laboratory Development Team
+site_url: https://your-lab-domain.com/docs/
+
+# Repository (optional - update with your repo)
+# repo_url: https://github.com/your-org/lab-system
+# repo_name: lab-system
+
+# Copyright
+copyright: Copyright &copy; 2025 Laboratory Management System
+
+# Theme Configuration
+theme:
+  name: material
+  language: es
+
+  # Color Palette
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo oscuro
+
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo claro
+
+  # Font
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  # Logo and Favicon (add your own)
+  # logo: assets/images/logo.png
+  # favicon: assets/images/favicon.png
+
+  # Features
+  features:
+    # Navigation
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+
+    # Search
+    - search.suggest
+    - search.highlight
+    - search.share
+
+    # Header
+    - header.autohide
+
+    # Content
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+
+    # Table of Contents
+    - toc.follow
+    - toc.integrate
+
+# Plugins
+plugins:
+  - search:
+      lang: es
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+
+  # Minify plugin (requires mkdocs-minify-plugin)
+  # Install with: pip install mkdocs-minify-plugin
+  # - minify:
+  #     minify_html: true
+  #     minify_js: true
+  #     minify_css: true
+  #     htmlmin_opts:
+  #       remove_comments: true
+  #     cache_safe: true
+
+# Markdown Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      permalink_title: Enlace permanente a esta sección
+      toc_depth: 3
+  - tables
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Extra Configuration
+extra:
+  # Analytics (optional - add your tracking ID)
+  # analytics:
+  #   provider: google
+  #   property: G-XXXXXXXXXX
+
+  # Social Links
+  social:
+    - icon: fontawesome/solid/house
+      link: /
+      name: Inicio del Sistema
+    - icon: fontawesome/solid/envelope
+      link: mailto:support@your-lab.com
+      name: Contactar Soporte
+
+  # Version
+  version:
+    provider: mike
+    default: latest
+
+  # Alternate Languages (if needed in the future)
+  # alternate:
+  #   - name: Español
+  #     link: /es/
+  #     lang: es
+  #   - name: English
+  #     link: /en/
+  #     lang: en
+
+# Additional CSS (optional)
+# extra_css:
+#   - assets/stylesheets/extra.css
+
+# Additional JavaScript (optional)
+# extra_javascript:
+#   - assets/javascripts/extra.js
+
+# Navigation Structure
+nav:
+  - Inicio: index.md
+
+  - Comenzar:
+      - Resumen del Sistema: getting-started/system-overview.md
+      - Primer Acceso: getting-started/first-login.md
+      - Navegación Básica: getting-started/basic-navigation.md
+
+  - Guías de Usuario:
+      - Veterinarios:
+          - user-guides/veterinarians/submitting-protocols.md
+          - user-guides/veterinarians/tracking-samples.md
+          - user-guides/veterinarians/accessing-reports.md
+          - user-guides/veterinarians/creating-work-orders.md
+
+      - Histopatólogos:
+          - user-guides/histopathologists/analyzing-samples.md
+          - user-guides/histopathologists/creating-reports.md
+          - user-guides/histopathologists/quality-control.md
+
+      - Personal de Laboratorio:
+          - user-guides/lab-staff/receiving-samples.md
+          - user-guides/lab-staff/processing-samples.md
+          - user-guides/lab-staff/managing-inventory.md
+
+      - Administradores:
+          - user-guides/administrators/managing-users.md
+          - user-guides/administrators/system-settings.md
+          - user-guides/administrators/monitoring-system.md
+
+  - Procesos:
+      - Viaje de la Muestra: workflows/complete-sample-journey.md
+      - Operaciones Diarias: workflows/daily-operations.md
+      - Procedimientos de Emergencia: workflows/emergency-procedures.md
+
+  - Tareas Comunes:
+      - Cambiar Contraseña: common-tasks/password-reset.md
+      - Notificaciones Email: common-tasks/email-notifications.md
+      - Imprimir Etiquetas: common-tasks/printing-labels.md
+      - Descargar Informes: common-tasks/downloading-reports.md
+
+  - Solución de Problemas:
+      - Problemas Comunes: troubleshooting/common-issues.md
+      - Preguntas Frecuentes: troubleshooting/faq.md
+      - Contactar Soporte: troubleshooting/contact-support.md
+
+  - Documentación Técnica:
+      - Inicio: internal/index.md
+      - Proyecto: internal/README.md
+      - Configuración IDE: internal/IDE_SETUP.md
+
+# Validation
+# strict: true
+
+# Watch directories for live reload
+# watch:
+#   - docs

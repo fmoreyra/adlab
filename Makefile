@@ -12,7 +12,7 @@ TTY := $(shell [ -t 1 ] && echo "" || echo "-T")
 # .PHONY declarations for all targets
 # -----------------------------------------------------------------------------
 
-.PHONY: help cmd shell psql redis-cli manage secret test test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images clean ci-install-deps ci-test server-connect
+.PHONY: help cmd shell psql redis-cli manage secret test test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test server-connect safety-check safety-report
 
 # -----------------------------------------------------------------------------
 # Help target (default)
@@ -42,6 +42,8 @@ help: ## Display available targets
 	@echo "  format                 Format Python code"
 	@echo "  format-shell           Format shell scripts"
 	@echo "  quality                Run all code quality checks"
+	@echo "  safety-check           Check dependencies for security vulnerabilities"
+	@echo "  safety-report          Generate security report and save to file"
 	@echo ""
 	@echo "Database Operations:"
 	@echo "  db-dump                Generate a database dump"
@@ -59,6 +61,12 @@ help: ## Display available targets
 	@echo "  yarn-build-css         Build CSS assets"
 	@echo "  yarn-optimize-images   Optimize images"
 	@echo ""
+	@echo "Documentation:"
+	@echo "  docs-serve             Preview documentation with live reload"
+	@echo "  docs-build             Build documentation site"
+	@echo "  docs-update-paths-preview  Preview image path updates (dry run)"
+	@echo "  docs-update-paths      Update all image placeholder paths"
+	@echo ""
 	@echo "Cleanup:"
 	@echo "  clean                  Remove cache and generated files"
 	@echo ""
@@ -74,6 +82,8 @@ help: ## Display available targets
 	@echo "  make manage ARGS=\"migrate\"  # Run Django migrations"
 	@echo "  make shell             # Start shell in container"
 	@echo "  make db-dump           # Create database backup"
+	@echo "  make docs-serve        # Preview documentation"
+	@echo "  make docs-build        # Build documentation site"
 
 # -----------------------------------------------------------------------------
 # Docker & Container Management
@@ -161,6 +171,7 @@ quality: ## Run all code quality checks
 	@$(MAKE) lint
 	@$(MAKE) format-shell
 	@$(MAKE) format
+	@$(MAKE) safety-check
 
 # -----------------------------------------------------------------------------
 # Database Operations
@@ -223,6 +234,35 @@ yarn-optimize-images: ## Optimize images
 	@source scripts/docker-helper.sh && _dc js node optimize-images.js
 
 # -----------------------------------------------------------------------------
+# Documentation
+# -----------------------------------------------------------------------------
+
+docs-serve: ## Preview documentation with live reload
+	@echo "📚 Starting MkDocs development server..."
+	@echo "📝 Documentation will be available at http://127.0.0.1:8000"
+	@echo ""
+	@source scripts/docker-helper.sh && _dc web bash -c "cd /app && mkdocs serve -a 0.0.0.0:8000"
+
+docs-build: ## Build documentation site
+	@echo "🔨 Building documentation site..."
+	@echo ""
+	@source scripts/docker-helper.sh && _dc web bash -c "cd /app && mkdocs build -d public_collected/docs --clean"
+	@echo ""
+	@echo "✅ Documentation built successfully!"
+	@echo "📦 Output: public_collected/docs/"
+	@echo "📝 Access at /static/docs/ after deployment"
+
+docs-update-paths-preview: ## Preview image path updates (dry run)
+	@echo "🔍 Previewing image path updates..."
+	@echo ""
+	@source scripts/docker-helper.sh && _dc web bash -c "cd /app && python3 scripts/update-image-paths.py" <<< "1"
+
+docs-update-paths: ## Update all image placeholder paths
+	@echo "✏️  Updating image placeholder paths..."
+	@echo ""
+	@source scripts/docker-helper.sh && _dc web bash -c "cd /app && echo '2' | python3 scripts/update-image-paths.py && echo 'yes' | python3 scripts/update-image-paths.py"
+
+# -----------------------------------------------------------------------------
 # Cleanup
 # -----------------------------------------------------------------------------
 
@@ -272,6 +312,20 @@ server-connect: ## Connect to production server via SSH
 	echo "🔗 Connecting to server: $$server_user@$$server_ip"; \
 	echo ""; \
 	ssh "$$server_user@$$server_ip"
+
+# -----------------------------------------------------------------------------
+# Security
+# -----------------------------------------------------------------------------
+
+safety-check: ## Check dependencies for security vulnerabilities
+	@echo "🔒 Checking dependencies for security vulnerabilities..."
+	@source scripts/docker-helper.sh && _dc web safety check
+
+safety-report: ## Generate security report and save to file
+	@echo "📊 Generating security report..."
+	@source scripts/docker-helper.sh && _dc web safety check --save-json safety-report.json
+	@echo "✅ Security report saved to safety-report.json in container"
+	@echo "💡 To copy the report to host: make cmd ARGS=\"cp safety-report.json /app/safety-report.json\""
 
 # -----------------------------------------------------------------------------
 # Special targets for argument handling
