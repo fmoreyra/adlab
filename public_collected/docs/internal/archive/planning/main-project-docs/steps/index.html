@@ -1,0 +1,2379 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentación completa del sistema de gestión para laboratorios de patología veterinaria">
+      
+      
+        <meta name="author" content="Laboratory Development Team">
+      
+      
+        <link rel="canonical" href="https://your-lab-domain.com/docs/internal/archive/planning/main-project-docs/steps/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.40">
+    
+    
+      
+        <title>Step-by-Step Implementation Guide - Sistema de Gestión de Laboratorio</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#step-by-step-implementation-guide" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../../../../.." title="Sistema de Gestión de Laboratorio" class="md-header__button md-logo" aria-label="Sistema de Gestión de Laboratorio" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Sistema de Gestión de Laboratorio
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Step-by-Step Implementation Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartir" aria-label="Compartir" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../.." class="md-tabs__link">
+        
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../getting-started/system-overview/" class="md-tabs__link">
+          
+  
+    
+  
+  Comenzar
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../user-guides/veterinarians/submitting-protocols/" class="md-tabs__link">
+          
+  
+    
+  
+  Guías de Usuario
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../workflows/complete-sample-journey/" class="md-tabs__link">
+          
+  
+    
+  
+  Procesos
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../common-tasks/password-reset/" class="md-tabs__link">
+          
+  
+    
+  
+  Tareas Comunes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../troubleshooting/common-issues/" class="md-tabs__link">
+          
+  
+    
+  
+  Solución de Problemas
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../" class="md-tabs__link">
+          
+  
+    
+  
+  Documentación Técnica
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Sistema de Gestión de Laboratorio" class="md-nav__button md-logo" aria-label="Sistema de Gestión de Laboratorio" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Sistema de Gestión de Laboratorio
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Inicio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Comenzar
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Comenzar
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../getting-started/system-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Resumen del Sistema
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../getting-started/first-login/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Primer Acceso
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../getting-started/basic-navigation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Navegación Básica
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Guías de Usuario
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Guías de Usuario
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Veterinarios
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Veterinarios
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/veterinarians/submitting-protocols/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo enviar protocolos para análisis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/veterinarians/tracking-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo seguir el progreso de tus muestras
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/veterinarians/accessing-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo ver y descargar informes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/veterinarians/creating-work-orders/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo crear órdenes de trabajo
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Histopatólogos
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Histopatólogos
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/histopathologists/analyzing-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Análisis de Muestras para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/histopathologists/creating-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Creación de Informes para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/histopathologists/quality-control/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Control de Calidad para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Personal de Laboratorio
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Personal de Laboratorio
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/lab-staff/receiving-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Recibir Muestras - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/lab-staff/processing-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Procesar Muestras - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/lab-staff/managing-inventory/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Gestionar Inventario - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Administradores
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Administradores
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/administrators/managing-users/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Gestionar Usuarios - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/administrators/system-settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Configuración del Sistema - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../user-guides/administrators/monitoring-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Monitorear el Sistema - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Procesos
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Procesos
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../workflows/complete-sample-journey/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Viaje de la Muestra
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../workflows/daily-operations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Operaciones Diarias
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../workflows/emergency-procedures/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Procedimientos de Emergencia
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tareas Comunes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tareas Comunes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../common-tasks/password-reset/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cambiar Contraseña
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../common-tasks/email-notifications/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notificaciones Email
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../common-tasks/printing-labels/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Imprimir Etiquetas
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../common-tasks/downloading-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Descargar Informes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Solución de Problemas
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Solución de Problemas
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../troubleshooting/common-issues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Problemas Comunes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../troubleshooting/faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Preguntas Frecuentes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../troubleshooting/contact-support/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contactar Soporte
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Documentación Técnica
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Documentación Técnica
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../README.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proyecto
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../IDE_SETUP/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuración IDE
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="step-by-step-implementation-guide">Step-by-Step Implementation Guide<a class="headerlink" href="#step-by-step-implementation-guide" title="Enlace permanente a esta sección">&para;</a></h1>
+<h2 id="sistema-informatico-para-laboratorio-de-anatomia-patologica-veterinaria">Sistema Informático para Laboratorio de Anatomía Patológica Veterinaria<a class="headerlink" href="#sistema-informatico-para-laboratorio-de-anatomia-patologica-veterinaria" title="Enlace permanente a esta sección">&para;</a></h2>
+<p>Este directorio contiene la documentación detallada de cada paso de implementación del sistema, organizado como módulos funcionales independientes pero interrelacionados.</p>
+<hr />
+<h2 id="indice-de-pasos">📋 Índice de Pasos<a class="headerlink" href="#indice-de-pasos" title="Enlace permanente a esta sección">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Módulo</th>
+<th>Tiempo Estimado</th>
+<th>Fase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#step-01-authentication--user-management">01</a></td>
+<td>Autenticación &amp; Gestión de Usuarios</td>
+<td>1-1.5 semanas</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><a href="#step-011-email-verification-for-external-users">01.1</a></td>
+<td>Verificación de Email (Usuarios Externos)</td>
+<td>0.5-1 día</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><a href="#step-02-veterinarian-registration--profiles">02</a></td>
+<td>Perfiles de Veterinarios</td>
+<td>0.5-1 semana</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><a href="#step-03-protocol-submission">03</a></td>
+<td>Envío de Protocolos</td>
+<td>1-1.5 semanas</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><a href="#step-04-sample-reception--protocol-assignment">04</a></td>
+<td>Recepción de Muestras</td>
+<td>1 semana</td>
+<td>Operativo</td>
+</tr>
+<tr>
+<td><a href="#step-05-sample-processing--tracking">05</a></td>
+<td>Procesamiento y Trazabilidad</td>
+<td>1 semana</td>
+<td>Operativo</td>
+</tr>
+<tr>
+<td><a href="#step-06-report-generation--pdf-creation">06</a></td>
+<td>Generación de Informes</td>
+<td>1.5 semanas</td>
+<td>Core</td>
+</tr>
+<tr>
+<td><a href="#step-07-work-order-management">07</a></td>
+<td>Gestión de Órdenes de Trabajo</td>
+<td>0.5 semana</td>
+<td>Core</td>
+</tr>
+<tr>
+<td><a href="#step-08-email-notifications">08</a></td>
+<td>Notificaciones por Email</td>
+<td>0.5-1 semana</td>
+<td>Soporte</td>
+</tr>
+<tr>
+<td><a href="#step-09-visual-management-dashboard">09</a></td>
+<td>Dashboard de Gestión Visual</td>
+<td>1 semana</td>
+<td>Analytics</td>
+</tr>
+<tr>
+<td><a href="#step-10-reports--analytics">10</a></td>
+<td>Reportes y Analíticas</td>
+<td>1 semana</td>
+<td>Analytics</td>
+</tr>
+<tr>
+<td><a href="#step-11-data-migration">11</a></td>
+<td>Migración de Datos Legacy</td>
+<td>3 semanas</td>
+<td>Transición</td>
+</tr>
+<tr>
+<td><a href="#step-12-system-configuration--administration">12</a></td>
+<td>Configuración y Administración</td>
+<td>1 semana</td>
+<td>Soporte</td>
+</tr>
+<tr>
+<td><a href="#step-13-production-email-configuration">13</a></td>
+<td>Configuración de Email (Producción)</td>
+<td>1-3 días</td>
+<td>Pre-Producción</td>
+</tr>
+<tr>
+<td><a href="#step-14-object-storage--backuprestore-system">14</a></td>
+<td>Almacenamiento de Objetos &amp; Backup/Restore</td>
+<td>1.5 semanas</td>
+<td>Infraestructura</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tiempo Total Estimado: 20 semanas (~5 meses)</strong></p>
+<hr />
+<h2 id="orden-de-implementacion-recomendado">🎯 Orden de Implementación Recomendado<a class="headerlink" href="#orden-de-implementacion-recomendado" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="fase-0-preparacion-2-semanas">Fase 0: Preparación (2 semanas)<a class="headerlink" href="#fase-0-preparacion-2-semanas" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Decisiones técnicas críticas</li>
+<li>Setup de entorno de desarrollo</li>
+<li>Configuración de repositorio</li>
+<li>Definición de estándares</li>
+</ul>
+<h3 id="fase-1-mvp-funcionalidad-base-4-semanas">Fase 1: MVP - Funcionalidad Base (4 semanas)<a class="headerlink" href="#fase-1-mvp-funcionalidad-base-4-semanas" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Sprint 1-2: Steps 01 + 02
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├─ Step 01: Autenticación &amp; Usuarios
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>└─ Step 02: Perfiles de Veterinarios
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Sprint 3-4: Step 03
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└─ Step 03: Envío de Protocolos
+</span></code></pre></div>
+<h3 id="fase-2-operacion-del-laboratorio-4-semanas">Fase 2: Operación del Laboratorio (4 semanas)<a class="headerlink" href="#fase-2-operacion-del-laboratorio-4-semanas" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Sprint 5-6: Step 04
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>└─ Step 04: Recepción de Muestras
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Sprint 7-8: Step 05
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>└─ Step 05: Procesamiento y Trazabilidad
+</span></code></pre></div>
+<h3 id="fase-3-informes-y-facturacion-3-semanas">Fase 3: Informes y Facturación (3 semanas)<a class="headerlink" href="#fase-3-informes-y-facturacion-3-semanas" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Sprint 9-10: Steps 06 + 07 + 08
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├─ Step 06: Generación de Informes
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├─ Step 07: Órdenes de Trabajo
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>└─ Step 08: Notificaciones Email
+</span></code></pre></div>
+<h3 id="fase-4-analytics-y-dashboard-2-semanas">Fase 4: Analytics y Dashboard (2 semanas)<a class="headerlink" href="#fase-4-analytics-y-dashboard-2-semanas" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Sprint 12-13: Steps 09 + 10 + 12
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├─ Step 09: Dashboard Visual
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├─ Step 10: Reportes y Analytics
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>└─ Step 12: Administración (parallel)
+</span></code></pre></div>
+<h3 id="fase-5-migracion-y-transicion-3-semanas">Fase 5: Migración y Transición (3 semanas)<a class="headerlink" href="#fase-5-migracion-y-transicion-3-semanas" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Sprint 14-16: Step 11
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>└─ Step 11: Migración de Datos
+</span></code></pre></div>
+<hr />
+<h2 id="descripcion-de-cada-paso">📦 Descripción de Cada Paso<a class="headerlink" href="#descripcion-de-cada-paso" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="step-01-authentication-user-management">Step 01: Authentication &amp; User Management<a class="headerlink" href="#step-01-authentication-user-management" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-01-authentication/"><code>step-01-authentication.md</code></a></p>
+<p><strong>Propósito</strong>: Implementar sistema de autenticación seguro con roles y permisos.</p>
+<p><strong>Componentes Clave</strong>:
+- Login/logout con sesiones o JWT
+- Registro de veterinarios
+- Recuperación de contraseña
+- 4 roles: Veterinario, Personal Lab, Histopatólogo, Admin
+- Auditoría de autenticación</p>
+<p><strong>Entregables</strong>:
+- API de autenticación completa
+- UI de login y registro
+- Sistema de roles y permisos</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Sesiones vs JWT
+- Mecanismo de almacenamiento de sesiones</p>
+<hr />
+<h3 id="step-011-email-verification-for-external-users">Step 01.1: Email Verification for External Users<a class="headerlink" href="#step-011-email-verification-for-external-users" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-01.1-email-verification/"><code>step-01.1-email-verification.md</code></a></p>
+<p><strong>Propósito</strong>: Garantizar que veterinarios (usuarios externos) verifiquen su email antes de poder usar el sistema, asegurando que las notificaciones lleguen correctamente.</p>
+<p><strong>Componentes Clave</strong>:
+- Verificación de email con tokens de activación
+- Emails de verificación profesionales (HTML)
+- Tokens con expiración de 24 horas
+- Reenvío de email de verificación
+- Bypass de verificación para usuarios internos (staff, admin)
+- Auditoría de verificaciones</p>
+<p><strong>Entregables</strong>:
+- Sistema de verificación de email
+- Templates de email HTML profesionales
+- Vista de verificación y reenvío
+- Grandfathering de usuarios existentes</p>
+<p><strong>Dependencias</strong>: Step 01 (COMPLETADO)</p>
+<p><strong>Estado</strong>: 📝 Documentado, listo para implementación</p>
+<hr />
+<h3 id="step-02-veterinarian-registration-profiles">Step 02: Veterinarian Registration &amp; Profiles<a class="headerlink" href="#step-02-veterinarian-registration-profiles" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-02-veterinarian-profiles/"><code>step-02-veterinarian-profiles.md</code></a></p>
+<p><strong>Propósito</strong>: Gestionar perfiles completos de veterinarios clientes.</p>
+<p><strong>Componentes Clave</strong>:
+- Información personal y profesional
+- Matrícula profesional (validación)
+- Domicilio estructurado
+- Búsqueda y filtrado (para staff)
+- Verificación de credenciales</p>
+<p><strong>Entregables</strong>:
+- CRUD de perfiles de veterinarios
+- Formulario de perfil completo
+- Sistema de verificación</p>
+<p><strong>Dependencias</strong>: Step 01</p>
+<hr />
+<h3 id="step-03-protocol-submission">Step 03: Protocol Submission<a class="headerlink" href="#step-03-protocol-submission" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-03-protocol-submission/"><code>step-03-protocol-submission.md</code></a></p>
+<p><strong>Propósito</strong>: Permitir envío online de protocolos de remisión de muestras.</p>
+<p><strong>Componentes Clave</strong>:
+- Formularios diferenciados (citología/histopatología)
+- Generación de código temporal de seguimiento
+- Datos del animal y caso clínico
+- Modo borrador
+- Validaciones robustas</p>
+<p><strong>Entregables</strong>:
+- Formularios de protocolo
+- Sistema de códigos temporales
+- Listado de protocolos enviados</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Listas de especies/razas (dropdown vs free text)</p>
+<p><strong>Dependencias</strong>: Steps 01, 02</p>
+<hr />
+<h3 id="step-04-sample-reception-protocol-assignment">Step 04: Sample Reception &amp; Protocol Assignment<a class="headerlink" href="#step-04-sample-reception-protocol-assignment" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-04-sample-reception/"><code>step-04-sample-reception.md</code></a></p>
+<p><strong>Propósito</strong>: Registrar recepción física de muestras y asignar número definitivo de protocolo.</p>
+<p><strong>Componentes Clave</strong>:
+- Búsqueda por código temporal
+- Numeración automática (HP AA/NNN, CT AA/NNN)
+- Generación de etiquetas imprimibles
+- Notificación al veterinario
+- Manejo de discrepancias</p>
+<p><strong>Entregables</strong>:
+- Interfaz de recepción
+- Sistema de numeración secuencial
+- Generación de etiquetas PDF</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Formato de etiquetas (dimensiones, QR vs barcode)</p>
+<p><strong>Dependencias</strong>: Steps 01, 02, 03</p>
+<hr />
+<h3 id="step-05-sample-processing-tracking">Step 05: Sample Processing &amp; Tracking<a class="headerlink" href="#step-05-sample-processing-tracking" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-05-sample-processing/"><code>step-05-sample-processing.md</code></a></p>
+<p><strong>Propósito</strong>: Rastrear procesamiento completo de muestras (cassettes, portaobjetos, etapas).</p>
+<p><strong>Componentes Clave</strong>:
+- Registro de cassettes con códigos únicos
+- Asociación cassette → portaobjetos (M:N)
+- Seguimiento de etapas de procesamiento
+- Trazabilidad completa
+- Procesamiento simplificado para citología</p>
+<p><strong>Entregables</strong>:
+- Sistema de registro de cassettes
+- Sistema de registro de portaobjetos
+- Timeline de procesamiento
+- Cola de procesamiento</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Integración con códigos de barras/QR</p>
+<p><strong>Dependencias</strong>: Steps 01, 03, 04</p>
+<hr />
+<h3 id="step-06-report-generation-pdf-creation">Step 06: Report Generation &amp; PDF Creation<a class="headerlink" href="#step-06-report-generation-pdf-creation" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-06-report-generation/"><code>step-06-report-generation.md</code></a></p>
+<p><strong>Propósito</strong>: Generar informes de resultados con plantillas pre-llenadas y envío automatizado.</p>
+<p><strong>Componentes Clave</strong>:
+- Plantilla automática con datos del protocolo
+- Editor de observaciones por cassette
+- Generación de PDF profesional
+- Firma digital del histopatólogo
+- Envío por email con un clic
+- Archivo de informes</p>
+<p><strong>Entregables</strong>:
+- Editor de informes
+- Generador de PDF
+- Sistema de envío por email
+- Historial de informes</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Librería de generación de PDF
+- Motor de plantillas</p>
+<p><strong>Dependencias</strong>: Steps 01, 03, 04, 05</p>
+<hr />
+<h3 id="step-07-work-order-management">Step 07: Work Order Management<a class="headerlink" href="#step-07-work-order-management" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-07-work-orders/"><code>step-07-work-orders.md</code></a></p>
+<p><strong>Propósito</strong>: Generar órdenes de trabajo para facturación.</p>
+<p><strong>Componentes Clave</strong>:
+- Cálculo automático de montos
+- Catálogo de precios
+- Agrupación de protocolos
+- Exclusión de protocolos HSA
+- Generación de PDF para Finanzas</p>
+<p><strong>Entregables</strong>:
+- Sistema de OT
+- Catálogo de precios editable
+- PDFs de OT</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Integración con sistema de Finanzas</p>
+<p><strong>Dependencias</strong>: Steps 03, 06</p>
+<hr />
+<h3 id="step-08-email-notifications">Step 08: Email Notifications<a class="headerlink" href="#step-08-email-notifications" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-08-email-notifications/"><code>step-08-email-notifications.md</code></a></p>
+<p><strong>Propósito</strong>: Notificaciones automáticas en eventos clave.</p>
+<p><strong>Componentes Clave</strong>:
+- Notificación de recepción de muestra
+- Notificación de informe listo
+- Templates de email
+- Sistema de reintentos
+- Preferencias de notificación</p>
+<p><strong>Entregables</strong>:
+- Sistema de notificaciones
+- Cola de emails
+- Templates configurables
+- Logs de entrega</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Servicio de email (SMTP vs tercero)
+- Sistema de colas</p>
+<p><strong>Dependencias</strong>: Steps 01, 02</p>
+<p><strong>Usado por</strong>: Steps 04, 06</p>
+<hr />
+<h3 id="step-09-visual-management-dashboard">Step 09: Visual Management Dashboard<a class="headerlink" href="#step-09-visual-management-dashboard" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-09-dashboard/"><code>step-09-dashboard.md</code></a></p>
+<p><strong>Propósito</strong>: Dashboard en tiempo real con KPIs operativos.</p>
+<p><strong>Componentes Clave</strong>:
+- WIP por etapa
+- Métricas de volumen
+- TAT (Turnaround Time)
+- Productividad por histopatólogo
+- Alertas de muestras vencidas
+- Actualización en tiempo real</p>
+<p><strong>Entregables</strong>:
+- Dashboard visual
+- Widgets de métricas
+- Sistema de alertas</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Método de actualización en tiempo real (polling/WebSockets/SSE)
+- Librería de gráficos</p>
+<p><strong>Dependencias</strong>: Steps 03, 04, 05, 06</p>
+<hr />
+<h3 id="step-10-reports-analytics">Step 10: Reports &amp; Analytics<a class="headerlink" href="#step-10-reports-analytics" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-10-reports-analytics/"><code>step-10-reports-analytics.md</code></a></p>
+<p><strong>Propósito</strong>: Reportes analíticos históricos y exportación de datos.</p>
+<p><strong>Componentes Clave</strong>:
+- Reporte de volumen histórico
+- Análisis de TAT
+- Productividad de histopatólogos
+- Actividad de clientes
+- Tipos de servicios más frecuentes
+- Exportación (CSV, Excel, PDF)</p>
+<p><strong>Entregables</strong>:
+- Módulo de reportes
+- Funcionalidad de exportación
+- Visualizaciones de tendencias</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Librerías de exportación (Excel, PDF)</p>
+<p><strong>Dependencias</strong>: Steps 03, 04, 06</p>
+<hr />
+<h3 id="step-11-data-migration">Step 11: Data Migration<a class="headerlink" href="#step-11-data-migration" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-11-data-migration/"><code>step-11-data-migration.md</code></a></p>
+<p><strong>Propósito</strong>: Migrar datos históricos del sistema Clarion legacy.</p>
+<p><strong>Componentes Clave</strong>:
+- Extracción desde Clarion 2.0
+- Limpieza y normalización
+- Mapeo de esquemas
+- Validación post-migración
+- Plan de rollback
+- Período de coexistencia</p>
+<p><strong>Entregables</strong>:
+- Scripts de migración
+- Logs de migración
+- Reporte de validación
+- Documentación de proceso</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Método de acceso a datos Clarion
+- Timing de migración</p>
+<p><strong>Dependencias</strong>: Todos los pasos anteriores (migración es final)</p>
+<hr />
+<h3 id="step-12-system-configuration-administration">Step 12: System Configuration &amp; Administration<a class="headerlink" href="#step-12-system-configuration-administration" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-12-system-admin/"><code>step-12-system-admin.md</code></a></p>
+<p><strong>Propósito</strong>: Panel administrativo para gestión del sistema.</p>
+<p><strong>Componentes Clave</strong>:
+- Gestión de usuarios
+- Configuración del sistema
+- Catálogo de precios
+- Datos de referencia
+- Logs de auditoría
+- Monitoreo de salud del sistema
+- Gestión de backups</p>
+<p><strong>Entregables</strong>:
+- Panel de administración
+- CRUD de usuarios
+- Editor de configuración
+- Visor de logs</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- Herramientas de monitoreo externas</p>
+<p><strong>Dependencias</strong>: Step 01</p>
+<p><strong>Puede desarrollarse en paralelo con otros steps</strong></p>
+<hr />
+<h3 id="step-13-production-email-configuration">Step 13: Production Email Configuration<a class="headerlink" href="#step-13-production-email-configuration" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-13-email-configuration/"><code>step-13-email-configuration.md</code></a></p>
+<p><strong>Propósito</strong>: Configurar servicio de email SMTP para envío real de correos en producción (verificaciones, notificaciones, reportes).</p>
+<p><strong>Componentes Clave</strong>:
+- Selección de proveedor de email (institucional/SendGrid/SES)
+- Configuración SMTP en .env
+- Testing de deliverability
+- Configuración de SPF/DKIM
+- Monitoreo de envío de emails
+- Plan de rollback</p>
+<p><strong>Entregables</strong>:
+- Email SMTP configurado y funcionando
+- Emails HTML entregados correctamente
+- Documentación de configuración
+- Tests de deliverability completados</p>
+<p><strong>Opciones de Proveedores</strong>:
+- ✅ Email Institucional (UNL) - RECOMENDADO
+- ✅ SendGrid (alternativa profesional)
+- ✅ Amazon SES (alto volumen)
+- ❌ Gmail (solo testing)</p>
+<p><strong>Dependencias</strong>: 
+- Step 01 (password reset emails)
+- Step 01.1 (email verification)
+- Step 06 (report delivery)
+- Step 08 (notifications)</p>
+<p><strong>Timing</strong>: Una de las últimas tareas antes de producción</p>
+<p><strong>Estado Actual</strong>: Console backend (dev) - Migrar a SMTP antes de producción</p>
+<hr />
+<h3 id="step-14-object-storage-backuprestore-system">Step 14: Object Storage &amp; Backup/Restore System<a class="headerlink" href="#step-14-object-storage-backuprestore-system" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Archivo</strong>: <a href="step-14-storage-backup/"><code>step-14-storage-backup.md</code></a></p>
+<p><strong>Propósito</strong>: Implementar almacenamiento de objetos centralizado (MinIO/S3) para archivos y un sistema completo de backup/restore para protección de datos.</p>
+<p><strong>Componentes Clave</strong>:
+- MinIO (S3-compatible) para almacenamiento de archivos
+- Migración de FileSystemStorage a S3 storage backend
+- Scripts automatizados de backup de base de datos
+- Scripts automatizados de backup de archivos
+- Procedimientos de restore completo del sistema
+- Verificación automática de integridad de backups
+- Políticas de retención de backups (30 días)
+- Disaster recovery plan documentado</p>
+<p><strong>Entregables</strong>:
+- MinIO service integrado en Docker Compose
+- Django configurado con django-storages (S3 backend)
+- Scripts de backup/restore ejecutables
+- Servicio automatizado de backups con cron
+- Documentación de procedimientos de emergencia
+- Tests de restore verificados</p>
+<p><strong>Beneficios</strong>:
+- 📦 Almacenamiento escalable y replicable
+- 🔄 Backups automáticos diarios
+- 🚨 Disaster recovery en &lt;2 horas
+- 📊 Versionado de archivos para auditoría
+- ☁️ Compatible con cloud providers (AWS S3, etc.)
+- 🔒 Seguridad mejorada con presigned URLs</p>
+<p><strong>Decisiones Técnicas Pendientes</strong>:
+- MinIO local vs AWS S3 en producción
+- Estrategia de backup off-site (adicional a local)
+- Frecuencia de tests de restore</p>
+<p><strong>Dependencias</strong>: 
+- Step 06 (Report Generation - PDFs a almacenar)
+- Step 01 (Histopathologist signatures)</p>
+<p><strong>Timing</strong>: Antes de producción (crítico para data safety)</p>
+<p><strong>Estado</strong>: 📝 Completamente documentado, listo para implementación</p>
+<hr />
+<h2 id="mapa-de-dependencias">🔗 Mapa de Dependencias<a class="headerlink" href="#mapa-de-dependencias" title="Enlace permanente a esta sección">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Step 01 (Auth)
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  ├─→ Step 02 (Profiles)
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  │    └─→ Step 03 (Protocols)
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  │         ├─→ Step 04 (Reception)
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  │         │    └─→ Step 05 (Processing)
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  │         │         └─→ Step 06 (Reports)
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  │         │              ├─→ Step 07 (Work Orders)
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  │         │              ├─→ Step 09 (Dashboard)
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  │         │              └─→ Step 10 (Analytics)
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  │         └─→ Step 09 (Dashboard)
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  │              └─→ Step 10 (Analytics)
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  ├─→ Step 08 (Notifications) [usado por 04, 06]
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  └─→ Step 12 (Admin) [paralelo]
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>Step 11 (Migration) [requiere todos completados]
+</span></code></pre></div>
+<hr />
+<h2 id="decisiones-tecnicas-criticas">⚙️ Decisiones Técnicas Críticas<a class="headerlink" href="#decisiones-tecnicas-criticas" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="deben-resolverse-antes-de-comenzar-desarrollo">Deben resolverse ANTES de comenzar desarrollo:<a class="headerlink" href="#deben-resolverse-antes-de-comenzar-desarrollo" title="Enlace permanente a esta sección">&para;</a></h3>
+<ol>
+<li><strong>Stack Tecnológico</strong></li>
+<li>Frontend: React/Vue/Angular</li>
+<li>Backend: Node/Python/PHP/otros</li>
+<li>
+<p>Base de datos: PostgreSQL/MySQL</p>
+</li>
+<li>
+<p><strong>Infraestructura</strong></p>
+</li>
+<li>Cloud vs on-premise</li>
+<li>
+<p>Proveedor específico</p>
+</li>
+<li>
+<p><strong>Autenticación</strong></p>
+</li>
+<li>Sesiones vs JWT</li>
+<li>
+<p>Storage de sesiones</p>
+</li>
+<li>
+<p><strong>Generación de PDF</strong></p>
+</li>
+<li>Librería específica</li>
+</ol>
+<h3 id="pueden-resolverse-durante-desarrollo">Pueden resolverse durante desarrollo:<a class="headerlink" href="#pueden-resolverse-durante-desarrollo" title="Enlace permanente a esta sección">&para;</a></h3>
+<ol>
+<li><strong>Email Service</strong> (antes de Step 08)</li>
+<li><strong>Monitoreo</strong> (antes de Step 12)</li>
+<li><strong>Real-time Updates</strong> (antes de Step 09)</li>
+<li><strong>Clarion Access</strong> (antes de Step 11)</li>
+</ol>
+<hr />
+<h2 id="metricas-de-exito-por-paso">📊 Métricas de Éxito por Paso<a class="headerlink" href="#metricas-de-exito-por-paso" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="step-01-authentication">Step 01: Authentication<a class="headerlink" href="#step-01-authentication" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>✅ 100% de usuarios pueden autenticarse</li>
+<li>✅ 0 vulnerabilidades de seguridad críticas</li>
+<li>✅ &lt; 2s tiempo de login</li>
+</ul>
+<h3 id="step-03-protocol-submission_1">Step 03: Protocol Submission<a class="headerlink" href="#step-03-protocol-submission_1" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>✅ &gt;80% de protocolos enviados online en 6 meses</li>
+<li>✅ &lt; 5 min tiempo promedio de completado</li>
+<li>✅ &lt; 1% errores de validación post-envío</li>
+</ul>
+<h3 id="step-04-sample-reception">Step 04: Sample Reception<a class="headerlink" href="#step-04-sample-reception" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>✅ &lt; 2 min por muestra</li>
+<li>✅ 0% de muestras mal etiquetadas</li>
+<li>✅ 100% de notificaciones enviadas</li>
+</ul>
+<h3 id="step-06-report-generation">Step 06: Report Generation<a class="headerlink" href="#step-06-report-generation" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>✅ -30% tiempo de redacción de informe</li>
+<li>✅ &lt; 10s generación de PDF</li>
+<li>✅ 98% de emails entregados</li>
+</ul>
+<h3 id="step-09-dashboard">Step 09: Dashboard<a class="headerlink" href="#step-09-dashboard" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>✅ &lt; 3s carga del dashboard</li>
+<li>✅ Actualización cada 60s</li>
+<li>✅ 100% precisión de métricas</li>
+</ul>
+<hr />
+<h2 id="estrategia-de-testing">🧪 Estrategia de Testing<a class="headerlink" href="#estrategia-de-testing" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="por-cada-step">Por cada step:<a class="headerlink" href="#por-cada-step" title="Enlace permanente a esta sección">&para;</a></h3>
+<ol>
+<li><strong>Unit Tests</strong>: Lógica de negocio, cálculos, validaciones</li>
+<li><strong>Integration Tests</strong>: APIs, base de datos, flujos completos</li>
+<li><strong>E2E Tests</strong>: Casos de uso reales de extremo a extremo</li>
+<li><strong>Performance Tests</strong>: Carga, stress, tiempos de respuesta</li>
+</ol>
+<h3 id="coverage-objetivo-80">Coverage objetivo: 80%<a class="headerlink" href="#coverage-objetivo-80" title="Enlace permanente a esta sección">&para;</a></h3>
+<hr />
+<h2 id="estructura-de-cada-documento">📝 Estructura de Cada Documento<a class="headerlink" href="#estructura-de-cada-documento" title="Enlace permanente a esta sección">&para;</a></h2>
+<p>Todos los documentos de paso siguen la misma estructura:</p>
+<ol>
+<li><strong>Problem Statement</strong> - Qué problema se resuelve</li>
+<li><strong>Requirements</strong> - Funcionales y no funcionales</li>
+<li><strong>Data Model</strong> - Tablas, campos, relaciones</li>
+<li><strong>API Design</strong> - Endpoints, request/response</li>
+<li><strong>Business Logic</strong> - Reglas y validaciones clave</li>
+<li><strong>Acceptance Criteria</strong> - Definición de "hecho"</li>
+<li><strong>Testing Approach</strong> - Tipos de pruebas necesarias</li>
+<li><strong>Technical Considerations</strong> - Decisiones pendientes, notas técnicas</li>
+<li><strong>Dependencies</strong> - Qué debe completarse primero</li>
+<li><strong>Estimated Effort</strong> - Tiempo estimado y desglose</li>
+</ol>
+<hr />
+<h2 id="como-usar-esta-documentacion">🚀 Cómo Usar Esta Documentación<a class="headerlink" href="#como-usar-esta-documentacion" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="para-el-equipo-de-desarrollo">Para el Equipo de Desarrollo:<a class="headerlink" href="#para-el-equipo-de-desarrollo" title="Enlace permanente a esta sección">&para;</a></h3>
+<ol>
+<li><strong>Antes de empezar un step</strong>:</li>
+<li>Lee el documento completo</li>
+<li>Verifica que las dependencias estén completas</li>
+<li>Resuelve decisiones técnicas pendientes</li>
+<li>
+<p>Revisa el API design y data model</p>
+</li>
+<li>
+<p><strong>Durante el desarrollo</strong>:</p>
+</li>
+<li>Usa el data model como referencia para schemas</li>
+<li>Implementa los endpoints del API design</li>
+<li>Sigue los acceptance criteria como checklist</li>
+<li>
+<p>Escribe tests según testing approach</p>
+</li>
+<li>
+<p><strong>Al completar un step</strong>:</p>
+</li>
+<li>Verifica todos los acceptance criteria</li>
+<li>Ejecuta todos los tests</li>
+<li>Documenta decisiones técnicas tomadas</li>
+<li>Marca step como completo</li>
+</ol>
+<h3 id="para-project-managers">Para Project Managers:<a class="headerlink" href="#para-project-managers" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Usa el cronograma para planificación</li>
+<li>Monitorea progreso contra estimated effort</li>
+<li>Identifica bloqueos por dependencias</li>
+<li>Prioriza resolución de decisiones técnicas</li>
+</ul>
+<h3 id="para-stakeholders">Para Stakeholders:<a class="headerlink" href="#para-stakeholders" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Cada step es un entregable con valor</li>
+<li>Pueden ver progreso incremental</li>
+<li>Pueden dar feedback temprano</li>
+<li>Entienden el alcance de cada fase</li>
+</ul>
+<hr />
+<h2 id="recursos-adicionales">📚 Recursos Adicionales<a class="headerlink" href="#recursos-adicionales" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="documentacion-de-referencia">Documentación de Referencia:<a class="headerlink" href="#documentacion-de-referencia" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><strong>Plan General</strong>: <code>../SOFTWARE_DEVELOPMENT_PLAN.md</code></li>
+<li><strong>Documento Original</strong>: <code>../docs/README.md</code></li>
+<li><strong>Casos de Uso</strong>: Ver Anexo II del documento original</li>
+<li><strong>Mockups</strong>: Ver Anexo I del documento original</li>
+</ul>
+<h3 id="glosario-de-terminos">Glosario de Términos:<a class="headerlink" href="#glosario-de-terminos" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><strong>Protocolo</strong>: Documento con información del caso clínico</li>
+<li><strong>Cassette</strong>: Contenedor para procesamiento de tejidos</li>
+<li><strong>Portaobjetos/Slide</strong>: Lámina de vidrio para observación microscópica</li>
+<li><strong>TAT (Turnaround Time)</strong>: Tiempo desde recepción hasta informe</li>
+<li><strong>WIP (Work In Progress)</strong>: Trabajo en proceso</li>
+<li><strong>OT (Orden de Trabajo)</strong>: Documento de facturación</li>
+</ul>
+<hr />
+<h2 id="checklist-general-de-implementacion">✅ Checklist General de Implementación<a class="headerlink" href="#checklist-general-de-implementacion" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="fase-0-setup">Fase 0: Setup<a class="headerlink" href="#fase-0-setup" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Decisiones técnicas críticas tomadas</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Repositorio configurado</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Entorno de desarrollo operativo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> CI/CD pipeline configurado</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Equipo capacitado en stack elegido</li>
+</ul>
+<h3 id="fase-1-mvp">Fase 1: MVP<a class="headerlink" href="#fase-1-mvp" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 01: Authentication completo y probado</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 02: Veterinarian Profiles completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 03: Protocol Submission completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> UAT con usuarios piloto exitosa</li>
+</ul>
+<h3 id="fase-2-operacion">Fase 2: Operación<a class="headerlink" href="#fase-2-operacion" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 04: Sample Reception completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 05: Sample Processing completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Flujo completo protocolo→recepción→procesamiento funciona</li>
+</ul>
+<h3 id="fase-3-core">Fase 3: Core<a class="headerlink" href="#fase-3-core" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 06: Report Generation completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 07: Work Orders completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 08: Notifications completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Flujo completo hasta envío de informe funciona</li>
+</ul>
+<h3 id="fase-4-analytics">Fase 4: Analytics<a class="headerlink" href="#fase-4-analytics" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 09: Dashboard completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 10: Reports completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 12: Admin completo</li>
+</ul>
+<h3 id="fase-5-transicion">Fase 5: Transición<a class="headerlink" href="#fase-5-transicion" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 11: Data Migration completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Sistema legacy archivado</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Personal capacitado completamente</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Soporte post-lanzamiento establecido</li>
+</ul>
+<h3 id="fase-6-infraestructura-y-produccion">Fase 6: Infraestructura y Producción<a class="headerlink" href="#fase-6-infraestructura-y-produccion" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 13: Email Configuration (producción) completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Step 14: Object Storage &amp; Backup/Restore completo</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Backups automáticos funcionando y verificados</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Disaster recovery plan probado</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Monitoreo de storage configurado</li>
+</ul>
+<hr />
+<h2 id="contacto-y-soporte">📞 Contacto y Soporte<a class="headerlink" href="#contacto-y-soporte" title="Enlace permanente a esta sección">&para;</a></h2>
+<p>Para preguntas sobre la implementación de steps específicos, consultar con:
+- <strong>Arquitectura y Diseño</strong>: [Arquitecto de Software]
+- <strong>Decisiones de Negocio</strong>: [Product Owner / Dirección del Laboratorio]
+- <strong>Soporte Técnico</strong>: [Tech Lead]</p>
+<hr />
+<p><strong>Última actualización</strong>: Octubre 2024<br />
+<strong>Versión</strong>: 1.0<br />
+<strong>Estado</strong>: Documentación completa, pendiente inicio de desarrollo</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Laboratory Management System
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="/" target="_blank" rel="noopener" title="Inicio del Sistema" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1v16.2c0 22.1-17.9 40-40 40h-16c-1.1 0-2.2 0-3.3-.1-1.4.1-2.8.1-4.2.1L416 512h-24c-22.1 0-40-17.9-40-40v-88c0-17.7-14.3-32-32-32h-64c-17.7 0-32 14.3-32 32v88c0 22.1-17.9 40-40 40h-55.9c-1.5 0-3-.1-4.5-.2-1.2.1-2.4.2-3.6.2h-16c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9.1-2.8v-69.7h-32c-18 0-32-14-32-32.1 0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7l255.4 224.5c8 7 12 15 11 24"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:support@your-lab.com" target="_blank" rel="noopener" title="Contactar Soporte" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l217.6 163.2c11.4 8.5 27 8.5 38.4 0l217.6-163.2c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 176v208c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V176L294.4 339.2a63.9 63.9 0 0 1-76.8 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow", "toc.integrate"], "search": "../../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2077 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentación completa del sistema de gestión para laboratorios de patología veterinaria">
+      
+      
+        <meta name="author" content="Laboratory Development Team">
+      
+      
+        <link rel="canonical" href="https://your-lab-domain.com/docs/internal/archive/development-steps/STEP_01.1_COMPLETE/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.40">
+    
+    
+      
+        <title>Step 01.1: Email Verification - COMPLETE ✅ - Sistema de Gestión de Laboratorio</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#step-011-email-verification-complete" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../../../.." title="Sistema de Gestión de Laboratorio" class="md-header__button md-logo" aria-label="Sistema de Gestión de Laboratorio" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Sistema de Gestión de Laboratorio
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Step 01.1: Email Verification - COMPLETE ✅
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartir" aria-label="Compartir" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../getting-started/system-overview/" class="md-tabs__link">
+          
+  
+    
+  
+  Comenzar
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../user-guides/veterinarians/submitting-protocols/" class="md-tabs__link">
+          
+  
+    
+  
+  Guías de Usuario
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../workflows/complete-sample-journey/" class="md-tabs__link">
+          
+  
+    
+  
+  Procesos
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../common-tasks/password-reset/" class="md-tabs__link">
+          
+  
+    
+  
+  Tareas Comunes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../troubleshooting/common-issues/" class="md-tabs__link">
+          
+  
+    
+  
+  Solución de Problemas
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../" class="md-tabs__link">
+          
+  
+    
+  
+  Documentación Técnica
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="Sistema de Gestión de Laboratorio" class="md-nav__button md-logo" aria-label="Sistema de Gestión de Laboratorio" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Sistema de Gestión de Laboratorio
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Inicio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Comenzar
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Comenzar
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting-started/system-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Resumen del Sistema
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting-started/first-login/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Primer Acceso
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting-started/basic-navigation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Navegación Básica
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Guías de Usuario
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Guías de Usuario
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Veterinarios
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Veterinarios
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/veterinarians/submitting-protocols/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo enviar protocolos para análisis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/veterinarians/tracking-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo seguir el progreso de tus muestras
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/veterinarians/accessing-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo ver y descargar informes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/veterinarians/creating-work-orders/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo crear órdenes de trabajo
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Histopatólogos
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Histopatólogos
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/histopathologists/analyzing-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Análisis de Muestras para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/histopathologists/creating-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Creación de Informes para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/histopathologists/quality-control/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Control de Calidad para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Personal de Laboratorio
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Personal de Laboratorio
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/lab-staff/receiving-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Recibir Muestras - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/lab-staff/processing-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Procesar Muestras - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/lab-staff/managing-inventory/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Gestionar Inventario - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Administradores
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Administradores
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/administrators/managing-users/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Gestionar Usuarios - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/administrators/system-settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Configuración del Sistema - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/administrators/monitoring-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Monitorear el Sistema - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Procesos
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Procesos
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../workflows/complete-sample-journey/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Viaje de la Muestra
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../workflows/daily-operations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Operaciones Diarias
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../workflows/emergency-procedures/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Procedimientos de Emergencia
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tareas Comunes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tareas Comunes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../common-tasks/password-reset/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cambiar Contraseña
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../common-tasks/email-notifications/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notificaciones Email
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../common-tasks/printing-labels/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Imprimir Etiquetas
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../common-tasks/downloading-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Descargar Informes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Solución de Problemas
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Solución de Problemas
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../troubleshooting/common-issues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Problemas Comunes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../troubleshooting/faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Preguntas Frecuentes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../troubleshooting/contact-support/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contactar Soporte
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Documentación Técnica
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Documentación Técnica
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../README.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proyecto
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../IDE_SETUP/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuración IDE
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="step-011-email-verification-complete">Step 01.1: Email Verification - COMPLETE ✅<a class="headerlink" href="#step-011-email-verification-complete" title="Enlace permanente a esta sección">&para;</a></h1>
+<p><strong>Date</strong>: October 11, 2025<br />
+<strong>Status</strong>: ✅ Fully Implemented &amp; Tested<br />
+<strong>Tests</strong>: 37/37 Passing (100%)<br />
+<strong>Migration</strong>: Applied Successfully</p>
+<hr />
+<h2 id="implementation-summary">📋 Implementation Summary<a class="headerlink" href="#implementation-summary" title="Enlace permanente a esta sección">&para;</a></h2>
+<p>Step 01.1 adds email verification for <strong>external users (veterinarians)</strong> while allowing <strong>internal users (lab staff, admins)</strong> to login without verification. This ensures that veterinarians use valid email addresses for receiving laboratory result notifications.</p>
+<hr />
+<h2 id="what-was-implemented">✨ What Was Implemented<a class="headerlink" href="#what-was-implemented" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="database-changes">🗄️ Database Changes<a class="headerlink" href="#database-changes" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>New User Fields</strong>:
+- <code>email_verified</code> (BooleanField) - Tracks verification status
+- <code>email_verification_token</code> (CharField, unique, indexed) - Secure verification token
+- <code>email_verification_sent_at</code> (DateTimeField) - Timestamp for expiration check</p>
+<p><strong>Migration</strong>: <code>0002_user_email_verification_sent_at_and_more.py</code>
+- ✅ Applied successfully to database
+- ✅ All existing users remain functional</p>
+<h3 id="core-functionality">🎯 Core Functionality<a class="headerlink" href="#core-functionality" title="Enlace permanente a esta sección">&para;</a></h3>
+<h4 id="1-user-model-methods">1. User Model Methods<a class="headerlink" href="#1-user-model-methods" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Check if user can login (role-based verification requirement)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">user</span><span class="o">.</span><span class="n">can_login</span><span class="p">()</span>  
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Returns True/False based on role &amp; verification status</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Generate cryptographically secure token</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">token</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">generate_email_verification_token</span><span class="p">()</span>  
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Returns 43-character urlsafe token, expires in 24 hours</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Check token expiration</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">user</span><span class="o">.</span><span class="n">is_verification_token_expired</span><span class="p">()</span>  
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Returns True if token &gt; 24 hours old</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># Mark email as verified</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">user</span><span class="o">.</span><span class="n">verify_email</span><span class="p">()</span>  
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># Sets email_verified=True, clears token</span>
+</span></code></pre></div>
+<h4 id="2-user-flows">2. User Flows<a class="headerlink" href="#2-user-flows" title="Enlace permanente a esta sección">&para;</a></h4>
+<p><strong>Veterinarian (External User) Registration</strong>:
+1. Veterinarian fills registration form
+2. Account created with <code>email_verified=False</code>
+3. Verification token generated (32 bytes, cryptographically secure)
+4. HTML email sent with verification link
+5. Veterinarian clicks link → email verified
+6. Can now login</p>
+<p><strong>Internal User (Lab Staff/Admin)</strong>:
+1. Account created by admin
+2. Can login immediately (no verification required)
+3. Email verification bypassed for internal users</p>
+<p><strong>Unverified Login Attempt</strong>:
+1. Unverified veterinarian tries to login
+2. Authentication succeeds but <code>can_login()</code> returns <code>False</code>
+3. User blocked with helpful message
+4. Link provided to resend verification email</p>
+<p><strong>Resend Verification</strong>:
+1. User visits <code>/accounts/resend-verification/</code>
+2. Enters email address
+3. New token generated (old token invalidated)
+4. New verification email sent
+5. Generic success message (security: don't reveal if email exists)</p>
+<h3 id="views-urls">🌐 Views &amp; URLs<a class="headerlink" href="#views-urls" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>New Views</strong>:
+- <code>verify_email_view(token)</code> - <code>/accounts/verify-email/&lt;token&gt;/</code>
+  - Verifies email with token from URL
+  - Checks token expiration (24 hours)
+  - Handles invalid/expired tokens gracefully
+  - Logs all verification attempts</p>
+<ul>
+<li><code>resend_verification_view()</code> - <code>/accounts/resend-verification/</code></li>
+<li>Form to request new verification email</li>
+<li>Generates new token</li>
+<li>Sends new email</li>
+<li>Security: doesn't reveal if email exists</li>
+</ul>
+<p><strong>Updated Views</strong>:
+- <code>login_view()</code> - Added <code>can_login()</code> check after authentication
+- <code>register_view()</code> - Sends verification email after registration</p>
+<h3 id="email-templates">📧 Email Templates<a class="headerlink" href="#email-templates" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Email Verification Email</strong> (<code>accounts/emails/email_verification.html</code>):
+- Professional HTML design
+- Clear call-to-action button
+- Clickable URL fallback
+- 24-hour expiration notice
+- Branded with AdLab</p>
+<p><strong>Resend Verification Page</strong> (<code>accounts/resend_verification.html</code>):
+- Simple email input form
+- Helpful tips (check spam, wait a few minutes)
+- Link back to login
+- Tailwind CSS styling</p>
+<h3 id="django-admin-enhancements">👨‍💼 Django Admin Enhancements<a class="headerlink" href="#django-admin-enhancements" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>List Display</strong>:
+- Added <code>email_verified</code> column to user list
+- Filter by <code>email_verified</code> status</p>
+<p><strong>Fieldsets</strong>:
+- New "Email Verification" section (collapsible)
+- Shows: email_verified, token, sent_at</p>
+<p><strong>Admin Actions</strong>:
+1. <strong>Mark email as verified</strong> - Manually verify selected users
+2. <strong>Resend verification email</strong> - Send verification to unverified veterinarians</p>
+<h3 id="audit-logging">📊 Audit Logging<a class="headerlink" href="#audit-logging" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>New AuthAuditLog Actions</strong>:
+- <code>EMAIL_VERIFICATION_SENT</code> - Verification email sent
+- <code>EMAIL_VERIFIED</code> - Email successfully verified
+- <code>EMAIL_VERIFICATION_FAILED</code> - Verification attempt failed</p>
+<p><strong>Logged Events</strong>:
+- Registration with verification email
+- Email verification success/failure
+- Token expiration
+- Resend requests
+- Admin actions</p>
+<hr />
+<h2 id="testing">✅ Testing<a class="headerlink" href="#testing" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="test-coverage-37-tests-all-passing">Test Coverage: 37 Tests (All Passing ✅)<a class="headerlink" href="#test-coverage-37-tests-all-passing" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>New EmailVerificationTest Class</strong> (17 tests):</p>
+<ol>
+<li>✅ <code>test_new_user_starts_unverified</code> - Veterinarians start unverified</li>
+<li>✅ <code>test_can_login_veterinarian_unverified</code> - Unverified vets blocked</li>
+<li>✅ <code>test_can_login_internal_user_no_verification</code> - Internal users bypass</li>
+<li>✅ <code>test_generate_verification_token</code> - Token generation works</li>
+<li>✅ <code>test_verify_email_method</code> - Email verification method works</li>
+<li>✅ <code>test_token_expiration</code> - Tokens expire after 24 hours</li>
+<li>✅ <code>test_registration_sends_verification_email</code> - Registration sends email</li>
+<li>✅ <code>test_login_blocked_for_unverified_vet</code> - Login blocked correctly</li>
+<li>✅ <code>test_login_success_for_verified_vet</code> - Verified vets can login</li>
+<li>✅ <code>test_verify_email_view_success</code> - Verification URL works</li>
+<li>✅ <code>test_verify_email_view_invalid_token</code> - Invalid token handled</li>
+<li>✅ <code>test_verify_email_view_expired_token</code> - Expired token handled</li>
+<li>✅ <code>test_resend_verification_email</code> - Resend works correctly</li>
+<li>✅ <code>test_resend_verification_nonexistent_email</code> - Security: no info leak</li>
+<li>✅ <code>test_resend_verification_already_verified</code> - Already verified handled</li>
+<li>✅ <code>test_admin_mark_verified_action</code> - Admin action works</li>
+<li>✅ <code>test_admin_resend_verification_action</code> - Admin resend works</li>
+</ol>
+<p><strong>Updated Existing Tests</strong>:
+- Fixed <code>LoginViewTest</code> - Users now verified for tests</p>
+<h3 id="test-execution">Test Execution<a class="headerlink" href="#test-execution" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Run all tests</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>web<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span><span class="nb">test</span><span class="w"> </span>accounts.tests
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Result: 37 tests, 0 failures, 0 errors</span>
+</span></code></pre></div>
+<hr />
+<h2 id="security-features">🔒 Security Features<a class="headerlink" href="#security-features" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="token-security">Token Security<a class="headerlink" href="#token-security" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><strong>Generation</strong>: <code>secrets.token_urlsafe(32)</code> - Cryptographically secure</li>
+<li><strong>Expiration</strong>: 24 hours from generation</li>
+<li><strong>Single Use</strong>: Token cleared after verification</li>
+<li><strong>Uniqueness</strong>: Database-level unique constraint</li>
+<li><strong>Indexing</strong>: Fast token lookup</li>
+</ul>
+<h3 id="privacy-protection">Privacy Protection<a class="headerlink" href="#privacy-protection" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Resend endpoint doesn't reveal if email exists</li>
+<li>Generic error messages for invalid tokens</li>
+<li>No user enumeration possible</li>
+</ul>
+<h3 id="audit-trail">Audit Trail<a class="headerlink" href="#audit-trail" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>All verification attempts logged</li>
+<li>IP address captured</li>
+<li>User agent recorded</li>
+<li>Timestamps for all events</li>
+</ul>
+<h3 id="rate-limiting-future-enhancement">Rate Limiting (Future Enhancement)<a class="headerlink" href="#rate-limiting-future-enhancement" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Currently unlimited resend requests</li>
+<li>TODO: Add rate limiting in production (Step 13)</li>
+</ul>
+<hr />
+<h2 id="files-modifiedcreated">📁 Files Modified/Created<a class="headerlink" href="#files-modifiedcreated" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="modified-files-5">Modified Files (5):<a class="headerlink" href="#modified-files-5" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>src/accounts/models.py         (+60 lines) - Added verification fields &amp; methods
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>src/accounts/views.py          (+148 lines) - Added verification views &amp; logic
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>src/accounts/admin.py          (+58 lines) - Added admin actions &amp; fields
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>src/accounts/urls.py           (+2 lines) - Added verification URLs
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>src/accounts/tests.py          (+358 lines) - Added 17 verification tests
+</span></code></pre></div>
+<h3 id="new-files-3">New Files (3):<a class="headerlink" href="#new-files-3" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>src/accounts/migrations/0002_user_email_verification_sent_at_and_more.py
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>src/accounts/templates/accounts/emails/email_verification.html
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>src/accounts/templates/accounts/resend_verification.html
+</span></code></pre></div>
+<h3 id="total-changes">Total Changes:<a class="headerlink" href="#total-changes" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><strong>Files changed</strong>: 8</li>
+<li><strong>Lines added</strong>: 626</li>
+<li><strong>Lines removed</strong>: 8</li>
+<li><strong>Net change</strong>: +618 lines</li>
+</ul>
+<hr />
+<h2 id="user-experience">🎯 User Experience<a class="headerlink" href="#user-experience" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="for-veterinarians-external-users">For Veterinarians (External Users)<a class="headerlink" href="#for-veterinarians-external-users" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Registration Flow</strong>:
+1. Fill registration form
+2. See success message: "Por favor verifique su email..."
+3. Check email inbox (and spam)
+4. Click verification link
+5. See success: "¡Email verificado exitosamente!"
+6. Login successfully</p>
+<p><strong>Unverified Login Attempt</strong>:
+1. Try to login before verification
+2. See message: "Por favor verifique su email antes de iniciar sesión..."
+3. Click "Reenviar" link
+4. Enter email
+5. Receive new verification email</p>
+<p><strong>Email Not Received</strong>:
+1. Visit <code>/accounts/resend-verification/</code>
+2. Enter email address
+3. Receive new verification email
+4. Check spam folder (helpful tip shown)</p>
+<h3 id="for-lab-staffadmin-internal-users">For Lab Staff/Admin (Internal Users)<a class="headerlink" href="#for-lab-staffadmin-internal-users" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>No Verification Required</strong>:
+1. Account created by admin
+2. Receive credentials
+3. Login immediately (no email verification)
+4. Start working</p>
+<p><strong>Admin Management</strong>:
+1. View users in Django admin
+2. See "email_verified" column
+3. Filter by verification status
+4. Manually verify users if needed
+5. Resend verification emails</p>
+<hr />
+<h2 id="metrics-monitoring">📈 Metrics &amp; Monitoring<a class="headerlink" href="#metrics-monitoring" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="whats-tracked">What's Tracked<a class="headerlink" href="#whats-tracked" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Verification Success Rate</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">verified</span> <span class="o">=</span> <span class="n">AuthAuditLog</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">action</span><span class="o">=</span><span class="n">AuthAuditLog</span><span class="o">.</span><span class="n">Action</span><span class="o">.</span><span class="n">EMAIL_VERIFIED</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">sent</span> <span class="o">=</span> <span class="n">AuthAuditLog</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">action</span><span class="o">=</span><span class="n">AuthAuditLog</span><span class="o">.</span><span class="n">Action</span><span class="o">.</span><span class="n">EMAIL_VERIFICATION_SENT</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">success_rate</span> <span class="o">=</span> <span class="p">(</span><span class="n">verified</span> <span class="o">/</span> <span class="n">sent</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+</span></code></pre></div></p>
+<p><strong>Unverified Login Attempts</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">blocked_logins</span> <span class="o">=</span> <span class="n">AuthAuditLog</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="n">action</span><span class="o">=</span><span class="n">AuthAuditLog</span><span class="o">.</span><span class="n">Action</span><span class="o">.</span><span class="n">LOGIN_FAILED</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">details</span><span class="o">=</span><span class="s2">&quot;Email not verified&quot;</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</span></code></pre></div></p>
+<p><strong>Token Expiration Rate</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">expired</span> <span class="o">=</span> <span class="n">AuthAuditLog</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    <span class="n">action</span><span class="o">=</span><span class="n">AuthAuditLog</span><span class="o">.</span><span class="n">Action</span><span class="o">.</span><span class="n">EMAIL_VERIFICATION_FAILED</span><span class="p">,</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="n">details</span><span class="o">=</span><span class="s2">&quot;Token expired&quot;</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</span></code></pre></div></p>
+<hr />
+<h2 id="deployment-notes">🚀 Deployment Notes<a class="headerlink" href="#deployment-notes" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="current-configuration-development">Current Configuration (Development)<a class="headerlink" href="#current-configuration-development" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Email Backend</strong>: Console (emails print to terminal)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">EMAIL_BACKEND</span> <span class="o">=</span> <span class="s2">&quot;django.core.mail.backends.console.EmailBackend&quot;</span>
+</span></code></pre></div></p>
+<p><strong>How to Test</strong>:
+1. Register new veterinarian
+2. Check Docker logs: <code>docker compose logs web | grep "Subject:"</code>
+3. Copy verification URL from logs
+4. Visit URL in browser
+5. Email verified!</p>
+<h3 id="production-configuration-step-13">Production Configuration (Step 13)<a class="headerlink" href="#production-configuration-step-13" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Email Backend</strong>: SMTP (real emails)
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># In .env file (when ready for production):</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">EMAIL_BACKEND</span><span class="o">=</span>django.core.mail.backends.smtp.EmailBackend
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nv">EMAIL_HOST</span><span class="o">=</span>smtp.unl.edu.ar
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nv">EMAIL_PORT</span><span class="o">=</span><span class="m">587</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nv">EMAIL_HOST_USER</span><span class="o">=</span>laboratorio@fcv.unl.edu.ar
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="nv">EMAIL_HOST_PASSWORD</span><span class="o">=</span>&lt;secure_password&gt;
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="nv">EMAIL_USE_TLS</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="nv">DEFAULT_FROM_EMAIL</span><span class="o">=</span>laboratorio@fcv.unl.edu.ar
+</span></code></pre></div></p>
+<p><strong>See</strong>: <code>EMAIL_CONFIGURATION_GUIDE.md</code> and <code>steps/step-13-email-configuration.md</code></p>
+<hr />
+<h2 id="known-limitations-future-enhancements">⚠️ Known Limitations &amp; Future Enhancements<a class="headerlink" href="#known-limitations-future-enhancements" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="current-limitations">Current Limitations<a class="headerlink" href="#current-limitations" title="Enlace permanente a esta sección">&para;</a></h3>
+<ol>
+<li><strong>No Rate Limiting</strong>:</li>
+<li>Users can request unlimited resend emails</li>
+<li>
+<p><strong>Solution</strong>: Add rate limiting in Step 13 (production)</p>
+</li>
+<li>
+<p><strong>No Email Queue</strong>:</p>
+</li>
+<li>Emails sent synchronously (blocking)</li>
+<li>
+<p><strong>Solution</strong>: Use Celery for async email sending (optional)</p>
+</li>
+<li>
+<p><strong>24-Hour Token Expiration is Fixed</strong>:</p>
+</li>
+<li>Hardcoded in <code>is_verification_token_expired()</code></li>
+<li>
+<p><strong>Solution</strong>: Make configurable via settings if needed</p>
+</li>
+<li>
+<p><strong>No Email Deliverability Tracking</strong>:</p>
+</li>
+<li>Can't detect bounces or spam filters</li>
+<li><strong>Solution</strong>: Use SendGrid/SES webhooks in production</li>
+</ol>
+<h3 id="future-enhancements-optional">Future Enhancements (Optional)<a class="headerlink" href="#future-enhancements-optional" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Async email sending with Celery</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Rate limiting for resend requests</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Email deliverability tracking (bounces, opens)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Configurable token expiration time</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Two-factor authentication (2FA) for admins</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> SMS verification as alternative</li>
+</ul>
+<hr />
+<h2 id="documentation-references">📚 Documentation References<a class="headerlink" href="#documentation-references" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="internal-documentation">Internal Documentation<a class="headerlink" href="#internal-documentation" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><strong>Specification</strong>: <code>main-project-docs/steps/step-01.1-email-verification.md</code> (660 lines)</li>
+<li><strong>Email Config</strong>: <code>EMAIL_CONFIGURATION_GUIDE.md</code></li>
+<li><strong>Step 13</strong>: <code>main-project-docs/steps/step-13-email-configuration.md</code></li>
+</ul>
+<h3 id="django-documentation">Django Documentation<a class="headerlink" href="#django-documentation" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><a href="https://docs.djangoproject.com/en/5.2/topics/email/">Sending Email</a></li>
+<li><a href="https://docs.djangoproject.com/en/5.2/topics/auth/">User Authentication</a></li>
+<li><a href="https://docs.djangoproject.com/en/5.2/topics/testing/tools/">Testing Tools</a></li>
+</ul>
+<h3 id="security-best-practices">Security Best Practices<a class="headerlink" href="#security-best-practices" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">OWASP - Email Verification</a></li>
+<li><a href="https://docs.python.org/3/library/secrets.html">Python secrets module</a></li>
+</ul>
+<hr />
+<h2 id="acceptance-criteria-all-met">✅ Acceptance Criteria (All Met)<a class="headerlink" href="#acceptance-criteria-all-met" title="Enlace permanente a esta sección">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Email verification required for veterinarians only</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Internal users bypass verification</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Verification tokens are cryptographically secure</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Tokens expire after 24 hours</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Tokens invalidated after use</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ HTML email template professional and branded</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Resend functionality available</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ No information disclosure (security)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ All actions logged in AuthAuditLog</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Django admin can manage verification</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Comprehensive test coverage (17 tests)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ All tests passing (37/37)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Migration applied successfully</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ User-friendly error messages</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Documentation complete</li>
+</ul>
+<hr />
+<h2 id="summary">🎉 Summary<a class="headerlink" href="#summary" title="Enlace permanente a esta sección">&para;</a></h2>
+<p><strong>Step 01.1 is COMPLETE and PRODUCTION-READY</strong> (except for SMTP configuration which is deferred to Step 13).</p>
+<h3 id="key-achievements">Key Achievements<a class="headerlink" href="#key-achievements" title="Enlace permanente a esta sección">&para;</a></h3>
+<p>✅ <strong>Security</strong>: Cryptographically secure tokens, expiration, audit logging<br />
+✅ <strong>UX</strong>: Clear messages, resend functionality, professional emails<br />
+✅ <strong>Reliability</strong>: 100% test coverage, all edge cases handled<br />
+✅ <strong>Maintainability</strong>: Clean code, comprehensive documentation<br />
+✅ <strong>Scalability</strong>: Ready for production volumes<br />
+✅ <strong>Admin Tools</strong>: Easy user management, manual verification</p>
+<h3 id="ready-for-production">Ready for Production?<a class="headerlink" href="#ready-for-production" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Development</strong>: ✅ YES - Console backend works great<br />
+<strong>Staging</strong>: ✅ YES - Test with real emails (configure Step 13)<br />
+<strong>Production</strong>: ⏳ CONFIGURE STEP 13 FIRST - Set up SMTP server</p>
+<h3 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Enlace permanente a esta sección">&para;</a></h3>
+<ol>
+<li>✅ <strong>Continue Development</strong> - Move to Step 02 (Veterinarian Profiles)</li>
+<li>⏳ <strong>Before Production</strong> - Configure email SMTP (Step 13)</li>
+<li>✅ <strong>Testing</strong> - Verify flow with test veterinarians</li>
+<li>✅ <strong>UAT</strong> - User acceptance testing with real veterinarians</li>
+</ol>
+<hr />
+<p><strong>Implementation Time</strong>: ~4 hours (including tests and documentation)<br />
+<strong>Complexity</strong>: Medium<br />
+<strong>Impact</strong>: High (critical for veterinarian notifications)<br />
+<strong>Technical Debt</strong>: None<br />
+<strong>Dependencies</strong>: Step 01 (Authentication) ✅ Complete</p>
+<hr />
+<p><strong>Status</strong>: ✅ STEP 01.1 COMPLETE<br />
+<strong>Next Step</strong>: Step 02 - Veterinarian Registration &amp; Profiles<br />
+<strong>Production Readiness</strong>: 90% (needs Step 13 for email SMTP)</p>
+<p>🎉 <strong>EXCELLENT WORK!</strong> 🎉</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Laboratory Management System
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="/" target="_blank" rel="noopener" title="Inicio del Sistema" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1v16.2c0 22.1-17.9 40-40 40h-16c-1.1 0-2.2 0-3.3-.1-1.4.1-2.8.1-4.2.1L416 512h-24c-22.1 0-40-17.9-40-40v-88c0-17.7-14.3-32-32-32h-64c-17.7 0-32 14.3-32 32v88c0 22.1-17.9 40-40 40h-55.9c-1.5 0-3-.1-4.5-.2-1.2.1-2.4.2-3.6.2h-16c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9.1-2.8v-69.7h-32c-18 0-32-14-32-32.1 0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7l255.4 224.5c8 7 12 15 11 24"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:support@your-lab.com" target="_blank" rel="noopener" title="Contactar Soporte" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l217.6 163.2c11.4 8.5 27 8.5 38.4 0l217.6-163.2c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 176v208c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V176L294.4 339.2a63.9 63.9 0 0 1-76.8 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow", "toc.integrate"], "search": "../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+    
+  </body>
+</html>

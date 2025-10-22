@@ -1,0 +1,2370 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentación completa del sistema de gestión para laboratorios de patología veterinaria">
+      
+      
+        <meta name="author" content="Laboratory Development Team">
+      
+      
+        <link rel="canonical" href="https://your-lab-domain.com/docs/internal/archive/planning/main-project-docs/steps/step-13-email-configuration/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.40">
+    
+    
+      
+        <title>Step 13: Production Email Configuration - Sistema de Gestión de Laboratorio</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#step-13-production-email-configuration" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../../../../../.." title="Sistema de Gestión de Laboratorio" class="md-header__button md-logo" aria-label="Sistema de Gestión de Laboratorio" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Sistema de Gestión de Laboratorio
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Step 13: Production Email Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartir" aria-label="Compartir" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../.." class="md-tabs__link">
+        
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../getting-started/system-overview/" class="md-tabs__link">
+          
+  
+    
+  
+  Comenzar
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../user-guides/veterinarians/submitting-protocols/" class="md-tabs__link">
+          
+  
+    
+  
+  Guías de Usuario
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../workflows/complete-sample-journey/" class="md-tabs__link">
+          
+  
+    
+  
+  Procesos
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../common-tasks/password-reset/" class="md-tabs__link">
+          
+  
+    
+  
+  Tareas Comunes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../../troubleshooting/common-issues/" class="md-tabs__link">
+          
+  
+    
+  
+  Solución de Problemas
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../" class="md-tabs__link">
+          
+  
+    
+  
+  Documentación Técnica
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../../.." title="Sistema de Gestión de Laboratorio" class="md-nav__button md-logo" aria-label="Sistema de Gestión de Laboratorio" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Sistema de Gestión de Laboratorio
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Inicio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Comenzar
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Comenzar
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../getting-started/system-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Resumen del Sistema
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../getting-started/first-login/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Primer Acceso
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../getting-started/basic-navigation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Navegación Básica
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Guías de Usuario
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Guías de Usuario
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Veterinarios
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Veterinarios
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/veterinarians/submitting-protocols/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo enviar protocolos para análisis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/veterinarians/tracking-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo seguir el progreso de tus muestras
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/veterinarians/accessing-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo ver y descargar informes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/veterinarians/creating-work-orders/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo crear órdenes de trabajo
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Histopatólogos
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Histopatólogos
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/histopathologists/analyzing-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Análisis de Muestras para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/histopathologists/creating-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Creación de Informes para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/histopathologists/quality-control/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Control de Calidad para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Personal de Laboratorio
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Personal de Laboratorio
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/lab-staff/receiving-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Recibir Muestras - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/lab-staff/processing-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Procesar Muestras - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/lab-staff/managing-inventory/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Gestionar Inventario - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Administradores
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Administradores
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/administrators/managing-users/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Gestionar Usuarios - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/administrators/system-settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Configuración del Sistema - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../user-guides/administrators/monitoring-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Monitorear el Sistema - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Procesos
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Procesos
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../workflows/complete-sample-journey/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Viaje de la Muestra
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../workflows/daily-operations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Operaciones Diarias
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../workflows/emergency-procedures/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Procedimientos de Emergencia
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tareas Comunes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tareas Comunes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../common-tasks/password-reset/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cambiar Contraseña
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../common-tasks/email-notifications/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notificaciones Email
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../common-tasks/printing-labels/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Imprimir Etiquetas
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../common-tasks/downloading-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Descargar Informes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Solución de Problemas
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Solución de Problemas
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../troubleshooting/common-issues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Problemas Comunes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../troubleshooting/faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Preguntas Frecuentes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../troubleshooting/contact-support/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contactar Soporte
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Documentación Técnica
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Documentación Técnica
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../README.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proyecto
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../IDE_SETUP/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuración IDE
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="step-13-production-email-configuration">Step 13: Production Email Configuration<a class="headerlink" href="#step-13-production-email-configuration" title="Enlace permanente a esta sección">&para;</a></h1>
+<h2 id="problem-statement">Problem Statement<a class="headerlink" href="#problem-statement" title="Enlace permanente a esta sección">&para;</a></h2>
+<p>Throughout development, the system uses a console email backend that prints emails to the terminal. This is perfect for development and testing, but before deploying to production, we need to configure a real email service to send notifications to veterinarians and laboratory staff.</p>
+<p>The system sends several types of emails:
+- <strong>Email verification</strong> (Step 01.1) - Veterinarian registration
+- <strong>Password reset</strong> (Step 01) - User account recovery
+- <strong>Sample notifications</strong> (Step 08) - Results ready, sample received
+- <strong>Report delivery</strong> (Step 06) - PDF report attachments
+- <strong>Work order notifications</strong> (Step 07) - Billing information</p>
+<p><strong>Critical Requirement</strong>: Emails must be delivered reliably to ensure veterinarians receive time-sensitive laboratory results and notifications.</p>
+<hr />
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="functional-requirements-rf13">Functional Requirements (RF13)<a class="headerlink" href="#functional-requirements-rf13" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><strong>RF13.1</strong>: Configure production SMTP server for email delivery</li>
+<li><strong>RF13.2</strong>: Ensure emails are delivered reliably (&gt;98% delivery rate)</li>
+<li><strong>RF13.3</strong>: Professional sender address (institutional domain preferred)</li>
+<li><strong>RF13.4</strong>: HTML email templates render correctly in all major email clients</li>
+<li><strong>RF13.5</strong>: Email delivery failures are logged and monitored</li>
+<li><strong>RF13.6</strong>: Support for email attachments (PDF reports)</li>
+<li><strong>RF13.7</strong>: Configurable email settings via environment variables</li>
+</ul>
+<h3 id="non-functional-requirements">Non-Functional Requirements<a class="headerlink" href="#non-functional-requirements" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><strong>Reliability</strong>: &gt;98% email delivery rate</li>
+<li><strong>Performance</strong>: Emails sent within 5 seconds of trigger</li>
+<li><strong>Security</strong>: Credentials stored securely in environment variables</li>
+<li><strong>Scalability</strong>: Support for 500-1000 emails/month initially</li>
+<li><strong>Monitoring</strong>: Track delivery success/failure rates</li>
+<li><strong>Compliance</strong>: Professional appearance for medical/laboratory context</li>
+<li><strong>Cost</strong>: Prefer free or low-cost solutions</li>
+</ul>
+<hr />
+<h2 id="email-provider-options">Email Provider Options<a class="headerlink" href="#email-provider-options" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="option-1-institutional-email-recommended">Option 1: Institutional Email (RECOMMENDED) 🏆<a class="headerlink" href="#option-1-institutional-email-recommended" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Provider</strong>: Universidad Nacional del Litoral (UNL) SMTP Server</p>
+<p><strong>Advantages</strong>:
+- ✅ <strong>FREE</strong> (included in university services)
+- ✅ <strong>Trusted Domain</strong> (@fcv.unl.edu.ar or @unl.edu.ar)
+- ✅ <strong>Professional Appearance</strong> - Recipients trust institutional emails
+- ✅ <strong>Excellent Deliverability</strong> - Universities have good email reputation
+- ✅ <strong>IT Support</strong> - University IT department provides support
+- ✅ <strong>No Third-Party Dependencies</strong> - Keep infrastructure internal</p>
+<p><strong>Configuration</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">EMAIL_BACKEND</span><span class="o">=</span>django.core.mail.backends.smtp.EmailBackend
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">EMAIL_HOST</span><span class="o">=</span>smtp.unl.edu.ar<span class="w">  </span><span class="c1"># Get from IT</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nv">EMAIL_PORT</span><span class="o">=</span><span class="m">587</span><span class="w">  </span><span class="c1"># Usually 587 (TLS) or 465 (SSL)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nv">EMAIL_HOST_USER</span><span class="o">=</span>laboratorio@fcv.unl.edu.ar
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nv">EMAIL_HOST_PASSWORD</span><span class="o">=</span>secure_password_here
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nv">EMAIL_USE_TLS</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nv">DEFAULT_FROM_EMAIL</span><span class="o">=</span>laboratorio@fcv.unl.edu.ar
+</span></code></pre></div></p>
+<p><strong>Setup Steps</strong>:
+1. Contact UNL IT Support
+2. Request SMTP credentials for laboratory system
+3. Provide justification (critical laboratory notifications)
+4. Request email address: <code>laboratorio@fcv.unl.edu.ar</code> or similar
+5. Get SMTP server, port, username, password
+6. Request SPF/DKIM configuration for better deliverability</p>
+<p><strong>Estimated Setup Time</strong>: 1-2 days (depends on IT department response)</p>
+<hr />
+<h3 id="option-2-sendgrid-professional-service">Option 2: SendGrid (Professional Service)<a class="headerlink" href="#option-2-sendgrid-professional-service" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Provider</strong>: SendGrid by Twilio</p>
+<p><strong>Advantages</strong>:
+- ✅ <strong>Excellent Deliverability</strong> (99%+ delivery rate)
+- ✅ <strong>Easy Setup</strong> (15 minutes)
+- ✅ <strong>Email Analytics</strong> (open rates, click rates, bounces)
+- ✅ <strong>Free Tier</strong> (100 emails/day = 3,000/month)
+- ✅ <strong>Scalable</strong> (easy to upgrade as volume grows)
+- ✅ <strong>Professional Templates</strong> and API</p>
+<p><strong>Configuration</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">EMAIL_BACKEND</span><span class="o">=</span>django.core.mail.backends.smtp.EmailBackend
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">EMAIL_HOST</span><span class="o">=</span>smtp.sendgrid.net
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">EMAIL_PORT</span><span class="o">=</span><span class="m">587</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nv">EMAIL_HOST_USER</span><span class="o">=</span>apikey<span class="w">  </span><span class="c1"># Literally &quot;apikey&quot;</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nv">EMAIL_HOST_PASSWORD</span><span class="o">=</span>SG.xxxxxxxxxxxxxxxxxx<span class="w">  </span><span class="c1"># Your API key</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nv">EMAIL_USE_TLS</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nv">DEFAULT_FROM_EMAIL</span><span class="o">=</span>laboratorio@yourdomain.com
+</span></code></pre></div></p>
+<p><strong>Pricing</strong>:
+- FREE: 100 emails/day (enough for testing and low volume)
+- Essentials (<span class="arithmatex">\(15/month): 50,000 emails/month
+- Pro (\)</span>90/month): 100,000 emails/month</p>
+<p><strong>Setup Steps</strong>:
+1. Sign up at https://sendgrid.com/
+2. Verify your email
+3. Create API key (Settings → API Keys)
+4. (Optional but recommended) Verify domain
+5. Configure .env file
+6. Test email delivery</p>
+<p><strong>Estimated Setup Time</strong>: 15-30 minutes</p>
+<hr />
+<h3 id="option-3-amazon-ses-high-volume">Option 3: Amazon SES (High Volume)<a class="headerlink" href="#option-3-amazon-ses-high-volume" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Provider</strong>: Amazon Simple Email Service</p>
+<p><strong>Advantages</strong>:
+- ✅ <strong>Very Cheap</strong> ($0.10 per 1,000 emails)
+- ✅ <strong>Reliable</strong> (Amazon infrastructure)
+- ✅ <strong>Scalable</strong> (handles any volume)
+- ✅ <strong>Integration with AWS Services</strong></p>
+<p><strong>Configuration</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">EMAIL_BACKEND</span><span class="o">=</span>django.core.mail.backends.smtp.EmailBackend
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nv">EMAIL_HOST</span><span class="o">=</span>email-smtp.us-east-1.amazonaws.com
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nv">EMAIL_PORT</span><span class="o">=</span><span class="m">587</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nv">EMAIL_HOST_USER</span><span class="o">=</span>AKIAIOSFODNN7EXAMPLE
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nv">EMAIL_HOST_PASSWORD</span><span class="o">=</span>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nv">EMAIL_USE_TLS</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nv">DEFAULT_FROM_EMAIL</span><span class="o">=</span>laboratorio@yourdomain.com
+</span></code></pre></div></p>
+<p><strong>Pricing</strong>:
+- $0.10 per 1,000 emails
+- First 62,000 emails FREE (if using EC2)</p>
+<p><strong>Setup Steps</strong>:
+1. Create AWS account
+2. Set up Amazon SES
+3. Verify email/domain
+4. Generate SMTP credentials
+5. Move out of sandbox mode (request production access)
+6. Configure .env file</p>
+<p><strong>Estimated Setup Time</strong>: 1-2 hours (AWS account setup)</p>
+<hr />
+<h3 id="option-4-gmail-smtp-testing-only">Option 4: Gmail SMTP (Testing Only)<a class="headerlink" href="#option-4-gmail-smtp-testing-only" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Provider</strong>: Gmail</p>
+<p><strong>⚠️ NOT RECOMMENDED FOR PRODUCTION</strong></p>
+<p><strong>Only use for</strong>:
+- Quick testing with real emails
+- Personal projects
+- Very low volume (&lt;100 emails/day)</p>
+<p><strong>Limitations</strong>:
+- ❌ 500 emails/day limit
+- ❌ May go to spam folder
+- ❌ Not professional appearance
+- ❌ Can be blocked by Google at any time
+- ❌ Requires 2FA and app password</p>
+<p><strong>Configuration</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">EMAIL_BACKEND</span><span class="o">=</span>django.core.mail.backends.smtp.EmailBackend
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">EMAIL_HOST</span><span class="o">=</span>smtp.gmail.com
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nv">EMAIL_PORT</span><span class="o">=</span><span class="m">587</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nv">EMAIL_HOST_USER</span><span class="o">=</span>your-email@gmail.com
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nv">EMAIL_HOST_PASSWORD</span><span class="o">=</span>xxxx<span class="w"> </span>xxxx<span class="w"> </span>xxxx<span class="w"> </span>xxxx<span class="w">  </span><span class="c1"># App password</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nv">EMAIL_USE_TLS</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nv">DEFAULT_FROM_EMAIL</span><span class="o">=</span>your-email@gmail.com
+</span></code></pre></div></p>
+<hr />
+<h2 id="recommended-solution">Recommended Solution<a class="headerlink" href="#recommended-solution" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="for-this-laboratory-system-institutional-email-option-1">For This Laboratory System: <strong>Institutional Email (Option 1)</strong><a class="headerlink" href="#for-this-laboratory-system-institutional-email-option-1" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Rationale</strong>:
+1. <strong>Zero Cost</strong> - Already paid for through university
+2. <strong>Trusted Source</strong> - Recipients trust @fcv.unl.edu.ar emails
+3. <strong>Professional</strong> - Appropriate for medical/laboratory context
+4. <strong>Supported</strong> - IT department can help with issues
+5. <strong>Simple</strong> - Just SMTP configuration, no third-party accounts</p>
+<p><strong>Fallback</strong>: If institutional email is not available or has restrictions, use <strong>SendGrid (Option 2)</strong> with free tier.</p>
+<hr />
+<h2 id="implementation-guide">Implementation Guide<a class="headerlink" href="#implementation-guide" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="phase-1-obtain-credentials-before-production">Phase 1: Obtain Credentials (Before Production)<a class="headerlink" href="#phase-1-obtain-credentials-before-production" title="Enlace permanente a esta sección">&para;</a></h3>
+<h4 id="for-institutional-email">For Institutional Email:<a class="headerlink" href="#for-institutional-email" title="Enlace permanente a esta sección">&para;</a></h4>
+<ol>
+<li>
+<p><strong>Draft Request Email</strong> to IT Support:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Subject: Solicitud de Configuración SMTP para Sistema de Laboratorio
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>Estimados,
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>El Laboratorio de Anatomía Patológica de la Facultad de Ciencias 
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>Veterinarias está implementando un sistema informático para la gestión 
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>de muestras y resultados.
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>Necesitamos configurar el envío de emails automáticos para:
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>- Verificación de cuentas de veterinarios
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>- Notificaciones de resultados listos
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>- Envío de informes histopatológicos
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>- Recuperación de contraseñas
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>Volumen estimado: 200-500 emails mensuales
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>Solicitamos:
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>1. Dirección de email: laboratorio@fcv.unl.edu.ar (o similar)
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>2. Credenciales SMTP (servidor, puerto, usuario, contraseña)
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>3. Configuración SPF/DKIM si es posible
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>¿Podrían asistirnos con esta configuración?
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>Saludos cordiales,
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>[Your Name]
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>Laboratorio de Anatomía Patológica - FCV UNL
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Wait for Response</strong> (typically 1-3 business days)</p>
+</li>
+<li>
+<p><strong>Receive Credentials</strong>:</p>
+</li>
+<li>SMTP server (e.g., smtp.unl.edu.ar)</li>
+<li>Port (587 or 465)</li>
+<li>Username (e.g., laboratorio@fcv.unl.edu.ar)</li>
+<li>Password (secure password)</li>
+<li>TLS/SSL settings</li>
+</ol>
+<h4 id="for-sendgrid-alternative">For SendGrid (Alternative):<a class="headerlink" href="#for-sendgrid-alternative" title="Enlace permanente a esta sección">&para;</a></h4>
+<ol>
+<li>Go to https://sendgrid.com/</li>
+<li>Sign up with your email</li>
+<li>Verify your email address</li>
+<li>Navigate to Settings → API Keys</li>
+<li>Create API Key with "Mail Send" permissions</li>
+<li>Copy API key (shown only once!)</li>
+<li>(Recommended) Verify domain in Sender Authentication</li>
+</ol>
+<hr />
+<h3 id="phase-2-update-configuration">Phase 2: Update Configuration<a class="headerlink" href="#phase-2-update-configuration" title="Enlace permanente a esta sección">&para;</a></h3>
+<h4 id="step-1-update-env-file">Step 1: Update .env File<a class="headerlink" href="#step-1-update-env-file" title="Enlace permanente a esta sección">&para;</a></h4>
+<p>Open <code>.env</code> file and update email settings:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># ==============================================================================</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># EMAIL CONFIGURATION - PRODUCTION</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># ==============================================================================</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># Switch from console to SMTP backend</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="nv">EMAIL_BACKEND</span><span class="o">=</span>django.core.mail.backends.smtp.EmailBackend
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1"># SMTP Server Configuration (update with your credentials)</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="nv">EMAIL_HOST</span><span class="o">=</span>smtp.unl.edu.ar
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="nv">EMAIL_PORT</span><span class="o">=</span><span class="m">587</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="nv">EMAIL_HOST_USER</span><span class="o">=</span>laboratorio@fcv.unl.edu.ar
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="nv">EMAIL_HOST_PASSWORD</span><span class="o">=</span>your_secure_password_here
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="nv">EMAIL_USE_TLS</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="nv">EMAIL_USE_SSL</span><span class="o">=</span><span class="nb">false</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="c1"># Sender Information</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="nv">DEFAULT_FROM_EMAIL</span><span class="o">=</span>laboratorio@fcv.unl.edu.ar
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="nv">SERVER_EMAIL</span><span class="o">=</span>laboratorio@fcv.unl.edu.ar
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="c1"># Optional: Timeout (seconds)</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="nv">EMAIL_TIMEOUT</span><span class="o">=</span><span class="m">10</span>
+</span></code></pre></div>
+<h4 id="step-2-verify-env-is-not-in-git">Step 2: Verify .env is Not in Git<a class="headerlink" href="#step-2-verify-env-is-not-in-git" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Check .gitignore includes .env</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>cat<span class="w"> </span>.gitignore<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;\.env&quot;</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Should output: .env</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># If not, add it:</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;.env&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
+</span></code></pre></div>
+<h4 id="step-3-update-production-environment">Step 3: Update Production Environment<a class="headerlink" href="#step-3-update-production-environment" title="Enlace permanente a esta sección">&para;</a></h4>
+<p>For production deployment, ensure environment variables are set in:
+- Docker Compose production file
+- Environment secrets (if using CI/CD)
+- Server environment configuration</p>
+<hr />
+<h3 id="phase-3-testing">Phase 3: Testing<a class="headerlink" href="#phase-3-testing" title="Enlace permanente a esta sección">&para;</a></h3>
+<h4 id="test-1-basic-email-sending">Test 1: Basic Email Sending<a class="headerlink" href="#test-1-basic-email-sending" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>web<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>shell
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>from<span class="w"> </span>django.core.mail<span class="w"> </span>import<span class="w"> </span>send_mail
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>send_mail<span class="o">(</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nv">subject</span><span class="o">=</span><span class="s1">&#39;Test Email - AdLab System&#39;</span>,
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="nv">message</span><span class="o">=</span><span class="s1">&#39;This is a test email from the laboratory system.&#39;</span>,
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="nv">from_email</span><span class="o">=</span><span class="s1">&#39;laboratorio@fcv.unl.edu.ar&#39;</span>,
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nv">recipient_list</span><span class="o">=[</span><span class="s1">&#39;your-test-email@example.com&#39;</span><span class="o">]</span>,
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nv">fail_silently</span><span class="o">=</span>False,
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="o">)</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="c1"># Should complete without errors</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>print<span class="o">(</span><span class="s1">&#39;✅ Email sent successfully!&#39;</span><span class="o">)</span>
+</span></code></pre></div>
+<h4 id="test-2-html-email-like-verification-emails">Test 2: HTML Email (Like Verification Emails)<a class="headerlink" href="#test-2-html-email-like-verification-emails" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>from<span class="w"> </span>django.core.mail<span class="w"> </span>import<span class="w"> </span>EmailMultiAlternatives
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nv">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>EmailMultiAlternatives<span class="o">(</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nv">subject</span><span class="o">=</span><span class="s1">&#39;Test HTML Email - AdLab&#39;</span>,
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="nv">body</span><span class="o">=</span><span class="s1">&#39;Plain text version of the email.&#39;</span>,
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="nv">from_email</span><span class="o">=</span><span class="s1">&#39;laboratorio@fcv.unl.edu.ar&#39;</span>,
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nv">to</span><span class="o">=[</span><span class="s1">&#39;your-test-email@example.com&#39;</span><span class="o">]</span>,
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="o">)</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="nv">html_content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;&#39;</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="s1">&lt;html&gt;</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="s1">&lt;body&gt;</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="s1">    &lt;h2 style=&quot;color: #2563eb;&quot;&gt;Test Email&lt;/h2&gt;</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="s1">    &lt;p&gt;This is an &lt;strong&gt;HTML&lt;/strong&gt; test email.&lt;/p&gt;</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="s1">    &lt;p&gt;If you can read this with formatting, HTML emails work!&lt;/p&gt;</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="s1">&lt;/body&gt;</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="s1">&lt;/html&gt;</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="s1">&#39;&#39;&#39;</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>email.attach_alternative<span class="o">(</span>html_content,<span class="w"> </span><span class="s2">&quot;text/html&quot;</span><span class="o">)</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>email.send<span class="o">()</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>print<span class="o">(</span><span class="s1">&#39;✅ HTML email sent!&#39;</span><span class="o">)</span>
+</span></code></pre></div>
+<h4 id="test-3-email-with-attachment-like-reports">Test 3: Email with Attachment (Like Reports)<a class="headerlink" href="#test-3-email-with-attachment-like-reports" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>from<span class="w"> </span>django.core.mail<span class="w"> </span>import<span class="w"> </span>EmailMessage
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nv">email</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>EmailMessage<span class="o">(</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nv">subject</span><span class="o">=</span><span class="s1">&#39;Test Email with Attachment&#39;</span>,
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="nv">body</span><span class="o">=</span><span class="s1">&#39;This email has a test attachment.&#39;</span>,
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nv">from_email</span><span class="o">=</span><span class="s1">&#39;laboratorio@fcv.unl.edu.ar&#39;</span>,
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nv">to</span><span class="o">=[</span><span class="s1">&#39;your-test-email@example.com&#39;</span><span class="o">]</span>,
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="o">)</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="c1"># Create a simple test file</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>email.attach<span class="o">(</span><span class="s1">&#39;test.txt&#39;</span>,<span class="w"> </span><span class="s1">&#39;This is a test attachment content.&#39;</span>,<span class="w"> </span><span class="s1">&#39;text/plain&#39;</span><span class="o">)</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>email.send<span class="o">()</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>print<span class="o">(</span><span class="s1">&#39;✅ Email with attachment sent!&#39;</span><span class="o">)</span>
+</span></code></pre></div>
+<h4 id="test-4-verify-email-templates">Test 4: Verify Email Templates<a class="headerlink" href="#test-4-verify-email-templates" title="Enlace permanente a esta sección">&para;</a></h4>
+<p>Test actual system emails:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Test password reset email</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>from<span class="w"> </span>accounts.models<span class="w"> </span>import<span class="w"> </span>User
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>from<span class="w"> </span>django.test.utils<span class="w"> </span>import<span class="w"> </span>override_settings
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nv">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>User.objects.first<span class="o">()</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1"># Trigger password reset</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Check inbox for formatted email</span>
+</span></code></pre></div>
+<h4 id="test-5-multiple-recipients">Test 5: Multiple Recipients<a class="headerlink" href="#test-5-multiple-recipients" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>send_mail<span class="o">(</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="nv">subject</span><span class="o">=</span><span class="s1">&#39;Test Multiple Recipients&#39;</span>,
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nv">message</span><span class="o">=</span><span class="s1">&#39;Testing multiple recipients.&#39;</span>,
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nv">from_email</span><span class="o">=</span><span class="s1">&#39;laboratorio@fcv.unl.edu.ar&#39;</span>,
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="nv">recipient_list</span><span class="o">=[</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">        </span><span class="s1">&#39;recipient1@example.com&#39;</span>,
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">        </span><span class="s1">&#39;recipient2@example.com&#39;</span>,
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">        </span><span class="s1">&#39;recipient3@example.com&#39;</span>,
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">    </span><span class="o">]</span>,
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="o">)</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>print<span class="o">(</span><span class="s1">&#39;✅ Multiple recipient email sent!&#39;</span><span class="o">)</span>
+</span></code></pre></div>
+<hr />
+<h3 id="phase-4-monitoring-validation">Phase 4: Monitoring &amp; Validation<a class="headerlink" href="#phase-4-monitoring-validation" title="Enlace permanente a esta sección">&para;</a></h3>
+<h4 id="check-email-logs">Check Email Logs<a class="headerlink" href="#check-email-logs" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># View Django logs for email sending</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>web<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>email
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Look for:</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># - &quot;Email sent successfully&quot;</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1"># - Any SMTP errors</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># - Connection issues</span>
+</span></code></pre></div>
+<h4 id="monitor-deliverability">Monitor Deliverability<a class="headerlink" href="#monitor-deliverability" title="Enlace permanente a esta sección">&para;</a></h4>
+<p><strong>Check Inbox</strong>:
+- ✅ Email received
+- ✅ Not in spam folder
+- ✅ HTML renders correctly
+- ✅ Links work
+- ✅ Attachments open correctly</p>
+<p><strong>Test Different Email Providers</strong>:
+- Gmail
+- Outlook/Hotmail
+- Yahoo Mail
+- Institutional emails</p>
+<p><strong>Check Spam Score</strong> (optional):
+- Use Mail-Tester.com
+- Send test email to check@mail-tester.com
+- Review spam score (aim for 9-10/10)</p>
+<hr />
+<h2 id="security-best-practices">Security Best Practices<a class="headerlink" href="#security-best-practices" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="1-secure-credential-storage">1. Secure Credential Storage<a class="headerlink" href="#1-secure-credential-storage" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># NEVER commit credentials to git</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1"># Always use environment variables</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Good ✅</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="nv">EMAIL_HOST_PASSWORD</span><span class="o">=</span><span class="si">${</span><span class="nv">EMAIL_HOST_PASSWORD</span><span class="si">}</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Bad ❌ (hardcoded in code)</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="nv">EMAIL_HOST_PASSWORD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;mypassword123&quot;</span>
+</span></code></pre></div>
+<h3 id="2-file-permissions">2. File Permissions<a class="headerlink" href="#2-file-permissions" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Ensure .env file is not readable by others</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>.env
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Check permissions</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>ls<span class="w"> </span>-la<span class="w"> </span>.env
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="c1"># Should show: -rw------- (only owner can read/write)</span>
+</span></code></pre></div>
+<h3 id="3-rotate-credentials">3. Rotate Credentials<a class="headerlink" href="#3-rotate-credentials" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Change email password every 3-6 months</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="c1"># Update .env file</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="c1"># Restart services</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>docker<span class="w"> </span>compose<span class="w"> </span>restart<span class="w"> </span>web
+</span></code></pre></div>
+<h3 id="4-use-strong-passwords">4. Use Strong Passwords<a class="headerlink" href="#4-use-strong-passwords" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Generate strong password</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>openssl<span class="w"> </span>rand<span class="w"> </span>-base64<span class="w"> </span><span class="m">32</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Or use password manager</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="c1"># Minimum 16 characters, random</span>
+</span></code></pre></div>
+<h3 id="5-enable-2fa">5. Enable 2FA<a class="headerlink" href="#5-enable-2fa" title="Enlace permanente a esta sección">&para;</a></h3>
+<p>If using SendGrid, Gmail, or AWS:
+- Enable two-factor authentication on account
+- Use API keys instead of passwords where possible</p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="problem-connection-refused">Problem: Connection Refused<a class="headerlink" href="#problem-connection-refused" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Symptoms</strong>: 
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Connection refused at smtp.server.com:587
+</span></code></pre></div></p>
+<p><strong>Solutions</strong>:
+1. Verify EMAIL_HOST and EMAIL_PORT are correct
+2. Check firewall allows outbound connections to port 587
+3. Try alternative port (25, 465, 587, 2525)
+4. Check server is accessible: <code>telnet smtp.server.com 587</code></p>
+<hr />
+<h3 id="problem-authentication-failed">Problem: Authentication Failed<a class="headerlink" href="#problem-authentication-failed" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Symptoms</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>535 Authentication failed
+</span></code></pre></div></p>
+<p><strong>Solutions</strong>:
+1. Verify EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
+2. For Gmail: Use App Password, not regular password
+3. Check if account requires 2FA
+4. Verify account is not locked/disabled</p>
+<hr />
+<h3 id="problem-tlsssl-error">Problem: TLS/SSL Error<a class="headerlink" href="#problem-tlsssl-error" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Symptoms</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>SSL: CERTIFICATE_VERIFY_FAILED
+</span></code></pre></div></p>
+<p><strong>Solutions</strong>:
+1. For port 587: Set EMAIL_USE_TLS=true, EMAIL_USE_SSL=false
+2. For port 465: Set EMAIL_USE_TLS=false, EMAIL_USE_SSL=true
+3. Check server supports TLS/SSL on that port</p>
+<hr />
+<h3 id="problem-emails-go-to-spam">Problem: Emails Go to Spam<a class="headerlink" href="#problem-emails-go-to-spam" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Solutions</strong>:
+1. Use institutional/verified domain
+2. Set up SPF record: <code>v=spf1 include:_spf.google.com ~all</code>
+3. Set up DKIM signing (ask IT department)
+4. Set up DMARC policy
+5. Avoid spam trigger words in subject/body
+6. Use professional email service (not Gmail)
+7. Request domain verification from email provider</p>
+<hr />
+<h3 id="problem-timeout">Problem: Timeout<a class="headerlink" href="#problem-timeout" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Symptoms</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>SMTPServerDisconnected: Connection unexpectedly closed
+</span></code></pre></div></p>
+<p><strong>Solutions</strong>:
+1. Increase EMAIL_TIMEOUT setting (default: 10 seconds)
+2. Check network connectivity
+3. Verify server is responsive
+4. Try different EMAIL_HOST if available</p>
+<hr />
+<h2 id="success-metrics">Success Metrics<a class="headerlink" href="#success-metrics" title="Enlace permanente a esta sección">&para;</a></h2>
+<p>After configuration, monitor these metrics:</p>
+<h3 id="email-delivery-rate">Email Delivery Rate<a class="headerlink" href="#email-delivery-rate" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Target</strong>: &gt;98%<br />
+<strong>Measure</strong>: Successful sends / Total attempts</p>
+<h3 id="email-open-rate-if-using-sendgrid">Email Open Rate (if using SendGrid)<a class="headerlink" href="#email-open-rate-if-using-sendgrid" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Target</strong>: &gt;40%<br />
+<strong>Measure</strong>: Opened emails / Delivered emails</p>
+<h3 id="spam-rate">Spam Rate<a class="headerlink" href="#spam-rate" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Target</strong>: &lt;1%<br />
+<strong>Measure</strong>: Spam reports / Delivered emails</p>
+<h3 id="response-time">Response Time<a class="headerlink" href="#response-time" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Target</strong>: &lt;5 seconds<br />
+<strong>Measure</strong>: Time from trigger to email sent</p>
+<h3 id="bounce-rate">Bounce Rate<a class="headerlink" href="#bounce-rate" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Target</strong>: &lt;2%<br />
+<strong>Measure</strong>: Bounced emails / Total sent</p>
+<hr />
+<h2 id="cost-analysis">Cost Analysis<a class="headerlink" href="#cost-analysis" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="estimated-email-volume-for-laboratory">Estimated Email Volume for Laboratory<a class="headerlink" href="#estimated-email-volume-for-laboratory" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>Monthly Email Breakdown</strong>:
+- New veterinarian registrations: ~20-50 emails
+- Email verifications (including resends): ~30-70 emails
+- Password resets: ~10-20 emails
+- Sample received notifications: ~50-100 emails
+- Results ready notifications: ~50-100 emails
+- Report delivery emails: ~50-100 emails
+- Miscellaneous notifications: ~20-50 emails</p>
+<p><strong>Total Estimated</strong>: 200-500 emails/month</p>
+<h3 id="cost-comparison">Cost Comparison<a class="headerlink" href="#cost-comparison" title="Enlace permanente a esta sección">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Monthly Cost</th>
+<th>Emails Included</th>
+<th>Cost Per Email</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Institutional (UNL)</strong></td>
+<td><strong>FREE</strong></td>
+<td>Unlimited*</td>
+<td>$0.00</td>
+</tr>
+<tr>
+<td><strong>SendGrid Free</strong></td>
+<td><strong>FREE</strong></td>
+<td>3,000</td>
+<td>$0.00</td>
+</tr>
+<tr>
+<td>SendGrid Essentials</td>
+<td>$15</td>
+<td>50,000</td>
+<td>$0.0003</td>
+</tr>
+<tr>
+<td>Amazon SES</td>
+<td>~$0.05</td>
+<td>500</td>
+<td>$0.0001</td>
+</tr>
+<tr>
+<td>Gmail</td>
+<td>FREE</td>
+<td>15,000</td>
+<td>$0.00 (not recommended)</td>
+</tr>
+</tbody>
+</table>
+<p>*Within reasonable limits</p>
+<p><strong>Recommendation</strong>: Start with FREE options (institutional or SendGrid free tier). You're well within free limits for foreseeable future.</p>
+<hr />
+<h2 id="deployment-checklist">Deployment Checklist<a class="headerlink" href="#deployment-checklist" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="before-production-deployment">Before Production Deployment<a class="headerlink" href="#before-production-deployment" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Email credentials obtained (institutional or SendGrid)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> .env file updated with production SMTP settings</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> .env file not in git (verify .gitignore)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Email sending tested successfully</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> HTML emails render correctly in test inboxes</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Emails not going to spam</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Email attachments work (test with PDF)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Multiple recipients tested</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> SPF/DKIM configured (if institutional)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Domain verified (if using SendGrid)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Monitoring/logging configured</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Error handling tested (what happens if email fails?)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Credentials stored securely in production environment</li>
+</ul>
+<h3 id="production-validation">Production Validation<a class="headerlink" href="#production-validation" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Send test verification email to real veterinarian</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Send test password reset email</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Send test notification email</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify all emails arrive within 1 minute</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Check spam folders</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Test from different email clients (Gmail, Outlook)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Test on mobile devices</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Monitor logs for first 24 hours</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Have rollback plan ready (can revert to console backend)</li>
+</ul>
+<hr />
+<h2 id="rollback-plan">Rollback Plan<a class="headerlink" href="#rollback-plan" title="Enlace permanente a esta sección">&para;</a></h2>
+<p>If email sending fails in production:</p>
+<h3 id="step-1-identify-issue">Step 1: Identify Issue<a class="headerlink" href="#step-1-identify-issue" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Check logs</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>web<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>email<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-50
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># Common issues:</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c1"># - Authentication failed</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="c1"># - Connection timeout</span>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="c1"># - Invalid credentials</span>
+</span></code></pre></div>
+<h3 id="step-2-temporary-fallback-if-critical">Step 2: Temporary Fallback (if critical)<a class="headerlink" href="#step-2-temporary-fallback-if-critical" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Revert to console backend temporarily</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="c1"># Edit .env:</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="nv">EMAIL_BACKEND</span><span class="o">=</span>django.core.mail.backends.console.EmailBackend
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="c1"># Restart services</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>docker<span class="w"> </span>compose<span class="w"> </span>restart<span class="w"> </span>web
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="c1"># Note: Emails will print to logs but not send</span>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="c1"># Gives you time to fix the issue</span>
+</span></code></pre></div>
+<h3 id="step-3-fix-and-redeploy">Step 3: Fix and Redeploy<a class="headerlink" href="#step-3-fix-and-redeploy" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Fix configuration</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="c1"># Update .env with correct settings</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="nv">EMAIL_BACKEND</span><span class="o">=</span>django.core.mail.backends.smtp.EmailBackend
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="c1"># Restart</span>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>docker<span class="w"> </span>compose<span class="w"> </span>restart<span class="w"> </span>web
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="c1"># Test immediately</span>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>web<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>shell
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="c1"># ... test email sending ...</span>
+</span></code></pre></div>
+<hr />
+<h2 id="alternative-asynchronous-email-with-celery">Alternative: Asynchronous Email with Celery<a class="headerlink" href="#alternative-asynchronous-email-with-celery" title="Enlace permanente a esta sección">&para;</a></h2>
+<p>For better performance (especially with attachments), consider sending emails asynchronously using Celery (already configured in your system).</p>
+<h3 id="benefits">Benefits:<a class="headerlink" href="#benefits" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>✅ Non-blocking - User doesn't wait for email to send</li>
+<li>✅ Retry logic - Automatically retry failed emails</li>
+<li>✅ Better error handling</li>
+<li>✅ Can batch emails</li>
+</ul>
+<h3 id="implementation-future-enhancement">Implementation (Future Enhancement):<a class="headerlink" href="#implementation-future-enhancement" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Create celery task</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">celery</span><span class="w"> </span><span class="kn">import</span> <span class="n">shared_task</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.core.mail</span><span class="w"> </span><span class="kn">import</span> <span class="n">send_mail</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="nd">@shared_task</span>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">send_email_async</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">from_email</span><span class="p">,</span> <span class="n">recipient_list</span><span class="p">):</span>
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>    <span class="n">send_mail</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">from_email</span><span class="p">,</span> <span class="n">recipient_list</span><span class="p">)</span>
+</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>
+</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="c1"># Use in views</span>
+</span><span id="__span-24-10"><a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="n">send_email_async</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span>
+</span><span id="__span-24-11"><a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>    <span class="s1">&#39;Subject&#39;</span><span class="p">,</span>
+</span><span id="__span-24-12"><a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>    <span class="s1">&#39;Message&#39;</span><span class="p">,</span>
+</span><span id="__span-24-13"><a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a>    <span class="s1">&#39;from@example.com&#39;</span><span class="p">,</span>
+</span><span id="__span-24-14"><a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>    <span class="p">[</span><span class="s1">&#39;to@example.com&#39;</span><span class="p">]</span>
+</span><span id="__span-24-15"><a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Note</strong>: This is an optional enhancement for Step 13 if needed.</p>
+<hr />
+<h2 id="documentation-references">Documentation References<a class="headerlink" href="#documentation-references" title="Enlace permanente a esta sección">&para;</a></h2>
+<ul>
+<li>Django Email Documentation: https://docs.djangoproject.com/en/5.2/topics/email/</li>
+<li>SendGrid Django Guide: https://docs.sendgrid.com/for-developers/sending-email/django</li>
+<li>Amazon SES with Django: https://docs.aws.amazon.com/ses/latest/dg/send-email-smtp.html</li>
+<li>EMAIL_CONFIGURATION_GUIDE.md (detailed setup guide in project root)</li>
+</ul>
+<hr />
+<h2 id="acceptance-criteria">Acceptance Criteria<a class="headerlink" href="#acceptance-criteria" title="Enlace permanente a esta sección">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Email provider selected and credentials obtained</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Production SMTP configured in .env file</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Test emails delivered successfully (&gt;98% rate)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ HTML emails render correctly in major email clients</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Emails not going to spam (&lt;1% spam rate)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Email attachments work (tested with PDF)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Credentials stored securely (not in git)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Monitoring/logging configured</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Error handling tested</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Rollback plan documented and tested</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> ✅ Team trained on email configuration</li>
+</ul>
+<hr />
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="must-be-completed-first">Must be completed first:<a class="headerlink" href="#must-be-completed-first" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Step 01: Authentication &amp; User Management (uses password reset emails)</li>
+<li>Step 01.1: Email Verification (requires email sending)</li>
+<li>Step 06: Report Generation (may send reports via email)</li>
+<li>Step 08: Email Notifications (requires email sending)</li>
+</ul>
+<h3 id="blocks-these-steps">Blocks these steps:<a class="headerlink" href="#blocks-these-steps" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Production deployment (cannot deploy without email)</li>
+<li>User acceptance testing with real veterinarians</li>
+</ul>
+<hr />
+<h2 id="estimated-effort">Estimated Effort<a class="headerlink" href="#estimated-effort" title="Enlace permanente a esta sección">&para;</a></h2>
+<p><strong>Time</strong>: 1-3 days</p>
+<p><strong>Breakdown</strong>:
+- Obtaining credentials (institutional): 1-2 days (waiting for IT)
+- Configuration and testing: 2-4 hours
+- Troubleshooting and validation: 2-4 hours
+- Documentation and team training: 1-2 hours</p>
+<p><strong>Note</strong>: If using SendGrid or similar service instead of institutional email, can be completed in 1-2 hours.</p>
+<hr />
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Enlace permanente a esta sección">&para;</a></h2>
+<ul>
+<li>Email configuration should be one of the <strong>last steps</strong> before production</li>
+<li>Test thoroughly with real email addresses</li>
+<li>Keep console backend for development/staging environments</li>
+<li>Consider using different email providers for different environments (dev/staging/prod)</li>
+<li>Monitor delivery rates closely in first week of production</li>
+<li>Have IT department contact info ready for troubleshooting</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: 📝 Documented - To be implemented before production deployment<br />
+<strong>Priority</strong>: HIGH (required for production)<br />
+<strong>Risk</strong>: LOW (well-understood technology, multiple fallback options)</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Laboratory Management System
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="/" target="_blank" rel="noopener" title="Inicio del Sistema" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1v16.2c0 22.1-17.9 40-40 40h-16c-1.1 0-2.2 0-3.3-.1-1.4.1-2.8.1-4.2.1L416 512h-24c-22.1 0-40-17.9-40-40v-88c0-17.7-14.3-32-32-32h-64c-17.7 0-32 14.3-32 32v88c0 22.1-17.9 40-40 40h-55.9c-1.5 0-3-.1-4.5-.2-1.2.1-2.4.2-3.6.2h-16c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9.1-2.8v-69.7h-32c-18 0-32-14-32-32.1 0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7l255.4 224.5c8 7 12 15 11 24"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:support@your-lab.com" target="_blank" rel="noopener" title="Contactar Soporte" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l217.6 163.2c11.4 8.5 27 8.5 38.4 0l217.6-163.2c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 176v208c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V176L294.4 339.2a63.9 63.9 0 0 1-76.8 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow", "toc.integrate"], "search": "../../../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../../../../../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+    
+  </body>
+</html>

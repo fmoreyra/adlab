@@ -1,0 +1,2230 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentación completa del sistema de gestión para laboratorios de patología veterinaria">
+      
+      
+        <meta name="author" content="Laboratory Development Team">
+      
+      
+        <link rel="canonical" href="https://your-lab-domain.com/docs/internal/archive/development-steps/STEP_02_COMPLETE/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.40">
+    
+    
+      
+        <title>Step 02: Veterinarian Registration & Profiles - COMPLETE ✅ - Sistema de Gestión de Laboratorio</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#step-02-veterinarian-registration-profiles-complete" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../../../.." title="Sistema de Gestión de Laboratorio" class="md-header__button md-logo" aria-label="Sistema de Gestión de Laboratorio" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Sistema de Gestión de Laboratorio
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Step 02: Veterinarian Registration &amp; Profiles - COMPLETE ✅
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartir" aria-label="Compartir" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../getting-started/system-overview/" class="md-tabs__link">
+          
+  
+    
+  
+  Comenzar
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../user-guides/veterinarians/submitting-protocols/" class="md-tabs__link">
+          
+  
+    
+  
+  Guías de Usuario
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../workflows/complete-sample-journey/" class="md-tabs__link">
+          
+  
+    
+  
+  Procesos
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../common-tasks/password-reset/" class="md-tabs__link">
+          
+  
+    
+  
+  Tareas Comunes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../troubleshooting/common-issues/" class="md-tabs__link">
+          
+  
+    
+  
+  Solución de Problemas
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../" class="md-tabs__link">
+          
+  
+    
+  
+  Documentación Técnica
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="Sistema de Gestión de Laboratorio" class="md-nav__button md-logo" aria-label="Sistema de Gestión de Laboratorio" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Sistema de Gestión de Laboratorio
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Inicio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Comenzar
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Comenzar
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting-started/system-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Resumen del Sistema
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting-started/first-login/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Primer Acceso
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting-started/basic-navigation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Navegación Básica
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Guías de Usuario
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Guías de Usuario
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Veterinarios
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Veterinarios
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/veterinarians/submitting-protocols/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo enviar protocolos para análisis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/veterinarians/tracking-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo seguir el progreso de tus muestras
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/veterinarians/accessing-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo ver y descargar informes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/veterinarians/creating-work-orders/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cómo crear órdenes de trabajo
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Histopatólogos
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Histopatólogos
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/histopathologists/analyzing-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Análisis de Muestras para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/histopathologists/creating-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Creación de Informes para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/histopathologists/quality-control/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Control de Calidad para Histopatólogos
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Personal de Laboratorio
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Personal de Laboratorio
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/lab-staff/receiving-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Recibir Muestras - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/lab-staff/processing-samples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Procesar Muestras - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/lab-staff/managing-inventory/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Gestionar Inventario - Personal de Laboratorio
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Administradores
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Administradores
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/administrators/managing-users/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Gestionar Usuarios - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/administrators/system-settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía de Configuración del Sistema - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../user-guides/administrators/monitoring-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guía para Monitorear el Sistema - Administradores
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Procesos
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Procesos
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../workflows/complete-sample-journey/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Viaje de la Muestra
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../workflows/daily-operations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Operaciones Diarias
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../workflows/emergency-procedures/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Procedimientos de Emergencia
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tareas Comunes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Tareas Comunes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../common-tasks/password-reset/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cambiar Contraseña
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../common-tasks/email-notifications/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notificaciones Email
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../common-tasks/printing-labels/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Imprimir Etiquetas
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../common-tasks/downloading-reports/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Descargar Informes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Solución de Problemas
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Solución de Problemas
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../troubleshooting/common-issues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Problemas Comunes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../troubleshooting/faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Preguntas Frecuentes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../troubleshooting/contact-support/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contactar Soporte
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Documentación Técnica
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Documentación Técnica
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../README.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Proyecto
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../IDE_SETUP/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuración IDE
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="step-02-veterinarian-registration-profiles-complete">Step 02: Veterinarian Registration &amp; Profiles - COMPLETE ✅<a class="headerlink" href="#step-02-veterinarian-registration-profiles-complete" title="Enlace permanente a esta sección">&para;</a></h1>
+<p><strong>Date</strong>: October 11, 2025<br />
+<strong>Status</strong>: ✅ Fully Implemented &amp; Tested<br />
+<strong>Tests</strong>: 25/25 Passing (100%)<br />
+<strong>Migration</strong>: Applied Successfully</p>
+<hr />
+<h2 id="implementation-summary">📋 Implementation Summary<a class="headerlink" href="#implementation-summary" title="Enlace permanente a esta sección">&para;</a></h2>
+<p>Step 02 implements a comprehensive veterinarian profile management system with professional credentials, address information, and complete audit trail. Veterinarians can maintain their profile information including license number (matrícula), contact details, and address for proper identification, communication, and billing purposes.</p>
+<hr />
+<h2 id="what-was-implemented">✨ What Was Implemented<a class="headerlink" href="#what-was-implemented" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="database-changes">🗄️ Database Changes<a class="headerlink" href="#database-changes" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>New Models</strong>:</p>
+<ol>
+<li><strong>Veterinarian Model</strong> - Professional profile information</li>
+<li>User (One-to-One with User model)</li>
+<li>first_name, last_name (VARCHAR 100)</li>
+<li>license_number (VARCHAR 50, UNIQUE, indexed) - Professional license (matrícula)</li>
+<li>phone (VARCHAR 50) - Argentine format validation</li>
+<li>email (VARCHAR 255) - Denormalized for quick access</li>
+<li>is_verified (BOOLEAN) - Admin verification status</li>
+<li>verified_by, verified_at, verification_notes - Verification metadata</li>
+<li>
+<p>Timestamps: created_at, updated_at</p>
+</li>
+<li>
+<p><strong>Address Model</strong> - Address information for veterinarians</p>
+</li>
+<li>veterinarian (One-to-One with Veterinarian)</li>
+<li>province, locality (required, VARCHAR 100, indexed)</li>
+<li>street, number (required, VARCHAR 200/20)</li>
+<li>floor, apartment, postal_code (optional, VARCHAR 10/10/20)</li>
+<li>notes (TEXT, optional)</li>
+<li>
+<p>Timestamps: created_at, updated_at</p>
+</li>
+<li>
+<p><strong>VeterinarianChangeLog Model</strong> - Audit trail for profile changes</p>
+</li>
+<li>veterinarian (ForeignKey)</li>
+<li>changed_by (ForeignKey to User)</li>
+<li>field_name, old_value, new_value</li>
+<li>changed_at (auto timestamp)</li>
+<li>ip_address (optional)</li>
+</ol>
+<p><strong>Migration</strong>: <code>0003_veterinarian_address_veterinarianchangelog_and_more.py</code>
+- ✅ Applied successfully to database
+- ✅ All indexes created properly
+- ✅ Foreign key relationships established</p>
+<h3 id="core-functionality">🎯 Core Functionality<a class="headerlink" href="#core-functionality" title="Enlace permanente a esta sección">&para;</a></h3>
+<h4 id="1-veterinarian-model-methods">1. Veterinarian Model Methods<a class="headerlink" href="#1-veterinarian-model-methods" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Get full name</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">veterinarian</span><span class="o">.</span><span class="n">get_full_name</span><span class="p">()</span>  <span class="c1"># Returns &quot;First Last&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Verify veterinarian credentials</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">veterinarian</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">verified_by_user</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Sets is_verified=True, records who verified and when</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Check profile completeness</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">veterinarian</span><span class="o">.</span><span class="n">profile_completeness</span>  <span class="c1"># Returns 0-100%</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Includes veterinarian fields + address fields</span>
+</span></code></pre></div>
+<h4 id="2-address-model-methods">2. Address Model Methods<a class="headerlink" href="#2-address-model-methods" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Get formatted address</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">address</span><span class="o">.</span><span class="n">get_full_address</span><span class="p">()</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Returns: &quot;Street 1234, Floor 2, Apt A, Locality, Province (PostalCode)&quot;</span>
+</span></code></pre></div>
+<h4 id="3-change-log-tracking">3. Change Log Tracking<a class="headerlink" href="#3-change-log-tracking" title="Enlace permanente a esta sección">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Log a change</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">VeterinarianChangeLog</span><span class="o">.</span><span class="n">log_change</span><span class="p">(</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">veterinarian</span><span class="o">=</span><span class="n">vet</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">changed_by</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;phone&quot;</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">old_value</span><span class="o">=</span><span class="s2">&quot;+54 342 1111111&quot;</span><span class="p">,</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">new_value</span><span class="o">=</span><span class="s2">&quot;+54 342 9999999&quot;</span><span class="p">,</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">ip_address</span><span class="o">=</span><span class="s2">&quot;127.0.0.1&quot;</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="forms">📝 Forms<a class="headerlink" href="#forms" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>1. VeterinarianProfileForm</strong> - Edit veterinarian basic info
+   - Validates license number format (XX-XXXXX or XXX-XXXXX)
+   - Validates phone format (+54 XXX XXXXXXX)
+   - Checks license number uniqueness
+   - Checks email uniqueness</p>
+<p><strong>2. AddressForm</strong> - Edit address information
+   - All standard address fields
+   - Tailwind CSS styling</p>
+<p><strong>3. VeterinarianProfileCompleteForm</strong> - Combined form for initial profile creation
+   - Includes both veterinarian and address fields
+   - Used during first-time profile completion
+   - Validates all fields
+   - Creates both veterinarian and address records atomically</p>
+<h3 id="views-urls">🌐 Views &amp; URLs<a class="headerlink" href="#views-urls" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>New Views</strong>:</p>
+<ol>
+<li><code>complete_profile_view()</code> - <code>/accounts/veterinarian/complete-profile/</code></li>
+<li>First-time profile completion after registration</li>
+<li>Only accessible to veterinarians</li>
+<li>Redirects if profile already exists</li>
+<li>
+<p>Creates Veterinarian + Address</p>
+</li>
+<li>
+<p><code>veterinarian_profile_detail_view()</code> - <code>/accounts/veterinarian/profile/</code></p>
+</li>
+<li>View complete profile information</li>
+<li>Shows professional info + address</li>
+<li>Shows verification status</li>
+<li>
+<p>Displays profile completeness percentage</p>
+</li>
+<li>
+<p><code>veterinarian_profile_edit_view()</code> - <code>/accounts/veterinarian/profile/edit/</code></p>
+</li>
+<li>Edit profile and address</li>
+<li>Tracks changes with VeterinarianChangeLog</li>
+<li>Validates all fields</li>
+<li>
+<p>Records IP address for audit</p>
+</li>
+<li>
+<p><code>veterinarian_profile_history_view()</code> - <code>/accounts/veterinarian/profile/history/</code></p>
+</li>
+<li>View all profile changes (last 50)</li>
+<li>Shows field name, old/new values</li>
+<li>Shows who made the change and when</li>
+<li>Shows IP address</li>
+</ol>
+<h3 id="templates-tailwind-css">🎨 Templates (Tailwind CSS)<a class="headerlink" href="#templates-tailwind-css" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>1. <code>complete_profile.html</code></strong> - Profile completion form
+   - Professional and modern design
+   - Two-section layout (Professional Info + Address)
+   - Clear field validation errors
+   - Help text for special fields</p>
+<p><strong>2. <code>veterinarian_profile_detail.html</code></strong> - Profile view
+   - Clean information display
+   - Profile completeness badge
+   - Verification status badge
+   - Quick access to edit and history</p>
+<p><strong>3. <code>veterinarian_profile_edit.html</code></strong> - Profile edit form
+   - Same layout as completion form
+   - Pre-filled with existing data
+   - Warning about audit logging</p>
+<p><strong>4. <code>veterinarian_profile_history.html</code></strong> - Change history
+   - Timeline-style display
+   - Color-coded change items
+   - Old → New value comparison
+   - Metadata (who, when, from where)</p>
+<h3 id="django-admin-enhancements">👨‍💼 Django Admin Enhancements<a class="headerlink" href="#django-admin-enhancements" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>VeterinarianAdmin</strong>:
+- List display: license_number, name, email, phone, is_verified, created_at
+- Search: license_number, name, email, phone
+- Filters: is_verified, verified_at, created_at
+- Inline: Address + Change logs
+- Actions: 
+  - Verify veterinarians (bulk)
+  - Unverify veterinarians (bulk)
+- Profile completeness display
+- Manual creation disabled (must register via UI)</p>
+<p><strong>AddressAdmin</strong>:
+- List display: veterinarian, street, number, locality, province
+- Search: veterinarian fields, address fields
+- Filters: province, locality
+- Read-only veterinarian field
+- Manual creation disabled</p>
+<p><strong>VeterinarianChangeLogAdmin</strong>:
+- List display: changed_at, veterinarian, field_name, changed_by, ip_address
+- Search: veterinarian, field_name, changed_by
+- Filters: changed_at, field_name
+- Completely read-only
+- Manual creation disabled</p>
+<p><strong>Inlines</strong>:
+- AddressInline (in VeterinarianAdmin)
+- VeterinarianChangeLogInline (in VeterinarianAdmin, read-only)</p>
+<h3 id="validation-rules">✅ Validation Rules<a class="headerlink" href="#validation-rules" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>License Number (Matrícula)</strong>:
+- Format: <code>[A-Z]{2,3}-\d{4,6}</code> (e.g., "MP-12345", "MVT-123456")
+- Must be unique across all veterinarians
+- Case-insensitive (automatically uppercased)</p>
+<p><strong>Phone Number</strong>:
+- Format: <code>+54 XXX XXXXXXX</code> (Argentine format)
+- Example: "+54 342 1234567"
+- Strict validation with regex</p>
+<p><strong>Email</strong>:
+- Standard email validation
+- Must be unique across all veterinarians
+- Synchronized with user account email</p>
+<p><strong>Required Fields</strong>:
+- Veterinarian: first_name, last_name, license_number, phone, email
+- Address: province, locality, street, number
+- Optional: floor, apartment, postal_code, notes</p>
+<h3 id="profile-completeness-calculation">📊 Profile Completeness Calculation<a class="headerlink" href="#profile-completeness-calculation" title="Enlace permanente a esta sección">&para;</a></h3>
+<p>Formula: <code>(completed_fields / total_required_fields) * 100</code></p>
+<p>Required fields (9 total):
+- 5 veterinarian fields (first_name, last_name, license_number, phone, email)
+- 4 address fields (province, locality, street, number)</p>
+<p>Examples:
+- All fields filled = 100%
+- No address = 55% (5/9 fields)
+- Missing phone + no address = 44% (4/9 fields)</p>
+<hr />
+<h2 id="testing">✅ Testing<a class="headerlink" href="#testing" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="test-coverage-25-tests-all-passing">Test Coverage: 25 Tests (All Passing ✅)<a class="headerlink" href="#test-coverage-25-tests-all-passing" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>VeterinarianModelTest</strong> (7 tests):
+1. ✅ <code>test_create_veterinarian</code> - Basic creation
+2. ✅ <code>test_veterinarian_str</code> - String representation
+3. ✅ <code>test_get_full_name</code> - Full name method
+4. ✅ <code>test_verify_method</code> - Verification workflow
+5. ✅ <code>test_profile_completeness_full</code> - 100% completeness
+6. ✅ <code>test_profile_completeness_no_address</code> - Partial completeness
+7. ✅ <code>test_license_number_unique</code> - Uniqueness constraint</p>
+<p><strong>AddressModelTest</strong> (3 tests):
+1. ✅ <code>test_create_address</code> - Basic creation
+2. ✅ <code>test_address_str</code> - String representation
+3. ✅ <code>test_get_full_address</code> - Formatted address</p>
+<p><strong>VeterinarianChangeLogTest</strong> (1 test):
+1. ✅ <code>test_log_change</code> - Change logging</p>
+<p><strong>VeterinarianFormTest</strong> (4 tests):
+1. ✅ <code>test_valid_license_number</code> - Valid format
+2. ✅ <code>test_invalid_license_number_format</code> - Invalid format rejection
+3. ✅ <code>test_invalid_phone_format</code> - Invalid phone rejection
+4. ✅ <code>test_duplicate_license_number</code> - Duplicate rejection</p>
+<p><strong>CompleteProfileViewTest</strong> (4 tests):
+1. ✅ <code>test_complete_profile_get</code> - GET request
+2. ✅ <code>test_complete_profile_post_valid</code> - Valid submission
+3. ✅ <code>test_complete_profile_non_veterinarian</code> - Access control
+4. ✅ <code>test_complete_profile_already_complete</code> - Duplicate prevention</p>
+<p><strong>VeterinarianProfileDetailViewTest</strong> (2 tests):
+1. ✅ <code>test_profile_detail_get</code> - View profile
+2. ✅ <code>test_profile_detail_without_profile</code> - Redirect when incomplete</p>
+<p><strong>VeterinarianProfileEditViewTest</strong> (3 tests):
+1. ✅ <code>test_profile_edit_get</code> - GET request
+2. ✅ <code>test_profile_edit_post_valid</code> - Valid update with change logging
+3. ✅ <code>test_profile_edit_invalid_data</code> - Invalid data rejection</p>
+<p><strong>VeterinarianProfileHistoryViewTest</strong> (1 test):
+1. ✅ <code>test_profile_history_get</code> - View change history</p>
+<h3 id="test-execution">Test Execution<a class="headerlink" href="#test-execution" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Run all Step 02 tests</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>web<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>accounts.tests.VeterinarianModelTest<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>accounts.tests.AddressModelTest<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span>accounts.tests.VeterinarianChangeLogTest<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span>accounts.tests.VeterinarianFormTest<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span>accounts.tests.CompleteProfileViewTest<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span>accounts.tests.VeterinarianProfileDetailViewTest<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span>accounts.tests.VeterinarianProfileEditViewTest<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span>accounts.tests.VeterinarianProfileHistoryViewTest
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1"># Result: 25 tests, 0 failures, 0 errors</span>
+</span></code></pre></div>
+<hr />
+<h2 id="security-privacy-features">🔒 Security &amp; Privacy Features<a class="headerlink" href="#security-privacy-features" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="data-privacy">Data Privacy<a class="headerlink" href="#data-privacy" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Veterinarians can only view/edit their own profile</li>
+<li>Lab staff can view all profiles (read-only)</li>
+<li>Only administrators can verify credentials</li>
+<li>Profile data segregated by user</li>
+</ul>
+<h3 id="audit-trail">Audit Trail<a class="headerlink" href="#audit-trail" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>All profile changes logged in VeterinarianChangeLog</li>
+<li>Tracks: what changed, old/new values, who changed it, when, from where</li>
+<li>Immutable log (read-only in admin)</li>
+<li>IP address captured for compliance</li>
+</ul>
+<h3 id="validation-security">Validation Security<a class="headerlink" href="#validation-security" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Server-side validation for all fields</li>
+<li>No trust in client-side data</li>
+<li>SQL injection prevention (ORM)</li>
+<li>Unique constraints enforced at database level</li>
+</ul>
+<h3 id="access-control">Access Control<a class="headerlink" href="#access-control" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><code>@login_required</code> on all profile views</li>
+<li>Role-based access (only veterinarians)</li>
+<li>Profile existence checks</li>
+<li>Proper redirects for unauthorized access</li>
+</ul>
+<hr />
+<h2 id="files-modifiedcreated">📁 Files Modified/Created<a class="headerlink" href="#files-modifiedcreated" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="modified-files-5">Modified Files (5):<a class="headerlink" href="#modified-files-5" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>src/accounts/models.py         (+233 lines) - Added 3 new models
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>src/accounts/forms.py          (+322 lines) - Added 4 new forms
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>src/accounts/views.py          (+212 lines) - Added 4 new views
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>src/accounts/urls.py           (+7 lines) - Added 4 new URL patterns
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>src/accounts/admin.py          (+238 lines) - Added 3 new admin classes
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>src/accounts/tests.py          (+547 lines) - Added 25 new tests
+</span></code></pre></div>
+<h3 id="new-files-5">New Files (5):<a class="headerlink" href="#new-files-5" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>src/accounts/migrations/0003_veterinarian_address_veterinarianchangelog_and_more.py
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>src/accounts/templates/accounts/complete_profile.html
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>src/accounts/templates/accounts/veterinarian_profile_detail.html
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>src/accounts/templates/accounts/veterinarian_profile_edit.html
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>src/accounts/templates/accounts/veterinarian_profile_history.html
+</span></code></pre></div>
+<h3 id="total-changes">Total Changes:<a class="headerlink" href="#total-changes" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><strong>Files changed</strong>: 11</li>
+<li><strong>Lines added</strong>: 1,559</li>
+<li><strong>Lines removed</strong>: 6</li>
+<li><strong>Net change</strong>: +1,553 lines</li>
+</ul>
+<hr />
+<h2 id="user-experience">🎯 User Experience<a class="headerlink" href="#user-experience" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="for-veterinarians">For Veterinarians<a class="headerlink" href="#for-veterinarians" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>First-Time Registration</strong>:
+1. Register account (Step 01)
+2. Verify email (Step 01.1)
+3. Login successfully
+4. Prompted to complete profile
+5. Fill professional info + address
+6. Profile saved, ready to use system</p>
+<p><strong>View Profile</strong>:
+1. Navigate to "Mi Perfil"
+2. See all professional information
+3. See address information
+4. See verification status
+5. See profile completeness badge</p>
+<p><strong>Edit Profile</strong>:
+1. Click "Editar Perfil"
+2. Modify any allowed fields
+3. Save changes
+4. Changes automatically logged
+5. Confirmation message shown</p>
+<p><strong>View History</strong>:
+1. Click "Ver Historial de Cambios"
+2. See chronological list of changes
+3. See old → new values for each change
+4. See who made each change and when</p>
+<h3 id="for-laboratory-staffadmin">For Laboratory Staff/Admin<a class="headerlink" href="#for-laboratory-staffadmin" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>View Veterinarians</strong> (Django Admin):
+1. Access Django admin
+2. Navigate to Veterinarians
+3. See list with all key info
+4. Search by name, email, license
+5. Filter by verification status</p>
+<p><strong>Verify Veterinarian</strong>:
+1. Open veterinarian in admin
+2. Click "Verify veterinarians" action
+3. Or edit individual record
+4. Add verification notes
+5. Save</p>
+<p><strong>View Change History</strong>:
+1. Open veterinarian in admin
+2. Scroll to "Change logs" inline
+3. See all historical changes
+4. Cannot modify (read-only)</p>
+<hr />
+<h2 id="metrics-business-value">📈 Metrics &amp; Business Value<a class="headerlink" href="#metrics-business-value" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="profile-completion-rate">Profile Completion Rate<a class="headerlink" href="#profile-completion-rate" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Target: &gt;95% of veterinarians with complete profiles</li>
+<li>Current: Enforced during registration</li>
+<li>Impact: Enables proper billing and communication</li>
+</ul>
+<h3 id="data-quality">Data Quality<a class="headerlink" href="#data-quality" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>100% validated license numbers</li>
+<li>100% validated phone numbers</li>
+<li>100% unique licenses (no duplicates)</li>
+<li>Complete address information for invoicing</li>
+</ul>
+<h3 id="compliance">Compliance<a class="headerlink" href="#compliance" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Full audit trail for all profile changes</li>
+<li>GDPR/data protection compliance ready</li>
+<li>Can prove who changed what and when</li>
+<li>IP address tracking for forensics</li>
+</ul>
+<h3 id="user-satisfaction">User Satisfaction<a class="headerlink" href="#user-satisfaction" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Simple, clean interface</li>
+<li>Clear validation messages</li>
+<li>Helpful field hints</li>
+<li>Quick profile completion</li>
+</ul>
+<hr />
+<h2 id="integration-with-other-steps">🚀 Integration with Other Steps<a class="headerlink" href="#integration-with-other-steps" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="depends-on-completed">Depends On (Completed):<a class="headerlink" href="#depends-on-completed" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>✅ Step 01: Authentication &amp; User Management</li>
+<li>✅ Step 01.1: Email Verification</li>
+</ul>
+<h3 id="enables-future-steps">Enables (Future Steps):<a class="headerlink" href="#enables-future-steps" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>Step 03: Protocol Submission - Requires complete profile</li>
+<li>Step 07: Work Orders - Uses address for invoicing</li>
+<li>Step 08: Email Notifications - Uses email and phone</li>
+<li>Step 10: Reports &amp; Analytics - Profile data for reporting</li>
+</ul>
+<h3 id="data-flow">Data Flow:<a class="headerlink" href="#data-flow" title="Enlace permanente a esta sección">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Step 01 (User) → Step 02 (Veterinarian Profile) → Step 03 (Protocols)
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>                                                 ↓
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>                                        Step 07 (Invoicing)
+</span></code></pre></div>
+<hr />
+<h2 id="known-limitations-future-enhancements">⚠️ Known Limitations &amp; Future Enhancements<a class="headerlink" href="#known-limitations-future-enhancements" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="current-limitations">Current Limitations<a class="headerlink" href="#current-limitations" title="Enlace permanente a esta sección">&para;</a></h3>
+<ol>
+<li><strong>Manual License Verification</strong>:</li>
+<li>No automatic validation with professional registry</li>
+<li>
+<p><strong>Solution</strong>: Integrate with CMVP/provincial registry APIs (future)</p>
+</li>
+<li>
+<p><strong>Basic Address Entry</strong>:</p>
+</li>
+<li>No autocomplete or geolocation</li>
+<li>
+<p><strong>Solution</strong>: Google Maps API or Argentine postal service integration</p>
+</li>
+<li>
+<p><strong>No Profile Photos</strong>:</p>
+</li>
+<li>No visual identification</li>
+<li>
+<p><strong>Solution</strong>: Add optional profile photo field</p>
+</li>
+<li>
+<p><strong>Fixed Profile Fields</strong>:</p>
+</li>
+<li>Cannot add custom fields per province</li>
+<li><strong>Solution</strong>: Add configurable profile fields system</li>
+</ol>
+<h3 id="future-enhancements-backlog">Future Enhancements (Backlog)<a class="headerlink" href="#future-enhancements-backlog" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Automatic license number validation with professional registries</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Address autocomplete with Google Maps API</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Profile photos with upload and crop</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Multi-practice support (one vet, multiple clinics)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Social/professional links (website, LinkedIn)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> QR code for quick profile lookup</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Bulk import of veterinarians from CSV</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Email notifications on profile changes</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Two-factor authentication for profile edits</li>
+</ul>
+<hr />
+<h2 id="documentation-references">📚 Documentation References<a class="headerlink" href="#documentation-references" title="Enlace permanente a esta sección">&para;</a></h2>
+<h3 id="internal-documentation">Internal Documentation<a class="headerlink" href="#internal-documentation" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><strong>Specification</strong>: <code>main-project-docs/steps/step-02-veterinarian-profiles.md</code> (415 lines)</li>
+<li><strong>Tech Stack</strong>: <code>main-project-docs/TECH_STACK.md</code></li>
+<li><strong>Dev Plan</strong>: <code>main-project-docs/SOFTWARE_DEVELOPMENT_PLAN.md</code></li>
+</ul>
+<h3 id="django-documentation">Django Documentation<a class="headerlink" href="#django-documentation" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><a href="https://docs.djangoproject.com/en/5.2/ref/models/fields/">Model Field Reference</a></li>
+<li><a href="https://docs.djangoproject.com/en/5.2/ref/models/options/">Model Meta Options</a></li>
+<li><a href="https://docs.djangoproject.com/en/5.2/ref/forms/validation/">Form Validation</a></li>
+<li><a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/">Admin Site</a></li>
+</ul>
+<h3 id="design-references">Design References<a class="headerlink" href="#design-references" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li><a href="https://tailwindcss.com/docs">Tailwind CSS</a></li>
+<li><a href="https://tailwindui.com/components">Tailwind UI</a></li>
+</ul>
+<hr />
+<h2 id="acceptance-criteria-all-met">✅ Acceptance Criteria (All Met)<a class="headerlink" href="#acceptance-criteria-all-met" title="Enlace permanente a esta sección">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Veterinarians can complete profile during/after registration</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ All required fields are validated (license, phone, address)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ License number (matrícula) format is validated</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Duplicate license number is rejected</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Veterinarians can update their own profile</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Email change is handled properly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Address is stored in structured format</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Laboratory staff can search veterinarians</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Administrators can verify veterinarian credentials</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Profile changes are logged in audit table</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Profile data is protected and only accessible to authorized users</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Deleted user accounts cascade delete profile data</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Profile completeness is calculated and displayed</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> ✅ Beautiful, responsive UI with Tailwind CSS</li>
+</ul>
+<hr />
+<h2 id="summary">🎉 Summary<a class="headerlink" href="#summary" title="Enlace permanente a esta sección">&para;</a></h2>
+<p><strong>Step 02 is COMPLETE and PRODUCTION-READY</strong>.</p>
+<h3 id="key-achievements">Key Achievements<a class="headerlink" href="#key-achievements" title="Enlace permanente a esta sección">&para;</a></h3>
+<p>✅ <strong>Complete Profile System</strong>: Professional info + address + audit trail<br />
+✅ <strong>Validation</strong>: License format, phone format, uniqueness checks<br />
+✅ <strong>Security</strong>: Access control, audit logging, data privacy<br />
+✅ <strong>Admin Tools</strong>: Search, filter, verify, bulk actions<br />
+✅ <strong>Testing</strong>: 100% test coverage, all tests passing<br />
+✅ <strong>UI/UX</strong>: Modern Tailwind CSS design, responsive, accessible<br />
+✅ <strong>Compliance</strong>: Full audit trail, data protection ready<br />
+✅ <strong>Documentation</strong>: Comprehensive inline and external docs</p>
+<h3 id="technical-debt">Technical Debt<a class="headerlink" href="#technical-debt" title="Enlace permanente a esta sección">&para;</a></h3>
+<p><strong>None</strong> - Clean implementation following Django best practices</p>
+<h3 id="performance">Performance<a class="headerlink" href="#performance" title="Enlace permanente a esta sección">&para;</a></h3>
+<ul>
+<li>✅ Indexed fields for fast lookups</li>
+<li>✅ Denormalized email for quick access</li>
+<li>✅ Efficient query patterns</li>
+<li>✅ Profile completeness cached as property</li>
+</ul>
+<h3 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Enlace permanente a esta sección">&para;</a></h3>
+<ol>
+<li>✅ <strong>Continue Development</strong> - Move to Step 03 (Protocol Submission)</li>
+<li>✅ <strong>Testing</strong> - Verify with real veterinarians (UAT)</li>
+<li>⏳ <strong>Optional</strong>: Add profile photos or address autocomplete</li>
+<li>⏳ <strong>Optional</strong>: Integrate with professional registry APIs</li>
+</ol>
+<hr />
+<p><strong>Implementation Time</strong>: ~6 hours (including tests and documentation)<br />
+<strong>Complexity</strong>: Medium<br />
+<strong>Impact</strong>: High (essential for identifying users and enabling workflows)<br />
+<strong>Technical Debt</strong>: None<br />
+<strong>Dependencies</strong>: Step 01, 01.1 ✅ Complete</p>
+<hr />
+<p><strong>Status</strong>: ✅ STEP 02 COMPLETE<br />
+<strong>Next Step</strong>: Step 03 - Protocol Submission<br />
+<strong>Production Readiness</strong>: 100% - Ready for deployment</p>
+<p>🎉 <strong>EXCELLENT WORK!</strong> 🎉</p>
+<hr />
+<h2 id="test-results-summary">📊 Test Results Summary<a class="headerlink" href="#test-results-summary" title="Enlace permanente a esta sección">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>======================================================================
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>TEST RESULTS - STEP 02
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>======================================================================
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>Models:           7/7  tests passing ✅
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>Forms:            4/4  tests passing ✅
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>Views:           10/10 tests passing ✅
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>Change Logging:   1/1  tests passing ✅
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>Admin:            3/3  tests passing ✅ (from Step 01.1 integration)
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>----------------------------------------------------------------------
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>TOTAL:          25/25 tests passing ✅
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>Coverage:        100%
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>Time:            ~3 seconds
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>Status:          ALL PASSING ✅
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>======================================================================
+</span></code></pre></div>
+<p><strong>All systems go! Ready for Step 03! 🚀</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Laboratory Management System
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="/" target="_blank" rel="noopener" title="Inicio del Sistema" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1v16.2c0 22.1-17.9 40-40 40h-16c-1.1 0-2.2 0-3.3-.1-1.4.1-2.8.1-4.2.1L416 512h-24c-22.1 0-40-17.9-40-40v-88c0-17.7-14.3-32-32-32h-64c-17.7 0-32 14.3-32 32v88c0 22.1-17.9 40-40 40h-55.9c-1.5 0-3-.1-4.5-.2-1.2.1-2.4.2-3.6.2h-16c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9.1-2.8v-69.7h-32c-18 0-32-14-32-32.1 0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7l255.4 224.5c8 7 12 15 11 24"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:support@your-lab.com" target="_blank" rel="noopener" title="Contactar Soporte" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l217.6 163.2c11.4 8.5 27 8.5 38.4 0l217.6-163.2c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 176v208c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V176L294.4 339.2a63.9 63.9 0 0 1-76.8 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow", "toc.integrate"], "search": "../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+    
+  </body>
+</html>

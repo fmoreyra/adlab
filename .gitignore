@@ -7,6 +7,7 @@ public/*
 !public/.keep
 public_collected/*
 !public_collected/.keep
+!public_collected/docs/
 
 # Database backups
 backups/
