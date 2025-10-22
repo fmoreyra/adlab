@@ -200,6 +200,16 @@ run_migrations() {
   log_success "Migrations applied successfully"
 }
 
+# Collect static files
+collect_static() {
+  log_step "Collecting static files..."
+
+  # Collect static files
+  ./run manage collectstatic --no-input
+
+  log_success "Static files collected successfully"
+}
+
 # Restart services
 restart_services() {
   log_step "Restarting services..."
@@ -333,6 +343,9 @@ main() {
   else
     log_info "No migrations to apply"
   fi
+
+  # Collect static files
+  collect_static
 
   # Deploy
   restart_services

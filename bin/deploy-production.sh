@@ -117,6 +117,14 @@ run_migrations() {
   log_success "Migrations applied"
 }
 
+# Collect static files
+collect_static() {
+  log_step "Collecting static files..."
+  
+  ./run manage collectstatic --no-input
+  log_success "Static files collected successfully"
+}
+
 # Restart services
 restart_services() {
   log_step "Restarting services..."
@@ -154,6 +162,7 @@ main() {
   build_images
   build_documentation
   run_migrations
+  collect_static
   restart_services
 
   echo

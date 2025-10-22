@@ -12,7 +12,7 @@ TTY := $(shell [ -t 1 ] && echo "" || echo "-T")
 # .PHONY declarations for all targets
 # -----------------------------------------------------------------------------
 
-.PHONY: help cmd shell psql redis-cli manage secret test test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test server-connect safety-check safety-report
+.PHONY: help cmd shell psql redis-cli manage secret test test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test server-connect deploy deploy-prod safety-check safety-report
 
 # -----------------------------------------------------------------------------
 # Help target (default)
@@ -76,6 +76,10 @@ help: ## Display available targets
 	@echo ""
 	@echo "Server:"
 	@echo "  server-connect         Connect to production server via SSH"
+	@echo ""
+	@echo "Deployment:"
+	@echo "  deploy                 Run development deployment script"
+	@echo "  deploy-prod            Run production deployment script"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make test              # Run tests"
@@ -312,6 +316,20 @@ server-connect: ## Connect to production server via SSH
 	echo "🔗 Connecting to server: $$server_user@$$server_ip"; \
 	echo ""; \
 	ssh "$$server_user@$$server_ip"
+
+# -----------------------------------------------------------------------------
+# Deployment
+# -----------------------------------------------------------------------------
+
+deploy: ## Run development deployment script
+	@echo "🚀 Running development deployment..."
+	@chmod +x bin/deploy
+	@./bin/deploy
+
+deploy-prod: ## Run production deployment script
+	@echo "🚀 Running production deployment..."
+	@chmod +x bin/deploy-production.sh
+	@./bin/deploy-production.sh
 
 # -----------------------------------------------------------------------------
 # Security
