@@ -149,6 +149,9 @@
             <a href="#contact" class="hidden md:block text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
                 Contacto
             </a>
+            <a href="/static/docs/" class="hidden md:block text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+                Documentación
+            </a>
             {% if user.is_authenticated %}
                 <a href="{% url 'pages:dashboard' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-600 text-gray-600 hover:bg-gray-600 hover:text-white h-9 px-3">
                     Dashboard
