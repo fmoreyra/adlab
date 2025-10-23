@@ -176,7 +176,7 @@ class ProtocolOwnerOrStaffMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def test_func(self):
         """Test if user owns the protocol or is staff."""
-        if self.request.user.is_staff:
+        if self.request.user.is_staff or self.request.user.is_admin_user:
             return True
 
         if not self.request.user.is_veterinarian:

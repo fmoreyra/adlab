@@ -197,9 +197,9 @@
                 </div>
 
                 <!-- Status Timeline Card -->
-                {% if status_history %}
-                    <div class="bg-white shadow-md rounded-lg p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Historial de Estado</h2>
+                <div class="bg-white shadow-md rounded-lg p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Historial de Estado</h2>
+                    {% if status_history %}
                         <div class="flow-root">
                             <ul role="list" class="-mb-8">
                                 {% for entry in status_history %}
@@ -229,6 +229,11 @@
                                                             <p class="text-xs text-gray-500">{{ entry.description }}</p>
                                                         {% endif %}
                                                         <p class="text-xs text-gray-400">{{ entry.changed_at|date:"d" }} de {{ entry.changed_at|date:"F" }} de {{ entry.changed_at|date:"Y" }}, {{ entry.changed_at|date:"H:i" }}</p>
+                                                        {% if entry.changed_by %}
+                                                            <p class="text-xs text-gray-500 mt-1">
+                                                                <span class="font-medium">Por:</span> {{ entry.changed_by.get_full_name|default:entry.changed_by.email }}
+                                                            </p>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                             </div>
@@ -237,8 +242,48 @@
                                 {% endfor %}
                             </ul>
                         </div>
-                    </div>
-                {% endif %}
+                    {% else %}
+                        <!-- No status history - show current status -->
+                        <div class="flow-root">
+                            <ul role="list" class="-mb-8">
+                                <li>
+                                    <div class="relative pb-8">
+                                        <div class="relative flex space-x-3">
+                                            <div>
+                                                <span class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white
+                                                             {% if protocol.status == 'draft' %}bg-gray-400
+                                                             {% elif protocol.status == 'submitted' %}bg-yellow-400
+                                                             {% elif protocol.status == 'received' %}bg-blue-400
+                                                             {% elif protocol.status == 'processing' %}bg-purple-400
+                                                             {% elif protocol.status == 'ready' %}bg-green-400
+                                                             {% else %}bg-gray-400{% endif %}">
+                                                    <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                            <div class="min-w-0 flex-1 pt-1.5">
+                                                <div>
+                                                    <p class="text-sm font-medium text-gray-900">{{ protocol.get_status_display }}</p>
+                                                    <p class="text-xs text-gray-500">Estado actual</p>
+                                                    <p class="text-xs text-gray-400">{{ protocol.created_at|date:"d" }} de {{ protocol.created_at|date:"F" }} de {{ protocol.created_at|date:"Y" }}, {{ protocol.created_at|date:"H:i" }}</p>
+                                                    <p class="text-xs text-gray-500 mt-1">
+                                                        <span class="font-medium">Por:</span> Sistema
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                            <p class="text-sm text-blue-800">
+                                <span class="font-medium">Nota:</span> Este protocolo no tiene historial de cambios de estado registrado. Se muestra el estado actual.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
 
                 <!-- Actions Card -->
                 <div class="bg-white shadow-md rounded-lg p-6">

@@ -43,6 +43,7 @@ from protocols.models import (
     ProcessingLog,
     Protocol,
     ProtocolStatusHistory,
+    ReceptionLog,
     Slide,
 )
 from protocols.services.email_service import EmailNotificationService
@@ -216,6 +217,30 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
             "reception_logs",
             "processing_logs",
         )
+
+    def get_context_data(self, **kwargs):
+        """Add additional context data."""
+        context = super().get_context_data(**kwargs)
+        protocol = self.object
+
+        # Get status history with user information
+        status_history = protocol.status_history.all().select_related(
+            "changed_by"
+        ).order_by("-changed_at")
+
+        # Get sample information
+        sample = None
+        if hasattr(protocol, 'cytology_sample'):
+            sample = protocol.cytology_sample
+        elif hasattr(protocol, 'histopathology_sample'):
+            sample = protocol.histopathology_sample
+
+        context.update({
+            "status_history": status_history,
+            "sample": sample,
+        })
+
+        return context
 
 
 class ProtocolPublicDetailView(DetailView):
@@ -501,31 +526,24 @@ class ReceptionPendingView(StaffRequiredMixin, ListView):
 
 class ReceptionHistoryView(StaffRequiredMixin, ListView):
     """
-    Display list of received protocols.
+    Display list of reception logs.
     """
 
-    model = Protocol
+    model = ReceptionLog
     template_name = "protocols/reception_history.html"
-    context_object_name = "protocols"
+    context_object_name = "logs"
     paginate_by = 20
 
     def get_queryset(self):
-        """Get received protocols."""
+        """Get reception logs."""
         return (
-            Protocol.objects.filter(
-                status__in=[
-                    Protocol.Status.RECEIVED,
-                    Protocol.Status.PROCESSING,
-                    Protocol.Status.READY,
-                    Protocol.Status.REPORT_SENT,
-                ]
+            ReceptionLog.objects.select_related(
+                "protocol__veterinarian__user",
+                "protocol__cytology_sample",
+                "protocol__histopathology_sample",
+                "user",
             )
-            .select_related(
-                "veterinarian__user",
-                "cytology_sample",
-                "histopathology_sample",
-            )
-            .order_by("-reception_date")
+            .order_by("-created_at")
         )
 
 

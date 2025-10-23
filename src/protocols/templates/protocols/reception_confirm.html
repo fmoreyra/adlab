@@ -49,6 +49,11 @@
                             <p class="mt-1 text-sm text-gray-900">{{ protocol.submission_date|date:"d/m/Y" }}</p>
                         </div>
 
+                        <div>
+                            <p class="text-xs font-medium text-gray-500 uppercase">Estado Actual</p>
+                            <p class="mt-1 text-sm font-semibold text-gray-900">{{ protocol.get_status_display }}</p>
+                        </div>
+
                         {% if protocol.analysis_type == 'cytology' and protocol.cytology_sample %}
                         <div class="pt-3 border-t">
                             <p class="text-xs font-medium text-gray-500 uppercase">Detalles de Muestra</p>
