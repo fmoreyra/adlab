@@ -200,6 +200,44 @@ def send_sample_reception_notification(protocol):
     )
 
 
+def send_sample_rejection_notification(protocol):
+    """
+    Send sample rejection notification to veterinarian.
+
+    Args:
+        protocol: Protocol instance
+
+    Returns:
+        EmailLog or None: Created email log instance, or None if not sent
+    """
+    veterinarian = protocol.veterinarian
+
+    # Check preferences
+    prefs, _ = NotificationPreference.objects.get_or_create(
+        veterinarian=veterinarian
+    )
+    if not prefs.should_send("sample_reception"):  # Use same preference
+        logger.info(
+            f"Sample rejection notification skipped for {veterinarian} (preferences)"
+        )
+        return None
+
+    recipient_email = prefs.get_recipient_email()
+
+    return queue_email(
+        email_type=EmailLog.EmailType.SAMPLE_RECEPTION,  # Reuse type
+        recipient_email=recipient_email,
+        subject=f"Muestra rechazada - Protocolo {protocol.protocol_number}",
+        context={
+            "protocol": protocol,
+            "veterinarian": veterinarian,
+        },
+        protocol=protocol,
+        veterinarian=veterinarian,
+        template_name="protocols/emails/sample_rejection.html",
+    )
+
+
 def send_report_ready_notification(protocol, report_pdf_path=None):
     """
     Send report ready notification with optional PDF attachment.

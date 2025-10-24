@@ -3846,3 +3846,211 @@ class ReportViewsTest(TestCase):
         self.assertEqual(
             response.status_code, 302
         )  # Redirects because draft report cannot be sent
+
+
+# ============================================================================
+# REJECTED PROTOCOLS TESTS
+# ============================================================================
+
+
+class RejectedProtocolsTest(TestCase):
+    """Test cases for rejected protocols functionality."""
+
+    def setUp(self):
+        from django.utils import timezone
+        """Set up test data."""
+        # Create users
+        self.staff_user = User.objects.create_user(
+            username="staff@example.com",
+            email="staff@example.com",
+            password="testpass123",
+            first_name="Staff",
+            last_name="User",
+            role=User.Role.PERSONAL_LAB,
+        )
+        
+        self.vet_user = User.objects.create_user(
+            username="vet@example.com",
+            email="vet@example.com",
+            password="testpass123",
+            first_name="Vet",
+            last_name="User",
+            role=User.Role.VETERINARIO,
+        )
+        
+        # Create veterinarian profile
+        self.veterinarian = Veterinarian.objects.create(
+            user=self.vet_user,
+            first_name="Vet",
+            last_name="User",
+            email="vet@example.com",
+            license_number="VET123",
+        )
+        
+        # Create protocols
+        self.submitted_protocol = Protocol.objects.create(
+            veterinarian=self.veterinarian,
+            animal_identification="Animal1",
+            species="Canino",
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            status=Protocol.Status.SUBMITTED,
+            submission_date=timezone.now().date(),
+        )
+        
+        self.rejected_protocol = Protocol.objects.create(
+            veterinarian=self.veterinarian,
+            animal_identification="Animal2",
+            species="Felino",
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            status=Protocol.Status.REJECTED,
+            submission_date=timezone.now().date(),
+            reception_date=timezone.now(),
+            received_by=self.staff_user,
+            sample_condition=Protocol.SampleCondition.REJECTED,
+            reception_notes="Sample quality too poor",
+        )
+
+    def test_protocol_list_excludes_rejected_by_default(self):
+        """Test that rejected protocols are excluded from default protocol list."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        response = self.client.get(reverse("protocols:protocol_list"))
+        
+        self.assertEqual(response.status_code, 200)
+        protocols = response.context["protocols"]
+        protocol_ids = [p.id for p in protocols]
+        
+        # Should include submitted protocol but not rejected
+        self.assertIn(self.submitted_protocol.id, protocol_ids)
+        self.assertNotIn(self.rejected_protocol.id, protocol_ids)
+
+    def test_protocol_list_shows_rejected_when_requested(self):
+        """Test that rejected protocols are shown when show_rejected parameter is used."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        response = self.client.get(
+            reverse("protocols:protocol_list") + "?show_rejected=1"
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        protocols = response.context["protocols"]
+        protocol_ids = [p.id for p in protocols]
+        
+        # Should only include rejected protocol
+        self.assertNotIn(self.submitted_protocol.id, protocol_ids)
+        self.assertIn(self.rejected_protocol.id, protocol_ids)
+
+    def test_rejected_protocols_view_staff_access(self):
+        """Test that staff can access rejected protocols view."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        response = self.client.get(reverse("protocols:rejected_list"))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "protocols/rejected_list.html")
+        
+        protocols = response.context["protocols"]
+        protocol_ids = [p.id for p in protocols]
+        
+        # Should only show rejected protocols
+        self.assertIn(self.rejected_protocol.id, protocol_ids)
+        self.assertNotIn(self.submitted_protocol.id, protocol_ids)
+
+    def test_rejected_protocols_view_vet_access_denied(self):
+        """Test that veterinarians cannot access rejected protocols view."""
+        self.client.login(email="vet@example.com", password="testpass123")
+        
+        response = self.client.get(reverse("protocols:rejected_list"))
+        
+        self.assertEqual(response.status_code, 403)
+
+    def test_cassette_create_rejects_rejected_protocol(self):
+        """Test that cassette creation is blocked for rejected protocols."""
+        # Create histopathology protocol and sample
+        histo_protocol = Protocol.objects.create(
+            veterinarian=self.veterinarian,
+            animal_identification="Animal3",
+            species="Canino",
+            analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
+            status=Protocol.Status.REJECTED,
+            submission_date=timezone.now().date(),
+        )
+        
+        from protocols.models import HistopathologySample
+        HistopathologySample.objects.create(
+            protocol=histo_protocol,
+            number_slides_expected=5,
+        )
+        
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        response = self.client.get(
+            reverse(
+                "protocols:cassette_create",
+                kwargs={"protocol_pk": histo_protocol.pk},
+            )
+        )
+        
+        # Should redirect due to validation failure
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse("protocols:processing_status", kwargs={"pk": histo_protocol.pk}),
+        )
+
+    def test_slide_register_rejects_rejected_protocol(self):
+        """Test that slide registration is blocked for rejected protocols."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        response = self.client.get(
+            reverse(
+                "protocols:slide_register",
+                kwargs={"protocol_pk": self.rejected_protocol.pk},
+            )
+        )
+        
+        # Should redirect due to validation failure
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse("protocols:processing_status", kwargs={"pk": self.rejected_protocol.pk}),
+        )
+
+    def test_reception_confirm_handles_rejection(self):
+        """Test that reception confirmation handles rejected protocols correctly."""
+        from protocols.forms import ReceptionForm
+        
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        # First, submit the protocol
+        self.submitted_protocol.status = Protocol.Status.SUBMITTED
+        self.submitted_protocol.save()
+        
+        # Simulate reception with rejection
+        form_data = {
+            "sample_condition": Protocol.SampleCondition.REJECTED,
+            "reception_notes": "Sample quality too poor",
+            "discrepancies": "",
+        }
+        
+        with patch("protocols.services.email_service.EmailNotificationService.send_rejection_email") as mock_send_rejection:
+            mock_send_rejection.return_value = True
+            
+            response = self.client.post(
+                reverse(
+                    "protocols:reception_confirm",
+                    kwargs={"pk": self.submitted_protocol.pk},
+                ),
+                data=form_data,
+            )
+            
+            # Should redirect on success
+            self.assertEqual(response.status_code, 302)
+            
+            # Check that protocol was marked as rejected
+            self.submitted_protocol.refresh_from_db()
+            self.assertEqual(self.submitted_protocol.status, Protocol.Status.REJECTED)
+            self.assertEqual(self.submitted_protocol.sample_condition, Protocol.SampleCondition.REJECTED)
+            
+            # Check that rejection email was sent
+            mock_send_rejection.assert_called_once_with(self.submitted_protocol)

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muestra Rechazada - {{ protocol.protocol_number }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border-left: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+        }
+        .protocol-number {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 20px;
+            font-weight: bold;
+            color: #dc2626;
+            text-align: center;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .info-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-table td:first-child {
+            font-weight: bold;
+            color: #666;
+            width: 40%;
+        }
+        .footer {
+            background: #f3f4f6;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-radius: 0 0 8px 8px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .button {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .warning-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning-box h3 {
+            color: #dc2626;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        .contact-info {
+            background: #f9fafb;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .contact-info h4 {
+            color: #374151;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        .contact-info p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚠️ Muestra Rechazada</h1>
+    </div>
+
+    <div class="content">
+        <p>Estimado/a <strong>{{ veterinarian.get_full_name }}</strong>,</p>
+
+        <p>Lamentamos informarle que la muestra correspondiente al siguiente protocolo ha sido <strong>rechazada</strong> por no cumplir con los estándares de calidad requeridos:</p>
+
+        <div class="protocol-number">
+            Protocolo: {{ protocol.protocol_number }}
+        </div>
+
+        <table class="info-table">
+            <tr>
+                <td>Código Temporal:</td>
+                <td><code>{{ protocol.temporary_code }}</code></td>
+            </tr>
+            <tr>
+                <td>Animal:</td>
+                <td>{{ protocol.animal_identification }} ({{ protocol.species }})</td>
+            </tr>
+            <tr>
+                <td>Tipo de Análisis:</td>
+                <td>{{ protocol.get_analysis_type_display }}</td>
+            </tr>
+            <tr>
+                <td>Fecha de Rechazo:</td>
+                <td>{{ protocol.reception_date|date:"d/m/Y H:i" }}</td>
+            </tr>
+            <tr>
+                <td>Condición de la Muestra:</td>
+                <td>
+                    <span style="color: #dc2626; font-weight: bold;">{{ protocol.get_sample_condition_display }}</span>
+                </td>
+            </tr>
+        </table>
+
+        {% if protocol.reception_notes %}
+        <div class="warning-box">
+            <h3>Motivo del Rechazo:</h3>
+            <p>{{ protocol.reception_notes }}</p>
+        </div>
+        {% endif %}
+
+        {% if protocol.discrepancies %}
+        <div class="warning-box">
+            <h3>Discrepancias Detectadas:</h3>
+            <p>{{ protocol.discrepancies }}</p>
+        </div>
+        {% endif %}
+
+        <div class="warning-box">
+            <h3>⚠️ Acción Requerida</h3>
+            <p><strong>Por favor contacte al laboratorio</strong> para coordinar el envío de una nueva muestra o para obtener más información sobre los requisitos de calidad.</p>
+        </div>
+
+        <div class="contact-info">
+            <h4>Información de Contacto del Laboratorio:</h4>
+            <p><strong>Teléfono:</strong> +54 11 1234-5678</p>
+            <p><strong>Email:</strong> laboratorio@adlab.com.ar</p>
+            <p><strong>Horario de Atención:</strong> Lunes a Viernes de 8:00 a 17:00</p>
+        </div>
+
+        <p>Le agradecemos su comprensión y esperamos poder ayudarle con una nueva muestra.</p>
+
+        <p>Atentamente,<br>
+        <strong>Equipo de Laboratorio AdLab</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>Este es un mensaje automático del sistema de gestión de laboratorio AdLab.</p>
+        <p>Por favor no responda a este email. Para consultas, utilice los datos de contacto proporcionados.</p>
+    </div>
+</body>
+</html>

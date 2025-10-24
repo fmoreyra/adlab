@@ -77,6 +77,11 @@ urlpatterns = [
         views.ReceptionHistoryView.as_view(),
         name="reception_history",
     ),
+    path(
+        "rejected/",
+        views.RejectedProtocolsView.as_view(),
+        name="rejected_list",
+    ),
     # Processing (Step 05 - laboratory staff only)
     path(
         "processing/",

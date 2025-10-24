@@ -67,6 +67,9 @@ class ProtocolReceptionService:
             sample_condition = form_data.get("sample_condition")
             reception_notes = form_data.get("reception_notes", "")
             discrepancies = form_data.get("discrepancies", "")
+            
+            # Check if sample is rejected
+            is_rejected = sample_condition == Protocol.SampleCondition.REJECTED
 
             # Update protocol
             protocol.receive(
@@ -75,12 +78,23 @@ class ProtocolReceptionService:
                 reception_notes=reception_notes,
                 discrepancies=discrepancies,
             )
+            
+            # Override status if rejected
+            if is_rejected:
+                protocol.status = Protocol.Status.REJECTED
+                protocol.save(update_fields=["status"])
 
             # Update sample-specific fields
             self._update_sample_specific_fields(protocol, form_data)
 
-            # Log reception action - check for discrepancies
-            action = ReceptionLog.Action.DISCREPANCY_REPORTED if discrepancies else ReceptionLog.Action.RECEIVED
+            # Log reception action - check for rejection first, then discrepancies
+            if is_rejected:
+                action = ReceptionLog.Action.REJECTED
+            elif discrepancies:
+                action = ReceptionLog.Action.DISCREPANCY_REPORTED
+            else:
+                action = ReceptionLog.Action.RECEIVED
+                
             ReceptionLog.log_action(
                 protocol=protocol,
                 action=action,
@@ -89,11 +103,14 @@ class ProtocolReceptionService:
             )
 
             # Log status change
+            new_status = Protocol.Status.REJECTED if is_rejected else Protocol.Status.RECEIVED
+            description = _("Muestra rechazada") if is_rejected else _("Muestra recibida en laboratorio")
+            
             ProtocolStatusHistory.log_status_change(
                 protocol=protocol,
-                new_status=Protocol.Status.RECEIVED,
+                new_status=new_status,
                 changed_by=user,
-                description=_("Muestra recibida en laboratorio"),
+                description=description,
             )
 
             return True, ""

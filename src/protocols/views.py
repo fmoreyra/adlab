@@ -93,6 +93,15 @@ class ProtocolListView(ListView):
                 .prefetch_related("cytology_sample", "histopathology_sample")
             )
 
+        # Exclude rejected protocols by default
+        protocols = protocols.exclude(status=Protocol.Status.REJECTED)
+
+        # Check if user wants to see rejected protocols
+        show_rejected = self.request.GET.get("show_rejected")
+        if show_rejected:
+            # Override the exclusion and show only rejected protocols
+            protocols = protocols.filter(status=Protocol.Status.REJECTED)
+
         # Apply filters
         status_filter = self.request.GET.get("status")
         if status_filter:
@@ -547,6 +556,24 @@ class ReceptionHistoryView(StaffRequiredMixin, ListView):
         )
 
 
+class RejectedProtocolsView(StaffRequiredMixin, ListView):
+    """
+    Display list of rejected protocols.
+    """
+    model = Protocol
+    template_name = "protocols/rejected_list.html"
+    context_object_name = "protocols"
+    paginate_by = 20
+
+    def get_queryset(self):
+        """Get rejected protocols."""
+        return (
+            Protocol.objects.filter(status=Protocol.Status.REJECTED)
+            .select_related("veterinarian__user", "received_by")
+            .order_by("-reception_date")
+        )
+
+
 class ProtocolSubmitView(ProtocolOwnerOrStaffMixin, View):
     """
     Submit a draft protocol.
@@ -968,6 +995,14 @@ class CassetteCreateView(StaffRequiredMixin, View):
             pk=self.kwargs["protocol_pk"],
         )
 
+        # Check if protocol is rejected
+        if protocol.status == Protocol.Status.REJECTED:
+            messages.error(
+                self.request,
+                _("No se puede procesar un protocolo rechazado. Cambie el estado primero."),
+            )
+            return None
+
         # Verify it's histopathology
         if protocol.analysis_type != Protocol.AnalysisType.HISTOPATHOLOGY:
             messages.error(
@@ -1059,22 +1094,31 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
             )
             return redirect("protocols:reception_search")
 
-        # Send email notifications using service
-        self.email_service.send_reception_email(protocol)
-
-        # Send discrepancy alert if issues found
-        discrepancies = form_data.get("discrepancies", "")
-        if discrepancies:
-            sample_condition = form_data.get("sample_condition", "")
-            self.email_service.send_discrepancy_alert_email(
-                protocol, discrepancies, sample_condition
+        # Check if protocol was rejected and send appropriate email
+        if protocol.status == Protocol.Status.REJECTED:
+            self.email_service.send_rejection_email(protocol)
+            messages.warning(
+                self.request,
+                _("Muestra rechazada. Protocolo: %(number)s. Se ha notificado al veterinario.")
+                % {"number": protocol.protocol_number},
             )
+        else:
+            # Send normal reception email
+            self.email_service.send_reception_email(protocol)
 
-        messages.success(
-            self.request,
-            _("Muestra recibida exitosamente. Protocolo: %(number)s")
-            % {"number": protocol.protocol_number},
-        )
+            # Send discrepancy alert if issues found
+            discrepancies = form_data.get("discrepancies", "")
+            if discrepancies:
+                sample_condition = form_data.get("sample_condition", "")
+                self.email_service.send_discrepancy_alert_email(
+                    protocol, discrepancies, sample_condition
+                )
+
+            messages.success(
+                self.request,
+                _("Muestra recibida exitosamente. Protocolo: %(number)s")
+                % {"number": protocol.protocol_number},
+            )
 
         return redirect(self.get_success_url())
 
@@ -1350,6 +1394,15 @@ class SlideRegisterView(StaffRequiredMixin, View):
             ),
             pk=self.kwargs["protocol_pk"],
         )
+        
+        # Check if protocol is rejected
+        if protocol.status == Protocol.Status.REJECTED:
+            messages.error(
+                self.request,
+                _("No se puede procesar un protocolo rechazado. Cambie el estado primero."),
+            )
+            return None
+            
         return protocol
 
 

@@ -26,6 +26,7 @@ class Protocol(models.Model):
         DRAFT = "draft", _("Borrador")
         SUBMITTED = "submitted", _("Enviado")
         RECEIVED = "received", _("Recibido")
+        REJECTED = "rejected", _("Rechazado")
         PROCESSING = "processing", _("En procesamiento")
         READY = "ready", _("Listo")
         REPORT_SENT = "report_sent", _("Informe enviado")

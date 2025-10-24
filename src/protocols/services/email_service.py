@@ -58,6 +58,37 @@ class EmailNotificationService:
             )
             return False
 
+    def send_rejection_email(self, protocol) -> bool:
+        """
+        Send rejection notification email to veterinarian.
+
+        Args:
+            protocol: Protocol instance that was rejected
+
+        Returns:
+            bool: True if email was queued successfully, False otherwise
+        """
+        try:
+            from protocols.emails import send_sample_rejection_notification
+            email_log = send_sample_rejection_notification(protocol)
+            if email_log:
+                logger.info(
+                    f"Rejection email queued for protocol {protocol.pk} "
+                    f"(EmailLog ID: {email_log.id})"
+                )
+                return True
+            else:
+                logger.info(
+                    f"Rejection email skipped for protocol {protocol.pk} "
+                    "(veterinarian preferences)"
+                )
+                return False
+        except Exception as e:
+            logger.error(
+                f"Failed to queue rejection email for protocol {protocol.pk}: {e}"
+            )
+            return False
+
     def send_submission_confirmation_email(self, protocol) -> bool:
         """
         Send protocol submission confirmation email to veterinarian.
