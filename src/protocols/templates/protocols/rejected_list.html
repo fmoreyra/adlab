@@ -184,60 +184,153 @@
     </div>
 </div>
 
-<!-- Status Change Modal -->
-<div id="statusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+<!-- Resubmit Modal -->
+<div id="resubmitModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-10 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
         <div class="mt-3">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
-                <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
             <div class="mt-2 px-7 py-3">
-                <h3 class="text-lg font-medium text-gray-900">Cambiar Estado del Protocolo</h3>
+                <h3 class="text-lg font-medium text-gray-900">Reenviar Protocolo</h3>
                 <div class="mt-2">
                     <p class="text-sm text-gray-500">
-                        ¿Está seguro que desea cambiar el estado de este protocolo rechazado?
+                        Explique el motivo por el cual se reenvía este protocolo rechazado:
                     </p>
                 </div>
             </div>
-            <div class="items-center px-4 py-3">
-                <button id="confirmStatusChange" 
-                        class="px-4 py-2 bg-yellow-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300">
-                    Confirmar Cambio
-                </button>
-                <button onclick="closeStatusModal()" 
-                        class="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                    Cancelar
-                </button>
-            </div>
+            <form id="resubmitForm" class="px-4 py-3">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
+                        Motivo del reenvío
+                    </label>
+                    <textarea 
+                        id="reason" 
+                        name="reason" 
+                        rows="4" 
+                        minlength="10" 
+                        maxlength="500"
+                        placeholder="Explique por qué se reenvía este protocolo rechazado..."
+                        class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        required></textarea>
+                    <div class="mt-1 flex justify-between text-xs text-gray-500">
+                        <span>Mínimo 10 caracteres</span>
+                        <span id="charCount">0/500</span>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <button type="submit" 
+                            id="confirmResubmit"
+                            class="flex-1 px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="submit-text">Reenviar Protocolo</span>
+                        <span class="loading-text hidden">Procesando...</span>
+                    </button>
+                    <button type="button" 
+                            onclick="closeResubmitModal()" 
+                            class="flex-1 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
 let currentProtocolId = null;
-let newStatus = null;
 
 function changeStatus(protocolId, status) {
     currentProtocolId = protocolId;
-    newStatus = status;
-    document.getElementById('statusModal').classList.remove('hidden');
+    document.getElementById('resubmitModal').classList.remove('hidden');
+    // Clear form
+    document.getElementById('resubmitForm').reset();
+    document.getElementById('charCount').textContent = '0/500';
 }
 
-function closeStatusModal() {
-    document.getElementById('statusModal').classList.add('hidden');
+function closeResubmitModal() {
+    document.getElementById('resubmitModal').classList.add('hidden');
     currentProtocolId = null;
-    newStatus = null;
+    // Clear form
+    document.getElementById('resubmitForm').reset();
+    document.getElementById('charCount').textContent = '0/500';
 }
 
-document.getElementById('confirmStatusChange').addEventListener('click', function() {
-    if (currentProtocolId && newStatus) {
-        // Here you would make an AJAX call to change the status
-        // For now, we'll just show an alert
-        alert('Funcionalidad de cambio de estado en desarrollo');
-        closeStatusModal();
+// Character counter
+document.getElementById('reason').addEventListener('input', function() {
+    const count = this.value.length;
+    document.getElementById('charCount').textContent = `${count}/500`;
+    
+    // Update button state
+    const submitBtn = document.getElementById('confirmResubmit');
+    if (count >= 10) {
+        submitBtn.disabled = false;
+    } else {
+        submitBtn.disabled = true;
     }
+});
+
+// Form submission
+document.getElementById('resubmitForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!currentProtocolId) {
+        alert('Error: No se ha seleccionado un protocolo');
+        return;
+    }
+    
+    const reason = document.getElementById('reason').value.trim();
+    if (reason.length < 10) {
+        alert('El motivo debe tener al menos 10 caracteres');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.getElementById('confirmResubmit');
+    const submitText = submitBtn.querySelector('.submit-text');
+    const loadingText = submitBtn.querySelector('.loading-text');
+    
+    submitBtn.disabled = true;
+    submitText.classList.add('hidden');
+    loadingText.classList.remove('hidden');
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Make AJAX request
+    fetch(`/protocols/${currentProtocolId}/resubmit/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Success - show message and reload page
+            alert(data.message);
+            window.location.reload();
+        } else {
+            // Error - show error message
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión. Por favor, intente nuevamente.');
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.disabled = false;
+        submitText.classList.remove('hidden');
+        loadingText.classList.add('hidden');
+    });
 });
 </script>
 {% endblock %}

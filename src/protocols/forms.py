@@ -921,6 +921,35 @@ class ReceptionForm(forms.Form):
         return cleaned_data
 
 
+class ProtocolResubmitForm(forms.Form):
+    """Form to resubmit a rejected protocol with a reason."""
+    
+    reason = forms.CharField(
+        label=_("Motivo del reenvío"),
+        widget=forms.Textarea(
+            attrs={
+                "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                "rows": 4,
+                "placeholder": "Explique por qué se reenvía este protocolo rechazado...",
+                "minlength": 10,
+                "maxlength": 500,
+            }
+        ),
+        help_text=_("Mínimo 10 caracteres, máximo 500"),
+        min_length=10,
+        max_length=500,
+    )
+    
+    def clean_reason(self):
+        """Validate reason field."""
+        reason = self.cleaned_data.get("reason", "").strip()
+        if len(reason) < 10:
+            raise forms.ValidationError(
+                _("El motivo debe tener al menos 10 caracteres.")
+            )
+        return reason
+
+
 class DiscrepancyReportForm(forms.Form):
     """Form to report discrepancies in sample reception."""
 

@@ -82,6 +82,11 @@ urlpatterns = [
         views.RejectedProtocolsView.as_view(),
         name="rejected_list",
     ),
+    path(
+        "<int:pk>/resubmit/",
+        views.ProtocolResubmitView.as_view(),
+        name="protocol_resubmit",
+    ),
     # Processing (Step 05 - laboratory staff only)
     path(
         "processing/",

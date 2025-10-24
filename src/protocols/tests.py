@@ -4107,3 +4107,205 @@ class RejectedProtocolsTest(TestCase):
             
             # Check that rejection email was sent
             mock_send_rejection.assert_called_once_with(self.submitted_protocol)
+
+
+class ProtocolResubmitTest(TestCase):
+    """Test cases for protocol resubmit functionality."""
+    
+    def setUp(self):
+        """Set up test data."""
+        # Create staff user
+        self.staff_user = User.objects.create_user(
+            email="staff@example.com",
+            username="staff@example.com",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+            is_staff=True,
+        )
+        
+        # Create veterinarian user
+        self.vet_user = User.objects.create_user(
+            email="vet@example.com",
+            username="vet@example.com",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+            email_verified=True,
+        )
+        
+        # Create veterinarian profile
+        self.veterinarian = Veterinarian.objects.create(
+            user=self.vet_user,
+            first_name="John",
+            last_name="Doe",
+            license_number="MP-12345-PROTOCOLS",
+            phone="+54 341 1234567",
+            email="vet@example.com",
+        )
+        
+        # Create submitted protocol
+        self.submitted_protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            veterinarian=self.veterinarian,
+            species="Canino",
+            animal_identification="Max",
+            presumptive_diagnosis="Suspected lymphoma",
+            submission_date=date.today(),
+            status=Protocol.Status.SUBMITTED,
+            temporary_code="HP 25/001",
+        )
+        
+        # Create rejected protocol
+        self.rejected_protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
+            veterinarian=self.veterinarian,
+            species="Felino",
+            animal_identification="Whiskers",
+            presumptive_diagnosis="Skin lesion",
+            submission_date=date.today(),
+            status=Protocol.Status.REJECTED,
+            temporary_code="HP 25/002",
+            reception_notes="Sample quality too poor for analysis",
+        )
+    
+    def test_resubmit_view_with_valid_reason(self):
+        """Test resubmit view with valid reason."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        form_data = {
+            "reason": "Sample quality was reassessed and found acceptable for analysis"
+        }
+        
+        response = self.client.post(
+            reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
+            data=form_data,
+            content_type="application/json"
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["message"], "Protocolo reenviado exitosamente")
+        
+        # Check protocol status changed
+        self.rejected_protocol.refresh_from_db()
+        self.assertEqual(self.rejected_protocol.status, Protocol.Status.SUBMITTED)
+        
+        # Check status history was logged
+        history = ProtocolStatusHistory.objects.filter(protocol=self.rejected_protocol)
+        self.assertEqual(history.count(), 1)
+        self.assertEqual(history.first().status, Protocol.Status.SUBMITTED)
+        self.assertEqual(history.first().changed_by, self.staff_user)
+        self.assertIn("Protocolo reenviado desde rechazado", history.first().description)
+        self.assertIn("Sample quality was reassessed", history.first().description)
+    
+    def test_resubmit_view_without_reason(self):
+        """Test resubmit view without reason should fail."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        form_data = {
+            "reason": ""
+        }
+        
+        response = self.client.post(
+            reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
+            data=form_data,
+            content_type="application/json"
+        )
+        
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertIn("El motivo es requerido", data["error"])
+    
+    def test_resubmit_view_with_short_reason(self):
+        """Test resubmit view with reason too short should fail."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        form_data = {
+            "reason": "Short"
+        }
+        
+        response = self.client.post(
+            reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
+            data=form_data,
+            content_type="application/json"
+        )
+        
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertIn("El motivo debe tener al menos 10 caracteres", data["error"])
+    
+    def test_resubmit_view_with_non_rejected_protocol(self):
+        """Test resubmit view with non-rejected protocol should fail."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        form_data = {
+            "reason": "This should fail because protocol is not rejected"
+        }
+        
+        response = self.client.post(
+            reverse("protocols:protocol_resubmit", kwargs={"pk": self.submitted_protocol.pk}),
+            data=form_data,
+            content_type="application/json"
+        )
+        
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertIn("Solo se pueden reenviar protocolos rechazados", data["error"])
+    
+    def test_resubmit_view_without_staff_permissions(self):
+        """Test resubmit view without staff permissions should fail."""
+        self.client.login(email="vet@example.com", password="testpass123")
+        
+        form_data = {
+            "reason": "Veterinarian trying to resubmit"
+        }
+        
+        response = self.client.post(
+            reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
+            data=form_data,
+            content_type="application/json"
+        )
+        
+        self.assertEqual(response.status_code, 403)
+    
+    def test_resubmit_view_nonexistent_protocol(self):
+        """Test resubmit view with nonexistent protocol should fail."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        
+        form_data = {
+            "reason": "Trying to resubmit nonexistent protocol"
+        }
+        
+        response = self.client.post(
+            reverse("protocols:protocol_resubmit", kwargs={"pk": 99999}),
+            data=form_data,
+            content_type="application/json"
+        )
+        
+        self.assertEqual(response.status_code, 404)
+    
+    def test_resubmit_form_validation(self):
+        """Test ProtocolResubmitForm validation."""
+        from protocols.forms import ProtocolResubmitForm
+        
+        # Valid form
+        form = ProtocolResubmitForm(data={"reason": "Valid reason with enough characters"})
+        self.assertTrue(form.is_valid())
+        
+        # Empty reason
+        form = ProtocolResubmitForm(data={"reason": ""})
+        self.assertFalse(form.is_valid())
+        self.assertIn("reason", form.errors)
+        
+        # Short reason
+        form = ProtocolResubmitForm(data={"reason": "Short"})
+        self.assertFalse(form.is_valid())
+        self.assertIn("reason", form.errors)
+        
+        # Very long reason
+        form = ProtocolResubmitForm(data={"reason": "x" * 501})
+        self.assertFalse(form.is_valid())
+        self.assertIn("reason", form.errors)
