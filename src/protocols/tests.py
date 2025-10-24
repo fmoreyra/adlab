@@ -4209,14 +4209,12 @@ class ProtocolResubmitTest(TestCase):
         
         response = self.client.post(
             reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
-            data=form_data,
-            content_type="application/json"
+            data=form_data
         )
         
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertTrue(data["success"])
-        self.assertEqual(data["message"], "Protocolo reenviado exitosamente")
+        # Should redirect to rejected list after successful resubmission
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("protocols:rejected_list"))
         
         # Check protocol status changed
         self.rejected_protocol.refresh_from_db()
@@ -4240,14 +4238,13 @@ class ProtocolResubmitTest(TestCase):
         
         response = self.client.post(
             reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
-            data=form_data,
-            content_type="application/json"
+            data=form_data
         )
         
-        self.assertEqual(response.status_code, 400)
-        data = response.json()
-        self.assertFalse(data["success"])
-        self.assertIn("El motivo es requerido", data["error"])
+        # Should return form with validation errors (200 status)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "protocols/resubmit_form.html")
+        self.assertContains(response, "This field is required.")
     
     def test_resubmit_view_with_short_reason(self):
         """Test resubmit view with reason too short should fail."""
@@ -4259,14 +4256,13 @@ class ProtocolResubmitTest(TestCase):
         
         response = self.client.post(
             reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
-            data=form_data,
-            content_type="application/json"
+            data=form_data
         )
         
-        self.assertEqual(response.status_code, 400)
-        data = response.json()
-        self.assertFalse(data["success"])
-        self.assertIn("El motivo debe tener al menos 10 caracteres", data["error"])
+        # Should return form with validation errors (200 status)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "protocols/resubmit_form.html")
+        self.assertContains(response, "Ensure this value has at least 10 characters")
     
     def test_resubmit_view_with_non_rejected_protocol(self):
         """Test resubmit view with non-rejected protocol should fail."""
@@ -4278,14 +4274,12 @@ class ProtocolResubmitTest(TestCase):
         
         response = self.client.post(
             reverse("protocols:protocol_resubmit", kwargs={"pk": self.submitted_protocol.pk}),
-            data=form_data,
-            content_type="application/json"
+            data=form_data
         )
         
-        self.assertEqual(response.status_code, 400)
-        data = response.json()
-        self.assertFalse(data["success"])
-        self.assertIn("Solo se pueden reenviar protocolos rechazados", data["error"])
+        # Should redirect to rejected list with error message
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("protocols:rejected_list"))
     
     def test_resubmit_view_without_staff_permissions(self):
         """Test resubmit view without staff permissions should fail."""
