@@ -637,6 +637,38 @@ class ProtocolViewsTest(TestCase):
         self.assertTemplateUsed(response, "protocols/protocol_detail.html")
         self.assertEqual(response.context["protocol"], protocol)
 
+    def test_protocol_detail_view_with_discrepancies(self):
+        """Test protocol detail view displays discrepancies when present."""
+        protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            veterinarian=self.veterinarian,
+            species="Canino",
+            animal_identification="Max",
+            presumptive_diagnosis="Test",
+            submission_date=date.today(),
+            discrepancies="Faltan 2 portaobjetos según lo declarado",
+            sample_condition=Protocol.SampleCondition.SUBOPTIMAL,
+        )
+        CytologySample.objects.create(
+            protocol=protocol,
+            veterinarian=self.veterinarian,
+            technique_used="PAAF",
+            sampling_site="Test site",
+            number_of_slides=1,
+        )
+
+        response = self.client.get(
+            reverse("protocols:protocol_detail", kwargs={"pk": protocol.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "protocols/protocol_detail.html")
+        
+        # Check that discrepancies are displayed in the response
+        self.assertContains(response, "Discrepancias Encontradas")
+        self.assertContains(response, "Faltan 2 portaobjetos según lo declarado")
+        self.assertContains(response, "Condición de la muestra")
+        self.assertContains(response, "Subóptima")
+
     def test_protocol_edit_view_get(self):
         """Test GET request to edit protocol."""
         protocol = Protocol.objects.create(
@@ -4309,3 +4341,220 @@ class ProtocolResubmitTest(TestCase):
         form = ProtocolResubmitForm(data={"reason": "x" * 501})
         self.assertFalse(form.is_valid())
         self.assertIn("reason", form.errors)
+
+
+# ============================================================================
+# PROTOCOL PUBLIC ACCESS TESTS
+# ============================================================================
+
+import uuid
+from unittest.mock import patch
+from django.conf import settings
+
+
+class ProtocolPublicAccessTest(TestCase):
+    """Test cases for protocol public access via UUID."""
+
+    def setUp(self):
+        """Set up test data."""
+        # Create test user and veterinarian
+        self.user = User.objects.create_user(
+            email="vet@example.com",
+            username="vet",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+            email_verified=True,
+        )
+        self.veterinarian = Veterinarian.objects.create(
+            user=self.user,
+            first_name="Dr. Juan",
+            last_name="Pérez",
+            license_number="MP-12345",
+            phone="+54 341 1234567",
+            email="vet@example.com",
+        )
+
+        # Create test protocol
+        self.protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            veterinarian=self.veterinarian,
+            species="Canino",
+            animal_identification="Max",
+            presumptive_diagnosis="Tumor mamario",
+            submission_date="2024-01-15",
+        )
+
+        # Create cytology sample
+        self.cytology_sample = CytologySample.objects.create(
+            protocol=self.protocol,
+            veterinarian=self.veterinarian,
+            technique_used="PAAF",
+            sampling_site="Mama",
+            number_of_slides=2,
+        )
+
+    def test_protocol_public_detail_view_success(self):
+        """Test successful access to protocol public detail."""
+        # Login as the protocol owner
+        self.client.login(email="vet@example.com", password="testpass123")
+        
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": self.protocol.external_id},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "protocols/protocol_detail.html")
+        self.assertEqual(response.context["protocol"], self.protocol)
+
+    def test_protocol_public_detail_view_nonexistent_uuid(self):
+        """Test that nonexistent UUID returns 404."""
+        # Login as the protocol owner
+        self.client.login(email="vet@example.com", password="testpass123")
+        
+        fake_uuid = uuid.uuid4()
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": fake_uuid},
+            )
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_protocol_public_detail_view_requires_authentication(self):
+        """Test that public detail view requires authentication."""
+        # Don't login - should redirect to login
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": self.protocol.external_id},
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, "/accounts/login/")
+
+    def test_protocol_public_detail_view_authorization_owner_only(self):
+        """Test that only protocol owner can access their protocol."""
+        # Create another user and veterinarian
+        other_user = User.objects.create_user(
+            email="other@example.com",
+            username="other",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+            email_verified=True,
+        )
+        other_vet = Veterinarian.objects.create(
+            user=other_user,
+            first_name="Dr. Jane",
+            last_name="Smith",
+            license_number="MP-54321",
+            phone="+54 341 7654321",
+            email="other@example.com",
+        )
+
+        # Login as other veterinarian
+        self.client.login(email="other@example.com", password="testpass123")
+
+        # Try to access protocol owned by different veterinarian
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": self.protocol.external_id},
+            )
+        )
+
+        # Should be forbidden (403) or not found (404)
+        self.assertIn(response.status_code, [403, 404])
+
+    def test_protocol_public_detail_view_staff_can_access_all(self):
+        """Test that staff users can access any protocol."""
+        # Create staff user
+        staff_user = User.objects.create_user(
+            email="staff@example.com",
+            username="staff",
+            password="testpass123",
+            role=User.Role.ADMIN,  # Use ADMIN role for staff access
+            email_verified=True,
+        )
+
+        # Login as staff
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        # Should be able to access protocol
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": self.protocol.external_id},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.protocol.animal_identification)
+
+    def test_build_protocol_url_function(self):
+        """Test the build_protocol_url helper function."""
+        from protocols.emails import build_protocol_url
+
+        url = build_protocol_url(self.protocol)
+        
+        # Should contain the site URL and protocol UUID
+        self.assertIn(settings.SITE_URL, url)
+        self.assertIn(str(self.protocol.external_id), url)
+        self.assertIn("/protocols/public/", url)
+
+    def test_email_context_includes_protocol_url(self):
+        """Test that email context includes protocol_url."""
+        from protocols.emails import send_sample_reception_notification
+
+        # Mock the email sending to capture context
+        with patch("protocols.emails.queue_email") as mock_queue:
+            send_sample_reception_notification(self.protocol)
+            
+            # Check that queue_email was called with protocol_url in context
+            mock_queue.assert_called_once()
+            call_args = mock_queue.call_args
+            context = call_args[1]["context"]
+            
+            self.assertIn("protocol_url", context)
+            self.assertTrue(context["protocol_url"].startswith("http"))
+            self.assertIn(str(self.protocol.external_id), context["protocol_url"])
+
+    def test_email_template_protocol_url_accessibility(self):
+        """Test that protocol URLs in emails are accessible with authentication."""
+        from django.template.loader import render_to_string
+
+        context = {
+            "protocol": self.protocol,
+            "veterinarian": self.veterinarian,
+            "protocol_url": f"{settings.SITE_URL}/protocols/public/{self.protocol.external_id}/",
+        }
+
+        html = render_to_string("emails/sample_reception.html", context)
+        
+        # Should contain protocol URL
+        self.assertIn(str(self.protocol.external_id), html)
+        self.assertIn("Ver Protocolo en el Sistema", html)
+        self.assertIn('href="', html)
+        
+        # Should require authentication
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": self.protocol.external_id},
+            )
+        )
+        self.assertEqual(response.status_code, 302)  # Redirects to login
+        
+        # Should be accessible after login
+        self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": self.protocol.external_id},
+            )
+        )
+        self.assertEqual(response.status_code, 200)
