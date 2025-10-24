@@ -61,6 +61,50 @@ _[Espacio para captura de pantalla: Veterinario completando el formulario de pro
 
 _[Espacio para captura de pantalla: Personal de laboratorio registrando la llegada de la muestra]_
 
+## ❌ Etapa 2.5: La muestra es rechazada (Si Aplica)
+
+### ¿Cuándo se rechaza una muestra?
+- **Calidad insuficiente**: Para análisis confiable
+- **Muestra mal fijada**: Conservación inadecuada
+- **Cantidad insuficiente**: Material insuficiente para diagnóstico
+- **Identificación incorrecta**: Etiquetas ilegibles o incorrectas
+- **Condiciones de transporte**: Muestra deteriorada por mal manejo
+
+### ¿Qué hace el personal de laboratorio?
+1. **Evalúa la muestra** según criterios de calidad
+2. **Documenta el motivo** del rechazo con detalle
+3. **Selecciona "Rechazada"** en condición de muestra
+4. **Completa observaciones** (obligatorio)
+5. **Confirma el rechazo** en el sistema
+
+### ¿Qué pasa en el sistema?
+- **NO se asigna número de protocolo**: Solo mantiene código temporal
+- **Se actualiza el estado** a REJECTED
+- **Se registra en historial**: Para auditoría
+- **Se envía email de rechazo** al veterinario con:
+  - Motivo detallado del rechazo
+  - Recomendaciones para nueva muestra
+  - Instrucciones para reenvío
+  - Contacto del laboratorio
+
+### ¿Qué hace el veterinario?
+1. **Recibe email de rechazo** con explicación detallada
+2. **Contacta al laboratorio** si tiene dudas
+3. **Prepara nueva muestra** siguiendo recomendaciones
+4. **Envía nueva muestra física** al laboratorio
+5. **El protocolo se reactiva automáticamente** cuando llega la nueva muestra
+
+### ¿Cuánto tiempo toma?
+- **Inmediato**: El rechazo se registra al instante
+- **Reenvío**: Depende de cuándo el veterinario envíe nueva muestra
+
+### ¿Qué pasa después?
+- **El protocolo vuelve a SUBMITTED** cuando llega nueva muestra
+- **Se reinicia el proceso** desde la recepción
+- **No se cobra** por la muestra rechazada
+
+_[Espacio para captura de pantalla: Formulario de rechazo de muestra]_
+
 ## 🔬 Etapa 3: Se procesa la muestra
 
 ### ¿Qué hace el personal de laboratorio?
@@ -299,6 +343,36 @@ _[Espacio para captura de pantalla: Ejemplos de notificaciones por email]_
 - **Solicitará autorización**: Para proceder
 - **Tiempo adicional**: Según el estudio requerido
 
+## 🔄 Reenvío de Protocolos Rechazados (Para Administradores)
+
+### ¿Cuándo se puede reenviar un protocolo rechazado?
+
+#### Casos Válidos para Reenvío
+- **Error en evaluación inicial**: La muestra era aceptable
+- **Veterinario envió nueva muestra**: Con las correcciones necesarias
+- **Condiciones mejoradas**: Problema resuelto
+- **Acuerdo con veterinario**: Decisión conjunta
+
+### ¿Qué hace el administrador?
+1. **Accede a "Protocolos Rechazados"** desde el dashboard
+2. **Selecciona el protocolo** a reenviar
+3. **Completa formulario** con motivo del reenvío (mínimo 10 caracteres)
+4. **Confirma el reenvío**
+5. **Sistema actualiza estado** a SUBMITTED automáticamente
+
+### ¿Qué pasa en el sistema?
+- **Estado cambia** de REJECTED a SUBMITTED
+- **Se registra en historial** el cambio con motivo
+- **Protocolo disponible** para nueva recepción
+- **Se notifica al veterinario** del reenvío
+- **Se mantiene auditoría** completa del proceso
+
+### ¿Cuánto tiempo toma?
+- **Inmediato**: El reenvío se procesa al instante
+- **Nueva recepción**: Depende de cuándo llegue la nueva muestra
+
+_[Espacio para captura de pantalla: Formulario de reenvío de protocolo rechazado]_
+
 ## ❓ Preguntas Frecuentes
 
 ### ¿Puedo acelerar el proceso?
@@ -333,6 +407,15 @@ _[Espacio para captura de pantalla: Ejemplos de notificaciones por email]_
 - **Siempre accesibles**: Puedes descargar en cualquier momento
 - **Laminillas**: Se guardan según política del laboratorio (típicamente 5-10 años)
 - **Bloques de parafina**: Se guardan según política (típicamente 10+ años)
+
+### ¿Qué hago si mi muestra fue rechazada?
+**Revisa el email** con el motivo del rechazo. Contacta al laboratorio si tienes dudas. Prepara una nueva muestra siguiendo las recomendaciones y envíala. No se te cobrará por la muestra rechazada.
+
+### ¿Puedo reenviar la misma muestra si fue rechazada?
+**No**, debes enviar una nueva muestra. El laboratorio te dará instrucciones específicas sobre cómo prepararla correctamente.
+
+### ¿Cuánto tiempo tengo para enviar una nueva muestra?
+**No hay límite de tiempo**, pero es recomendable enviarla lo antes posible para no retrasar el diagnóstico de tu paciente.
 
 ## 🆘 Si Necesitas Ayuda
 

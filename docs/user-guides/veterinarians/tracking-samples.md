@@ -107,6 +107,13 @@ _[Espacio para captura de pantalla: Estado "Procesando"]_
 
 _[Espacio para captura de pantalla: Estado "Informe Enviado"]_
 
+#### 6. Rechazado (REJECTED)
+- **Qué significa**: Tu muestra no cumple los estándares de calidad necesarios
+- **Qué sigue**: Enviar nueva muestra siguiendo las recomendaciones
+- **Tiempo estimado**: Depende de cuándo envíes la nueva muestra
+
+_[Espacio para captura de pantalla: Estado "Rechazado"]_
+
 ## 📧 Notificaciones automáticas
 
 ### Emails que recibirás
@@ -128,6 +135,10 @@ El sistema te enviará emails automáticamente en estos momentos:
 #### 4. Informe listo
 - **Cuándo**: Cuando el informe está completado
 - **Contenido**: Informe adjunto en PDF y enlace para descarga
+
+#### 5. Muestra rechazada
+- **Cuándo**: Cuando la muestra no cumple los estándares de calidad
+- **Contenido**: Motivo del rechazo, recomendaciones y próximos pasos
 
 _[Espacio para captura de pantalla: Ejemplo de email de notificación]_
 
@@ -156,6 +167,29 @@ _[Espacio para captura de pantalla: Ejemplo de email de notificación]_
 ### Casos urgentes
 - **Marcados como urgentes**: 50% menos tiempo
 - **Costo adicional**: Consultar con el laboratorio
+
+## ❌ Qué hacer si tu muestra es rechazada
+
+### Por Qué Puede Rechazarse
+- **Muestra mal conservada**: Fijación inadecuada o deteriorada
+- **Cantidad insuficiente**: Material insuficiente para análisis confiable
+- **Identificación incorrecta**: Etiquetas ilegibles o información contradictoria
+- **Condiciones de transporte**: Muestra dañada por mal manejo
+
+### Qué Hacer
+1. **Revisar el email de rechazo** con el motivo detallado
+2. **Contactar al laboratorio** si tienes dudas sobre el rechazo
+3. **Preparar nueva muestra** siguiendo las recomendaciones específicas
+4. **Enviar nueva muestra física** al laboratorio
+5. **El protocolo se reactivará automáticamente** cuando llegue la nueva muestra
+
+### Importante
+- **No se te cobrará** por la muestra rechazada
+- **El protocolo original se mantiene** en el sistema
+- **Recibirás instrucciones específicas** para el reenvío
+- **El laboratorio te ayudará** con cualquier duda sobre la preparación
+
+_[Espacio para captura de pantalla: Email de rechazo de muestra]_
 
 ## 🚨 Detectar problemas
 
@@ -201,6 +235,15 @@ _[Espacio para captura de pantalla: Vista móvil de lista de protocolos]_
 
 ### ¿Puedo agregar notas después de enviar?
 **Sí**, puedes agregar notas o comentarios en la sección de detalles del protocolo en cualquier momento.
+
+### ¿Qué hago si mi muestra fue rechazada?
+**Revisa el email** con el motivo del rechazo. Contacta al laboratorio si tienes dudas. Prepara una nueva muestra siguiendo las recomendaciones y envíala. No se te cobrará por la muestra rechazada.
+
+### ¿Puedo reenviar la misma muestra si fue rechazada?
+**No**, debes enviar una nueva muestra. El laboratorio te dará instrucciones específicas sobre cómo prepararla correctamente.
+
+### ¿Cuánto tiempo tengo para enviar una nueva muestra?
+**No hay límite de tiempo**, pero es recomendable enviarla lo antes posible para no retrasar el diagnóstico de tu paciente.
 
 ## 🆘 Si necesitas ayuda
 

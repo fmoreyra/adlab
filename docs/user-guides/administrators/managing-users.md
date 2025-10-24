@@ -39,6 +39,16 @@ _[Espacio para captura de pantalla: Formulario de creación de usuario]_
 - Revisar accesos periódicamente
 - Desactivar cuentas inactivas
 
+## 📋 Gestión de Protocolos
+
+### Protocolos Rechazados
+- **Ver lista completa**: De protocolos con muestras rechazadas
+- **Reenviar protocolos**: Si fue error en evaluación inicial
+- **Auditoría completa**: Historial de cambios de estado
+- **Comunicación**: Con veterinarios sobre rechazos
+
+*Ver: [Gestionar protocolos rechazados](managing-rejected-protocols.md)*
+
 ---
 
 *Siguiente: [Configurar sistema](system-settings.md)*

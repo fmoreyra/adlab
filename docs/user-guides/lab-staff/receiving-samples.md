@@ -51,7 +51,7 @@ _[Espacio para captura de pantalla: Lista de verificación de condición de mues
 - **ÓPTIMA**: Muestra en perfectas condiciones
 - **ACEPTABLE**: Puede analizarse con calidad
 - **SUBÓPTIMA**: Analizable pero con limitaciones
-- **INADECUADA**: No se puede analizar
+- **RECHAZADA**: Muestra no apta para análisis (no se asigna número de protocolo)
 
 ### Paso 4: Registrar Recepción en el Sistema
 
@@ -74,7 +74,32 @@ Si la muestra solo tiene código temporal:
 
 _[Espacio para captura de pantalla: Asignación automática de número de protocolo]_
 
-### Paso 5: Almacenamiento Temporal
+### Paso 5: Rechazar Muestras (Si Aplica)
+
+#### Cuándo Rechazar una Muestra
+- **Calidad insuficiente**: Para análisis confiable
+- **Muestra mal fijada**: Conservación inadecuada
+- **Cantidad insuficiente**: Material insuficiente para diagnóstico
+- **Identificación incorrecta**: Etiquetas ilegibles o incorrectas
+- **Condiciones de transporte**: Muestra deteriorada por mal manejo
+
+#### Proceso de Rechazo
+1. **Evaluar la muestra** según criterios de calidad
+2. **Documentar el motivo** del rechazo con detalle
+3. **Seleccionar "Rechazada"** en condición de muestra
+4. **Completar campo de observaciones** (obligatorio)
+5. **Confirmar rechazo** en el sistema
+6. **Sistema envía notificación automática** al veterinario
+
+#### Importante sobre Muestras Rechazadas
+- **NO reciben número de protocolo**: Solo mantienen código temporal
+- **Veterinario debe enviar nueva muestra**: Con las correcciones necesarias
+- **Se registra en historial**: Para auditoría y seguimiento
+- **No se cobra por la muestra rechazada**: Política del laboratorio
+
+_[Espacio para captura de pantalla: Formulario de rechazo de muestra]_
+
+### Paso 6: Almacenamiento Temporal
 
 #### Organizar por Prioridad
 - **Urgentes**: Procesamiento inmediato (etiqueta roja)
@@ -131,6 +156,7 @@ _[Espacio para captura de pantalla: Registro de problema con muestra]_
 #### Al Veterinario
 - **Recepción confirmada**: "Tu muestra ha llegado al laboratorio"
 - **Número de protocolo asignado**: Si tenía código temporal
+- **Muestra rechazada**: Explicación del motivo y próximos pasos
 - **Problemas identificados**: Si hay algo que reportar
 
 #### Al Histopatólogo
@@ -187,6 +213,15 @@ R: Documentar el daño, fotografiar, contactar al veterinario y al supervisor pa
 
 ### P: ¿Cuánto tiempo puedo tener una muestra sin registrar?
 R: Las muestras deben registrarse el mismo día de llegada, idealmente dentro de las primeras 2 horas.
+
+### P: ¿Qué hago si no estoy seguro si debo rechazar una muestra?
+R: Consulta con tu supervisor o el histopatólogo de turno. Es mejor ser conservador y rechazar si hay dudas sobre la calidad.
+
+### P: ¿Puedo cambiar mi decisión después de rechazar una muestra?
+R: Sí, los administradores pueden reenviar protocolos rechazados si fue un error. Contacta al supervisor para revisar el caso.
+
+### P: ¿Cómo explico al veterinario por qué se rechazó su muestra?
+R: El sistema envía un email automático con el motivo que documentaste. Si necesitas aclarar algo, contacta directamente al veterinario.
 
 ## 🆘 Obtener Ayuda
 
