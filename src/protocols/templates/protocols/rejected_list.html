@@ -242,6 +242,22 @@
 <script>
 let currentProtocolId = null;
 
+// Helper function to get cookie value
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 function changeStatus(protocolId, status) {
     currentProtocolId = protocolId;
     document.getElementById('resubmitModal').classList.remove('hidden');
@@ -296,8 +312,28 @@ document.getElementById('resubmitForm').addEventListener('submit', function(e) {
     submitText.classList.add('hidden');
     loadingText.classList.remove('hidden');
     
-    // Get CSRF token
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    // Get CSRF token from the form or from meta tag
+    let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfToken) {
+        csrfToken = csrfToken.value;
+    } else {
+        // Fallback to meta tag
+        const metaToken = document.querySelector('meta[name=csrf-token]');
+        if (metaToken) {
+            csrfToken = metaToken.getAttribute('content');
+        } else {
+            // Try to get from cookies
+            csrfToken = getCookie('csrftoken');
+        }
+    }
+    
+    // Debug: log CSRF token
+    console.log('CSRF Token:', csrfToken);
+    
+    if (!csrfToken) {
+        alert('Error: No se pudo obtener el token CSRF. Por favor, recargue la página.');
+        return;
+    }
     
     // Make AJAX request
     fetch(`/protocols/${currentProtocolId}/resubmit/`, {
