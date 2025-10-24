@@ -159,6 +159,18 @@ class ProtocolReceptionServiceTest(TestCase):
         self.assertFalse(is_valid)
         self.assertIn("ya fue procesado", error)
 
+    def test_validate_protocol_for_reception_draft_status(self):
+        """Test validation of draft protocol - should be rejected."""
+        self.protocol.status = Protocol.Status.DRAFT
+
+        is_valid, error = self.service.validate_protocol_for_reception(
+            self.protocol
+        )
+
+        self.assertFalse(is_valid)
+        self.assertIn("borrador", error)
+        self.assertIn("enviado primero", error)
+
     @patch(
         "protocols.services.protocol_service.ProtocolStatusHistory.log_status_change"
     )

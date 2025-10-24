@@ -40,11 +40,11 @@ class ProtocolReceptionService:
         Returns:
             Tuple[bool, str]: (is_valid, error_message)
         """
-        if protocol.status not in [
-            Protocol.Status.SUBMITTED,
-            Protocol.Status.DRAFT,
-        ]:
-            return False, _("Este protocolo ya fue procesado.")
+        if protocol.status != Protocol.Status.SUBMITTED:
+            if protocol.status == Protocol.Status.DRAFT:
+                return False, _("No se puede recepcionar un protocolo en borrador. El protocolo debe ser enviado primero.")
+            else:
+                return False, _("Este protocolo ya fue procesado.")
 
         return True, ""
 
