@@ -79,10 +79,11 @@ class ProtocolReceptionService:
             # Update sample-specific fields
             self._update_sample_specific_fields(protocol, form_data)
 
-            # Log reception action
+            # Log reception action - check for discrepancies
+            action = ReceptionLog.Action.DISCREPANCY_REPORTED if discrepancies else ReceptionLog.Action.RECEIVED
             ReceptionLog.log_action(
                 protocol=protocol,
-                action=ReceptionLog.Action.RECEIVED,
+                action=action,
                 user=user,
                 notes=reception_notes,
             )

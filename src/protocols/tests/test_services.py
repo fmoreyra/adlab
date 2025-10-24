@@ -194,6 +194,36 @@ class ProtocolReceptionServiceTest(TestCase):
         mock_log_action.assert_called_once()
         mock_log_status.assert_called_once()
 
+    @patch(
+        "protocols.services.protocol_service.ProtocolStatusHistory.log_status_change"
+    )
+    @patch("protocols.services.protocol_service.ReceptionLog.log_action")
+    def test_process_reception_with_discrepancies(self, mock_log_action, mock_log_status):
+        """Test protocol reception with discrepancies - should log as discrepancy_reported."""
+        from protocols.models import ReceptionLog
+        
+        form_data = {
+            "sample_condition": "GOOD",
+            "reception_notes": "Sample received with issues",
+            "discrepancies": "Missing 2 slides as expected",
+        }
+
+        success, error = self.service.process_reception(
+            self.protocol, form_data, self.user
+        )
+
+        self.assertTrue(success)
+        self.assertEqual(error, "")
+        self.protocol.refresh_from_db()
+        self.assertEqual(self.protocol.status, Protocol.Status.RECEIVED)
+        self.assertEqual(self.protocol.discrepancies, "Missing 2 slides as expected")
+        
+        # Check that the correct action was logged
+        mock_log_action.assert_called_once()
+        call_args = mock_log_action.call_args
+        self.assertEqual(call_args[1]['action'], ReceptionLog.Action.DISCREPANCY_REPORTED)
+        mock_log_status.assert_called_once()
+
     def test_process_reception_with_cytology_sample(self):
         """Test reception processing with cytology sample updates."""
         from protocols.models import CytologySample
