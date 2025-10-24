@@ -1,12 +1,27 @@
 {% extends "layouts/index.html" %}
 {% load static %}
 
-{% block title %}Recepción Confirmada - {{ protocol.protocol_number }}{% endblock %}
+{% block title %}{% if protocol.status == 'rejected' %}Muestra Rechazada - {{ protocol.temporary_code }}{% else %}Recepción Confirmada - {{ protocol.protocol_number }}{% endif %}{% endblock %}
 
 {% block body %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
-        <!-- Success Header -->
+        <!-- Success/Rejection Header -->
+        {% if protocol.status == 'rejected' %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4 flex-1">
+                    <h1 class="text-2xl font-bold text-red-900">¡Muestra Rechazada!</h1>
+                    <p class="mt-1 text-red-700">La muestra ha sido rechazada y no se asignó número de protocolo</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
         <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
@@ -20,8 +35,23 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Protocol Number Card -->
+        {% if protocol.status == 'rejected' %}
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden mb-6 border-2 border-red-500">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+                <h2 class="text-xl font-semibold text-white">Muestra Rechazada</h2>
+            </div>
+            <div class="p-8 text-center">
+                <div class="inline-block bg-gray-100 px-8 py-6 rounded-lg">
+                    <p class="text-sm text-gray-600 mb-2">Código Temporal</p>
+                    <p class="text-3xl font-bold text-red-600 font-mono">{{ protocol.temporary_code }}</p>
+                    <p class="text-sm text-red-500 mt-2">No se asignó número de protocolo</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
         <div class="bg-white shadow-lg rounded-lg overflow-hidden mb-6 border-2 border-green-500">
             <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
                 <h2 class="text-xl font-semibold text-white">Número de Protocolo Asignado</h2>
@@ -33,6 +63,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Reception Information -->
         <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">

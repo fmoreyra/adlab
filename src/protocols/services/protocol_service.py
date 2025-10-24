@@ -5,6 +5,7 @@ Protocol processing service for handling protocol reception and processing logic
 import logging
 from typing import Dict, List, Tuple
 
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from protocols.models import (
@@ -71,18 +72,30 @@ class ProtocolReceptionService:
             # Check if sample is rejected
             is_rejected = sample_condition == Protocol.SampleCondition.REJECTED
 
-            # Update protocol
-            protocol.receive(
-                received_by=user,
-                sample_condition=sample_condition,
-                reception_notes=reception_notes,
-                discrepancies=discrepancies,
-            )
-            
-            # Override status if rejected
             if is_rejected:
+                # Handle rejected samples differently - don't assign protocol number
+                protocol.reception_date = timezone.now()
+                protocol.received_by = user
+                protocol.sample_condition = sample_condition
+                protocol.reception_notes = reception_notes
+                protocol.discrepancies = discrepancies
                 protocol.status = Protocol.Status.REJECTED
-                protocol.save(update_fields=["status"])
+                protocol.save(update_fields=[
+                    "reception_date",
+                    "received_by", 
+                    "sample_condition",
+                    "reception_notes",
+                    "discrepancies",
+                    "status",
+                ])
+            else:
+                # Normal reception - assign protocol number
+                protocol.receive(
+                    received_by=user,
+                    sample_condition=sample_condition,
+                    reception_notes=reception_notes,
+                    discrepancies=discrepancies,
+                )
 
             # Update sample-specific fields
             self._update_sample_specific_fields(protocol, form_data)

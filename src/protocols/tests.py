@@ -3912,6 +3912,7 @@ class RejectedProtocolsTest(TestCase):
             first_name="Staff",
             last_name="User",
             role=User.Role.PERSONAL_LAB,
+            is_staff=True,
         )
         
         self.vet_user = User.objects.create_user(
@@ -3921,6 +3922,7 @@ class RejectedProtocolsTest(TestCase):
             first_name="Vet",
             last_name="User",
             role=User.Role.VETERINARIO,
+            is_staff=False,
         )
         
         # Create veterinarian profile
@@ -3930,6 +3932,7 @@ class RejectedProtocolsTest(TestCase):
             last_name="User",
             email="vet@example.com",
             license_number="VET123",
+            phone="+54 341 1234567",
         )
         
         # Create protocols
@@ -3940,6 +3943,7 @@ class RejectedProtocolsTest(TestCase):
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             status=Protocol.Status.SUBMITTED,
             submission_date=timezone.now().date(),
+            temporary_code="TMP-CY-20250101-001",
         )
         
         self.rejected_protocol = Protocol.objects.create(
@@ -3953,6 +3957,7 @@ class RejectedProtocolsTest(TestCase):
             received_by=self.staff_user,
             sample_condition=Protocol.SampleCondition.REJECTED,
             reception_notes="Sample quality too poor",
+            temporary_code="TMP-CY-20250101-002",
         )
 
     def test_protocol_list_excludes_rejected_by_default(self):
@@ -4011,6 +4016,7 @@ class RejectedProtocolsTest(TestCase):
 
     def test_cassette_create_rejects_rejected_protocol(self):
         """Test that cassette creation is blocked for rejected protocols."""
+        from django.utils import timezone
         # Create histopathology protocol and sample
         histo_protocol = Protocol.objects.create(
             veterinarian=self.veterinarian,
@@ -4024,7 +4030,9 @@ class RejectedProtocolsTest(TestCase):
         from protocols.models import HistopathologySample
         HistopathologySample.objects.create(
             protocol=histo_protocol,
-            number_slides_expected=5,
+            veterinarian=self.veterinarian,
+            material_submitted="Test material",
+            number_of_containers=1,
         )
         
         self.client.login(email="staff@example.com", password="testpass123")

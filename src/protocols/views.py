@@ -93,14 +93,14 @@ class ProtocolListView(ListView):
                 .prefetch_related("cytology_sample", "histopathology_sample")
             )
 
-        # Exclude rejected protocols by default
-        protocols = protocols.exclude(status=Protocol.Status.REJECTED)
-
         # Check if user wants to see rejected protocols
         show_rejected = self.request.GET.get("show_rejected")
         if show_rejected:
-            # Override the exclusion and show only rejected protocols
+            # Show only rejected protocols
             protocols = protocols.filter(status=Protocol.Status.REJECTED)
+        else:
+            # Exclude rejected protocols by default
+            protocols = protocols.exclude(status=Protocol.Status.REJECTED)
 
         # Apply filters
         status_filter = self.request.GET.get("status")
