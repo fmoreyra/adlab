@@ -5,8 +5,9 @@ from io import BytesIO
 
 import qrcode
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http import FileResponse, JsonResponse
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -256,23 +257,82 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
 
 class ProtocolPublicDetailView(DetailView):
     """
-    Display protocol details for public access using external ID.
-    No authentication required.
+    Display protocol details using external ID.
+    Requires authentication and ownership verification.
+    Reuses the same template as ProtocolDetailView for consistency.
     """
 
     model = Protocol
-    template_name = "protocols/protocol_public_detail.html"
+    template_name = "protocols/protocol_detail.html"
     context_object_name = "protocol"
     slug_field = "external_id"
     slug_url_kwarg = "external_id"
 
+    def dispatch(self, request, *args, **kwargs):
+        """Handle authentication and authorization checks."""
+        # Require authentication
+        if not request.user.is_authenticated:
+            return redirect("accounts:login")
+        
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
-        """Get protocol with related objects."""
-        return Protocol.objects.select_related(
+        """Get protocol with related objects, filtered by user permissions."""
+        queryset = Protocol.objects.select_related(
             "veterinarian__user",
             "cytology_sample",
             "histopathology_sample",
         )
+        
+        # Filter based on user permissions
+        if self.request.user.is_admin_user or self.request.user.is_staff:
+            # Admin and staff can see all protocols
+            return queryset
+        else:
+            # Veterinarians can only see their own protocols
+            if hasattr(self.request.user, 'veterinarian_profile'):
+                return queryset.filter(veterinarian=self.request.user.veterinarian_profile)
+            else:
+                # User doesn't have veterinarian profile
+                return queryset.none()
+
+    def get_object(self, queryset=None):
+        """Get the protocol object and verify access permissions."""
+        protocol = super().get_object(queryset)
+        
+        # Additional security check: verify user can access this protocol
+        if not self.request.user.is_admin_user and not self.request.user.is_staff:
+            if not hasattr(self.request.user, 'veterinarian_profile'):
+                raise PermissionDenied("No tiene permisos para ver este protocolo.")
+            
+            if protocol.veterinarian != self.request.user.veterinarian_profile:
+                raise PermissionDenied("No tiene permisos para ver este protocolo.")
+        
+        return protocol
+
+    def get_context_data(self, **kwargs):
+        """Add additional context data."""
+        context = super().get_context_data(**kwargs)
+        protocol = self.object
+
+        # Get status history with user information
+        status_history = protocol.status_history.all().select_related(
+            "changed_by"
+        ).order_by("-changed_at")
+
+        # Get sample information
+        sample = None
+        if hasattr(protocol, 'cytology_sample'):
+            sample = protocol.cytology_sample
+        elif hasattr(protocol, 'histopathology_sample'):
+            sample = protocol.histopathology_sample
+
+        context.update({
+            "status_history": status_history,
+            "sample": sample,
+        })
+
+        return context
 
 
 class ProtocolCreateCytologyView(VeterinarianProfileRequiredMixin, CreateView):

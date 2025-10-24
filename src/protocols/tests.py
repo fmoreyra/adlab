@@ -4431,6 +4431,32 @@ class ProtocolPublicAccessTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, "/accounts/login/")
 
+    def test_protocol_public_detail_view_with_discrepancies(self):
+        """Test public protocol detail view displays discrepancies when present."""
+        # Add discrepancies to the protocol
+        self.protocol.discrepancies = "Faltan 2 portaobjetos según lo declarado"
+        self.protocol.sample_condition = Protocol.SampleCondition.SUBOPTIMAL
+        self.protocol.save()
+        
+        # Login as the protocol owner
+        self.client.login(email="vet@example.com", password="testpass123")
+        
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": self.protocol.external_id},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "protocols/protocol_detail.html")
+        
+        # Check that discrepancies are displayed in the response
+        self.assertContains(response, "Discrepancias Encontradas")
+        self.assertContains(response, "Faltan 2 portaobjetos según lo declarado")
+        self.assertContains(response, "Condición de la muestra")
+        self.assertContains(response, "Subóptima")
+
     def test_protocol_public_detail_view_authorization_owner_only(self):
         """Test that only protocol owner can access their protocol."""
         # Create another user and veterinarian
