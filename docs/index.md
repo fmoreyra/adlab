@@ -7,6 +7,7 @@ Bienvenido a la guía de usuario del Sistema de Gestión de Laboratorio. Esta gu
 ## 🚀 Comenzar
 
 - [¿Qué hace este sistema?](getting-started/system-overview.md) - Entender qué hace el sistema por ti
+- [Resumen de roles y capacidades](getting-started/user-roles-summary.md) - Qué puede hacer cada tipo de usuario
 - [Primer acceso](getting-started/first-login.md) - Cómo iniciar sesión por primera vez
 - [Navegación básica](getting-started/basic-navigation.md) - Cómo moverse por el sistema
 
