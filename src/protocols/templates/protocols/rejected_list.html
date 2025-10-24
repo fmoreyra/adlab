@@ -312,19 +312,29 @@ document.getElementById('resubmitForm').addEventListener('submit', function(e) {
     submitText.classList.add('hidden');
     loadingText.classList.remove('hidden');
     
-    // Get CSRF token from the form or from meta tag
-    let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-    if (csrfToken) {
-        csrfToken = csrfToken.value;
-    } else {
-        // Fallback to meta tag
+    // Get CSRF token from multiple sources
+    let csrfToken = null;
+    
+    // Try form first
+    const formToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (formToken) {
+        csrfToken = formToken.value;
+        console.log('CSRF token found in form:', csrfToken);
+    }
+    
+    // Try meta tag
+    if (!csrfToken) {
         const metaToken = document.querySelector('meta[name=csrf-token]');
         if (metaToken) {
             csrfToken = metaToken.getAttribute('content');
-        } else {
-            // Try to get from cookies
-            csrfToken = getCookie('csrftoken');
+            console.log('CSRF token found in meta tag:', csrfToken);
         }
+    }
+    
+    // Try cookies as last resort
+    if (!csrfToken) {
+        csrfToken = getCookie('csrftoken');
+        console.log('CSRF token found in cookies:', csrfToken);
     }
     
     // Debug: log CSRF token
