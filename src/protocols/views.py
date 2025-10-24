@@ -739,6 +739,7 @@ class ProcessingQueueView(StaffRequiredMixin, ListView):
         """Get protocols in processing queue with filtering."""
         # Get filter parameters
         analysis_type = self.request.GET.get("type", "all")
+        status_filter = self.request.GET.get("status", "all")
 
         # Base queryset - received and processing protocols
         protocols = (
@@ -759,6 +760,10 @@ class ProcessingQueueView(StaffRequiredMixin, ListView):
         # Apply type filter
         if analysis_type != "all":
             protocols = protocols.filter(analysis_type=analysis_type)
+            
+        # Apply status filter
+        if status_filter != "all":
+            protocols = protocols.filter(status=status_filter)
 
         # Calculate processing info
         for protocol in protocols:
@@ -794,6 +799,7 @@ class ProcessingQueueView(StaffRequiredMixin, ListView):
 
         # Get current filter values
         analysis_type = self.request.GET.get("type", "all")
+        status_filter = self.request.GET.get("status", "all")
 
         # Prepare filter fields for the UI component
         filter_fields = [
@@ -809,6 +815,18 @@ class ProcessingQueueView(StaffRequiredMixin, ListView):
                 ],
                 "value": analysis_type,
             },
+            {
+                "name": "status",
+                "label": "Estado",
+                "type": "select",
+                "placeholder": "Todos los estados",
+                "choices": [
+                    ("all", "Todos"),
+                    ("received", "Recibido"),
+                    ("processing", "En procesamiento"),
+                ],
+                "value": status_filter,
+            },
         ]
 
         context.update(
@@ -816,6 +834,7 @@ class ProcessingQueueView(StaffRequiredMixin, ListView):
                 "filter_fields": filter_fields,
                 "current_filters": {
                     "type": analysis_type,
+                    "status": status_filter,
                 },
             }
         )

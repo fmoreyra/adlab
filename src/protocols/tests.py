@@ -1603,6 +1603,51 @@ class ProcessingViewsTest(TestCase):
                 protocol.analysis_type, Protocol.AnalysisType.CYTOLOGY
             )
 
+    def test_processing_queue_view_filter_by_status(self):
+        """Test processing queue view filtering by status."""
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        # Filter by received status
+        response = self.client.get(
+            reverse("protocols:processing_queue") + "?status=received"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        protocols = response.context["protocols"]
+
+        # All protocols should be received
+        for protocol in protocols:
+            self.assertEqual(protocol.status, Protocol.Status.RECEIVED)
+
+        # Filter by processing status
+        response = self.client.get(
+            reverse("protocols:processing_queue") + "?status=processing"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        protocols = response.context["protocols"]
+
+        # All protocols should be processing
+        for protocol in protocols:
+            self.assertEqual(protocol.status, Protocol.Status.PROCESSING)
+
+    def test_processing_queue_view_filter_by_type_and_status(self):
+        """Test processing queue view filtering by both type and status."""
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        # Filter by cytology and received status
+        response = self.client.get(
+            reverse("protocols:processing_queue") + "?type=cytology&status=received"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        protocols = response.context["protocols"]
+
+        # All protocols should be cytology and received
+        for protocol in protocols:
+            self.assertEqual(protocol.analysis_type, Protocol.AnalysisType.CYTOLOGY)
+            self.assertEqual(protocol.status, Protocol.Status.RECEIVED)
+
     def test_processing_queue_view_permission_staff_required(self):
         """Test that only staff can access processing queue."""
         self.client.login(email="vet@example.com", password="testpass123")
