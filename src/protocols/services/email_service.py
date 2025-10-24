@@ -6,6 +6,7 @@ import logging
 from typing import Optional
 
 from protocols.emails import (
+    build_protocol_url,
     queue_email,
     send_report_ready_notification,
     send_sample_reception_notification,
@@ -107,6 +108,7 @@ class EmailNotificationService:
                 context={
                     "protocol": protocol,
                     "veterinarian": protocol.veterinarian,
+                    "protocol_url": build_protocol_url(protocol),
                 },
                 template_name="emails/protocol_submitted.html",
                 protocol=protocol,
@@ -147,6 +149,7 @@ class EmailNotificationService:
                     "veterinarian": protocol.veterinarian,
                     "discrepancies": discrepancies,
                     "sample_condition": protocol.get_sample_condition_display(),
+                    "protocol_url": build_protocol_url(protocol),
                 },
                 template_name="emails/reception_discrepancies.html",
                 protocol=protocol,
@@ -174,14 +177,14 @@ class EmailNotificationService:
             bool: True if email was queued successfully, False otherwise
         """
         try:
-            email_log = send_work_order_notification(
+            email_logs = send_work_order_notification(
                 work_order=work_order,
                 work_order_pdf_path=None,  # PDF generation can be added later
             )
-            if email_log:
+            if email_logs:
                 logger.info(
                     f"Work order email queued for {work_order.order_number} "
-                    f"(EmailLog ID: {email_log.id})"
+                    f"({len(email_logs)} EmailLog instances)"
                 )
                 return True
             else:

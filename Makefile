@@ -33,6 +33,7 @@ help: ## Display available targets
 	@echo ""
 	@echo "Testing:"
 	@echo "  test                   Run the full Django test suite"
+	@echo "  test-specific          Run specific tests (use: make test-specific ARGS=\"protocols.tests.ProtocolViewsTest\")"
 	@echo "  test-cleanup           Clean up test database connections"
 	@echo ""
 	@echo "Code Quality:"
@@ -121,6 +122,10 @@ secret: ## Generate a Django secret key
 
 test: ## Run the full Django test suite
 	@./scripts/test-wrapper.sh
+
+test-specific: ## Run specific tests (use: make test-specific ARGS="protocols.tests.ProtocolViewsTest")
+	@source scripts/docker-helper.sh && _dc web python3 manage.py collectstatic --no-input
+	@source scripts/docker-helper.sh && _dc -e DJANGO_TESTING=true -e RUNNING_TESTS=true web python3 manage.py test $(ARGS)
 
 test-cleanup: ## Clean up test database connections
 	@./scripts/test-cleanup.sh

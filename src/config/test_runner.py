@@ -27,9 +27,8 @@ class DockerTestRunner(DiscoverRunner):
         # Force close any lingering connections
         self._force_close_connections()
 
-        # Try to drop existing test database if it exists
-        self._drop_test_database_if_exists()
-
+        # Skip aggressive database dropping to avoid deadlocks
+        # Django will handle database creation/cleanup properly
         return super().setup_databases(**kwargs)
 
     def teardown_databases(self, old_config, **kwargs):
@@ -43,11 +42,7 @@ class DockerTestRunner(DiscoverRunner):
         # Force close any lingering connections
         self._force_close_connections()
 
-        # Try to terminate any lingering connections to test database
-        with contextlib.suppress(Exception):
-            self._terminate_test_db_connections()
-
-        # Proceed with normal teardown
+        # Proceed with normal teardown - let Django handle it
         super().teardown_databases(old_config, **kwargs)
 
     def _force_close_connections(self):

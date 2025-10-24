@@ -1346,3 +1346,122 @@ class SlideQualityForm(forms.Form):
             )
 
         return observaciones
+
+
+class ReceptionPendingFilterForm(forms.Form):
+    """
+    Form for filtering protocols in reception pending view.
+    """
+    
+    # Filter by temporal code
+    temporal_code = forms.CharField(
+        label=_("Código Temporal"),
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200',
+            'placeholder': 'Ej: TMP-HP-20251024-009'
+        })
+    )
+    
+    # Filter by analysis type
+    analysis_type = forms.ChoiceField(
+        label=_("Tipo de Análisis"),
+        required=False,
+        choices=[
+            ('', _('Todos los tipos')),
+            ('cytology', _('Citología')),
+            ('histopathology', _('Histopatología')),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white'
+        })
+    )
+    
+    # Filter by veterinarian license number
+    veterinarian_license = forms.CharField(
+        label=_("Matrícula"),
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200',
+            'placeholder': 'Ej: MP-123456'
+        })
+    )
+    
+    # Filter by animal name
+    animal_name = forms.CharField(
+        label=_("Animal"),
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200',
+            'placeholder': 'Nombre del animal'
+        })
+    )
+
+
+class ReceptionHistoryFilterForm(forms.Form):
+    """
+    Form for filtering protocols in reception history view.
+    """
+    
+    # Filter by protocol code (temporary or final)
+    protocol_code = forms.CharField(
+        label=_("Código de Protocolo"),
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200',
+            'placeholder': 'Ej: TMP-HP-20251024-009 o HP 24/001'
+        })
+    )
+    
+    # Filter by analysis type
+    analysis_type = forms.ChoiceField(
+        label=_("Tipo de Análisis"),
+        required=False,
+        choices=[
+            ('', _('Todos los tipos')),
+            ('cytology', _('Citología')),
+            ('histopathology', _('Histopatología')),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white'
+        })
+    )
+    
+    # Filter by veterinarian license number
+    veterinarian_license = forms.CharField(
+        label=_("Matrícula"),
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200',
+            'placeholder': 'Ej: MP-123456'
+        })
+    )
+    
+    # Filter by animal name
+    animal_name = forms.CharField(
+        label=_("Animal"),
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200',
+            'placeholder': 'Nombre del animal'
+        })
+    )
+    
+    # Filter by reception date range
+    reception_date_from = forms.DateField(
+        label=_("Fecha Desde"),
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200',
+            'type': 'date'
+        })
+    )
+    
+    reception_date_to = forms.DateField(
+        label=_("Fecha Hasta"),
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200',
+            'type': 'date'
+        })
+    )

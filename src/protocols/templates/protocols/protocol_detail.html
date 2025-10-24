@@ -238,6 +238,43 @@
                     </dl>
                 </div>
 
+                <!-- Veterinarian Information Card -->
+                <div class="bg-white shadow-md rounded-lg p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información del Veterinario</h2>
+                    <dl class="space-y-3">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Nombre</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ protocol.veterinarian.get_full_name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Matrícula</dt>
+                            <dd class="mt-1 text-sm text-gray-900 font-mono">{{ protocol.veterinarian.license_number }}</dd>
+                        </div>
+                        {% if protocol.veterinarian.phone %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Teléfono</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ protocol.veterinarian.phone }}</dd>
+                            </div>
+                        {% endif %}
+                        {% if protocol.veterinarian.email %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    <a href="mailto:{{ protocol.veterinarian.email }}" class="text-blue-600 hover:text-blue-800">
+                                        {{ protocol.veterinarian.email }}
+                                    </a>
+                                </dd>
+                            </div>
+                        {% endif %}
+                        {% if protocol.veterinarian.address %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Dirección</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ protocol.veterinarian.address.get_full_address }}</dd>
+                            </div>
+                        {% endif %}
+                    </dl>
+                </div>
+
                 <!-- Status Timeline Card -->
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Historial de Estado</h2>

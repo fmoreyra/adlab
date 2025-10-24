@@ -23,6 +23,52 @@
         </div>
     </div>
 
+    <!-- Filters Section -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-medium text-gray-900">Filtros</h3>
+                {% if has_active_filters %}
+                <a href="{% url 'protocols:reception_pending' %}" class="text-sm text-blue-600 hover:text-blue-800">
+                    Limpiar filtros
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="px-6 py-4">
+            <form method="get" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        {{ filter_form.temporal_code.label_tag }}
+                        {{ filter_form.temporal_code }}
+                    </div>
+                    <div>
+                        {{ filter_form.analysis_type.label_tag }}
+                        {{ filter_form.analysis_type }}
+                    </div>
+                    <div>
+                        {{ filter_form.veterinarian_license.label_tag }}
+                        {{ filter_form.veterinarian_license }}
+                    </div>
+                    <div>
+                        {{ filter_form.animal_name.label_tag }}
+                        {{ filter_form.animal_name }}
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                        Filtrar
+                    </button>
+                    {% if has_active_filters %}
+                    <a href="{% url 'protocols:reception_pending' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                        Limpiar
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
     {% if protocols %}
     <!-- Summary Card -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">

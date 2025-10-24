@@ -35,7 +35,10 @@
             <ul style="margin: 0; padding-left: 20px;">
                 {% for protocol in protocols %}
                 <li style="margin: 5px 0;">
-                    {{ protocol.protocol_number }} - {{ protocol.animal_identification }} ({{ protocol.get_analysis_type_display }})
+                    <a href="{{ protocol.protocol_url }}" 
+                       style="color: #2563eb; text-decoration: none; font-weight: bold;">
+                        {{ protocol.protocol_number }} - {{ protocol.animal_identification }} ({{ protocol.get_analysis_type_display }})
+                    </a>
                 </li>
                 {% endfor %}
             </ul>

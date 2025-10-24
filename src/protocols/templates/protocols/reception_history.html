@@ -23,11 +23,71 @@
         </div>
     </div>
 
+    <!-- Filters Section -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-medium text-gray-900">Filtros</h3>
+                {% if has_active_filters %}
+                <a href="{% url 'protocols:reception_history' %}" class="text-sm text-blue-600 hover:text-blue-800">
+                    Limpiar filtros
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="px-6 py-4">
+            <form method="get" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        {{ filter_form.protocol_code.label_tag }}
+                        {{ filter_form.protocol_code }}
+                    </div>
+                    <div>
+                        {{ filter_form.analysis_type.label_tag }}
+                        {{ filter_form.analysis_type }}
+                    </div>
+                    <div>
+                        {{ filter_form.veterinarian_license.label_tag }}
+                        {{ filter_form.veterinarian_license }}
+                    </div>
+                    <div>
+                        {{ filter_form.animal_name.label_tag }}
+                        {{ filter_form.animal_name }}
+                    </div>
+                    <div>
+                        {{ filter_form.reception_date_from.label_tag }}
+                        {{ filter_form.reception_date_from }}
+                    </div>
+                    <div>
+                        {{ filter_form.reception_date_to.label_tag }}
+                        {{ filter_form.reception_date_to }}
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                        Filtrar
+                    </button>
+                    {% if has_active_filters %}
+                    <a href="{% url 'protocols:reception_history' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                        Limpiar
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
     {% if logs %}
     <!-- History List -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">Últimas 100 Recepciones</h2>
+            <h2 class="text-lg font-semibold text-gray-900">
+                {% if has_active_filters %}
+                Resultados Filtrados ({{ logs|length }} registro{{ logs|length|pluralize }})
+                {% else %}
+                Últimas 100 Recepciones
+                {% endif %}
+            </h2>
         </div>
 
         <div class="divide-y divide-gray-200">
@@ -86,6 +146,12 @@
                                 {{ log.protocol.species }}
                                 <span class="text-gray-400">•</span>
                                 {{ log.protocol.get_analysis_type_display }}
+                            </div>
+
+                            <div class="text-sm text-gray-600 mb-1">
+                                <span class="font-medium">{{ log.protocol.veterinarian.get_full_name }}</span>
+                                <span class="text-gray-400">•</span>
+                                <span class="font-mono">{{ log.protocol.veterinarian.license_number }}</span>
                             </div>
 
                             {% if log.notes %}

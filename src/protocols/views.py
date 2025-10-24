@@ -568,7 +568,7 @@ class ReceptionSearchView(StaffRequiredMixin, FormView):
 
 class ReceptionPendingView(StaffRequiredMixin, ListView):
     """
-    Display list of protocols pending reception.
+    Display list of protocols pending reception with filtering capabilities.
     """
 
     model = Protocol
@@ -576,7 +576,10 @@ class ReceptionPendingView(StaffRequiredMixin, ListView):
     context_object_name = "protocols"
 
     def get_queryset(self):
-        """Get protocols pending reception."""
+        """Get protocols pending reception with optional filtering."""
+        from protocols.forms import ReceptionPendingFilterForm
+        
+        # Get base queryset
         protocols = (
             Protocol.objects.filter(status=Protocol.Status.SUBMITTED)
             .select_related(
@@ -584,20 +587,64 @@ class ReceptionPendingView(StaffRequiredMixin, ListView):
                 "cytology_sample",
                 "histopathology_sample",
             )
-            .order_by("submission_date")
         )
-
+        
+        # Apply filters based on GET parameters
+        temporal_code = self.request.GET.get('temporal_code', '').strip()
+        analysis_type = self.request.GET.get('analysis_type', '').strip()
+        veterinarian_license = self.request.GET.get('veterinarian_license', '').strip()
+        animal_name = self.request.GET.get('animal_name', '').strip()
+        
+        # Filter by temporal code (case-insensitive partial match)
+        if temporal_code:
+            protocols = protocols.filter(temporary_code__icontains=temporal_code)
+        
+        # Filter by analysis type
+        if analysis_type:
+            protocols = protocols.filter(analysis_type=analysis_type)
+        
+        # Filter by veterinarian license number (case-insensitive partial match)
+        if veterinarian_license:
+            protocols = protocols.filter(veterinarian__license_number__icontains=veterinarian_license)
+        
+        # Filter by animal name (case-insensitive partial match)
+        if animal_name:
+            protocols = protocols.filter(animal_identification__icontains=animal_name)
+        
+        # Order by submission date
+        protocols = protocols.order_by("submission_date")
+        
         # Calculate days pending for each protocol
         for protocol in protocols:
             days_pending = (date.today() - protocol.submission_date).days
             protocol.days_pending = days_pending
 
         return protocols
+    
+    def get_context_data(self, **kwargs):
+        """Add filter form to context."""
+        context = super().get_context_data(**kwargs)
+        from protocols.forms import ReceptionPendingFilterForm
+        
+        # Initialize form with current GET parameters
+        filter_form = ReceptionPendingFilterForm(self.request.GET)
+        context['filter_form'] = filter_form
+        
+        # Check if any filters are active
+        has_active_filters = any([
+            self.request.GET.get('temporal_code', '').strip(),
+            self.request.GET.get('analysis_type', '').strip(),
+            self.request.GET.get('veterinarian_license', '').strip(),
+            self.request.GET.get('animal_name', '').strip(),
+        ])
+        context['has_active_filters'] = has_active_filters
+        
+        return context
 
 
 class ReceptionHistoryView(StaffRequiredMixin, ListView):
     """
-    Display list of reception logs.
+    Display list of reception logs with filtering capabilities.
     """
 
     model = ReceptionLog
@@ -606,16 +653,79 @@ class ReceptionHistoryView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        """Get reception logs."""
-        return (
+        """Get reception logs with optional filtering."""
+        from protocols.forms import ReceptionHistoryFilterForm
+        
+        # Get base queryset
+        logs = (
             ReceptionLog.objects.select_related(
                 "protocol__veterinarian__user",
                 "protocol__cytology_sample",
                 "protocol__histopathology_sample",
                 "user",
             )
-            .order_by("-created_at")
         )
+        
+        # Apply filters based on GET parameters
+        protocol_code = self.request.GET.get('protocol_code', '').strip()
+        analysis_type = self.request.GET.get('analysis_type', '').strip()
+        veterinarian_license = self.request.GET.get('veterinarian_license', '').strip()
+        animal_name = self.request.GET.get('animal_name', '').strip()
+        reception_date_from = self.request.GET.get('reception_date_from', '').strip()
+        reception_date_to = self.request.GET.get('reception_date_to', '').strip()
+        
+        # Filter by protocol code (search both temporary and final codes)
+        if protocol_code:
+            logs = logs.filter(
+                Q(protocol__temporary_code__icontains=protocol_code) |
+                Q(protocol__protocol_number__icontains=protocol_code)
+            )
+        
+        # Filter by analysis type
+        if analysis_type:
+            logs = logs.filter(protocol__analysis_type=analysis_type)
+        
+        # Filter by veterinarian license number
+        if veterinarian_license:
+            logs = logs.filter(protocol__veterinarian__license_number__icontains=veterinarian_license)
+        
+        # Filter by animal name
+        if animal_name:
+            logs = logs.filter(protocol__animal_identification__icontains=animal_name)
+        
+        # Filter by reception date range
+        if reception_date_from:
+            logs = logs.filter(created_at__date__gte=reception_date_from)
+        
+        if reception_date_to:
+            logs = logs.filter(created_at__date__lte=reception_date_to)
+        
+        # Order by creation date (most recent first)
+        logs = logs.order_by("-created_at")
+
+        return logs
+    
+    def get_context_data(self, **kwargs):
+        """Add filter form to context."""
+        context = super().get_context_data(**kwargs)
+        from protocols.forms import ReceptionHistoryFilterForm
+        
+        # Initialize form with current GET parameters
+        filter_form = ReceptionHistoryFilterForm(self.request.GET)
+        context['filter_form'] = filter_form
+        
+        # Check if any filters are active
+        has_active_filters = any([
+            self.request.GET.get('protocol_code', '').strip(),
+            self.request.GET.get('analysis_type', '').strip(),
+            self.request.GET.get('veterinarian_license', '').strip(),
+            self.request.GET.get('animal_name', '').strip(),
+            self.request.GET.get('reception_date_from', '').strip(),
+            self.request.GET.get('reception_date_to', '').strip(),
+        ])
+        context['has_active_filters'] = has_active_filters
+        
+        return context
 
 
 class RejectedProtocolsView(StaffRequiredMixin, ListView):

@@ -5,10 +5,28 @@ Provides high-level functions to queue emails via Celery.
 
 import logging
 
+from django.conf import settings
+from django.urls import reverse
+
 from protocols.models import EmailLog, NotificationPreference
 from protocols.tasks import send_email
 
 logger = logging.getLogger(__name__)
+
+
+def build_protocol_url(protocol):
+    """
+    Build absolute URL for protocol public detail.
+    
+    Args:
+        protocol: Protocol instance with external_id
+        
+    Returns:
+        str: Absolute URL to protocol public detail page
+    """
+    path = reverse('protocols:protocol_public_detail', 
+                   kwargs={'external_id': protocol.external_id})
+    return f"{settings.SITE_URL}{path}"
 
 
 def _serialize_context_for_celery(context):
@@ -194,6 +212,7 @@ def send_sample_reception_notification(protocol):
         context={
             "protocol": protocol,
             "veterinarian": veterinarian,
+            "protocol_url": build_protocol_url(protocol),
         },
         protocol=protocol,
         veterinarian=veterinarian,
@@ -272,6 +291,7 @@ def send_report_ready_notification(protocol, report_pdf_path=None):
             "protocol": protocol,
             "veterinarian": veterinarian,
             "has_attachment": bool(attachment),
+            "protocol_url": build_protocol_url(protocol),
         },
         attachment_path=attachment,
         protocol=protocol,
@@ -308,6 +328,12 @@ def send_work_order_notification(work_order, work_order_pdf_path=None):
 
         # Get veterinarian's protocols in this work order
         vet_protocols = work_order.protocols.filter(veterinarian=veterinarian)
+        
+        # Add protocol URLs to each protocol object for template access
+        protocols_with_urls = []
+        for protocol in vet_protocols:
+            protocol.protocol_url = build_protocol_url(protocol)
+            protocols_with_urls.append(protocol)
 
         email_log = queue_email(
             email_type=EmailLog.EmailType.WORK_ORDER,
@@ -316,7 +342,7 @@ def send_work_order_notification(work_order, work_order_pdf_path=None):
             context={
                 "work_order": work_order,
                 "veterinarian": veterinarian,
-                "protocols": vet_protocols,
+                "protocols": protocols_with_urls,
                 "has_attachment": bool(attachment),
             },
             attachment_path=attachment,

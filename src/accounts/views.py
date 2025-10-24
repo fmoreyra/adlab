@@ -647,14 +647,15 @@ def logout_view(request):
     """Handle user logout with audit logging using service."""
     auth_service = AuthenticationService()
 
-    # Log logout action
-    AuthAuditLog.objects.create(
-        user=request.user,
-        email=request.user.email,
-        action=AuthAuditLog.Action.LOGOUT,
-        ip_address=auth_service._get_client_ip(request),
-        user_agent=auth_service._get_user_agent(request),
-    )
+    # Log logout action only if user is authenticated
+    if request.user.is_authenticated:
+        AuthAuditLog.objects.create(
+            user=request.user,
+            email=request.user.email,
+            action=AuthAuditLog.Action.LOGOUT,
+            ip_address=auth_service._get_client_ip(request),
+            user_agent=auth_service._get_user_agent(request),
+        )
 
     logout(request)
     messages.success(request, _("Ha cerrado sesión exitosamente."))

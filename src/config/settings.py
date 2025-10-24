@@ -40,6 +40,9 @@ if TESTING:
     TEST_RUNNER = "config.test_runner.DockerTestRunner"
     print(f"Using custom test runner: {TEST_RUNNER}")
     print("TESTING mode enabled - Celery will run synchronously")
+    
+    # Ensure tests run sequentially to avoid deadlocks
+    os.environ.setdefault('DJANGO_TEST_PROCESSES', '1')
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#std:setting-ALLOWED_HOSTS
 allowed_hosts = os.getenv("ALLOWED_HOSTS", ".localhost,127.0.0.1,[::1]")
@@ -212,6 +215,9 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 # Password validation
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour in seconds
+
+# Site URL for building absolute URLs in emails
+SITE_URL = os.getenv("SITE_URL", "http://localhost:8000" if DEBUG else "https://adlab.com")
 
 # Email configuration
 # For development, use console backend. In production, configure SMTP.
