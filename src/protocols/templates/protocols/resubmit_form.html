@@ -1,0 +1,145 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Reenviar Protocolo - Sistema de Laboratorio{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        Reenviar Protocolo
+                    </h1>
+                    <p class="mt-2 text-sm text-gray-600">
+                        Cambiar el estado de un protocolo rechazado a enviado
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'protocols:rejected_list' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Volver a Protocolos Rechazados
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protocol Information -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+                <h2 class="text-xl font-semibold text-white">Información del Protocolo</h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Código Temporal</label>
+                        <p class="text-lg font-mono text-gray-900">{{ protocol.temporary_code }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado Actual</label>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                            {{ protocol.get_status_display }}
+                        </span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Veterinario</label>
+                        <p class="text-lg text-gray-900">{{ protocol.veterinarian.get_full_name }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Animal</label>
+                        <p class="text-lg text-gray-900">{{ protocol.animal_identification }} ({{ protocol.species }})</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Motivo del Rechazo</label>
+                        <p class="text-gray-900">{{ protocol.reception_notes|default:"No especificado" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resubmit Form -->
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+                <h2 class="text-xl font-semibold text-white">Formulario de Reenvío</h2>
+            </div>
+            <div class="p-6">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-6">
+                        <label for="{{ form.reason.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.reason.label }}
+                        </label>
+                        {{ form.reason }}
+                        {% if form.reason.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.reason.help_text }}</p>
+                        {% endif %}
+                        {% if form.reason.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.reason.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-600">
+                            <p><strong>Importante:</strong> Al reenviar este protocolo, su estado cambiará de "Rechazado" a "Enviado" y estará disponible para recepción nuevamente.</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <a href="{% url 'protocols:rejected_list' %}" 
+                               class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                Cancelar
+                            </a>
+                            <button type="submit" 
+                                    class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+                                Reenviar Protocolo
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Character counter for the reason textarea
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('{{ form.reason.id_for_label }}');
+    if (textarea) {
+        // Create character counter
+        const counter = document.createElement('div');
+        counter.className = 'mt-1 text-sm text-gray-500';
+        counter.innerHTML = '<span id="charCount">0/500</span>';
+        textarea.parentNode.appendChild(counter);
+        
+        const charCount = document.getElementById('charCount');
+        
+        textarea.addEventListener('input', function() {
+            const count = this.value.length;
+            charCount.textContent = `${count}/500`;
+            
+            // Update button state
+            const submitBtn = document.querySelector('button[type="submit"]');
+            if (count >= 10) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        });
+        
+        // Initial state
+        textarea.dispatchEvent(new Event('input'));
+    }
+});
+</script>
+{% endblock %}

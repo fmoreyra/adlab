@@ -1500,7 +1500,7 @@ class ProtocolResubmitView(StaffRequiredMixin, FormView):
     """
     
     form_class = ProtocolResubmitForm
-    http_method_names = ['post']
+    template_name = "protocols/resubmit_form.html"
     
     def get_protocol(self):
         """Get and validate protocol."""
@@ -1515,33 +1515,17 @@ class ProtocolResubmitView(StaffRequiredMixin, FormView):
             
         return protocol
     
-    def post(self, request, *args, **kwargs):
-        """Handle POST request for resubmission."""
+    def get_context_data(self, **kwargs):
+        """Add protocol to context."""
+        context = super().get_context_data(**kwargs)
+        context['protocol'] = self.get_protocol()
+        return context
+    
+    def form_valid(self, form):
+        """Process resubmission with status change and logging."""
         try:
             protocol = self.get_protocol()
-            
-            # Parse JSON data
-            data = json.loads(request.body)
-            reason = data.get("reason", "").strip()
-            
-            # Validate reason
-            if not reason:
-                return JsonResponse({
-                    "success": False,
-                    "error": "El motivo es requerido"
-                }, status=400)
-            
-            if len(reason) < 10:
-                return JsonResponse({
-                    "success": False,
-                    "error": "El motivo debe tener al menos 10 caracteres"
-                }, status=400)
-            
-            if len(reason) > 500:
-                return JsonResponse({
-                    "success": False,
-                    "error": "El motivo no puede exceder 500 caracteres"
-                }, status=400)
+            reason = form.cleaned_data["reason"]
             
             # Change status from REJECTED to SUBMITTED
             protocol.status = Protocol.Status.SUBMITTED
@@ -1551,34 +1535,21 @@ class ProtocolResubmitView(StaffRequiredMixin, FormView):
             ProtocolStatusHistory.log_status_change(
                 protocol=protocol,
                 new_status=Protocol.Status.SUBMITTED,
-                changed_by=request.user,
+                changed_by=self.request.user,
                 description=f"Protocolo reenviado desde rechazado. Motivo: {reason}"
             )
             
-            return JsonResponse({
-                "success": True,
-                "message": "Protocolo reenviado exitosamente",
-                "protocol_id": protocol.pk,
-                "new_status": protocol.status
-            })
+            messages.success(
+                self.request,
+                f"Protocolo {protocol.temporary_code} reenviado exitosamente."
+            )
+            
+            return redirect("protocols:rejected_list")
             
         except ValueError as e:
-            return JsonResponse({
-                "success": False,
-                "error": str(e)
-            }, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({
-                "success": False,
-                "error": "Datos JSON inválidos"
-            }, status=400)
+            messages.error(self.request, str(e))
+            return redirect("protocols:rejected_list")
         except Exception as e:
-            # Let Django handle 404 errors naturally
-            from django.http import Http404
-            if isinstance(e, Http404):
-                raise
             logger.error(f"Error resubmitting protocol {self.kwargs['pk']}: {e}")
-            return JsonResponse({
-                "success": False,
-                "error": "Error interno del servidor"
-            }, status=500)
+            messages.error(self.request, "Error interno del servidor")
+            return redirect("protocols:rejected_list")
