@@ -201,6 +201,7 @@ nav:
 
       - Administradores:
           - user-guides/administrators/managing-users.md
+          - user-guides/administrators/managing-rejected-protocols.md
           - user-guides/administrators/system-settings.md
           - user-guides/administrators/monitoring-system.md
 
