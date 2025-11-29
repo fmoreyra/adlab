@@ -28,6 +28,321 @@ This step implements a comprehensive self-hosted monitoring and metrics system f
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+## Repository Structure
+
+### Recommended: Separate Monitoring Infrastructure Repository
+
+For production deployments and multi-application monitoring, we recommend using a **separate repository** for the monitoring infrastructure. This allows you to:
+
+- **Reuse the monitoring stack** across multiple applications
+- **Centralize infrastructure management** in one place
+- **Scale efficiently** by monitoring multiple apps from a single stack
+- **Maintain separation** between infrastructure and application code
+
+### Architecture
+
+```
+monitoring-infrastructure/          # Separate repository (shared)
+├── docker-compose.yml              # Core stack (Loki, Prometheus, Grafana)
+├── loki-config.yaml                # Loki base configuration
+├── prometheus-base.yml            # Prometheus base configuration
+├── grafana/
+│   ├── provisioning/
+│   │   ├── datasources/
+│   │   └── dashboards/
+│   └── dashboards/                # Shared/common dashboards
+├── rules/                          # Base alert rules
+├── setup.sh                       # Setup script
+├── README.md                       # Infrastructure documentation
+└── .env.example                    # Environment template
+
+laboratory-system/                  # Application repository (this repo)
+├── monitoring/                     # App-specific configurations only
+│   ├── prometheus-scrape.yml       # Scrape config for THIS app
+│   ├── promtail-app.yml           # Log collection config for THIS app
+│   ├── grafana-dashboards/        # App-specific dashboards
+│   └── README.md                  # Connection instructions
+└── src/config/settings.py         # Django metrics integration
+```
+
+### What Goes Where
+
+#### **Monitoring Infrastructure Repository** (Shared)
+- Core Docker Compose configuration
+- Loki base configuration
+- Prometheus base configuration
+- Grafana base setup and provisioning
+- Node Exporter and cAdvisor services
+- Base/global alert rules
+- Common/shared dashboards
+- Infrastructure documentation
+
+#### **Application Repository** (This Repository)
+- Prometheus scrape configuration for this specific app
+- Promtail configuration for this app's logs
+- App-specific Grafana dashboards
+- Django metrics integration code (`django-prometheus` setup)
+- App-specific alert rules
+- Connection documentation
+
+### Implementation Strategy
+
+#### Step 1: Create Monitoring Infrastructure Repository
+
+```bash
+# Create new repository
+mkdir monitoring-infrastructure
+cd monitoring-infrastructure
+git init
+
+# Structure
+mkdir -p grafana/provisioning/{datasources,dashboards}
+mkdir -p grafana/dashboards
+mkdir -p rules
+mkdir -p apps  # For app-specific configs (optional)
+
+# Copy base configurations from this step
+# - docker-compose.yml
+# - loki-config.yaml
+# - prometheus-base.yml
+# - grafana provisioning configs
+```
+
+#### Step 2: Configure Monitoring Infrastructure for Multi-App
+
+Update `prometheus-base.yml` to support multiple apps:
+
+```yaml
+# monitoring-infrastructure/prometheus-base.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules/*.yml"
+  - "apps/*/rules/*.yml"  # Load app-specific rules
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Load app-specific scrape configs
+  # These will be mounted from application repositories
+  - job_name: 'laboratory-system'
+    file_sd_configs:
+      - files:
+          - '/etc/prometheus/configs/laboratory-system/scrape.yml'
+        refresh_interval: 30s
+```
+
+Update Docker Compose to mount app configs:
+
+```yaml
+# monitoring-infrastructure/docker-compose.yml
+services:
+  prometheus:
+    volumes:
+      - ./prometheus-base.yml:/etc/prometheus/prometheus.yml
+      - ./rules:/etc/prometheus/rules
+      - prometheus-configs:/etc/prometheus/configs  # Mount point for app configs
+      - prometheus-data:/prometheus
+    # ... rest of config
+
+  promtail:
+    volumes:
+      - ./promtail-base.yml:/etc/promtail/config.yml
+      - promtail-configs:/etc/promtail/configs  # Mount point for app configs
+      # ... rest of config
+```
+
+#### Step 3: Add App-Specific Configs to Application Repository
+
+Create `monitoring/` directory in this repository:
+
+```bash
+# In laboratory-system repository
+mkdir -p monitoring/grafana-dashboards
+```
+
+**`monitoring/prometheus-scrape.yml`**:
+```yaml
+# Prometheus scrape configuration for Laboratory System
+# This file gets mounted into the monitoring infrastructure's Prometheus
+
+- targets:
+    - 'host.docker.internal:8000'  # Local development
+    # - 'laboratory-system:8000'    # Production (if on same network)
+  labels:
+    job: 'laboratory-system'
+    service: 'laboratory-system'
+    environment: 'production'
+```
+
+**`monitoring/promtail-app.yml`**:
+```yaml
+# Promtail configuration for Laboratory System logs
+# This file gets mounted into the monitoring infrastructure's Promtail
+
+- job_name: laboratory-system-django
+  static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: django-app
+        service: laboratory-system
+        app: laboratory-system
+        __path__: /app/logs/django/*.log
+
+- job_name: laboratory-system-celery
+  static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: celery-worker
+        service: laboratory-system
+        app: laboratory-system
+        __path__: /app/logs/celery/*.log
+```
+
+**`monitoring/README.md`**:
+```markdown
+# Monitoring Integration - Laboratory System
+
+This directory contains application-specific monitoring configurations that connect to the shared monitoring infrastructure.
+
+## Setup
+
+1. **Ensure monitoring infrastructure is running**
+   ```bash
+   cd /path/to/monitoring-infrastructure
+   docker compose up -d
+   ```
+
+2. **Mount these configs into monitoring stack**
+   - Copy `prometheus-scrape.yml` to monitoring infrastructure's Prometheus configs
+   - Copy `promtail-app.yml` to monitoring infrastructure's Promtail configs
+   - Or use volume mounts/symlinks
+
+3. **Verify connection**
+   - Check Prometheus targets: http://localhost:9090/targets
+   - Check Loki logs: http://localhost:3100/ready
+   - View dashboards: http://localhost:3000
+
+## Metrics Endpoint
+
+The application exposes metrics at `/metrics` endpoint:
+- Development: http://localhost:8000/metrics
+- Production: https://yourdomain.com/metrics
+
+## Log Locations
+
+- Django logs: `/app/logs/django/*.log`
+- Celery logs: `/app/logs/celery/*.log`
+
+## Custom Dashboards
+
+App-specific dashboards are in `grafana-dashboards/` directory.
+Import these into Grafana after connecting to the monitoring infrastructure.
+```
+
+### Connection Methods
+
+#### Method 1: Volume Mounts (Recommended for Production)
+
+```bash
+# On monitoring server
+# Clone both repositories
+git clone <monitoring-infrastructure-repo> /opt/monitoring
+git clone <laboratory-system-repo> /opt/apps/laboratory-system
+
+# Mount app configs via docker-compose
+# Update monitoring-infrastructure/docker-compose.yml:
+volumes:
+  - /opt/apps/laboratory-system/monitoring/prometheus-scrape.yml:/etc/prometheus/configs/laboratory-system/scrape.yml
+  - /opt/apps/laboratory-system/monitoring/promtail-app.yml:/etc/promtail/configs/laboratory-system/config.yml
+```
+
+#### Method 2: Git Submodules (Good for Versioning)
+
+```bash
+# In monitoring-infrastructure repository
+git submodule add <laboratory-system-repo> apps/laboratory-system
+
+# Reference configs from submodule
+volumes:
+  - ./apps/laboratory-system/monitoring/prometheus-scrape.yml:/etc/prometheus/configs/laboratory-system/scrape.yml
+```
+
+#### Method 3: Config Management (Advanced)
+
+Use a configuration management tool (Ansible, Terraform, etc.) to:
+- Pull configs from application repositories
+- Deploy to monitoring infrastructure
+- Manage versions and updates
+
+### Versioning Strategy
+
+#### Monitoring Infrastructure
+- **Versioning**: Semantic versioning (`v1.0.0`, `v1.1.0`)
+- **Changes**: Stack updates, new features, infrastructure improvements
+- **Releases**: Tagged releases for stability
+
+#### Application Configs
+- **Versioning**: Tied to application version
+- **Changes**: App-specific metrics, logs, dashboards
+- **Updates**: Updated with application deployments
+
+### Benefits of This Structure
+
+1. **Reusability**: One monitoring stack for multiple applications
+2. **Maintainability**: Infrastructure changes don't affect app code
+3. **Scalability**: Easy to add new applications
+4. **Cost Efficiency**: Shared resources across all apps
+5. **Separation of Concerns**: Infrastructure vs application code
+6. **Centralized View**: Single Grafana instance for all apps
+
+### Migration Path
+
+If you start with everything in one repository:
+
+1. **Phase 1**: Keep everything in `monitoring/` directory (for initial setup/testing)
+2. **Phase 2**: Extract infrastructure to separate repo when ready
+3. **Phase 3**: Keep only app-specific configs in application repo
+
+### Quick Start for Separate Repo Setup
+
+```bash
+# 1. Create monitoring infrastructure repo
+git init monitoring-infrastructure
+cd monitoring-infrastructure
+# Copy docker-compose.yml, base configs from this step
+
+# 2. In application repo, create app-specific configs
+mkdir -p monitoring
+# Create prometheus-scrape.yml, promtail-app.yml, README.md
+
+# 3. Connect them (choose one method above)
+# 4. Start monitoring stack
+cd monitoring-infrastructure
+docker compose up -d
+
+# 5. Verify connection
+curl http://localhost:9090/targets
+curl http://localhost:3100/ready
+```
+
 ## Components
 
 ### 1. **Loki** - Log Aggregation
@@ -56,11 +371,13 @@ This step implements a comprehensive self-hosted monitoring and metrics system f
 
 ## Implementation Plan
 
+> **Note**: This implementation plan assumes you're setting up the monitoring infrastructure in a **separate repository** (recommended). If you prefer to start with everything in the application repository, you can adapt these instructions by creating a `monitoring/` directory in this repository instead.
+
 ### Phase 1: Infrastructure Setup (2-3 hours)
 
 #### 1.1 Docker Compose Configuration
 
-Create `monitoring/docker-compose.yml`:
+Create `monitoring-infrastructure/docker-compose.yml` (or `monitoring/docker-compose.yml` if keeping in app repo):
 
 ```yaml
 version: '3.8'
@@ -259,7 +576,11 @@ analytics:
 
 #### 1.3 Promtail Configuration
 
-Create `monitoring/promtail-config.yaml`:
+**For Monitoring Infrastructure Repository**: Create `monitoring-infrastructure/promtail-base.yml` (base configuration).
+
+**For Application Repository**: Create `monitoring/promtail-app.yml` (app-specific log collection config).
+
+**Base configuration** (`monitoring-infrastructure/promtail-base.yml`):
 
 ```yaml
 server:
@@ -340,7 +661,11 @@ scrape_configs:
 
 #### 1.4 Prometheus Configuration
 
-Create `monitoring/prometheus.yml`:
+**For Monitoring Infrastructure Repository**: Create `monitoring-infrastructure/prometheus-base.yml` (base configuration).
+
+**For Application Repository**: Create `monitoring/prometheus-scrape.yml` (app-specific scrape config - see Repository Structure section above).
+
+**Base configuration** (`monitoring-infrastructure/prometheus-base.yml`):
 
 ```yaml
 global:
@@ -349,6 +674,7 @@ global:
 
 rule_files:
   - "rules/*.yml"
+  - "apps/*/rules/*.yml"  # Load app-specific rules (if using separate repo structure)
 
 alerting:
   alertmanagers:
@@ -371,19 +697,14 @@ scrape_configs:
     static_configs:
       - targets: ['cadvisor:8080']
 
-  # Django Application Metrics
-  - job_name: 'django-app'
-    static_configs:
-      - targets: ['host.docker.internal:8000']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # Celery Worker Metrics
-  - job_name: 'celery-worker'
-    static_configs:
-      - targets: ['host.docker.internal:5555']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
+  # App-specific scrape configs will be loaded from application repositories
+  # See monitoring/prometheus-scrape.yml in application repo
+  # Or use file_sd_configs to dynamically load from mounted configs:
+  # - job_name: 'laboratory-system'
+  #   file_sd_configs:
+  #     - files:
+  #         - '/etc/prometheus/configs/laboratory-system/scrape.yml'
+  #       refresh_interval: 30s
 
   # PostgreSQL Metrics (if using postgres_exporter)
   - job_name: 'postgres'
@@ -391,6 +712,8 @@ scrape_configs:
       - targets: ['postgres-exporter:9187']
     scrape_interval: 30s
 ```
+
+**Note**: The Django and Celery application metrics will be configured in the application repository's `monitoring/prometheus-scrape.yml` file (see Repository Structure section above).
 
 ### Phase 2: Django Application Integration (1-2 hours)
 
@@ -1414,6 +1737,14 @@ emails_delivery_duration_seconds
 
 ### 1. **Starting the Monitoring Stack**
 
+**If using separate repository** (recommended):
+```bash
+cd monitoring-infrastructure
+chmod +x setup.sh
+./setup.sh
+```
+
+**If keeping everything in application repository**:
 ```bash
 cd monitoring
 chmod +x setup.sh

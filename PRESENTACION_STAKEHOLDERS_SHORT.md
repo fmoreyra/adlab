@@ -110,7 +110,7 @@
 
 ## 📧 Notificaciones Automáticas
 
-El sistema envía emails profesionales automáticamente en los siguientes eventos:
+El sistema envía emails automáticamente en los siguientes eventos:
 
 - ✉️ **Confirmación** de envío de protocolo
 - ✉️ **Notificación** de recepción de muestra en laboratorio
@@ -125,18 +125,18 @@ El sistema envía emails profesionales automáticamente en los siguientes evento
 
 ### Comparación: Planificado vs. Completado
 
-El proyecto se planificó en **15 pasos funcionales**. A continuación se muestra el estado de cada uno:
+El proyecto se planificó en **15 pasos funcionales y 2 operativos**. A continuación se muestra el estado de cada uno:
 
 ---
 
-## 🟢 LISTOS PARA PRODUCCIÓN (7 módulos) ✅ Completados y ✅ Probados
+## 🟢 LISTOS PARA PRODUCCIÓN (7 módulos)
 - **01** Autenticación y Gestión de Usuarios
 - **01.1** Verificación de Email  
 - **02** Perfiles de Veterinarios
 - **03** Envío de Protocolos
 - **04** Recepción de Muestras
 - **16** Sistema de Documentación Incorporado
-- **17** Servidor Propio (arlab.moreyra.com.ar)
+- **17** Servidor Propio (adlab.moreyra.com.ar)
 
 ---
 
@@ -150,7 +150,7 @@ El proyecto se planificó en **15 pasos funcionales**. A continuación se muestr
 
 ---
 
-## 🔴 PENDIENTES DE DESARROLLO (5 módulos) ⏳ Pendiente desarrollo
+## 🔴 PENDIENTES DE DESARROLLO (5 módulos)
 
 - **09** Tableros de Gestión
 - **10** Reportes y Analíticas
@@ -180,16 +180,9 @@ El proyecto se planificó en **15 pasos funcionales**. A continuación se muestr
 
 **2. Gestión de Protocolos**
 
-**3. Sistema de Documentación Incorporado** ✅ **COMPLETADO**
-- Documentación completa del sistema integrada
-- Guías de usuario para cada rol
-- Manuales de procedimientos
-- Acceso directo desde la aplicación
+**3. Sistema de Documentación Incorporado**
 
-**4. Servidor Propio** ✅ **COMPLETADO**
-- Dominio: arlab.moreyra.com.ar (sujeto a cambios)
-- Infraestructura propia desplegada
-- Sistema en producción y operativo
+**4. Servidor Propio** en adlab.moreyra.com.ar (sujeto a cambios)
 
 ---
 
@@ -208,16 +201,16 @@ El proyecto se planificó en **15 pasos funcionales**. A continuación se muestr
 ## 💰 Facturación y Comunicación *(PENDIENTE PRUEBAS)*
 
 **7. Facturación** *(⏳ PENDIENTE PRUEBAS)*
-- Generación automática de órdenes de trabajo *(pendiente validación)*
-- Cálculo de montos según catálogo de precios *(pendiente validación)*
-- Agrupación de protocolos por veterinario *(pendiente validación)*
-- Documentos PDF para área de finanzas *(pendiente validación)*
+- Generación automática de órdenes de trabajo
+- Cálculo de montos según catálogo de precios
+- Agrupación de protocolos por veterinario
+- Documentos PDF para área de finanzas
 
 ---
 
 **8. Comunicación** *(⏳ PENDIENTE PRUEBAS)*
-- Notificaciones automáticas por email en cada etapa *(pendiente validación)*
-- Sistema de reintentos para garantizar entrega *(pendiente validación)*
+- Notificaciones automáticas por email en cada etapa
+- Sistema de reintentos para garantizar entrega
 
 ---
 
