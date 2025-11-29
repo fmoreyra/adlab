@@ -111,15 +111,24 @@ main() {
     cp .env.example .env
   fi
 
+  # Ensure POSTGRES_DB is set in .env file (it's commented out in .env.example)
+  if ! grep -q "^export POSTGRES_DB=" .env && ! grep -q "^POSTGRES_DB=" .env; then
+    echo "export POSTGRES_DB=adlab" >> .env
+  elif grep -q "^#export POSTGRES_DB=" .env || grep -q "^#POSTGRES_DB=" .env; then
+    # Uncomment if it's commented
+    sed -i 's/^#export POSTGRES_DB=.*/export POSTGRES_DB=adlab/' .env
+    sed -i 's/^#POSTGRES_DB=.*/POSTGRES_DB=adlab/' .env
+  fi
+
   # Load environment variables BEFORE starting containers
   # Docker compose needs these variables to start postgres properly
   # shellcheck disable=SC1091
   . .env
 
-  # Set POSTGRES_DB if not set (it's commented out in .env.example)
+  # Set POSTGRES_DB if still not set (fallback)
   export POSTGRES_DB="${POSTGRES_DB:-adlab}"
 
-  # Verify required postgres variables are set
+  # Verify required postgres variables are set and export them
   if [ -z "${POSTGRES_USER:-}" ] || [ -z "${POSTGRES_PASSWORD:-}" ]; then
     echo "ERROR: Required postgres environment variables not set!"
     echo "POSTGRES_DB=${POSTGRES_DB:-NOT SET}"
@@ -127,6 +136,11 @@ main() {
     echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:+SET}"
     exit 1
   fi
+
+  # Ensure all postgres variables are exported for docker compose
+  export POSTGRES_USER
+  export POSTGRES_PASSWORD
+  export POSTGRES_DB
 
   echo "Postgres configuration:"
   echo "  POSTGRES_DB=${POSTGRES_DB}"
@@ -151,18 +165,19 @@ main() {
   # Create wait-until function
   create_wait_until
 
-  # Wait for postgres service to be running (check container status)
-  echo "Waiting for postgres service to start..."
-  echo "Checking if postgres container exists..."
-  if ! docker compose ps postgres 2>/dev/null | grep -q postgres; then
-    echo "ERROR: postgres service not found in docker compose ps output"
-    echo "Available services:"
-    docker compose ps --services
-    echo "Checking all containers:"
-    docker ps -a
+  # Check if postgres container crashed and show logs
+  if docker ps -a --filter "name=postgres" --format "{{.Status}}" | grep -q "Exited"; then
+    echo "ERROR: postgres container exited. Checking logs..."
+    docker compose logs postgres
+    echo ""
+    echo "Postgres container environment variables:"
+    docker inspect adlab-postgres-1 --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null | grep POSTGRES || true
     exit 1
   fi
-  wait-until "docker compose ps postgres 2>/dev/null | grep -q 'Up'"
+
+  # Wait for postgres service to be running (check container status)
+  echo "Waiting for postgres service to start..."
+  wait-until "docker compose ps postgres 2>/dev/null | grep -q 'Up' || docker ps --filter 'name=postgres' --format '{{.Status}}' | grep -q 'Up'"
 
   # Wait for database to be ready
   echo "Waiting for database to be ready..."
