@@ -99,6 +99,7 @@ main() {
   # Activate necessary profiles for all docker compose commands
   # postgres, redis, web, worker are required for CI tests
   export COMPOSE_PROFILES=postgres,redis,web,worker
+  echo "COMPOSE_PROFILES=${COMPOSE_PROFILES}"
 
   # Run linting
   lint_dockerfile "${@}"
@@ -111,8 +112,16 @@ main() {
   fi
 
   # Build and start containers
+  echo "Building containers..."
   docker compose build
+  echo "Starting containers..."
   docker compose up -d
+  
+  # Give containers a moment to start
+  sleep 5
+  
+  echo "Container status:"
+  docker compose ps
 
   # Load environment variables
   # shellcheck disable=SC1091
@@ -121,10 +130,15 @@ main() {
   # Create wait-until function
   create_wait_until
 
+  # Wait for postgres service to be running (check container status)
+  echo "Waiting for postgres service to start..."
+  wait-until "docker compose ps postgres 2>/dev/null | grep -q 'Up' || docker ps --filter 'name=.*postgres.*' --format '{{.Status}}' 2>/dev/null | grep -q 'Up'"
+
   # Wait for database to be ready
+  echo "Waiting for database to be ready..."
   wait-until "docker compose exec -T \
     -e PGPASSWORD=${POSTGRES_PASSWORD} postgres \
-    psql -U ${POSTGRES_USER} ${POSTGRES_DB} -c 'SELECT 1'"
+    psql -U ${POSTGRES_USER} ${POSTGRES_DB} -c 'SELECT 1' >/dev/null 2>&1"
 
   # Show logs
   docker compose logs
