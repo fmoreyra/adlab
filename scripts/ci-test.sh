@@ -96,6 +96,10 @@ create_wait_until() {
 main() {
   echo "🚀 Starting CI test pipeline..."
 
+  # Activate necessary profiles for all docker compose commands
+  # postgres, redis, web, worker are required for CI tests
+  export COMPOSE_PROFILES=postgres,redis,web,worker
+
   # Run linting
   lint_dockerfile "${@}"
   lint_shell
