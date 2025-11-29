@@ -820,6 +820,7 @@ class VeterinarianModelTest(TestCase):
             first_name="Juan",
             last_name="Pérez",
             license_number="MP-12345-ACCOUNTS-TESTS",
+            cuil_cuit="20-12345678-9",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -1005,6 +1006,7 @@ class VeterinarianFormTest(TestCase):
             "first_name": "Juan",
             "last_name": "Pérez",
             "license_number": "MP-99999",
+            "cuil_cuit": "20-12345678-9",
             "phone": "+54 342 1234567",
             "email": "vet@example.com",
         }
@@ -1106,6 +1108,7 @@ class CompleteProfileViewTest(TestCase):
             "first_name": "Juan",
             "last_name": "Pérez",
             "license_number": "MP-88888",
+            "cuil_cuit": "20-12345678-9",
             "phone": "+54 342 1234567",
             "province": "Santa Fe",
             "locality": "Esperanza",
@@ -1264,6 +1267,7 @@ class VeterinarianProfileEditViewTest(TestCase):
             "first_name": "Juan Carlos",  # Changed
             "last_name": "Pérez",
             "license_number": "MP-77777",  # Keep same license number (editing)
+            "cuil_cuit": "20-12345678-9",
             "phone": "+54 342 9999999",  # Changed
             "email": "vet@example.com",
             "province": "Santa Fe",

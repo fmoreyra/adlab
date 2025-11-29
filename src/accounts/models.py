@@ -335,10 +335,25 @@ class Veterinarian(models.Model):
     license_number = models.CharField(
         _("license number"),
         max_length=50,
+        null=True,
+        blank=True,
         unique=True,
         help_text=_(
-            "Professional license number (matrícula). Example: MP-12345"
+            "Professional license number (matrícula). Example: MP-12345 (optional)"
         ),
+    )
+    dni = models.CharField(
+        _("DNI"),
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text=_("Documento Nacional de Identidad (7-8 dígitos)"),
+    )
+    cuil_cuit = models.CharField(
+        _("CUIL/CUIT"),
+        max_length=20,
+        default="",
+        help_text=_("Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"),
     )
     phone = models.CharField(
         _("phone"),
@@ -381,12 +396,15 @@ class Veterinarian(models.Model):
             models.Index(fields=["license_number"]),
             models.Index(fields=["email"]),
             models.Index(fields=["is_verified"]),
+            models.Index(fields=["cuil_cuit"]),
         ]
 
     def __str__(self):
-        return (
-            f"{self.last_name}, {self.first_name} (MP: {self.license_number})"
-        )
+        if self.license_number:
+            return (
+                f"{self.last_name}, {self.first_name} (MP: {self.license_number})"
+            )
+        return f"{self.last_name}, {self.first_name}"
 
     def get_full_name(self):
         """Return the full name in 'First Last' format."""
@@ -425,7 +443,7 @@ class Veterinarian(models.Model):
         required_fields = [
             self.first_name,
             self.last_name,
-            self.license_number,
+            self.cuil_cuit,
             self.phone,
             self.email,
         ]

@@ -47,12 +47,34 @@
                         </dd>
                     </div>
                     
+                    {% if veterinarian.license_number %}
                     <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt class="text-sm font-medium text-gray-500">
                             Matrícula Profesional
                         </dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                             {{ veterinarian.license_number }}
+                        </dd>
+                    </div>
+                    {% endif %}
+                    
+                    {% if veterinarian.dni %}
+                    <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">
+                            DNI
+                        </dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ veterinarian.dni }}
+                        </dd>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">
+                            CUIL/CUIT
+                        </dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ veterinarian.cuil_cuit }}
                         </dd>
                     </div>
                     

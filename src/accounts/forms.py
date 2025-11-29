@@ -511,6 +511,8 @@ class VeterinarianProfileForm(forms.ModelForm):
             "first_name",
             "last_name",
             "license_number",
+            "dni",
+            "cuil_cuit",
             "phone",
             "email",
         ]
@@ -533,6 +535,18 @@ class VeterinarianProfileForm(forms.ModelForm):
                     "placeholder": "MP-12345",
                 }
             ),
+            "dni": forms.TextInput(
+                attrs={
+                    "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                    "placeholder": "12345678",
+                }
+            ),
+            "cuil_cuit": forms.TextInput(
+                attrs={
+                    "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                    "placeholder": "20-12345678-9",
+                }
+            ),
             "phone": forms.TextInput(
                 attrs={
                     "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
@@ -550,19 +564,27 @@ class VeterinarianProfileForm(forms.ModelForm):
             "first_name": _("First Name"),
             "last_name": _("Last Name"),
             "license_number": _("License Number (Matrícula)"),
+            "dni": _("DNI"),
+            "cuil_cuit": _("CUIL/CUIT"),
             "phone": _("Phone"),
             "email": _("Email"),
         }
         help_texts = {
-            "license_number": _("Format: MP-XXXXX (example: MP-12345)"),
+            "license_number": _("Format: MP-XXXXX (example: MP-12345) (optional)"),
+            "dni": _("Documento Nacional de Identidad (7-8 dígitos)"),
+            "cuil_cuit": _("Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"),
             "phone": _("Argentine format: +54 XXX XXXXXXX"),
         }
 
     def clean_license_number(self):
-        """Validate license number format and uniqueness."""
+        """Validate license number format (optional)."""
         license_number = (
             self.cleaned_data.get("license_number", "").strip().upper()
         )
+
+        # If empty, return empty (field is now optional)
+        if not license_number:
+            return license_number
 
         # Validate format (MP-XXXXX or similar provincial patterns)
         # Accept various provincial prefixes followed by numbers
@@ -574,17 +596,24 @@ class VeterinarianProfileForm(forms.ModelForm):
                 )
             )
 
-        # Check uniqueness (excluding current instance if editing)
-        qs = Veterinarian.objects.filter(license_number=license_number)
-        if self.instance and self.instance.pk:
-            qs = qs.exclude(pk=self.instance.pk)
-
-        if qs.exists():
-            raise ValidationError(
-                _("This license number is already registered.")
-            )
-
         return license_number
+
+    def clean_cuil_cuit(self):
+        """Validate CUIL/CUIT format (optional)."""
+        cuil_cuit = self.cleaned_data.get("cuil_cuit", "").strip()
+        
+        # If empty, return empty (field is optional)
+        if not cuil_cuit:
+            return cuil_cuit
+        
+        # Validate format XX-XXXXXXXX-X
+        pattern = r"^\d{2}-\d{8}-\d{1}$"
+        if not re.match(pattern, cuil_cuit):
+            raise ValidationError(
+                _("Invalid CUIL/CUIT format. Expected format: XX-XXXXXXXX-X")
+            )
+        
+        return cuil_cuit
 
     def clean_phone(self):
         """Validate phone number format."""
@@ -725,13 +754,37 @@ class VeterinarianProfileCompleteForm(forms.Form):
     license_number = forms.CharField(
         label=_("License Number (Matrícula)"),
         max_length=50,
+        required=False,
         widget=forms.TextInput(
             attrs={
                 "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
                 "placeholder": "MP-12345",
             }
         ),
-        help_text=_("Format: MP-XXXXX (example: MP-12345)"),
+        help_text=_("Format: MP-XXXXX (example: MP-12345) (optional)"),
+    )
+    dni = forms.CharField(
+        label=_("DNI"),
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "placeholder": "12345678",
+            }
+        ),
+        help_text=_("Documento Nacional de Identidad (7-8 dígitos)"),
+    )
+    cuil_cuit = forms.CharField(
+        label=_("CUIL/CUIT"),
+        max_length=20,
+        widget=forms.TextInput(
+            attrs={
+                "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                "placeholder": "20-12345678-9",
+            }
+        ),
+        help_text=_("Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"),
     )
     phone = forms.CharField(
         label=_("Phone"),
@@ -840,12 +893,16 @@ class VeterinarianProfileCompleteForm(forms.Form):
             self.initial["email"] = user.email
 
     def clean_license_number(self):
-        """Validate license number format and uniqueness."""
+        """Validate license number format and uniqueness (optional)."""
         license_number = (
             self.cleaned_data.get("license_number", "").strip().upper()
         )
 
-        # Validate format
+        # If empty, return empty (field is now optional)
+        if not license_number:
+            return license_number
+
+        # Validate format (MP-XXXXX or similar provincial patterns)
         pattern = r"^[A-Z]{2,3}-\d{4,6}$"
         if not re.match(pattern, license_number):
             raise ValidationError(
@@ -877,6 +934,19 @@ class VeterinarianProfileCompleteForm(forms.Form):
 
         return phone
 
+    def clean_cuil_cuit(self):
+        """Validate CUIL/CUIT format."""
+        cuil_cuit = self.cleaned_data.get("cuil_cuit", "").strip()
+        
+        # Validate format XX-XXXXXXXX-X
+        pattern = r"^\d{2}-\d{8}-\d{1}$"
+        if not re.match(pattern, cuil_cuit):
+            raise ValidationError(
+                _("Invalid CUIL/CUIT format. Expected format: XX-XXXXXXXX-X")
+            )
+        
+        return cuil_cuit
+
     def save(self):
         """Create veterinarian profile and address."""
         # Create veterinarian profile
@@ -884,7 +954,9 @@ class VeterinarianProfileCompleteForm(forms.Form):
             user=self.user,
             first_name=self.cleaned_data["first_name"],
             last_name=self.cleaned_data["last_name"],
-            license_number=self.cleaned_data["license_number"],
+            license_number=self.cleaned_data.get("license_number", ""),
+            dni=self.cleaned_data.get("dni", ""),
+            cuil_cuit=self.cleaned_data["cuil_cuit"],
             phone=self.cleaned_data["phone"],
             email=self.user.email,
         )
@@ -1002,6 +1074,8 @@ class VeterinarianProfileEditForm(forms.ModelForm):
             "first_name",
             "last_name",
             "license_number",
+            "dni",
+            "cuil_cuit",
             "phone",
             "email",
         ]
@@ -1024,6 +1098,18 @@ class VeterinarianProfileEditForm(forms.ModelForm):
                     "placeholder": "MP-12345",
                 }
             ),
+            "dni": forms.TextInput(
+                attrs={
+                    "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                    "placeholder": "12345678",
+                }
+            ),
+            "cuil_cuit": forms.TextInput(
+                attrs={
+                    "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+                    "placeholder": "20-12345678-9",
+                }
+            ),
             "phone": forms.TextInput(
                 attrs={
                     "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
@@ -1041,11 +1127,15 @@ class VeterinarianProfileEditForm(forms.ModelForm):
             "first_name": _("First Name"),
             "last_name": _("Last Name"),
             "license_number": _("License Number (Matrícula)"),
+            "dni": _("DNI"),
+            "cuil_cuit": _("CUIL/CUIT"),
             "phone": _("Phone"),
             "email": _("Email"),
         }
         help_texts = {
-            "license_number": _("Format: MP-XXXXX (example: MP-12345)"),
+            "license_number": _("Format: MP-XXXXX (example: MP-12345) (optional)"),
+            "dni": _("Documento Nacional de Identidad (7-8 dígitos)"),
+            "cuil_cuit": _("Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"),
             "phone": _("Argentine format: +54 XXX XXXXXXX"),
         }
 
@@ -1069,10 +1159,14 @@ class VeterinarianProfileEditForm(forms.ModelForm):
                 pass
 
     def clean_license_number(self):
-        """Validate license number format and uniqueness."""
+        """Validate license number format (optional)."""
         license_number = (
             self.cleaned_data.get("license_number", "").strip().upper()
         )
+
+        # If empty, return empty (field is now optional)
+        if not license_number:
+            return license_number
 
         # Validate format (MP-XXXXX or similar provincial patterns)
         # Accept various provincial prefixes followed by numbers
@@ -1084,17 +1178,20 @@ class VeterinarianProfileEditForm(forms.ModelForm):
                 )
             )
 
-        # Check uniqueness (excluding current instance if editing)
-        qs = Veterinarian.objects.filter(license_number=license_number)
-        if self.instance and self.instance.pk:
-            qs = qs.exclude(pk=self.instance.pk)
-
-        if qs.exists():
-            raise ValidationError(
-                _("This license number is already registered.")
-            )
-
         return license_number
+
+    def clean_cuil_cuit(self):
+        """Validate CUIL/CUIT format."""
+        cuil_cuit = self.cleaned_data.get("cuil_cuit", "").strip()
+        
+        # Validate format XX-XXXXXXXX-X
+        pattern = r"^\d{2}-\d{8}-\d{1}$"
+        if not re.match(pattern, cuil_cuit):
+            raise ValidationError(
+                _("Invalid CUIL/CUIT format. Expected format: XX-XXXXXXXX-X")
+            )
+        
+        return cuil_cuit
 
     def clean_phone(self):
         """Validate phone number format."""

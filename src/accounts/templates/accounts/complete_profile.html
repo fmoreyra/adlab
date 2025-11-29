@@ -51,7 +51,7 @@
                         <!-- License Number -->
                         <div>
                             <label for="{{ form.license_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ form.license_number.label }} <span class="text-red-600">*</span>
+                                {{ form.license_number.label }}
                             </label>
                             {{ form.license_number }}
                             {% if form.license_number.help_text %}
@@ -59,6 +59,34 @@
                             {% endif %}
                             {% if form.license_number.errors %}
                                 <p class="mt-2 text-sm text-red-600">{{ form.license_number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- DNI -->
+                        <div>
+                            <label for="{{ form.dni.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.dni.label }}
+                            </label>
+                            {{ form.dni }}
+                            {% if form.dni.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ form.dni.help_text }}</p>
+                            {% endif %}
+                            {% if form.dni.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.dni.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- CUIL/CUIT -->
+                        <div>
+                            <label for="{{ form.cuil_cuit.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ form.cuil_cuit.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ form.cuil_cuit }}
+                            {% if form.cuil_cuit.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ form.cuil_cuit.help_text }}</p>
+                            {% endif %}
+                            {% if form.cuil_cuit.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.cuil_cuit.errors.0 }}</p>
                             {% endif %}
                         </div>
 

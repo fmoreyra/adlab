@@ -51,7 +51,7 @@
                         <!-- License Number -->
                         <div>
                             <label for="{{ vet_form.license_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ vet_form.license_number.label }} <span class="text-red-600">*</span>
+                                {{ vet_form.license_number.label }}
                             </label>
                             {{ vet_form.license_number }}
                             {% if vet_form.license_number.help_text %}
@@ -59,6 +59,34 @@
                             {% endif %}
                             {% if vet_form.license_number.errors %}
                                 <p class="mt-2 text-sm text-red-600">{{ vet_form.license_number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- DNI -->
+                        <div>
+                            <label for="{{ vet_form.dni.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.dni.label }}
+                            </label>
+                            {{ vet_form.dni }}
+                            {% if vet_form.dni.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ vet_form.dni.help_text }}</p>
+                            {% endif %}
+                            {% if vet_form.dni.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.dni.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- CUIL/CUIT -->
+                        <div>
+                            <label for="{{ vet_form.cuil_cuit.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ vet_form.cuil_cuit.label }} <span class="text-red-600">*</span>
+                            </label>
+                            {{ vet_form.cuil_cuit }}
+                            {% if vet_form.cuil_cuit.help_text %}
+                                <p class="mt-2 text-sm text-gray-500">{{ vet_form.cuil_cuit.help_text }}</p>
+                            {% endif %}
+                            {% if vet_form.cuil_cuit.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ vet_form.cuil_cuit.errors.0 }}</p>
                             {% endif %}
                         </div>
 
