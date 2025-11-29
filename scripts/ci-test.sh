@@ -111,10 +111,32 @@ main() {
     cp .env.example .env
   fi
 
+  # Load environment variables BEFORE starting containers
+  # Docker compose needs these variables to start postgres properly
+  # shellcheck disable=SC1091
+  . .env
+
+  # Set POSTGRES_DB if not set (it's commented out in .env.example)
+  export POSTGRES_DB="${POSTGRES_DB:-adlab}"
+
+  # Verify required postgres variables are set
+  if [ -z "${POSTGRES_USER:-}" ] || [ -z "${POSTGRES_PASSWORD:-}" ]; then
+    echo "ERROR: Required postgres environment variables not set!"
+    echo "POSTGRES_DB=${POSTGRES_DB:-NOT SET}"
+    echo "POSTGRES_USER=${POSTGRES_USER:-NOT SET}"
+    echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:+SET}"
+    exit 1
+  fi
+
+  echo "Postgres configuration:"
+  echo "  POSTGRES_DB=${POSTGRES_DB}"
+  echo "  POSTGRES_USER=${POSTGRES_USER}"
+  echo "  POSTGRES_PASSWORD=${POSTGRES_PASSWORD:+SET}"
+
   # Build and start containers
   echo "Building containers..."
   docker compose build
-  echo "Starting containers..."
+  echo "Starting containers with profiles: ${COMPOSE_PROFILES}"
   docker compose up -d
 
   # Give containers a moment to start
@@ -122,17 +144,25 @@ main() {
 
   echo "Container status:"
   docker compose ps
-
-  # Load environment variables
-  # shellcheck disable=SC1091
-  . .env
+  echo ""
+  echo "All containers (including stopped):"
+  docker ps -a
 
   # Create wait-until function
   create_wait_until
 
   # Wait for postgres service to be running (check container status)
   echo "Waiting for postgres service to start..."
-  wait-until "docker compose ps postgres 2>/dev/null | grep -q 'Up' || docker ps --filter 'name=.*postgres.*' --format '{{.Status}}' 2>/dev/null | grep -q 'Up'"
+  echo "Checking if postgres container exists..."
+  if ! docker compose ps postgres 2>/dev/null | grep -q postgres; then
+    echo "ERROR: postgres service not found in docker compose ps output"
+    echo "Available services:"
+    docker compose ps --services
+    echo "Checking all containers:"
+    docker ps -a
+    exit 1
+  fi
+  wait-until "docker compose ps postgres 2>/dev/null | grep -q 'Up'"
 
   # Wait for database to be ready
   echo "Waiting for database to be ready..."
