@@ -44,7 +44,24 @@ format_shell_check() {
     local cmd=(docker container run --rm -i -v "${PWD}:/mnt" -u "$(id -u):$(id -g)" -w /mnt mvdan/shfmt:v3)
   fi
 
-  "${cmd[@]}" --diff .
+  # Find shell scripts excluding .md files and other non-script directories
+  # Only process files that have a shell shebang to avoid processing .md files
+  local files
+  files=$(find . -type f \
+    ! -path "./.git/*" \
+    ! -path "./.ruff_cache/*" \
+    ! -path "./.pytest_cache/*" \
+    ! -path "./assets/*" \
+    ! -path "./public/*" \
+    ! -path "./public_collected/*" \
+    ! -name "*.md" \
+    -exec grep --quiet '^#!.*sh' {} \; -print)
+
+  if [ -n "$files" ]; then
+    echo "$files" | xargs "${cmd[@]}" --diff
+  else
+    echo "No shell scripts found to format."
+  fi
 }
 
 # Create wait-until function if not available
