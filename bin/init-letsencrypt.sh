@@ -13,13 +13,13 @@ NC='\033[0m'
 
 DOMAIN="${1:-}"
 EMAIL="${2:-}"
-STAGING="${3:-0}"  # Set to 1 for testing
+STAGING="${3:-0}" # Set to 1 for testing
 
 if [[ -z "$DOMAIN" ]] || [[ -z "$EMAIL" ]]; then
-    echo "Usage: $0 <domain> <email> [staging]"
-    echo "Example: $0 lab.example.com admin@example.com"
-    echo "Example (staging): $0 lab.example.com admin@example.com 1"
-    exit 1
+  echo "Usage: $0 <domain> <email> [staging]"
+  echo "Example: $0 lab.example.com admin@example.com"
+  echo "Example (staging): $0 lab.example.com admin@example.com 1"
+  exit 1
 fi
 
 echo -e "${BLUE}### Initializing Let's Encrypt for $DOMAIN${NC}"
@@ -30,17 +30,17 @@ mkdir -p certbot/conf certbot/www nginx/conf.d
 # Download recommended TLS parameters
 if [ ! -e "certbot/conf/options-ssl-nginx.conf" ]; then
   echo -e "${YELLOW}### Downloading recommended TLS parameters...${NC}"
-  curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf > certbot/conf/options-ssl-nginx.conf
+  curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf >certbot/conf/options-ssl-nginx.conf
 fi
 
 if [ ! -e "certbot/conf/ssl-dhparams.pem" ]; then
   echo -e "${YELLOW}### Downloading recommended DH parameters...${NC}"
-  curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem > certbot/conf/ssl-dhparams.pem
+  curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem >certbot/conf/ssl-dhparams.pem
 fi
 
 # Create Nginx configuration from template
 echo -e "${YELLOW}### Creating Nginx configuration for $DOMAIN...${NC}"
-sed "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" nginx/conf.d/laboratory.conf.template > nginx/conf.d/laboratory.conf
+sed "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" nginx/conf.d/laboratory.conf.template >nginx/conf.d/laboratory.conf
 
 # Create dummy certificate for initial Nginx startup
 echo -e "${YELLOW}### Creating dummy certificate for $DOMAIN...${NC}"

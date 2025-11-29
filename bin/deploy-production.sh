@@ -13,7 +13,6 @@ BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 NC='\033[0m'
 
-PROJECT_NAME="Laboratory System"
 COMPOSE_FILES="-f compose.yaml -f compose.production.yaml"
 
 log_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
@@ -29,6 +28,7 @@ check_production_mode() {
     exit 1
   fi
 
+  # shellcheck disable=SC1091
   source .env
 
   if [[ "${DEBUG:-true}" == "True" ]]; then
@@ -48,15 +48,18 @@ check_production_mode() {
 # Backup database
 backup_database() {
   log_step "Creating database backup..."
-  
+
   local backup_dir="./backups"
   mkdir -p "$backup_dir"
-  
-  local timestamp=$(date +"%Y%m%d_%H%M%S")
+
+  local timestamp
+  timestamp=$(date +"%Y%m%d_%H%M%S")
   local backup_file="$backup_dir/db_backup_$timestamp.sql.gz"
 
+  # shellcheck disable=SC1091
   source .env
-  docker compose $COMPOSE_FILES exec -T postgres pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > "$backup_file"
+  # shellcheck disable=SC2086
+  docker compose $COMPOSE_FILES exec -T postgres pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip >"$backup_file"
 
   if [[ -f "$backup_file" ]] && [[ -s "$backup_file" ]]; then
     log_success "Database backed up to: $backup_file"
@@ -69,10 +72,12 @@ backup_database() {
 # Pull latest changes
 pull_changes() {
   log_step "Pulling latest changes..."
-  
+
   git fetch origin
-  local current=$(git rev-parse HEAD)
-  local remote=$(git rev-parse origin/main)
+  local current
+  current=$(git rev-parse HEAD)
+  local remote
+  remote=$(git rev-parse origin/main)
 
   if [[ "$current" == "$remote" ]]; then
     log_info "Already up to date"
@@ -86,6 +91,7 @@ pull_changes() {
 # Build images
 build_images() {
   log_step "Building Docker images..."
+  # shellcheck disable=SC2086
   docker compose $COMPOSE_FILES build
   log_success "Images built successfully"
 }
@@ -95,7 +101,8 @@ build_documentation() {
   log_step "Building documentation..."
 
   # Check if mkdocs and make are available in the container
-  if docker compose $COMPOSE_FILES exec -T web which mkdocs > /dev/null 2>&1; then
+  # shellcheck disable=SC2086
+  if docker compose $COMPOSE_FILES exec -T web which mkdocs >/dev/null 2>&1; then
     make docs-build
     log_success "Documentation built successfully"
   else
@@ -107,7 +114,7 @@ build_documentation() {
 # Run migrations
 run_migrations() {
   log_step "Running migrations..."
-  
+
   if ! ./run manage migrate --check; then
     log_error "Migration check failed"
     exit 1
@@ -120,7 +127,7 @@ run_migrations() {
 # Collect static files
 collect_static() {
   log_step "Collecting static files..."
-  
+
   ./run manage collectstatic --no-input
   log_success "Static files collected successfully"
 }
@@ -128,16 +135,17 @@ collect_static() {
 # Restart services
 restart_services() {
   log_step "Restarting services..."
-  
+
   # Restart app services (not nginx)
+  # shellcheck disable=SC2086
   docker compose $COMPOSE_FILES restart web worker beat
-  
+
   # Wait for health check
   local max_attempts=30
   local attempt=1
 
   while [[ $attempt -le $max_attempts ]]; do
-    if curl -sf http://localhost/up > /dev/null 2>&1; then
+    if curl -sf http://localhost/up >/dev/null 2>&1; then
       log_success "Services are healthy"
       return 0
     fi

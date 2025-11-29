@@ -143,9 +143,9 @@ lint-dockerfile: ## Lint Dockerfile
 		hadolint/hadolint hadolint $(ARGS) - <Dockerfile
 
 lint-shell: ## Lint shell scripts
-	@local cmd=(shellcheck); \
+	@cmd=(shellcheck); \
 	if ! command -v shellcheck >/dev/null 2>&1; then \
-		local cmd=(docker container run --rm -i -v "$(PWD):/mnt" koalaman/shellcheck:stable); \
+		cmd=(docker container run --rm -i -v "$(PWD):/mnt" koalaman/shellcheck:stable); \
 	fi; \
 	find . -type f \
 		! -path "./.git/*" \
@@ -162,11 +162,11 @@ format: ## Format Python code
 	@source scripts/docker-helper.sh && _dc web ruff format $(ARGS)
 
 format-shell: ## Format shell scripts
-	@local cmd=(shfmt); \
+	@cmd=(shfmt); \
 	if ! command -v shfmt >/dev/null 2>&1; then \
-		local cmd=(docker container run --rm -i -v "$(PWD):/mnt" -u "$$(id -u):$$(id -g)" -w /mnt mvdan/shfmt:v3); \
+		cmd=(docker container run --rm -i -v "$(PWD):/mnt" -u "$$(id -u):$$(id -g)" -w /mnt mvdan/shfmt:v3); \
 	fi; \
-	local maybe_write=("--write"); \
+	maybe_write=("--write"); \
 	for arg in $(ARGS); do \
 		if [ "$$arg" == "-d" ] || [ "$$arg" == "--diff" ]; then \
 			unset "maybe_write[0]"; \

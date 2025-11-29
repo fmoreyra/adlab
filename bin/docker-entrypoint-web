@@ -6,10 +6,10 @@ set -e
 # Docs are committed to /app/public_collected/docs/ but need to be in /public_collected/docs/
 # for WhiteNoise to serve them properly
 if [ -d "/app/public_collected/docs" ]; then
-    echo "📚 Copying documentation to STATIC_ROOT..."
-    mkdir -p /public_collected/docs
-    cp -r /app/public_collected/docs/* /public_collected/docs/
-    echo "✅ Documentation copied successfully"
+  echo "📚 Copying documentation to STATIC_ROOT..."
+  mkdir -p /public_collected/docs
+  cp -r /app/public_collected/docs/* /public_collected/docs/
+  echo "✅ Documentation copied successfully"
 fi
 
 exec "$@"
