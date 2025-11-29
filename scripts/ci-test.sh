@@ -116,10 +116,10 @@ main() {
   docker compose build
   echo "Starting containers..."
   docker compose up -d
-  
+
   # Give containers a moment to start
   sleep 5
-  
+
   echo "Container status:"
   docker compose ps
 
