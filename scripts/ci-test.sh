@@ -113,7 +113,7 @@ main() {
 
   # Ensure POSTGRES_DB is set in .env file (it's commented out in .env.example)
   if ! grep -q "^export POSTGRES_DB=" .env && ! grep -q "^POSTGRES_DB=" .env; then
-    echo "export POSTGRES_DB=adlab" >> .env
+    echo "export POSTGRES_DB=adlab" >>.env
   elif grep -q "^#export POSTGRES_DB=" .env || grep -q "^#POSTGRES_DB=" .env; then
     # Uncomment if it's commented
     sed -i 's/^#export POSTGRES_DB=.*/export POSTGRES_DB=adlab/' .env
