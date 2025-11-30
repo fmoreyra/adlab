@@ -12,7 +12,7 @@ TTY := $(shell [ -t 1 ] && echo "" || echo "-T")
 # .PHONY declarations for all targets
 # -----------------------------------------------------------------------------
 
-.PHONY: help cmd shell psql redis-cli manage secret test test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test server-connect deploy deploy-prod safety-check safety-report
+.PHONY: help cmd shell psql redis-cli manage secret test test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test pre-commit-install pre-commit-run pre-commit-update server-connect deploy deploy-prod safety-check safety-report
 
 # -----------------------------------------------------------------------------
 # Help target (default)
@@ -74,6 +74,9 @@ help: ## Display available targets
 	@echo "CI/CD:"
 	@echo "  ci-install-deps        Install CI dependencies"
 	@echo "  ci-test                Run full CI pipeline"
+	@echo "  pre-commit-install     Install pre-commit hooks locally"
+	@echo "  pre-commit-run         Run pre-commit hooks on all files"
+	@echo "  pre-commit-update      Update pre-commit hooks to latest versions"
 	@echo ""
 	@echo "Server:"
 	@echo "  server-connect         Connect to production server via SSH"
@@ -294,6 +297,16 @@ ci-install-deps: ## Install CI dependencies
 
 ci-test: ## Run full CI pipeline
 	@./scripts/ci-test.sh $(ARGS)
+
+pre-commit-install: ## Install pre-commit hooks locally
+	@pip install pre-commit
+	@pre-commit install
+
+pre-commit-run: ## Run pre-commit hooks on all files
+	@pre-commit run --all-files
+
+pre-commit-update: ## Update pre-commit hooks to latest versions
+	@pre-commit autoupdate
 
 # -----------------------------------------------------------------------------
 # Server

@@ -12,8 +12,77 @@ on:
     - cron: "30 12 * * *"
 
 jobs:
+  lint:
+    name: "Lint and Format Check"
+    runs-on: "ubuntu-22.04"
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: "Set up Python"
+        uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.14"
+
+      - name: "Install ruff"
+        run: |
+          pip install ruff==0.14.0
+
+      - name: "Run ruff check"
+        run: |
+          ruff check src/
+
+      - name: "Run ruff format check"
+        run: |
+          ruff format --check --diff src/
+
+      - name: "Install shellcheck"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: "Run shellcheck"
+        run: |
+          find . -type f \
+            ! -path "./.git/*" \
+            ! -path "./.ruff_cache/*" \
+            ! -path "./.pytest_cache/*" \
+            ! -path "./assets/*" \
+            ! -path "./public/*" \
+            ! -path "./public_collected/*" \
+            ! -name "*.md" \
+            -exec grep --quiet '^#!.*sh' {} \; -exec shellcheck {} +
+
+      - name: "Install shfmt"
+        run: |
+          wget -qO- https://github.com/mvdan/sh/releases/download/v3.8.0/shfmt_v3.8.0_linux_amd64 > /tmp/shfmt
+          chmod +x /tmp/shfmt
+          sudo mv /tmp/shfmt /usr/local/bin/shfmt
+
+      - name: "Run shfmt check"
+        run: |
+          find . -type f \
+            ! -path "./.git/*" \
+            ! -path "./.ruff_cache/*" \
+            ! -path "./.pytest_cache/*" \
+            ! -path "./assets/*" \
+            ! -path "./public/*" \
+            ! -path "./public_collected/*" \
+            ! -name "*.md" \
+            -exec grep --quiet '^#!.*sh' {} \; -exec shfmt --diff {} +
+
+      - name: "Install hadolint"
+        run: |
+          wget -qO- https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 > /tmp/hadolint
+          chmod +x /tmp/hadolint
+          sudo mv /tmp/hadolint /usr/local/bin/hadolint
+
+      - name: "Run hadolint"
+        run: |
+          hadolint Dockerfile
+
   test:
     runs-on: "ubuntu-22.04"
+    needs: lint  # Run tests only after linting passes
 
     steps:
       - uses: "actions/checkout@v4"
