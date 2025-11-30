@@ -234,12 +234,23 @@ class DashboardPerformanceTest(TestCase):
 
     def test_cache_effectiveness(self):
         """Test that caching improves performance on subsequent requests."""
+        from django.core.cache import cache
+
         client = Client()
         client.force_login(self.lab_staff)
+
+        # Clear cache before test
+        cache.delete("dashboard_wip_metrics")
 
         # First request (cache miss)
         with monitor_performance("wip_first_request") as monitor1:
             response1 = client.get(reverse("pages_api:dashboard_wip"))
+
+        # Verify cache was set
+        self.assertIsNotNone(
+            cache.get("dashboard_wip_metrics"),
+            "Cache should be set after first request",
+        )
 
         # Second request (cache hit)
         with monitor_performance("wip_second_request") as monitor2:
@@ -248,19 +259,41 @@ class DashboardPerformanceTest(TestCase):
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(response2.status_code, 200)
 
-        # Second request should be faster (cache hit)
+        # Cached request should have fewer queries (more reliable than timing)
         self.assertLess(
-            monitor2.metrics["total_time"],
-            monitor1.metrics["total_time"],
-            "Cached request should be faster than first request",
+            monitor2.metrics["query_count"],
+            monitor1.metrics["query_count"],
+            "Cached request should have fewer queries than first request",
+        )
+
+        # Second request should be faster or at least not significantly slower
+        # (accounting for timing variance in fast operations)
+        time_ratio = (
+            monitor2.metrics["total_time"] / monitor1.metrics["total_time"]
+        )
+        self.assertLess(
+            time_ratio,
+            1.5,  # Allow up to 50% slower due to timing variance
+            f"Cached request should not be significantly slower "
+            f"(ratio: {time_ratio:.2f}, first: {monitor1.metrics['total_time']}s, "
+            f"second: {monitor2.metrics['total_time']}s)",
         )
 
         print("\nCache Effectiveness:")
-        print(f"  First request: {monitor1.metrics['total_time']}s")
-        print(f"  Second request: {monitor2.metrics['total_time']}s")
         print(
-            f"  Speed improvement: {monitor1.metrics['total_time'] / monitor2.metrics['total_time']:.1f}x"
+            f"  First request: {monitor1.metrics['total_time']}s, {monitor1.metrics['query_count']} queries"
         )
+        print(
+            f"  Second request: {monitor2.metrics['total_time']}s, {monitor2.metrics['query_count']} queries"
+        )
+        if monitor2.metrics["total_time"] < monitor1.metrics["total_time"]:
+            print(
+                f"  Speed improvement: {monitor1.metrics['total_time'] / monitor2.metrics['total_time']:.1f}x"
+            )
+        else:
+            print(
+                f"  Query reduction: {monitor1.metrics['query_count'] - monitor2.metrics['query_count']} fewer queries"
+            )
 
     def test_performance_thresholds(self):
         """Test that all dashboard views meet performance thresholds."""
