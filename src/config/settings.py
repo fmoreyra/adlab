@@ -172,6 +172,7 @@ if TESTING:
             "LOCATION": "unique-snowflake",
         }
     }
+    print("TESTING mode: Using LocMemCache for tests")
 else:
     CACHES = {
         "default": {

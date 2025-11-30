@@ -127,7 +127,7 @@ class DashboardWIPView(
             Protocol.Status.RECEIVED: "recibido",
             Protocol.Status.PROCESSING: "procesando",
             Protocol.Status.READY: "listo_diagnostico",
-            Protocol.Status.REPORT_DRAFT: "informe_borrador",
+            Protocol.Status.REPORT_SENT: "informe_borrador",
         }
 
         # Populate basic counts
