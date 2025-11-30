@@ -40,9 +40,9 @@ if TESTING:
     TEST_RUNNER = "config.test_runner.DockerTestRunner"
     print(f"Using custom test runner: {TEST_RUNNER}")
     print("TESTING mode enabled - Celery will run synchronously")
-    
+
     # Ensure tests run sequentially to avoid deadlocks
-    os.environ.setdefault('DJANGO_TEST_PROCESSES', '1')
+    os.environ.setdefault("DJANGO_TEST_PROCESSES", "1")
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#std:setting-ALLOWED_HOSTS
 allowed_hosts = os.getenv("ALLOWED_HOSTS", ".localhost,127.0.0.1,[::1]")
@@ -217,7 +217,9 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour in seconds
 
 # Site URL for building absolute URLs in emails
-SITE_URL = os.getenv("SITE_URL", "http://localhost:8000" if DEBUG else "https://adlab.com")
+SITE_URL = os.getenv(
+    "SITE_URL", "http://localhost:8000" if DEBUG else "https://adlab.com"
+)
 
 # Email configuration
 # For development, use console backend. In production, configure SMTP.
@@ -240,17 +242,21 @@ SERVER_EMAIL = os.getenv("SERVER_EMAIL", "server@adlab.com")
 # https://docs.djangoproject.com/en/5.2/ref/settings/#security
 if not DEBUG:
     # HTTPS settings
-    SECURE_SSL_REDIRECT = bool(strtobool(os.getenv("SECURE_SSL_REDIRECT", "true")))
+    SECURE_SSL_REDIRECT = bool(
+        strtobool(os.getenv("SECURE_SSL_REDIRECT", "true"))
+    )
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    
+
     # CSRF settings
     csrf_trusted_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
     if csrf_trusted_origins:
-        CSRF_TRUSTED_ORIGINS = list(map(str.strip, csrf_trusted_origins.split(",")))
-    
+        CSRF_TRUSTED_ORIGINS = list(
+            map(str.strip, csrf_trusted_origins.split(","))
+        )
+
     # Content Security Policy
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True

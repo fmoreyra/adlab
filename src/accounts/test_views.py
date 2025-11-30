@@ -600,13 +600,13 @@ class AccountsViewsTest(TestCase):
     def test_veterinarian_profile_views_require_veterinarian_role(self):
         """Test that veterinarian profile views require veterinarian role."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         urls = [
             reverse("accounts:veterinarian_profile_detail"),
             reverse("accounts:veterinarian_profile_edit"),
             reverse("accounts:veterinarian_profile_history"),
         ]
-        
+
         for url in urls:
             response = self.client.get(url)
             self.assertEqual(response.status_code, 403)
@@ -703,7 +703,7 @@ class CreateHistopathologistViewTest(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        
+
         # Create regular user (non-admin)
         self.regular_user = User.objects.create_user(
             email="regular@example.com",
@@ -717,12 +717,14 @@ class CreateHistopathologistViewTest(TestCase):
         # Test unauthenticated user
         response = self.client.get(reverse("accounts:create_histopathologist"))
         self.assertEqual(response.status_code, 302)  # Redirect to login
-        
+
         # Test regular user
         self.client.login(email="regular@example.com", password="testpass123")
         response = self.client.get(reverse("accounts:create_histopathologist"))
-        self.assertEqual(response.status_code, 403)  # Forbidden due to permission denied
-        
+        self.assertEqual(
+            response.status_code, 403
+        )  # Forbidden due to permission denied
+
         # Test admin user
         self.client.login(email="admin@example.com", password="testpass123")
         response = self.client.get(reverse("accounts:create_histopathologist"))
@@ -732,7 +734,7 @@ class CreateHistopathologistViewTest(TestCase):
     def test_create_histopathologist_successful(self):
         """Test successful histopathologist creation."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         form_data = {
             "email": "newhisto@example.com",
             "first_name": "Dr. New",
@@ -744,14 +746,13 @@ class CreateHistopathologistViewTest(TestCase):
             "specialty": "Patología Veterinaria",
             "phone_number": "+54 341 1234567",
         }
-        
+
         response = self.client.post(
-            reverse("accounts:create_histopathologist"),
-            form_data
+            reverse("accounts:create_histopathologist"), form_data
         )
-        
+
         self.assertEqual(response.status_code, 302)  # Redirect after success
-        
+
         # Check that User was created
         user = User.objects.filter(email="newhisto@example.com").first()
         self.assertIsNotNone(user)
@@ -759,13 +760,13 @@ class CreateHistopathologistViewTest(TestCase):
         self.assertTrue(user.is_active)
         self.assertTrue(user.email_verified)
         self.assertTrue(user.is_staff)
-        
+
         # Check that Histopathologist profile was created
         histopathologist = Histopathologist.objects.filter(user=user).first()
         self.assertIsNotNone(histopathologist)
         self.assertEqual(histopathologist.license_number, "HP-12345")
         self.assertEqual(histopathologist.position, "Profesor Titular")
-        
+
         # Check audit log
         log = AuthAuditLog.objects.filter(
             action=AuthAuditLog.Action.USER_CREATED,
@@ -781,9 +782,9 @@ class CreateHistopathologistViewTest(TestCase):
             username="existing",
             password="testpass123",
         )
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         form_data = {
             "email": "existing@example.com",
             "first_name": "Dr. New",
@@ -792,12 +793,11 @@ class CreateHistopathologistViewTest(TestCase):
             "password2": "securepass123",
             "license_number": "HP-12345",
         }
-        
+
         response = self.client.post(
-            reverse("accounts:create_histopathologist"),
-            form_data
+            reverse("accounts:create_histopathologist"), form_data
         )
-        
+
         self.assertEqual(response.status_code, 200)  # Form errors
         self.assertContains(response, "Este email ya está registrado")
 
@@ -816,9 +816,9 @@ class CreateHistopathologistViewTest(TestCase):
             last_name="Histopathologist",
             license_number="HP-12345",
         )
-        
+
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         form_data = {
             "email": "new@example.com",
             "first_name": "Dr. New",
@@ -827,19 +827,20 @@ class CreateHistopathologistViewTest(TestCase):
             "password2": "securepass123",
             "license_number": "HP-12345",  # Duplicate
         }
-        
+
         response = self.client.post(
-            reverse("accounts:create_histopathologist"),
-            form_data
+            reverse("accounts:create_histopathologist"), form_data
         )
-        
+
         self.assertEqual(response.status_code, 200)  # Form errors
-        self.assertContains(response, "Este número de matrícula ya está registrado")
+        self.assertContains(
+            response, "Este número de matrícula ya está registrado"
+        )
 
     def test_create_histopathologist_password_mismatch(self):
         """Test creation with password mismatch fails."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         form_data = {
             "email": "new@example.com",
             "first_name": "Dr. New",
@@ -848,19 +849,18 @@ class CreateHistopathologistViewTest(TestCase):
             "password2": "differentpass123",  # Mismatch
             "license_number": "HP-12345",
         }
-        
+
         response = self.client.post(
-            reverse("accounts:create_histopathologist"),
-            form_data
+            reverse("accounts:create_histopathologist"), form_data
         )
-        
+
         self.assertEqual(response.status_code, 200)  # Form errors
         self.assertContains(response, "Las contraseñas no coinciden")
 
     def test_create_histopathologist_form_validation(self):
         """Test form validation for required fields."""
         self.client.login(email="admin@example.com", password="testpass123")
-        
+
         # Test with missing required fields
         form_data = {
             "email": "",  # Missing
@@ -870,11 +870,10 @@ class CreateHistopathologistViewTest(TestCase):
             "password2": "different",  # Mismatch
             "license_number": "",  # Missing
         }
-        
+
         response = self.client.post(
-            reverse("accounts:create_histopathologist"),
-            form_data
+            reverse("accounts:create_histopathologist"), form_data
         )
-        
+
         self.assertEqual(response.status_code, 200)  # Form errors
         # Form should show validation errors for required fields

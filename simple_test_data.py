@@ -5,9 +5,9 @@ This script creates basic test data for the most important models.
 """
 
 import os
-import sys
+from datetime import date
+
 import django
-from datetime import date, datetime, timedelta
 from django.utils import timezone
 
 # Setup Django environment
@@ -15,7 +15,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from django.contrib.auth import get_user_model
-from accounts.models import Veterinarian, Address
+
+from accounts.models import Address, Veterinarian
 from protocols.models import Protocol, WorkOrder
 
 User = get_user_model()

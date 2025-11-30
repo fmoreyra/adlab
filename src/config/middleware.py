@@ -20,7 +20,9 @@ class DocsIndexMiddleware:
 
     def __call__(self, request):
         # Check if this is a docs URL ending with /
-        if request.path.startswith("/static/docs/") and request.path.endswith("/"):
+        if request.path.startswith("/static/docs/") and request.path.endswith(
+            "/"
+        ):
             # Redirect to the index.html file
             return HttpResponseRedirect(request.path + "index.html")
 

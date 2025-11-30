@@ -46,11 +46,15 @@ class UserLoginForm(AuthenticationForm):
                 from .models import User
 
                 user = User.objects.get(email=username)
-                
+
                 # Check email verification first (for veterinarians)
-                if user.role == User.Role.VETERINARIO and not user.email_verified:
+                if (
+                    user.role == User.Role.VETERINARIO
+                    and not user.email_verified
+                ):
                     # Log failed login attempt for audit
                     from .models import AuthAuditLog
+
                     AuthAuditLog.objects.create(
                         user=user,
                         email=user.email,
@@ -61,7 +65,7 @@ class UserLoginForm(AuthenticationForm):
                         _("Debe verificar su email antes de iniciar sesión."),
                         code="email_not_verified",
                     )
-                
+
                 # Check if account is inactive (for other reasons)
                 if not user.is_active:
                     raise forms.ValidationError(
@@ -79,6 +83,7 @@ class UserLoginForm(AuthenticationForm):
         if user.role == User.Role.VETERINARIO and not user.email_verified:
             # Log failed login attempt for audit
             from .models import AuthAuditLog
+
             AuthAuditLog.objects.create(
                 user=user,
                 email=user.email,
@@ -89,7 +94,7 @@ class UserLoginForm(AuthenticationForm):
                 _("Debe verificar su email antes de iniciar sesión."),
                 code="email_not_verified",
             )
-        
+
         # Check if account is inactive (for other reasons)
         if not user.is_active:
             raise forms.ValidationError(
@@ -221,7 +226,7 @@ class VeterinarianRegistrationForm(UserCreationForm):
 class HistopathologistCreationForm(forms.Form):
     """
     Form for creating histopathologist users with complete profile.
-    
+
     Creates both User account and Histopathologist profile in a single form.
     Used by administrators to create internal laboratory staff.
     """
@@ -280,7 +285,9 @@ class HistopathologistCreationForm(forms.Form):
             }
         ),
         strip=False,
-        help_text=_("Ingrese la misma contraseña que antes, para verificación."),
+        help_text=_(
+            "Ingrese la misma contraseña que antes, para verificación."
+        ),
     )
 
     # Histopathologist profile fields
@@ -354,10 +361,15 @@ class HistopathologistCreationForm(forms.Form):
     def clean_license_number(self):
         """Validate license number is unique."""
         license_number = self.cleaned_data.get("license_number")
-        if license_number and Histopathologist.objects.filter(
-            license_number=license_number
-        ).exists():
-            raise ValidationError(_("Este número de matrícula ya está registrado."))
+        if (
+            license_number
+            and Histopathologist.objects.filter(
+                license_number=license_number
+            ).exists()
+        ):
+            raise ValidationError(
+                _("Este número de matrícula ya está registrado.")
+            )
         return license_number
 
     def clean(self):
@@ -374,7 +386,7 @@ class HistopathologistCreationForm(forms.Form):
     def save(self):
         """
         Create both User account and Histopathologist profile.
-        
+
         Returns:
             tuple: (user, histopathologist) instances created
         """
@@ -570,9 +582,13 @@ class VeterinarianProfileForm(forms.ModelForm):
             "email": _("Email"),
         }
         help_texts = {
-            "license_number": _("Format: MP-XXXXX (example: MP-12345) (optional)"),
+            "license_number": _(
+                "Format: MP-XXXXX (example: MP-12345) (optional)"
+            ),
             "dni": _("Documento Nacional de Identidad (7-8 dígitos)"),
-            "cuil_cuit": _("Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"),
+            "cuil_cuit": _(
+                "Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"
+            ),
             "phone": _("Argentine format: +54 XXX XXXXXXX"),
         }
 
@@ -601,18 +617,18 @@ class VeterinarianProfileForm(forms.ModelForm):
     def clean_cuil_cuit(self):
         """Validate CUIL/CUIT format (optional)."""
         cuil_cuit = self.cleaned_data.get("cuil_cuit", "").strip()
-        
+
         # If empty, return empty (field is optional)
         if not cuil_cuit:
             return cuil_cuit
-        
+
         # Validate format XX-XXXXXXXX-X
         pattern = r"^\d{2}-\d{8}-\d{1}$"
         if not re.match(pattern, cuil_cuit):
             raise ValidationError(
                 _("Invalid CUIL/CUIT format. Expected format: XX-XXXXXXXX-X")
             )
-        
+
         return cuil_cuit
 
     def clean_phone(self):
@@ -784,7 +800,9 @@ class VeterinarianProfileCompleteForm(forms.Form):
                 "placeholder": "20-12345678-9",
             }
         ),
-        help_text=_("Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"),
+        help_text=_(
+            "Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"
+        ),
     )
     phone = forms.CharField(
         label=_("Phone"),
@@ -937,14 +955,14 @@ class VeterinarianProfileCompleteForm(forms.Form):
     def clean_cuil_cuit(self):
         """Validate CUIL/CUIT format."""
         cuil_cuit = self.cleaned_data.get("cuil_cuit", "").strip()
-        
+
         # Validate format XX-XXXXXXXX-X
         pattern = r"^\d{2}-\d{8}-\d{1}$"
         if not re.match(pattern, cuil_cuit):
             raise ValidationError(
                 _("Invalid CUIL/CUIT format. Expected format: XX-XXXXXXXX-X")
             )
-        
+
         return cuil_cuit
 
     def save(self):
@@ -1133,9 +1151,13 @@ class VeterinarianProfileEditForm(forms.ModelForm):
             "email": _("Email"),
         }
         help_texts = {
-            "license_number": _("Format: MP-XXXXX (example: MP-12345) (optional)"),
+            "license_number": _(
+                "Format: MP-XXXXX (example: MP-12345) (optional)"
+            ),
             "dni": _("Documento Nacional de Identidad (7-8 dígitos)"),
-            "cuil_cuit": _("Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"),
+            "cuil_cuit": _(
+                "Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"
+            ),
             "phone": _("Argentine format: +54 XXX XXXXXXX"),
         }
 
@@ -1183,14 +1205,14 @@ class VeterinarianProfileEditForm(forms.ModelForm):
     def clean_cuil_cuit(self):
         """Validate CUIL/CUIT format."""
         cuil_cuit = self.cleaned_data.get("cuil_cuit", "").strip()
-        
+
         # Validate format XX-XXXXXXXX-X
         pattern = r"^\d{2}-\d{8}-\d{1}$"
         if not re.match(pattern, cuil_cuit):
             raise ValidationError(
                 _("Invalid CUIL/CUIT format. Expected format: XX-XXXXXXXX-X")
             )
-        
+
         return cuil_cuit
 
     def clean_phone(self):

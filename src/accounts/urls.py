@@ -7,7 +7,11 @@ app_name = "accounts"
 urlpatterns = [
     # Authentication
     path("login/", views.LoginView.as_view(), name="login"),
-    path("histopathologist/login/", views.HistopathologistLoginView.as_view(), name="histopathologist_login"),
+    path(
+        "histopathologist/login/",
+        views.HistopathologistLoginView.as_view(),
+        name="histopathologist_login",
+    ),
     path(
         "logout/", views.logout_view, name="logout"
     ),  # Keep as function (simple redirect)
@@ -57,5 +61,9 @@ urlpatterns = [
         name="veterinarian_profile_history",
     ),
     # Histopathologist Management
-    path("histopathologist/create/", views.CreateHistopathologistView.as_view(), name="create_histopathologist"),
+    path(
+        "histopathologist/create/",
+        views.CreateHistopathologistView.as_view(),
+        name="create_histopathologist",
+    ),
 ]

@@ -4,15 +4,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0004_histopathologist'),
+        ("accounts", "0004_histopathologist"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='authauditlog',
-            name='action',
-            field=models.CharField(choices=[('login_success', 'Login Success'), ('login_failed', 'Login Failed'), ('logout', 'Logout'), ('password_reset_request', 'Password Reset Request'), ('password_reset_complete', 'Password Reset Complete'), ('account_locked', 'Account Locked'), ('account_unlocked', 'Account Unlocked'), ('password_changed', 'Password Changed'), ('email_verification_sent', 'Email Verification Sent'), ('email_verified', 'Email Verified'), ('email_verification_failed', 'Email Verification Failed'), ('user_created', 'Usuario Creado')], max_length=50, verbose_name='action'),
+            model_name="authauditlog",
+            name="action",
+            field=models.CharField(
+                choices=[
+                    ("login_success", "Login Success"),
+                    ("login_failed", "Login Failed"),
+                    ("logout", "Logout"),
+                    ("password_reset_request", "Password Reset Request"),
+                    ("password_reset_complete", "Password Reset Complete"),
+                    ("account_locked", "Account Locked"),
+                    ("account_unlocked", "Account Unlocked"),
+                    ("password_changed", "Password Changed"),
+                    ("email_verification_sent", "Email Verification Sent"),
+                    ("email_verified", "Email Verified"),
+                    ("email_verification_failed", "Email Verification Failed"),
+                    ("user_created", "Usuario Creado"),
+                ],
+                max_length=50,
+                verbose_name="action",
+            ),
         ),
     ]

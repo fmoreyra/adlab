@@ -43,7 +43,9 @@ class ProtocolReceptionService:
         """
         if protocol.status != Protocol.Status.SUBMITTED:
             if protocol.status == Protocol.Status.DRAFT:
-                return False, _("No se puede recepcionar un protocolo en borrador. El protocolo debe ser enviado primero.")
+                return False, _(
+                    "No se puede recepcionar un protocolo en borrador. El protocolo debe ser enviado primero."
+                )
             else:
                 return False, _("Este protocolo ya fue procesado.")
 
@@ -68,7 +70,7 @@ class ProtocolReceptionService:
             sample_condition = form_data.get("sample_condition")
             reception_notes = form_data.get("reception_notes", "")
             discrepancies = form_data.get("discrepancies", "")
-            
+
             # Check if sample is rejected
             is_rejected = sample_condition == Protocol.SampleCondition.REJECTED
 
@@ -80,14 +82,16 @@ class ProtocolReceptionService:
                 protocol.reception_notes = reception_notes
                 protocol.discrepancies = discrepancies
                 protocol.status = Protocol.Status.REJECTED
-                protocol.save(update_fields=[
-                    "reception_date",
-                    "received_by", 
-                    "sample_condition",
-                    "reception_notes",
-                    "discrepancies",
-                    "status",
-                ])
+                protocol.save(
+                    update_fields=[
+                        "reception_date",
+                        "received_by",
+                        "sample_condition",
+                        "reception_notes",
+                        "discrepancies",
+                        "status",
+                    ]
+                )
             else:
                 # Normal reception - assign protocol number
                 protocol.receive(
@@ -107,7 +111,7 @@ class ProtocolReceptionService:
                 action = ReceptionLog.Action.DISCREPANCY_REPORTED
             else:
                 action = ReceptionLog.Action.RECEIVED
-                
+
             ReceptionLog.log_action(
                 protocol=protocol,
                 action=action,
@@ -116,9 +120,17 @@ class ProtocolReceptionService:
             )
 
             # Log status change
-            new_status = Protocol.Status.REJECTED if is_rejected else Protocol.Status.RECEIVED
-            description = _("Muestra rechazada") if is_rejected else _("Muestra recibida en laboratorio")
-            
+            new_status = (
+                Protocol.Status.REJECTED
+                if is_rejected
+                else Protocol.Status.RECEIVED
+            )
+            description = (
+                _("Muestra rechazada")
+                if is_rejected
+                else _("Muestra recibida en laboratorio")
+            )
+
             ProtocolStatusHistory.log_status_change(
                 protocol=protocol,
                 new_status=new_status,

@@ -4,9 +4,8 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('protocols', '0010_add_temporary_code_counter'),
+        ("protocols", "0010_add_temporary_code_counter"),
     ]
 
     operations = [
@@ -27,7 +26,6 @@ class Migration(migrations.Migration):
             sql="CREATE INDEX IF NOT EXISTS idx_protocol_status_reception_date ON protocols_protocol(status, reception_date) WHERE reception_date IS NOT NULL;",
             reverse_sql="DROP INDEX IF EXISTS idx_protocol_status_reception_date;",
         ),
-        
         # Add indexes for Report model - frequently queried for productivity metrics
         migrations.RunSQL(
             sql="CREATE INDEX IF NOT EXISTS idx_report_histopathologist_status ON protocols_report(histopathologist_id, status);",
@@ -37,19 +35,16 @@ class Migration(migrations.Migration):
             sql="CREATE INDEX IF NOT EXISTS idx_report_updated_at_status ON protocols_report(updated_at, status) WHERE status = 'finalized';",
             reverse_sql="DROP INDEX IF EXISTS idx_report_updated_at_status;",
         ),
-        
         # Add indexes for Cassette model - for histopathology processing stages
         migrations.RunSQL(
             sql="CREATE INDEX IF NOT EXISTS idx_cassette_estado ON protocols_cassette(estado);",
             reverse_sql="DROP INDEX IF EXISTS idx_cassette_estado;",
         ),
-        
         # Add indexes for Slide model - for histopathology processing stages
         migrations.RunSQL(
             sql="CREATE INDEX IF NOT EXISTS idx_slide_estado ON protocols_slide(estado);",
             reverse_sql="DROP INDEX IF EXISTS idx_slide_estado;",
         ),
-        
         # Add composite index for User model - for histopathologist queries
         migrations.RunSQL(
             sql="CREATE INDEX IF NOT EXISTS idx_user_role_active ON accounts_user(role, is_active) WHERE role = 'histopatologo';",

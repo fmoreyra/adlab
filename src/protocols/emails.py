@@ -17,15 +17,17 @@ logger = logging.getLogger(__name__)
 def build_protocol_url(protocol):
     """
     Build absolute URL for protocol public detail.
-    
+
     Args:
         protocol: Protocol instance with external_id
-        
+
     Returns:
         str: Absolute URL to protocol public detail page
     """
-    path = reverse('protocols:protocol_public_detail', 
-                   kwargs={'external_id': protocol.external_id})
+    path = reverse(
+        "protocols:protocol_public_detail",
+        kwargs={"external_id": protocol.external_id},
+    )
     return f"{settings.SITE_URL}{path}"
 
 
@@ -328,7 +330,7 @@ def send_work_order_notification(work_order, work_order_pdf_path=None):
 
         # Get veterinarian's protocols in this work order
         vet_protocols = work_order.protocols.filter(veterinarian=veterinarian)
-        
+
         # Add protocol URLs to each protocol object for template access
         protocols_with_urls = []
         for protocol in vet_protocols:

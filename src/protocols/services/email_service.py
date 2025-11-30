@@ -71,6 +71,7 @@ class EmailNotificationService:
         """
         try:
             from protocols.emails import send_sample_rejection_notification
+
             email_log = send_sample_rejection_notification(protocol)
             if email_log:
                 logger.info(

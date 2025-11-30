@@ -4,20 +4,44 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('protocols', '0011_add_dashboard_performance_indexes'),
+        ("protocols", "0011_add_dashboard_performance_indexes"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='protocol',
-            name='status',
-            field=models.CharField(choices=[('draft', 'Borrador'), ('submitted', 'Enviado'), ('received', 'Recibido'), ('rejected', 'Rechazado'), ('processing', 'En procesamiento'), ('ready', 'Listo'), ('report_sent', 'Informe enviado')], default='draft', max_length=20, verbose_name='estado'),
+            model_name="protocol",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("draft", "Borrador"),
+                    ("submitted", "Enviado"),
+                    ("received", "Recibido"),
+                    ("rejected", "Rechazado"),
+                    ("processing", "En procesamiento"),
+                    ("ready", "Listo"),
+                    ("report_sent", "Informe enviado"),
+                ],
+                default="draft",
+                max_length=20,
+                verbose_name="estado",
+            ),
         ),
         migrations.AlterField(
-            model_name='protocolstatushistory',
-            name='status',
-            field=models.CharField(choices=[('draft', 'Borrador'), ('submitted', 'Enviado'), ('received', 'Recibido'), ('rejected', 'Rechazado'), ('processing', 'En procesamiento'), ('ready', 'Listo'), ('report_sent', 'Informe enviado')], max_length=20, verbose_name='estado'),
+            model_name="protocolstatushistory",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("draft", "Borrador"),
+                    ("submitted", "Enviado"),
+                    ("received", "Recibido"),
+                    ("rejected", "Rechazado"),
+                    ("processing", "En procesamiento"),
+                    ("ready", "Listo"),
+                    ("report_sent", "Informe enviado"),
+                ],
+                max_length=20,
+                verbose_name="estado",
+            ),
         ),
     ]

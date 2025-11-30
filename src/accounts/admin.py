@@ -201,14 +201,14 @@ class UserAdmin(BaseUserAdmin):
 
     def save_model(self, request, obj, form, change):
         """
-        Override save_model to automatically set is_superuser=True 
+        Override save_model to automatically set is_superuser=True
         when role is set to ADMIN.
         """
         # If role is ADMIN, automatically set is_superuser=True
         if obj.role == User.Role.ADMIN:
             obj.is_superuser = True
             obj.is_staff = True  # Also set is_staff for admin access
-        
+
         # Call the parent save_model method
         super().save_model(request, obj, form, change)
 

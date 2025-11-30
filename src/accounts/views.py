@@ -105,7 +105,7 @@ class LoginView(FormView):
 class HistopathologistLoginView(LoginView):
     """
     Histopathologist login view with no registration link.
-    
+
     Uses the same authentication logic as LoginView but displays
     a different template without the registration section.
     """
@@ -160,7 +160,7 @@ class RegisterView(CreateView):
 class CreateHistopathologistView(AdminRequiredMixin, FormView):
     """
     View for creating histopathologist users with complete profile.
-    
+
     Creates both User account and Histopathologist profile in a single form.
     Only accessible by administrators and superusers.
     """
@@ -173,7 +173,7 @@ class CreateHistopathologistView(AdminRequiredMixin, FormView):
         """Process valid form and create histopathologist."""
         try:
             user, _ = form.save()
-            
+
             # Log creation in audit log
             auth_service = AuthenticationService()
             AuthAuditLog.objects.create(
@@ -184,20 +184,20 @@ class CreateHistopathologistView(AdminRequiredMixin, FormView):
                 user_agent=auth_service._get_user_agent(self.request),
                 details=f"Histopathologist created by {self.request.user.email}",
             )
-            
+
             messages.success(
                 self.request,
                 f"Histopatólogo {user.get_full_name()} creado exitosamente. "
-                f"Email: {user.email}"
+                f"Email: {user.email}",
             )
-            
+
         except Exception:
             messages.error(
                 self.request,
                 _("Error al crear el histopatólogo. Intente nuevamente."),
             )
             return self.form_invalid(form)
-        
+
         return super().form_valid(form)
 
 
@@ -339,12 +339,11 @@ class ProfileView(LoginRequiredMixin, UpdateView):
     def get(self, request, *args, **kwargs):
         """Handle GET request with role-based redirects."""
         user = request.user
-        
+
         # Redirect veterinarians to their specific profile view
         if user.role == User.Role.VETERINARIO:
             return redirect("accounts:veterinarian_profile_detail")
-        
-        
+
         # For other roles, show the generic profile view
         return super().get(request, *args, **kwargs)
 
@@ -475,12 +474,14 @@ class CompleteProfileView(LoginRequiredMixin, FormView):
         if not request.user.is_veterinarian:
             from django.http import HttpResponseForbidden
             from django.template.loader import render_to_string
-            
+
             messages.error(
                 request, _("Solo los veterinarios pueden completar su perfil.")
             )
             return HttpResponseForbidden(
-                render_to_string('403.html', {'user': request.user}, request=request)
+                render_to_string(
+                    "403.html", {"user": request.user}, request=request
+                )
             )
 
         # Check if profile is already complete
@@ -534,13 +535,13 @@ class VeterinarianProfileDetailView(VeterinarianRequiredMixin, DetailView):
         veterinarian = self.request.user.veterinarian_profile
         context["veterinarian"] = veterinarian
         context["profile_completeness"] = veterinarian.profile_completeness
-        
+
         # Add address to context if it exists
         try:
             context["address"] = veterinarian.address
         except Address.DoesNotExist:
             context["address"] = None
-            
+
         return context
 
 

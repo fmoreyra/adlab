@@ -71,7 +71,7 @@ class VeterinarianProfileRequiredMiddlewareTest(TestCase):
     def test_middleware_allows_non_authenticated_users(self):
         """Test that middleware allows non-authenticated users."""
         from django.contrib.auth.models import AnonymousUser
-        
+
         request = self.factory.get("/")
         request.user = AnonymousUser()  # Anonymous user
 
@@ -273,12 +273,20 @@ class VeterinarianProfileRequiredMiddlewareTest(TestCase):
                 "/accounts/veterinarian/complete-profile/"
             )
         )
-        self.assertTrue(self.middleware._is_whitelisted_url("/accounts/logout/"))
+        self.assertTrue(
+            self.middleware._is_whitelisted_url("/accounts/logout/")
+        )
         self.assertTrue(self.middleware._is_whitelisted_url("/admin/"))
-        self.assertTrue(self.middleware._is_whitelisted_url("/static/css/app.css"))
-        self.assertTrue(self.middleware._is_whitelisted_url("/media/uploads/file.jpg"))
+        self.assertTrue(
+            self.middleware._is_whitelisted_url("/static/css/app.css")
+        )
+        self.assertTrue(
+            self.middleware._is_whitelisted_url("/media/uploads/file.jpg")
+        )
 
         # Test non-whitelisted URLs
         self.assertFalse(self.middleware._is_whitelisted_url("/dashboard/"))
         self.assertFalse(self.middleware._is_whitelisted_url("/protocols/"))
-        self.assertFalse(self.middleware._is_whitelisted_url("/accounts/profile/"))
+        self.assertFalse(
+            self.middleware._is_whitelisted_url("/accounts/profile/")
+        )

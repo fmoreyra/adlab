@@ -174,14 +174,14 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         """
-        Override save to automatically set is_superuser=True 
+        Override save to automatically set is_superuser=True
         when role is set to ADMIN.
         """
         # If role is ADMIN, automatically set is_superuser=True
         if self.role == self.Role.ADMIN:
             self.is_superuser = True
             self.is_staff = True  # Also set is_staff for admin access
-        
+
         # Call the parent save method
         super().save(*args, **kwargs)
 
@@ -353,7 +353,9 @@ class Veterinarian(models.Model):
         _("CUIL/CUIT"),
         max_length=20,
         default="",
-        help_text=_("Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"),
+        help_text=_(
+            "Código Único de Identificación Laboral. Formato: XX-XXXXXXXX-X"
+        ),
     )
     phone = models.CharField(
         _("phone"),
@@ -401,9 +403,7 @@ class Veterinarian(models.Model):
 
     def __str__(self):
         if self.license_number:
-            return (
-                f"{self.last_name}, {self.first_name} (MP: {self.license_number})"
-            )
+            return f"{self.last_name}, {self.first_name} (MP: {self.license_number})"
         return f"{self.last_name}, {self.first_name}"
 
     def get_full_name(self):

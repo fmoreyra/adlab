@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 
+
 def cleanup_test_database():
     """Clean up test database by terminating connections and dropping it."""
     

@@ -57,11 +57,11 @@ class DashboardWIPView(
             # Cache WIP data for 2 minutes to reduce database load
             cache_key = "dashboard_wip_metrics"
             wip_data = cache.get(cache_key)
-            
+
             if wip_data is None:
                 wip_data = self._calculate_wip_metrics()
                 cache.set(cache_key, wip_data, 120)  # Cache for 2 minutes
-            
+
             return render(
                 request,
                 "pages/api/wip_widget.html",
@@ -221,11 +221,11 @@ class DashboardVolumeView(
             # Cache volume data for 5 minutes (less frequently changing)
             cache_key = f"dashboard_volume_metrics_{periodo}_{tipo}"
             volume_data = cache.get(cache_key)
-            
+
             if volume_data is None:
                 volume_data = self._calculate_volume_metrics(periodo, tipo)
                 cache.set(cache_key, volume_data, 300)  # Cache for 5 minutes
-            
+
             return render(request, "pages/api/volume_widget.html", volume_data)
         except Exception as e:
             return render(
@@ -269,25 +269,25 @@ class DashboardVolumeView(
         # OPTIMIZED: Single query to get both protocol and report counts
         # Use UNION to combine protocol and report data
         from django.db.models import CharField, F, Value
-        
+
         protocol_counts = (
             Protocol.objects.filter(protocol_filter)
             .values("analysis_type")
             .annotate(
                 count=Count("id"),
-                data_type=Value("protocol", output_field=CharField())
+                data_type=Value("protocol", output_field=CharField()),
             )
         )
-        
+
         report_counts = (
             Report.objects.filter(report_filter)
             .values(analysis_type=F("protocol__analysis_type"))
             .annotate(
                 count=Count("id"),
-                data_type=Value("report", output_field=CharField())
+                data_type=Value("report", output_field=CharField()),
             )
         )
-        
+
         # Combine the results
         combined_data = {}
         for item in protocol_counts:
@@ -295,7 +295,7 @@ class DashboardVolumeView(
             if analysis_type not in combined_data:
                 combined_data[analysis_type] = {"protocols": 0, "reports": 0}
             combined_data[analysis_type]["protocols"] = item["count"]
-        
+
         for item in report_counts:
             analysis_type = item["analysis_type"]
             if analysis_type not in combined_data:
@@ -324,14 +324,16 @@ class DashboardVolumeView(
         for analysis_type, data in combined_data.items():
             protocol_count = data["protocols"]
             report_count = data["reports"]
-            
+
             if analysis_type == "histopathology":
-                result["histopatologia"]["protocolos_recibidos"] = protocol_count
+                result["histopatologia"]["protocolos_recibidos"] = (
+                    protocol_count
+                )
                 result["histopatologia"]["informes_enviados"] = report_count
             elif analysis_type == "cytology":
                 result["citologia"]["protocolos_recibidos"] = protocol_count
                 result["citologia"]["informes_enviados"] = report_count
-            
+
             result["total"]["protocolos_recibidos"] += protocol_count
             result["total"]["informes_enviados"] += report_count
 
@@ -361,11 +363,11 @@ class DashboardTATView(
             # Cache TAT data for 3 minutes (moderate frequency)
             cache_key = "dashboard_tat_metrics"
             tat_data = cache.get(cache_key)
-            
+
             if tat_data is None:
                 tat_data = self._calculate_tat_metrics()
                 cache.set(cache_key, tat_data, 180)  # Cache for 3 minutes
-            
+
             return render(request, "pages/api/tat_widget.html", tat_data)
         except Exception as e:
             return render(
@@ -386,14 +388,13 @@ class DashboardTATView(
             Min,
             When,
         )
-        
+
         # Get completed reports from last 30 days
         thirty_days_ago = timezone.now() - timedelta(days=30)
 
         # OPTIMIZED: Use database aggregation instead of Python loops
         tat_data = (
-            Report.objects
-            .filter(
+            Report.objects.filter(
                 status=Report.Status.FINALIZED,
                 updated_at__gte=thirty_days_ago,
                 protocol__reception_date__isnull=False,
@@ -402,26 +403,21 @@ class DashboardTATView(
                 tat_days=Case(
                     When(
                         protocol__reception_date__isnull=False,
-                        then=F('updated_at__date') - F('protocol__reception_date')
+                        then=F("updated_at__date")
+                        - F("protocol__reception_date"),
                     ),
                     default=0,
-                    output_field=IntegerField()
+                    output_field=IntegerField(),
                 )
             )
-            .values('protocol__analysis_type')
+            .values("protocol__analysis_type")
             .annotate(
-                count=Count('id'),
-                avg_tat=Avg('tat_days'),
-                min_tat=Min('tat_days'),
-                max_tat=Max('tat_days'),
-                within_target_7=Count(
-                    'id',
-                    filter=Q(tat_days__lte=7)
-                ),
-                within_target_3=Count(
-                    'id',
-                    filter=Q(tat_days__lte=3)
-                )
+                count=Count("id"),
+                avg_tat=Avg("tat_days"),
+                min_tat=Min("tat_days"),
+                max_tat=Max("tat_days"),
+                within_target_7=Count("id", filter=Q(tat_days__lte=7)),
+                within_target_3=Count("id", filter=Q(tat_days__lte=3)),
             )
         )
 
@@ -444,59 +440,64 @@ class DashboardTATView(
 
         # Process aggregated results
         for item in tat_data:
-            analysis_type = item['protocol__analysis_type']
-            count = item['count']
-            
+            analysis_type = item["protocol__analysis_type"]
+            count = item["count"]
+
             if count == 0:
                 continue
-            
+
             # Map analysis type to result key
             result_key = (
                 "histopatologia"
                 if analysis_type == "histopathology"
                 else "citologia"
             )
-            
+
             within_target_count = (
-                item['within_target_7'] if analysis_type == "histopathology" 
-                else item['within_target_3']
+                item["within_target_7"]
+                if analysis_type == "histopathology"
+                else item["within_target_3"]
             )
 
-            result[result_key]["tat_promedio_dias"] = round(item['avg_tat'] or 0, 1)
-            result[result_key]["tat_minimo_dias"] = item['min_tat'] or 0
-            result[result_key]["tat_maximo_dias"] = item['max_tat'] or 0
+            result[result_key]["tat_promedio_dias"] = round(
+                item["avg_tat"] or 0, 1
+            )
+            result[result_key]["tat_minimo_dias"] = item["min_tat"] or 0
+            result[result_key]["tat_maximo_dias"] = item["max_tat"] or 0
             result[result_key]["dentro_objetivo"] = round(
                 (within_target_count / count) * 100 if count > 0 else 0
             )
-            
+
             # For median, we need a separate query (database limitation)
             # This is still much better than loading all reports into memory
             median_reports = (
-                Report.objects
-                .filter(
+                Report.objects.filter(
                     status=Report.Status.FINALIZED,
                     updated_at__gte=thirty_days_ago,
                     protocol__reception_date__isnull=False,
-                    protocol__analysis_type=analysis_type
+                    protocol__analysis_type=analysis_type,
                 )
                 .annotate(
                     tat_days=Case(
                         When(
                             protocol__reception_date__isnull=False,
-                            then=F('updated_at__date') - F('protocol__reception_date')
+                            then=F("updated_at__date")
+                            - F("protocol__reception_date"),
                         ),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 )
-                .values_list('tat_days', flat=True)
-                .order_by('tat_days')
+                .values_list("tat_days", flat=True)
+                .order_by("tat_days")
             )
-            
+
             if median_reports:
                 median_list = list(median_reports)
                 n = len(median_list)
-                result[result_key]["tat_mediana_dias"] = median_list[n // 2] if n > 0 else 0
+                result[result_key]["tat_mediana_dias"] = (
+                    median_list[n // 2] if n > 0 else 0
+                )
 
         return result
 
@@ -514,15 +515,19 @@ class DashboardProductivityView(
         """Return productivity metrics per histopathologist."""
         try:
             periodo = request.GET.get("periodo", "mes")
-            
+
             # Cache productivity data for 3 minutes (moderate frequency)
             cache_key = f"dashboard_productivity_metrics_{periodo}"
             productivity_data = cache.get(cache_key)
-            
+
             if productivity_data is None:
-                productivity_data = self._calculate_productivity_metrics(periodo)
-                cache.set(cache_key, productivity_data, 180)  # Cache for 3 minutes
-            
+                productivity_data = self._calculate_productivity_metrics(
+                    periodo
+                )
+                cache.set(
+                    cache_key, productivity_data, 180
+                )  # Cache for 3 minutes
+
             return render(
                 request,
                 "pages/api/productivity_widget.html",
@@ -538,7 +543,7 @@ class DashboardProductivityView(
     def _calculate_productivity_metrics(self, periodo: str) -> Dict:
         """Calculate productivity metrics per histopathologist - OPTIMIZED VERSION."""
         from django.db.models import Avg, Case, F, IntegerField, When
-        
+
         now = timezone.now()
 
         # Calculate date range based on period
@@ -558,55 +563,61 @@ class DashboardProductivityView(
         # SINGLE OPTIMIZED QUERY - eliminates N+1 problem
         # This replaces the loop that was causing N+1 queries
         histopathologist_data = (
-            Report.objects
-            .filter(
+            Report.objects.filter(
                 status=Report.Status.FINALIZED,
                 updated_at__gte=date_from,
                 histopathologist__user__is_histopathologist=True,
-                histopathologist__user__is_active=True
+                histopathologist__user__is_active=True,
             )
-            .select_related('histopathologist__user', 'protocol')
+            .select_related("histopathologist__user", "protocol")
             .values(
-                'histopathologist__user__first_name',
-                'histopathologist__user__last_name', 
-                'histopathologist__user__email'
+                "histopathologist__user__first_name",
+                "histopathologist__user__last_name",
+                "histopathologist__user__email",
             )
             .annotate(
-                informes_enviados=Count('id'),
+                informes_enviados=Count("id"),
                 tat_promedio_dias=Avg(
                     Case(
                         When(
                             protocol__reception_date__isnull=False,
-                            then=F('updated_at__date') - F('protocol__reception_date')
+                            then=F("updated_at__date")
+                            - F("protocol__reception_date"),
                         ),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
-                )
+                ),
             )
-            .order_by('-informes_enviados')
+            .order_by("-informes_enviados")
         )
 
         # Calculate weekly averages
         weeks = max(1, (now - date_from).days / 7)
         total_reports = 0
-        
+
         result = []
         for item in histopathologist_data:
-            total_reports += item['informes_enviados']
-            
+            total_reports += item["informes_enviados"]
+
             # Build full name
-            first_name = item['histopathologist__user__first_name'] or ''
-            last_name = item['histopathologist__user__last_name'] or ''
+            first_name = item["histopathologist__user__first_name"] or ""
+            last_name = item["histopathologist__user__last_name"] or ""
             full_name = f"{first_name} {last_name}".strip()
-            display_name = full_name or item['histopathologist__user__email']
-            
-            result.append({
-                'nombre': display_name,
-                'informes_enviados': item['informes_enviados'],
-                'promedio_por_semana': round(item['informes_enviados'] / weeks, 2),
-                'tat_promedio_dias': round(item['tat_promedio_dias'] or 0, 1)
-            })
+            display_name = full_name or item["histopathologist__user__email"]
+
+            result.append(
+                {
+                    "nombre": display_name,
+                    "informes_enviados": item["informes_enviados"],
+                    "promedio_por_semana": round(
+                        item["informes_enviados"] / weeks, 2
+                    ),
+                    "tat_promedio_dias": round(
+                        item["tat_promedio_dias"] or 0, 1
+                    ),
+                }
+            )
 
         return {
             "periodo": periodo,
@@ -630,11 +641,11 @@ class DashboardAgingView(
             # Cache aging data for 1 minute (most frequently changing)
             cache_key = "dashboard_aging_metrics"
             aging_data = cache.get(cache_key)
-            
+
             if aging_data is None:
                 aging_data = self._calculate_aging_metrics()
                 cache.set(cache_key, aging_data, 60)  # Cache for 1 minute
-            
+
             return render(request, "pages/api/aging_widget.html", aging_data)
         except Exception as e:
             return render(
@@ -650,30 +661,34 @@ class DashboardAgingView(
         # OPTIMIZED: Single query to get all active protocols with related data
         # This is much more efficient than the original loop approach
         active_protocols = (
-            Protocol.objects
-            .filter(
+            Protocol.objects.filter(
                 status__in=[
                     Protocol.Status.RECEIVED,
                     Protocol.Status.PROCESSING,
                     Protocol.Status.READY,
                 ],
-                reception_date__isnull=False
+                reception_date__isnull=False,
             )
-            .select_related('veterinarian__user')
+            .select_related("veterinarian__user")
             .only(
-                'protocol_number', 'animal_identification', 'species', 'status',
-                'reception_date', 'analysis_type',
-                'veterinarian__user__first_name', 'veterinarian__user__last_name', 
-                'veterinarian__user__email'
+                "protocol_number",
+                "animal_identification",
+                "species",
+                "status",
+                "reception_date",
+                "analysis_type",
+                "veterinarian__user__first_name",
+                "veterinarian__user__last_name",
+                "veterinarian__user__email",
             )
         )
 
         # Initialize buckets
         aging_buckets = {
-            '0_3_dias': 0,
-            '4_7_dias': 0,
-            '8_14_dias': 0,
-            'mas_14_dias': 0,
+            "0_3_dias": 0,
+            "4_7_dias": 0,
+            "8_14_dias": 0,
+            "mas_14_dias": 0,
         }
 
         overdue_protocols = []
@@ -681,39 +696,48 @@ class DashboardAgingView(
         # Process protocols in Python (still much faster than original approach)
         for protocol in active_protocols:
             reception_date = protocol.reception_date
-            if hasattr(reception_date, 'date'):
+            if hasattr(reception_date, "date"):
                 reception_date = reception_date.date()
-            
+
             days_since_reception = (now - reception_date).days
 
             # Categorize by age
             if days_since_reception <= 3:
-                aging_buckets['0_3_dias'] += 1
+                aging_buckets["0_3_dias"] += 1
             elif days_since_reception <= 7:
-                aging_buckets['4_7_dias'] += 1
+                aging_buckets["4_7_dias"] += 1
             elif days_since_reception <= 14:
-                aging_buckets['8_14_dias'] += 1
+                aging_buckets["8_14_dias"] += 1
             else:
-                aging_buckets['mas_14_dias'] += 1
+                aging_buckets["mas_14_dias"] += 1
 
             # Identify overdue samples (beyond target TAT)
-            target_days = 7 if protocol.analysis_type == 'histopathology' else 3
+            target_days = (
+                7 if protocol.analysis_type == "histopathology" else 3
+            )
             if days_since_reception > target_days:
                 # Build veterinarian name
-                first_name = protocol.veterinarian.user.first_name or ''
-                last_name = protocol.veterinarian.user.last_name or ''
-                vet_name = f"{first_name} {last_name}".strip() or protocol.veterinarian.user.email
-                
-                overdue_protocols.append({
-                    'protocolo_numero': protocol.protocol_number,
-                    'animal': f"{protocol.animal_identification} - {protocol.species}",
-                    'dias_desde_recepcion': days_since_reception,
-                    'estado': protocol.get_status_display(),
-                    'veterinario': vet_name,
-                })
+                first_name = protocol.veterinarian.user.first_name or ""
+                last_name = protocol.veterinarian.user.last_name or ""
+                vet_name = (
+                    f"{first_name} {last_name}".strip()
+                    or protocol.veterinarian.user.email
+                )
+
+                overdue_protocols.append(
+                    {
+                        "protocolo_numero": protocol.protocol_number,
+                        "animal": f"{protocol.animal_identification} - {protocol.species}",
+                        "dias_desde_recepcion": days_since_reception,
+                        "estado": protocol.get_status_display(),
+                        "veterinario": vet_name,
+                    }
+                )
 
         # Sort overdue protocols by days (most overdue first)
-        overdue_protocols.sort(key=lambda x: x['dias_desde_recepcion'], reverse=True)
+        overdue_protocols.sort(
+            key=lambda x: x["dias_desde_recepcion"], reverse=True
+        )
 
         return {
             "por_rango": aging_buckets,
@@ -736,11 +760,11 @@ class DashboardAlertsView(
             # Cache alerts data for 2 minutes (moderate frequency)
             cache_key = "dashboard_alerts_metrics"
             alerts_data = cache.get(cache_key)
-            
+
             if alerts_data is None:
                 alerts_data = self._calculate_alerts()
                 cache.set(cache_key, alerts_data, 120)  # Cache for 2 minutes
-            
+
             return render(request, "pages/api/alerts_widget.html", alerts_data)
         except Exception as e:
             return render(

@@ -32,7 +32,7 @@ urlpatterns = [
 ]
 
 # Custom error handlers
-handler403 = 'pages.views.permission_denied_view'
+handler403 = "pages.views.permission_denied_view"
 if not settings.TESTING and settings.DEBUG:
     urlpatterns = [
         *urlpatterns,

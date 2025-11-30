@@ -41,7 +41,9 @@ class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         # If user is authenticated but not staff, show 403
         messages.error(self.request, self.get_permission_denied_message())
         return HttpResponseForbidden(
-            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+            render_to_string(
+                "403.html", {"user": self.request.user}, request=self.request
+            )
         )
 
 
@@ -74,7 +76,9 @@ class VeterinarianRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         # If user is authenticated but not a veterinarian, show 403
         messages.error(self.request, self.get_permission_denied_message())
         return HttpResponseForbidden(
-            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+            render_to_string(
+                "403.html", {"user": self.request.user}, request=self.request
+            )
         )
 
 
@@ -129,7 +133,9 @@ class HistopathologistRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         # If user is authenticated but not a histopathologist, show 403
         messages.error(self.request, self.get_permission_denied_message())
         return HttpResponseForbidden(
-            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+            render_to_string(
+                "403.html", {"user": self.request.user}, request=self.request
+            )
         )
 
 
@@ -162,7 +168,9 @@ class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         # If user is authenticated but not an admin, show 403
         messages.error(self.request, self.get_permission_denied_message())
         return HttpResponseForbidden(
-            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+            render_to_string(
+                "403.html", {"user": self.request.user}, request=self.request
+            )
         )
 
 
@@ -210,7 +218,9 @@ class ProtocolOwnerOrStaffMixin(LoginRequiredMixin, UserPassesTestMixin):
         # If user is authenticated but doesn't have access, show 403
         messages.error(self.request, self.get_permission_denied_message())
         return HttpResponseForbidden(
-            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+            render_to_string(
+                "403.html", {"user": self.request.user}, request=self.request
+            )
         )
 
 
@@ -259,7 +269,9 @@ class VeterinarianProfileRequiredMixin(
         # If user is authenticated but doesn't have complete profile, show 403
         messages.error(self.request, self.get_permission_denied_message())
         return HttpResponseForbidden(
-            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+            render_to_string(
+                "403.html", {"user": self.request.user}, request=self.request
+            )
         )
 
 
@@ -320,7 +332,9 @@ class ReportAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
         # If user is authenticated but doesn't have access, show 403
         messages.error(self.request, self.get_permission_denied_message())
         return HttpResponseForbidden(
-            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+            render_to_string(
+                "403.html", {"user": self.request.user}, request=self.request
+            )
         )
 
 
@@ -370,5 +384,7 @@ class WorkOrderAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
         # If user is authenticated but doesn't have access, show 403
         messages.error(self.request, self.get_permission_denied_message())
         return HttpResponseForbidden(
-            render_to_string('403.html', {'user': self.request.user}, request=self.request)
+            render_to_string(
+                "403.html", {"user": self.request.user}, request=self.request
+            )
         )

@@ -4,13 +4,14 @@ PDF to Markdown Documentation Converter
 Extracts text, images, and diagrams from PDF files and converts them to structured markdown documentation.
 """
 
-import os
-import sys
-import fitz  # PyMuPDF
-from pathlib import Path
-from PIL import Image
 import io
 import re
+import sys
+from pathlib import Path
+
+import fitz  # PyMuPDF
+from PIL import Image
+
 
 class PDFToDocsConverter:
     def __init__(self, pdf_path, output_dir="docs"):
@@ -165,7 +166,7 @@ class PDFToDocsConverter:
         with open(readme_path, "w", encoding="utf-8") as f:
             f.writelines(markdown_content)
         
-        print(f"\n✓ Documentation created successfully!")
+        print("\n✓ Documentation created successfully!")
         print(f"  Main file: {readme_path}")
         print(f"  Images: {len(list(self.images_dir.glob('*')))} files in {self.images_dir}")
         
