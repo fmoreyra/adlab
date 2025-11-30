@@ -299,14 +299,14 @@ ci-test: ## Run full CI pipeline
 	@./scripts/ci-test.sh $(ARGS)
 
 pre-commit-install: ## Install pre-commit hooks locally
-	@pip install pre-commit
-	@pre-commit install
+	@python3 -m pip install --user pre-commit || pip install pre-commit
+	@python3 -m pre_commit install || pre-commit install
 
 pre-commit-run: ## Run pre-commit hooks on all files
-	@pre-commit run --all-files
+	@python3 -m pre_commit run --all-files || pre-commit run --all-files
 
 pre-commit-update: ## Update pre-commit hooks to latest versions
-	@pre-commit autoupdate
+	@python3 -m pre_commit autoupdate || pre-commit autoupdate
 
 # -----------------------------------------------------------------------------
 # Server

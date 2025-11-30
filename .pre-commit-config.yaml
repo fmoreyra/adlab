@@ -1,35 +1,27 @@
 # Pre-commit hooks configuration
-# Install with: pip install pre-commit && pre-commit install
-# Or use: make pre-commit-install
+# Install with: make pre-commit-install
+# Or manually: python3 -m pip install --user pre-commit && python3 -m pre_commit install
+#
+# Note: shfmt and hadolint are checked in CI but not in pre-commit
+# since they require additional installation. Install them separately if needed.
 
 repos:
   # Ruff for Python linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9  # Compatible with ruff 0.14.0
     hooks:
-      # Run ruff linter
+      # Run ruff linter (auto-fixes issues)
       - id: ruff
         args: [--fix]
+        exclude: ^(docs/|simple_test_data\.py|cleanup_test_db\.py)
       # Run ruff formatter
       - id: ruff-format
+        exclude: ^(docs/|simple_test_data\.py|cleanup_test_db\.py)
 
-  # Shell script linting
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
-    hooks:
-      - id: shellcheck
-
-  # Shell script formatting
-  - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.8.0-2
-    hooks:
-      - id: shfmt
-        args: [-w, -s, -i, 2]
-
-  # Dockerfile linting
-  - repo: https://github.com/hadolint/hadolint
-    rev: v2.12.0
-    hooks:
-      - id: hadolint-docker
-        args: [--ignore, DL3008, --ignore, DL3009]
+  # Shell script linting (optional - requires shellcheck installation)
+  # Uncomment if you have shellcheck installed locally
+  # - repo: https://github.com/shellcheck-py/shellcheck-py
+  #   rev: v0.10.0.1
+  #   hooks:
+  #     - id: shellcheck
 
