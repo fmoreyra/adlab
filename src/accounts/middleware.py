@@ -6,37 +6,36 @@ their professional profile before accessing any protected pages.
 """
 
 from django.shortcuts import redirect
-from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
 
 
 class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
     """
     Middleware that enforces veterinarian profile completion.
-    
+
     Redirects authenticated veterinarians without complete profiles to the
     profile completion page. Allows access to whitelisted URLs.
     """
 
     # URLs that veterinarians can access without complete profile
     WHITELISTED_URLS = [
-        '/accounts/veterinarian/complete-profile/',
-        '/accounts/logout/',
-        '/accounts/password-reset/',
-        '/accounts/resend-verification/',
-        '/accounts/histopathologist/create/',  # Admin-only view
-        '/admin/',
-        '/static/',
-        '/media/',
+        "/accounts/veterinarian/complete-profile/",
+        "/accounts/logout/",
+        "/accounts/password-reset/",
+        "/accounts/resend-verification/",
+        "/accounts/histopathologist/create/",  # Admin-only view
+        "/admin/",
+        "/static/",
+        "/media/",
     ]
 
     def process_request(self, request):
         """
         Process the request and redirect if profile is incomplete.
-        
+
         Args:
             request: HTTP request object
-            
+
         Returns:
             HttpResponse or None: Redirect response if profile incomplete, None otherwise
         """
@@ -54,17 +53,17 @@ class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
 
         # Check if veterinarian has a complete profile
         if not self._has_complete_profile(request.user):
-            return redirect('accounts:complete_profile')
+            return redirect("accounts:complete_profile")
 
         return None
 
     def _is_whitelisted_url(self, path):
         """
         Check if the URL is whitelisted for veterinarians without complete profiles.
-        
+
         Args:
             path: URL path to check
-            
+
         Returns:
             bool: True if URL is whitelisted, False otherwise
         """
@@ -73,10 +72,10 @@ class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
     def _has_complete_profile(self, user):
         """
         Check if veterinarian has a complete profile.
-        
+
         Args:
             user: User instance to check
-            
+
         Returns:
             bool: True if profile is complete, False otherwise
         """

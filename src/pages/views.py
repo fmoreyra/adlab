@@ -10,7 +10,6 @@ from django.db.models.functions import Extract
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.generic import TemplateView, View
-from django.http import HttpResponseForbidden
 
 from protocols.models import Protocol, Report
 
@@ -247,14 +246,14 @@ class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         """Add histopathologist-specific context data - OPTIMIZED VERSION."""
         from django.core.cache import cache
-        
+
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
         # Cache dashboard data for 2 minutes
         cache_key = f"histopathologist_dashboard_{user.id}"
         dashboard_data = cache.get(cache_key)
-        
+
         if dashboard_data is None:
             # OPTIMIZED: Single query to get all statistics
             now = timezone.now()
@@ -263,32 +262,32 @@ class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
             )
 
             # Get all statistics in one query using aggregation
-            stats = (
-                Report.objects
-                .aggregate(
-                    pending_count=Count('id', filter=Q(status=Report.Status.DRAFT)),
-                    monthly_count=Count(
-                        'id', 
-                        filter=Q(
-                            status=Report.Status.FINALIZED, 
-                            updated_at__gte=month_start
-                        )
+            stats = Report.objects.aggregate(
+                pending_count=Count(
+                    "id", filter=Q(status=Report.Status.DRAFT)
+                ),
+                monthly_count=Count(
+                    "id",
+                    filter=Q(
+                        status=Report.Status.FINALIZED,
+                        updated_at__gte=month_start,
                     ),
-                    avg_tat=Avg(
-                        Case(
-                            When(
-                                status=Report.Status.FINALIZED,
-                                protocol__reception_date__isnull=False,
-                                then=Extract(
-                                    F('updated_at') - F('protocol__reception_date'),
-                                    'days'
-                                )
+                ),
+                avg_tat=Avg(
+                    Case(
+                        When(
+                            status=Report.Status.FINALIZED,
+                            protocol__reception_date__isnull=False,
+                            then=Extract(
+                                F("updated_at")
+                                - F("protocol__reception_date"),
+                                "days",
                             ),
-                            default=None,
-                            output_field=IntegerField()
-                        )
+                        ),
+                        default=None,
+                        output_field=IntegerField(),
                     )
-                )
+                ),
             )
 
             # Get pending reports list
@@ -299,21 +298,25 @@ class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
             )
 
             dashboard_data = {
-                'pending_reports_count': stats['pending_count'] or 0,
-                'monthly_reports_count': stats['monthly_count'] or 0,
-                'avg_report_time': round(stats['avg_tat'] or 0, 1),
-                'pending_reports_list': list(pending_reports_list),
+                "pending_reports_count": stats["pending_count"] or 0,
+                "monthly_reports_count": stats["monthly_count"] or 0,
+                "avg_report_time": round(stats["avg_tat"] or 0, 1),
+                "pending_reports_list": list(pending_reports_list),
             }
-            
+
             cache.set(cache_key, dashboard_data, 120)  # Cache for 2 minutes
 
         context.update(
             {
                 "user": user,
-                "pending_reports_count": dashboard_data['pending_reports_count'],
-                "monthly_reports_count": dashboard_data['monthly_reports_count'],
-                "avg_report_time": dashboard_data['avg_report_time'],
-                "pending_reports": dashboard_data['pending_reports_list'],
+                "pending_reports_count": dashboard_data[
+                    "pending_reports_count"
+                ],
+                "monthly_reports_count": dashboard_data[
+                    "monthly_reports_count"
+                ],
+                "avg_report_time": dashboard_data["avg_report_time"],
+                "pending_reports": dashboard_data["pending_reports_list"],
             }
         )
 
@@ -469,4 +472,4 @@ def permission_denied_view(request, exception=None):
     Custom 403 Forbidden error handler.
     Renders the 403.html template with proper context.
     """
-    return render(request, '403.html', {'user': request.user}, status=403)
+    return render(request, "403.html", {"user": request.user}, status=403)

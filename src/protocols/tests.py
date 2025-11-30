@@ -1,7 +1,9 @@
+import uuid
 from datetime import date
 from decimal import Decimal
 from unittest.mock import mock_open, patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -669,10 +671,12 @@ class ProtocolViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/protocol_detail.html")
-        
+
         # Check that discrepancies are displayed in the response
         self.assertContains(response, "Discrepancias Encontradas")
-        self.assertContains(response, "Faltan 2 portaobjetos según lo declarado")
+        self.assertContains(
+            response, "Faltan 2 portaobjetos según lo declarado"
+        )
         self.assertContains(response, "Condición de la muestra")
         self.assertContains(response, "Subóptima")
 
@@ -765,7 +769,7 @@ class ProtocolViewsTest(TestCase):
         )
 
         # Create protocol for other veterinarian
-        protocol = Protocol.objects.create(
+        Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             veterinarian=other_vet,
             species="Canino",
@@ -776,7 +780,7 @@ class ProtocolViewsTest(TestCase):
 
         # Login as the other user (non-staff) and try to access a protocol they don't own
         self.client.login(email="other@example.com", password="testpass123")
-        
+
         # Create a protocol owned by the current user (vet@example.com)
         current_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -786,10 +790,12 @@ class ProtocolViewsTest(TestCase):
             presumptive_diagnosis="Test",
             submission_date=date.today(),
         )
-        
+
         # Try to access it with other user (non-staff)
         response = self.client.get(
-            reverse("protocols:protocol_detail", kwargs={"pk": current_protocol.pk})
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": current_protocol.pk}
+            )
         )
 
         # Should be forbidden
@@ -1621,7 +1627,7 @@ class ProcessingViewsTest(TestCase):
     def test_processing_dashboard_view_permission_staff_required(self):
         """Test that only staff can access processing dashboard."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -1629,7 +1635,7 @@ class ProcessingViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(reverse("protocols:processing_dashboard"))
@@ -1713,7 +1719,8 @@ class ProcessingViewsTest(TestCase):
 
         # Filter by cytology and received status
         response = self.client.get(
-            reverse("protocols:processing_queue") + "?type=cytology&status=received"
+            reverse("protocols:processing_queue")
+            + "?type=cytology&status=received"
         )
 
         self.assertEqual(response.status_code, 200)
@@ -1721,13 +1728,15 @@ class ProcessingViewsTest(TestCase):
 
         # All protocols should be cytology and received
         for protocol in protocols:
-            self.assertEqual(protocol.analysis_type, Protocol.AnalysisType.CYTOLOGY)
+            self.assertEqual(
+                protocol.analysis_type, Protocol.AnalysisType.CYTOLOGY
+            )
             self.assertEqual(protocol.status, Protocol.Status.RECEIVED)
 
     def test_processing_queue_view_permission_staff_required(self):
         """Test that only staff can access processing queue."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -1735,7 +1744,7 @@ class ProcessingViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(reverse("protocols:processing_queue"))
@@ -1788,7 +1797,7 @@ class ProcessingViewsTest(TestCase):
     def test_protocol_processing_status_view_permission_staff_required(self):
         """Test that only staff can access protocol processing status."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -1796,7 +1805,7 @@ class ProcessingViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -1901,7 +1910,7 @@ class ProcessingViewsTest(TestCase):
     def test_cassette_create_view_permission_staff_required(self):
         """Test that only staff can access cassette create view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -1909,7 +1918,7 @@ class ProcessingViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -2027,7 +2036,7 @@ class ProcessingViewsTest(TestCase):
     def test_slide_register_view_permission_staff_required(self):
         """Test that only staff can access slide register view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2035,7 +2044,7 @@ class ProcessingViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -2148,7 +2157,7 @@ class ProcessingViewsTest(TestCase):
         )
 
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2156,7 +2165,7 @@ class ProcessingViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.post(
@@ -2241,7 +2250,7 @@ class ProcessingViewsTest(TestCase):
         )
 
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2249,7 +2258,7 @@ class ProcessingViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.post(
@@ -2402,7 +2411,7 @@ class WorkOrderViewsTest(TestCase):
     def test_workorder_list_view_permission_staff_required(self):
         """Test that only staff can access work order list."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2410,7 +2419,7 @@ class WorkOrderViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(reverse("protocols:workorder_list"))
@@ -2444,7 +2453,7 @@ class WorkOrderViewsTest(TestCase):
     def test_workorder_pending_protocols_view_permission_staff_required(self):
         """Test that only staff can access pending protocols view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2452,7 +2461,7 @@ class WorkOrderViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -2518,7 +2527,7 @@ class WorkOrderViewsTest(TestCase):
     def test_workorder_select_protocols_view_permission_staff_required(self):
         """Test that only staff can access protocol selection view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2526,7 +2535,7 @@ class WorkOrderViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -2674,7 +2683,7 @@ class WorkOrderViewsTest(TestCase):
     def test_workorder_create_view_permission_staff_required(self):
         """Test that only staff can access work order creation view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2682,7 +2691,7 @@ class WorkOrderViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         protocol_ids = f"{self.protocol1.pk},{self.protocol2.pk}"
@@ -2718,7 +2727,7 @@ class WorkOrderViewsTest(TestCase):
     def test_workorder_detail_view_permission_staff_required(self):
         """Test that only staff can access work order detail view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2726,7 +2735,7 @@ class WorkOrderViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -2792,7 +2801,7 @@ class WorkOrderViewsTest(TestCase):
     def test_workorder_issue_view_permission_staff_required(self):
         """Test that only staff can access work order issue view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2800,7 +2809,7 @@ class WorkOrderViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.post(
@@ -2866,7 +2875,7 @@ class WorkOrderViewsTest(TestCase):
     def test_workorder_send_view_permission_staff_required(self):
         """Test that only staff can access work order send view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2874,7 +2883,7 @@ class WorkOrderViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.post(
@@ -2908,7 +2917,7 @@ class WorkOrderViewsTest(TestCase):
     def test_workorder_pdf_view_permission_staff_required(self):
         """Test that only staff can access work order PDF view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -2916,7 +2925,7 @@ class WorkOrderViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -3044,7 +3053,7 @@ class ReceptionViewsTest(TestCase):
     def test_reception_search_view_permission_staff_required(self):
         """Test that only staff can access reception search."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3052,7 +3061,7 @@ class ReceptionViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:reception_search"))
 
@@ -3161,7 +3170,7 @@ class ReceptionViewsTest(TestCase):
     def test_reception_confirm_view_permission_staff_required(self):
         """Test that only staff can access reception confirm."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3169,7 +3178,7 @@ class ReceptionViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -3222,7 +3231,7 @@ class ReceptionViewsTest(TestCase):
     def test_reception_detail_view_permission_staff_required(self):
         """Test that only staff can access reception detail."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3230,7 +3239,7 @@ class ReceptionViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -3275,7 +3284,7 @@ class ReceptionViewsTest(TestCase):
     def test_reception_pending_view_permission_staff_required(self):
         """Test that only staff can access reception pending."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3283,7 +3292,7 @@ class ReceptionViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(reverse("protocols:reception_pending"))
@@ -3316,7 +3325,7 @@ class ReceptionViewsTest(TestCase):
     def test_reception_history_view_permission_staff_required(self):
         """Test that only staff can access reception history."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3324,7 +3333,7 @@ class ReceptionViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(reverse("protocols:reception_history"))
@@ -3356,7 +3365,7 @@ class ReceptionViewsTest(TestCase):
     def test_reception_label_pdf_view_permission_staff_required(self):
         """Test that only staff can access reception label PDF."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3364,7 +3373,7 @@ class ReceptionViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -3627,7 +3636,7 @@ class ReportViewsTest(TestCase):
     ):
         """Test that only staff users can access report pending list."""
         # Test with non-staff user (should be denied)
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3635,7 +3644,7 @@ class ReportViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_pending_list"))
         self.assertEqual(response.status_code, 302)
@@ -3665,7 +3674,7 @@ class ReportViewsTest(TestCase):
     def test_report_history_view_permission_histopathologist_required(self):
         """Test that only histopathologists can access report history."""
         # Test with non-staff user (should be denied)
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3673,7 +3682,7 @@ class ReportViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_history"))
         self.assertEqual(response.status_code, 302)
@@ -3764,7 +3773,7 @@ class ReportViewsTest(TestCase):
     def test_report_create_view_permission_histopathologist_required(self):
         """Test that only histopathologists can create reports."""
         # Test with non-staff user (should be denied)
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3772,7 +3781,7 @@ class ReportViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
         response = self.client.get(
             reverse(
@@ -3895,7 +3904,7 @@ class ReportViewsTest(TestCase):
     def test_report_edit_view_permission_histopathologist_required(self):
         """Test that only histopathologists can edit reports."""
         # Test with non-staff user (should be denied)
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -3903,7 +3912,7 @@ class ReportViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
         response = self.client.get(
             reverse(
@@ -4005,7 +4014,7 @@ class ReportViewsTest(TestCase):
     def test_report_finalize_view_permission_histopathologist_required(self):
         """Test that only histopathologists can finalize reports."""
         # Test with non-staff user (should be denied)
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -4013,7 +4022,7 @@ class ReportViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
         response = self.client.post(
             reverse(
@@ -4225,7 +4234,7 @@ class ReportViewsTest(TestCase):
         mock_exists.return_value = True
 
         # Test with non-staff user (should be denied)
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -4233,7 +4242,7 @@ class ReportViewsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
         response = self.client.get(
             reverse(
@@ -4280,6 +4289,7 @@ class RejectedProtocolsTest(TestCase):
 
     def setUp(self):
         from django.utils import timezone
+
         """Set up test data."""
         # Create users
         self.staff_user = User.objects.create_user(
@@ -4292,7 +4302,7 @@ class RejectedProtocolsTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         self.vet_user = User.objects.create_user(
             username="vet@example.com",
             email="vet@example.com",
@@ -4302,7 +4312,7 @@ class RejectedProtocolsTest(TestCase):
             role=User.Role.VETERINARIO,
             is_staff=False,
         )
-        
+
         # Create veterinarian profile
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -4312,7 +4322,7 @@ class RejectedProtocolsTest(TestCase):
             license_number="VET123",
             phone="+54 341 1234567",
         )
-        
+
         # Create protocols
         self.submitted_protocol = Protocol.objects.create(
             veterinarian=self.veterinarian,
@@ -4323,7 +4333,7 @@ class RejectedProtocolsTest(TestCase):
             submission_date=timezone.now().date(),
             temporary_code="TMP-CY-20250101-001",
         )
-        
+
         self.rejected_protocol = Protocol.objects.create(
             veterinarian=self.veterinarian,
             animal_identification="Animal2",
@@ -4341,13 +4351,13 @@ class RejectedProtocolsTest(TestCase):
     def test_protocol_list_excludes_rejected_by_default(self):
         """Test that rejected protocols are excluded from default protocol list."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:protocol_list"))
-        
+
         self.assertEqual(response.status_code, 200)
         protocols = response.context["protocols"]
         protocol_ids = [p.id for p in protocols]
-        
+
         # Should include submitted protocol but not rejected
         self.assertIn(self.submitted_protocol.id, protocol_ids)
         self.assertNotIn(self.rejected_protocol.id, protocol_ids)
@@ -4355,15 +4365,15 @@ class RejectedProtocolsTest(TestCase):
     def test_protocol_list_shows_rejected_when_requested(self):
         """Test that rejected protocols are shown when show_rejected parameter is used."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
             reverse("protocols:protocol_list") + "?show_rejected=1"
         )
-        
+
         self.assertEqual(response.status_code, 200)
         protocols = response.context["protocols"]
         protocol_ids = [p.id for p in protocols]
-        
+
         # Should only include rejected protocol
         self.assertNotIn(self.submitted_protocol.id, protocol_ids)
         self.assertIn(self.rejected_protocol.id, protocol_ids)
@@ -4371,15 +4381,15 @@ class RejectedProtocolsTest(TestCase):
     def test_rejected_protocols_view_staff_access(self):
         """Test that staff can access rejected protocols view."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:rejected_list"))
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/rejected_list.html")
-        
+
         protocols = response.context["protocols"]
         protocol_ids = [p.id for p in protocols]
-        
+
         # Should only show rejected protocols
         self.assertIn(self.rejected_protocol.id, protocol_ids)
         self.assertNotIn(self.submitted_protocol.id, protocol_ids)
@@ -4387,7 +4397,7 @@ class RejectedProtocolsTest(TestCase):
     def test_rejected_protocols_view_vet_access_denied(self):
         """Test that veterinarians cannot access rejected protocols view."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -4395,11 +4405,11 @@ class RejectedProtocolsTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
-        
+
         response = self.client.get(reverse("protocols:rejected_list"))
-        
+
         self.assertEqual(response.status_code, 302)
         # Non-staff users are redirected to complete their profile
         self.assertRedirects(response, reverse("accounts:complete_profile"))
@@ -4407,6 +4417,7 @@ class RejectedProtocolsTest(TestCase):
     def test_cassette_create_rejects_rejected_protocol(self):
         """Test that cassette creation is blocked for rejected protocols."""
         from django.utils import timezone
+
         # Create histopathology protocol and sample
         histo_protocol = Protocol.objects.create(
             veterinarian=self.veterinarian,
@@ -4416,69 +4427,76 @@ class RejectedProtocolsTest(TestCase):
             status=Protocol.Status.REJECTED,
             submission_date=timezone.now().date(),
         )
-        
+
         from protocols.models import HistopathologySample
+
         HistopathologySample.objects.create(
             protocol=histo_protocol,
             veterinarian=self.veterinarian,
             material_submitted="Test material",
             number_of_containers=1,
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
             reverse(
                 "protocols:cassette_create",
                 kwargs={"protocol_pk": histo_protocol.pk},
             )
         )
-        
+
         # Should redirect due to validation failure
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            reverse("protocols:processing_status", kwargs={"pk": histo_protocol.pk}),
+            reverse(
+                "protocols:processing_status", kwargs={"pk": histo_protocol.pk}
+            ),
         )
 
     def test_slide_register_rejects_rejected_protocol(self):
         """Test that slide registration is blocked for rejected protocols."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         response = self.client.get(
             reverse(
                 "protocols:slide_register",
                 kwargs={"protocol_pk": self.rejected_protocol.pk},
             )
         )
-        
+
         # Should redirect due to validation failure
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            reverse("protocols:processing_status", kwargs={"pk": self.rejected_protocol.pk}),
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.rejected_protocol.pk},
+            ),
         )
 
     def test_reception_confirm_handles_rejection(self):
         """Test that reception confirmation handles rejected protocols correctly."""
-        from protocols.forms import ReceptionForm
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # First, submit the protocol
         self.submitted_protocol.status = Protocol.Status.SUBMITTED
         self.submitted_protocol.save()
-        
+
         # Simulate reception with rejection
         form_data = {
             "sample_condition": Protocol.SampleCondition.REJECTED,
             "reception_notes": "Sample quality too poor",
             "discrepancies": "",
         }
-        
-        with patch("protocols.services.email_service.EmailNotificationService.send_rejection_email") as mock_send_rejection:
+
+        with patch(
+            "protocols.services.email_service.EmailNotificationService.send_rejection_email"
+        ) as mock_send_rejection:
             mock_send_rejection.return_value = True
-            
+
             response = self.client.post(
                 reverse(
                     "protocols:reception_confirm",
@@ -4486,22 +4504,29 @@ class RejectedProtocolsTest(TestCase):
                 ),
                 data=form_data,
             )
-            
+
             # Should redirect on success
             self.assertEqual(response.status_code, 302)
-            
+
             # Check that protocol was marked as rejected
             self.submitted_protocol.refresh_from_db()
-            self.assertEqual(self.submitted_protocol.status, Protocol.Status.REJECTED)
-            self.assertEqual(self.submitted_protocol.sample_condition, Protocol.SampleCondition.REJECTED)
-            
+            self.assertEqual(
+                self.submitted_protocol.status, Protocol.Status.REJECTED
+            )
+            self.assertEqual(
+                self.submitted_protocol.sample_condition,
+                Protocol.SampleCondition.REJECTED,
+            )
+
             # Check that rejection email was sent
-            mock_send_rejection.assert_called_once_with(self.submitted_protocol)
+            mock_send_rejection.assert_called_once_with(
+                self.submitted_protocol
+            )
 
 
 class ProtocolResubmitTest(TestCase):
     """Test cases for protocol resubmit functionality."""
-    
+
     def setUp(self):
         """Set up test data."""
         # Create staff user
@@ -4513,7 +4538,7 @@ class ProtocolResubmitTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian user
         self.vet_user = User.objects.create_user(
             email="vet@example.com",
@@ -4523,7 +4548,7 @@ class ProtocolResubmitTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian profile
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -4533,7 +4558,7 @@ class ProtocolResubmitTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        
+
         # Create submitted protocol
         self.submitted_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -4545,7 +4570,7 @@ class ProtocolResubmitTest(TestCase):
             status=Protocol.Status.SUBMITTED,
             temporary_code="HP 25/001",
         )
-        
+
         # Create rejected protocol
         self.rejected_protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
@@ -4558,93 +4583,111 @@ class ProtocolResubmitTest(TestCase):
             temporary_code="HP 25/002",
             reception_notes="Sample quality too poor for analysis",
         )
-    
+
     def test_resubmit_view_with_valid_reason(self):
         """Test resubmit view with valid reason."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "reason": "Sample quality was reassessed and found acceptable for analysis"
         }
-        
+
         response = self.client.post(
-            reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:protocol_resubmit",
+                kwargs={"pk": self.rejected_protocol.pk},
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to rejected list after successful resubmission
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:rejected_list"))
-        
+
         # Check protocol status changed
         self.rejected_protocol.refresh_from_db()
-        self.assertEqual(self.rejected_protocol.status, Protocol.Status.SUBMITTED)
-        
+        self.assertEqual(
+            self.rejected_protocol.status, Protocol.Status.SUBMITTED
+        )
+
         # Check status history was logged
-        history = ProtocolStatusHistory.objects.filter(protocol=self.rejected_protocol)
+        history = ProtocolStatusHistory.objects.filter(
+            protocol=self.rejected_protocol
+        )
         self.assertEqual(history.count(), 1)
         self.assertEqual(history.first().status, Protocol.Status.SUBMITTED)
         self.assertEqual(history.first().changed_by, self.staff_user)
-        self.assertIn("Protocolo reenviado desde rechazado", history.first().description)
-        self.assertIn("Sample quality was reassessed", history.first().description)
-    
+        self.assertIn(
+            "Protocolo reenviado desde rechazado", history.first().description
+        )
+        self.assertIn(
+            "Sample quality was reassessed", history.first().description
+        )
+
     def test_resubmit_view_without_reason(self):
         """Test resubmit view without reason should fail."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
-        form_data = {
-            "reason": ""
-        }
-        
+
+        form_data = {"reason": ""}
+
         response = self.client.post(
-            reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:protocol_resubmit",
+                kwargs={"pk": self.rejected_protocol.pk},
+            ),
+            data=form_data,
         )
-        
+
         # Should return form with validation errors (200 status)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/resubmit_form.html")
         self.assertContains(response, "This field is required.")
-    
+
     def test_resubmit_view_with_short_reason(self):
         """Test resubmit view with reason too short should fail."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
-        form_data = {
-            "reason": "Short"
-        }
-        
+
+        form_data = {"reason": "Short"}
+
         response = self.client.post(
-            reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:protocol_resubmit",
+                kwargs={"pk": self.rejected_protocol.pk},
+            ),
+            data=form_data,
         )
-        
+
         # Should return form with validation errors (200 status)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/resubmit_form.html")
-        self.assertContains(response, "Ensure this value has at least 10 characters")
-    
+        self.assertContains(
+            response, "Ensure this value has at least 10 characters"
+        )
+
     def test_resubmit_view_with_non_rejected_protocol(self):
         """Test resubmit view with non-rejected protocol should fail."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         form_data = {
             "reason": "This should fail because protocol is not rejected"
         }
-        
+
         response = self.client.post(
-            reverse("protocols:protocol_resubmit", kwargs={"pk": self.submitted_protocol.pk}),
-            data=form_data
+            reverse(
+                "protocols:protocol_resubmit",
+                kwargs={"pk": self.submitted_protocol.pk},
+            ),
+            data=form_data,
         )
-        
+
         # Should redirect to rejected list with error message
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:rejected_list"))
-    
+
     def test_resubmit_view_without_staff_permissions(self):
         """Test resubmit view without staff permissions should fail."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -4652,57 +4695,58 @@ class ProtocolResubmitTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
-        
-        form_data = {
-            "reason": "Veterinarian trying to resubmit"
-        }
-        
+
+        form_data = {"reason": "Veterinarian trying to resubmit"}
+
         response = self.client.post(
-            reverse("protocols:protocol_resubmit", kwargs={"pk": self.rejected_protocol.pk}),
+            reverse(
+                "protocols:protocol_resubmit",
+                kwargs={"pk": self.rejected_protocol.pk},
+            ),
             data=form_data,
-            content_type="application/json"
+            content_type="application/json",
         )
-        
+
         self.assertEqual(response.status_code, 302)
         # Non-staff users are redirected to complete their profile
         self.assertRedirects(response, reverse("accounts:complete_profile"))
-    
+
     def test_resubmit_view_nonexistent_protocol(self):
         """Test resubmit view with nonexistent protocol should fail."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
-        form_data = {
-            "reason": "Trying to resubmit nonexistent protocol"
-        }
-        
+
+        form_data = {"reason": "Trying to resubmit nonexistent protocol"}
+
         response = self.client.post(
             reverse("protocols:protocol_resubmit", kwargs={"pk": 99999}),
             data=form_data,
-            content_type="application/json"
+            content_type="application/json",
         )
-        
+
         self.assertEqual(response.status_code, 404)
-    
+
     def test_resubmit_form_validation(self):
         """Test ProtocolResubmitForm validation."""
         from protocols.forms import ProtocolResubmitForm
-        
+
         # Valid form
-        form = ProtocolResubmitForm(data={"reason": "Valid reason with enough characters"})
+        form = ProtocolResubmitForm(
+            data={"reason": "Valid reason with enough characters"}
+        )
         self.assertTrue(form.is_valid())
-        
+
         # Empty reason
         form = ProtocolResubmitForm(data={"reason": ""})
         self.assertFalse(form.is_valid())
         self.assertIn("reason", form.errors)
-        
+
         # Short reason
         form = ProtocolResubmitForm(data={"reason": "Short"})
         self.assertFalse(form.is_valid())
         self.assertIn("reason", form.errors)
-        
+
         # Very long reason
         form = ProtocolResubmitForm(data={"reason": "x" * 501})
         self.assertFalse(form.is_valid())
@@ -4712,10 +4756,6 @@ class ProtocolResubmitTest(TestCase):
 # ============================================================================
 # PROTOCOL PUBLIC ACCESS TESTS
 # ============================================================================
-
-import uuid
-from unittest.mock import patch
-from django.conf import settings
 
 
 class ProtocolPublicAccessTest(TestCase):
@@ -4764,7 +4804,7 @@ class ProtocolPublicAccessTest(TestCase):
         """Test successful access to protocol public detail."""
         # Login as the protocol owner
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
             reverse(
                 "protocols:protocol_public_detail",
@@ -4780,7 +4820,7 @@ class ProtocolPublicAccessTest(TestCase):
         """Test that nonexistent UUID returns 404."""
         # Login as the protocol owner
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         fake_uuid = uuid.uuid4()
         response = self.client.get(
             reverse(
@@ -4807,13 +4847,15 @@ class ProtocolPublicAccessTest(TestCase):
     def test_protocol_public_detail_view_with_discrepancies(self):
         """Test public protocol detail view displays discrepancies when present."""
         # Add discrepancies to the protocol
-        self.protocol.discrepancies = "Faltan 2 portaobjetos según lo declarado"
+        self.protocol.discrepancies = (
+            "Faltan 2 portaobjetos según lo declarado"
+        )
         self.protocol.sample_condition = Protocol.SampleCondition.SUBOPTIMAL
         self.protocol.save()
-        
+
         # Login as the protocol owner
         self.client.login(email="vet@example.com", password="testpass123")
-        
+
         response = self.client.get(
             reverse(
                 "protocols:protocol_public_detail",
@@ -4823,10 +4865,12 @@ class ProtocolPublicAccessTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/protocol_detail.html")
-        
+
         # Check that discrepancies are displayed in the response
         self.assertContains(response, "Discrepancias Encontradas")
-        self.assertContains(response, "Faltan 2 portaobjetos según lo declarado")
+        self.assertContains(
+            response, "Faltan 2 portaobjetos según lo declarado"
+        )
         self.assertContains(response, "Condición de la muestra")
         self.assertContains(response, "Subóptima")
 
@@ -4841,7 +4885,7 @@ class ProtocolPublicAccessTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        other_vet = Veterinarian.objects.create(
+        Veterinarian.objects.create(
             user=other_user,
             first_name="Dr. Jane",
             last_name="Smith",
@@ -4867,7 +4911,7 @@ class ProtocolPublicAccessTest(TestCase):
     def test_protocol_public_detail_view_staff_can_access_all(self):
         """Test that staff users can access any protocol."""
         # Create staff user
-        staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="staff@example.com",
             username="staff",
             password="testpass123",
@@ -4895,7 +4939,7 @@ class ProtocolPublicAccessTest(TestCase):
         from protocols.emails import build_protocol_url
 
         url = build_protocol_url(self.protocol)
-        
+
         # Should contain the site URL and protocol UUID
         self.assertIn(settings.SITE_URL, url)
         self.assertIn(str(self.protocol.external_id), url)
@@ -4908,15 +4952,17 @@ class ProtocolPublicAccessTest(TestCase):
         # Mock the email sending to capture context
         with patch("protocols.emails.queue_email") as mock_queue:
             send_sample_reception_notification(self.protocol)
-            
+
             # Check that queue_email was called with protocol_url in context
             mock_queue.assert_called_once()
             call_args = mock_queue.call_args
             context = call_args[1]["context"]
-            
+
             self.assertIn("protocol_url", context)
             self.assertTrue(context["protocol_url"].startswith("http"))
-            self.assertIn(str(self.protocol.external_id), context["protocol_url"])
+            self.assertIn(
+                str(self.protocol.external_id), context["protocol_url"]
+            )
 
     def test_email_template_protocol_url_accessibility(self):
         """Test that protocol URLs in emails are accessible with authentication."""
@@ -4929,12 +4975,12 @@ class ProtocolPublicAccessTest(TestCase):
         }
 
         html = render_to_string("emails/sample_reception.html", context)
-        
+
         # Should contain protocol URL
         self.assertIn(str(self.protocol.external_id), html)
         self.assertIn("Ver Protocolo en el Sistema", html)
         self.assertIn('href="', html)
-        
+
         # Should require authentication
         response = self.client.get(
             reverse(
@@ -4943,7 +4989,7 @@ class ProtocolPublicAccessTest(TestCase):
             )
         )
         self.assertEqual(response.status_code, 302)  # Redirects to login
-        
+
         # Should be accessible after login
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(
@@ -4961,7 +5007,7 @@ class ReceptionPendingFilterFormTest(TestCase):
     def test_form_creation(self):
         """Test that form can be created with all fields."""
         from protocols.forms import ReceptionPendingFilterForm
-        
+
         form = ReceptionPendingFilterForm()
         self.assertIn("temporal_code", form.fields)
         self.assertIn("analysis_type", form.fields)
@@ -4971,35 +5017,39 @@ class ReceptionPendingFilterFormTest(TestCase):
     def test_form_validation_with_valid_data(self):
         """Test form validation with valid data."""
         from protocols.forms import ReceptionPendingFilterForm
-        
+
         form_data = {
             "temporal_code": "TMP-HP-20251024-009",
             "analysis_type": "histopathology",
             "veterinarian_license": "MP-123456",
-            "animal_name": "Bella"
+            "animal_name": "Bella",
         }
         form = ReceptionPendingFilterForm(data=form_data)
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data["temporal_code"], "TMP-HP-20251024-009")
+        self.assertEqual(
+            form.cleaned_data["temporal_code"], "TMP-HP-20251024-009"
+        )
         self.assertEqual(form.cleaned_data["analysis_type"], "histopathology")
-        self.assertEqual(form.cleaned_data["veterinarian_license"], "MP-123456")
+        self.assertEqual(
+            form.cleaned_data["veterinarian_license"], "MP-123456"
+        )
         self.assertEqual(form.cleaned_data["animal_name"], "Bella")
 
     def test_form_validation_with_empty_data(self):
         """Test form validation with empty data (all fields optional)."""
         from protocols.forms import ReceptionPendingFilterForm
-        
+
         form = ReceptionPendingFilterForm(data={})
         self.assertTrue(form.is_valid())
 
     def test_form_analysis_type_choices(self):
         """Test that analysis type field has correct choices."""
         from protocols.forms import ReceptionPendingFilterForm
-        
+
         form = ReceptionPendingFilterForm()
         analysis_type_field = form.fields["analysis_type"]
         choices = [choice[0] for choice in analysis_type_field.choices]
-        
+
         self.assertIn("", choices)  # Empty choice for "all types"
         self.assertIn("cytology", choices)
         self.assertIn("histopathology", choices)
@@ -5007,11 +5057,16 @@ class ReceptionPendingFilterFormTest(TestCase):
     def test_form_field_styling(self):
         """Test that form fields have correct CSS classes."""
         from protocols.forms import ReceptionPendingFilterForm
-        
+
         form = ReceptionPendingFilterForm()
-        
+
         # Check that all fields have h-10 class for consistent height
-        for field_name in ["temporal_code", "analysis_type", "veterinarian_license", "animal_name"]:
+        for field_name in [
+            "temporal_code",
+            "analysis_type",
+            "veterinarian_license",
+            "animal_name",
+        ]:
             field = form.fields[field_name]
             widget_attrs = field.widget.attrs
             self.assertIn("h-10", widget_attrs["class"])
@@ -5023,7 +5078,7 @@ class ReceptionHistoryFilterFormTest(TestCase):
     def test_form_creation(self):
         """Test that form can be created with all fields."""
         from protocols.forms import ReceptionHistoryFilterForm
-        
+
         form = ReceptionHistoryFilterForm()
         self.assertIn("protocol_code", form.fields)
         self.assertIn("analysis_type", form.fields)
@@ -5035,49 +5090,68 @@ class ReceptionHistoryFilterFormTest(TestCase):
     def test_form_validation_with_valid_data(self):
         """Test form validation with valid data."""
         from protocols.forms import ReceptionHistoryFilterForm
-        
+
         form_data = {
             "protocol_code": "TMP-HP-20251024-009",
             "analysis_type": "histopathology",
             "veterinarian_license": "MP-123456",
             "animal_name": "Bella",
             "reception_date_from": "2025-01-01",
-            "reception_date_to": "2025-12-31"
+            "reception_date_to": "2025-12-31",
         }
         form = ReceptionHistoryFilterForm(data=form_data)
         self.assertTrue(form.is_valid())
-        self.assertEqual(form.cleaned_data["protocol_code"], "TMP-HP-20251024-009")
+        self.assertEqual(
+            form.cleaned_data["protocol_code"], "TMP-HP-20251024-009"
+        )
         self.assertEqual(form.cleaned_data["analysis_type"], "histopathology")
-        self.assertEqual(form.cleaned_data["veterinarian_license"], "MP-123456")
+        self.assertEqual(
+            form.cleaned_data["veterinarian_license"], "MP-123456"
+        )
         self.assertEqual(form.cleaned_data["animal_name"], "Bella")
-        self.assertEqual(str(form.cleaned_data["reception_date_from"]), "2025-01-01")
-        self.assertEqual(str(form.cleaned_data["reception_date_to"]), "2025-12-31")
+        self.assertEqual(
+            str(form.cleaned_data["reception_date_from"]), "2025-01-01"
+        )
+        self.assertEqual(
+            str(form.cleaned_data["reception_date_to"]), "2025-12-31"
+        )
 
     def test_form_validation_with_empty_data(self):
         """Test form validation with empty data (all fields optional)."""
         from protocols.forms import ReceptionHistoryFilterForm
-        
+
         form = ReceptionHistoryFilterForm(data={})
         self.assertTrue(form.is_valid())
 
     def test_form_date_fields(self):
         """Test that date fields are properly configured."""
         from protocols.forms import ReceptionHistoryFilterForm
-        
+
         form = ReceptionHistoryFilterForm()
-        
+
         # Check date fields have correct widget type
-        self.assertEqual(form.fields["reception_date_from"].widget.input_type, "date")
-        self.assertEqual(form.fields["reception_date_to"].widget.input_type, "date")
+        self.assertEqual(
+            form.fields["reception_date_from"].widget.input_type, "date"
+        )
+        self.assertEqual(
+            form.fields["reception_date_to"].widget.input_type, "date"
+        )
 
     def test_form_field_styling(self):
         """Test that form fields have correct CSS classes."""
         from protocols.forms import ReceptionHistoryFilterForm
-        
+
         form = ReceptionHistoryFilterForm()
-        
+
         # Check that all fields have h-10 class for consistent height
-        for field_name in ["protocol_code", "analysis_type", "veterinarian_license", "animal_name", "reception_date_from", "reception_date_to"]:
+        for field_name in [
+            "protocol_code",
+            "analysis_type",
+            "veterinarian_license",
+            "animal_name",
+            "reception_date_from",
+            "reception_date_to",
+        ]:
             field = form.fields[field_name]
             widget_attrs = field.widget.attrs
             self.assertIn("h-10", widget_attrs["class"])
@@ -5097,7 +5171,7 @@ class ReceptionPendingViewFilterTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian
         self.vet_user = User.objects.create_user(
             email="vet@example.com",
@@ -5115,7 +5189,7 @@ class ReceptionPendingViewFilterTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        
+
         # Create protocols with different characteristics
         self.protocol1 = Protocol.objects.create(
             temporary_code="TMP-HP-20251024-001",
@@ -5127,7 +5201,7 @@ class ReceptionPendingViewFilterTest(TestCase):
             submission_date=date.today(),
             status=Protocol.Status.SUBMITTED,
         )
-        
+
         self.protocol2 = Protocol.objects.create(
             temporary_code="TMP-CT-20251024-002",
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -5149,7 +5223,7 @@ class ReceptionPendingViewFilterTest(TestCase):
     def test_view_not_accessible_by_veterinarian(self):
         """Test that view is not accessible by veterinarians."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -5157,7 +5231,7 @@ class ReceptionPendingViewFilterTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:reception_pending"))
         self.assertEqual(response.status_code, 302)
@@ -5167,9 +5241,9 @@ class ReceptionPendingViewFilterTest(TestCase):
     def test_filter_by_temporal_code(self):
         """Test filtering by temporal code."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_pending"), {
-            "temporal_code": "TMP-HP"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_pending"), {"temporal_code": "TMP-HP"}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "TMP-HP-20251024-001")
         self.assertNotContains(response, "TMP-CT-20251024-002")
@@ -5177,9 +5251,10 @@ class ReceptionPendingViewFilterTest(TestCase):
     def test_filter_by_analysis_type(self):
         """Test filtering by analysis type."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_pending"), {
-            "analysis_type": "histopathology"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_pending"),
+            {"analysis_type": "histopathology"},
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "TMP-HP-20251024-001")
         self.assertNotContains(response, "TMP-CT-20251024-002")
@@ -5187,9 +5262,10 @@ class ReceptionPendingViewFilterTest(TestCase):
     def test_filter_by_veterinarian_license(self):
         """Test filtering by veterinarian license."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_pending"), {
-            "veterinarian_license": "MP-123"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_pending"),
+            {"veterinarian_license": "MP-123"},
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "TMP-HP-20251024-001")
         self.assertContains(response, "TMP-CT-20251024-002")
@@ -5197,9 +5273,9 @@ class ReceptionPendingViewFilterTest(TestCase):
     def test_filter_by_animal_name(self):
         """Test filtering by animal name."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_pending"), {
-            "animal_name": "Bella"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_pending"), {"animal_name": "Bella"}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "TMP-HP-20251024-001")
         self.assertNotContains(response, "TMP-CT-20251024-002")
@@ -5207,10 +5283,10 @@ class ReceptionPendingViewFilterTest(TestCase):
     def test_combined_filters(self):
         """Test multiple filters applied together."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_pending"), {
-            "analysis_type": "histopathology",
-            "animal_name": "Bella"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_pending"),
+            {"analysis_type": "histopathology", "animal_name": "Bella"},
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "TMP-HP-20251024-001")
         self.assertNotContains(response, "TMP-CT-20251024-002")
@@ -5226,15 +5302,15 @@ class ReceptionPendingViewFilterTest(TestCase):
     def test_active_filters_detection(self):
         """Test that active filters are properly detected."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # No filters
         response = self.client.get(reverse("protocols:reception_pending"))
         self.assertFalse(response.context["has_active_filters"])
-        
+
         # With filters
-        response = self.client.get(reverse("protocols:reception_pending"), {
-            "temporal_code": "TMP-HP"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_pending"), {"temporal_code": "TMP-HP"}
+        )
         self.assertTrue(response.context["has_active_filters"])
 
 
@@ -5252,7 +5328,7 @@ class ReceptionHistoryViewFilterTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian
         self.vet_user = User.objects.create_user(
             email="vet@example.com",
@@ -5270,7 +5346,7 @@ class ReceptionHistoryViewFilterTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        
+
         # Create protocols
         self.protocol1 = Protocol.objects.create(
             temporary_code="TMP-HP-20251024-001",
@@ -5283,7 +5359,7 @@ class ReceptionHistoryViewFilterTest(TestCase):
             submission_date=date.today(),
             status=Protocol.Status.RECEIVED,
         )
-        
+
         self.protocol2 = Protocol.objects.create(
             temporary_code="TMP-CT-20251024-002",
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -5294,21 +5370,22 @@ class ReceptionHistoryViewFilterTest(TestCase):
             submission_date=date.today(),
             status=Protocol.Status.RECEIVED,
         )
-        
+
         # Create reception logs
         from protocols.models import ReceptionLog
+
         self.log1 = ReceptionLog.objects.create(
             protocol=self.protocol1,
             action=ReceptionLog.Action.RECEIVED,
             user=self.staff_user,
-            notes="Sample received in good condition"
+            notes="Sample received in good condition",
         )
-        
+
         self.log2 = ReceptionLog.objects.create(
             protocol=self.protocol2,
             action=ReceptionLog.Action.RECEIVED,
             user=self.staff_user,
-            notes="Sample received"
+            notes="Sample received",
         )
 
     def test_view_accessible_by_staff(self):
@@ -5321,7 +5398,7 @@ class ReceptionHistoryViewFilterTest(TestCase):
     def test_view_not_accessible_by_veterinarian(self):
         """Test that view is not accessible by veterinarians."""
         # Create a non-staff user for this test
-        non_staff_user = User.objects.create_user(
+        User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
             password="testpass123",
@@ -5329,7 +5406,7 @@ class ReceptionHistoryViewFilterTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        
+
         self.client.login(email="nonstaff@example.com", password="testpass123")
         response = self.client.get(reverse("protocols:reception_history"))
         self.assertEqual(response.status_code, 302)
@@ -5339,9 +5416,9 @@ class ReceptionHistoryViewFilterTest(TestCase):
     def test_filter_by_protocol_code_temporary(self):
         """Test filtering by temporary protocol code."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_history"), {
-            "protocol_code": "TMP-HP"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_history"), {"protocol_code": "TMP-HP"}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HP 24/001")
         self.assertNotContains(response, "TMP-CT-20251024-002")
@@ -5349,9 +5426,10 @@ class ReceptionHistoryViewFilterTest(TestCase):
     def test_filter_by_protocol_code_final(self):
         """Test filtering by final protocol code."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_history"), {
-            "protocol_code": "HP 24/001"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_history"),
+            {"protocol_code": "HP 24/001"},
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HP 24/001")
         self.assertNotContains(response, "TMP-CT-20251024-002")
@@ -5359,9 +5437,10 @@ class ReceptionHistoryViewFilterTest(TestCase):
     def test_filter_by_analysis_type(self):
         """Test filtering by analysis type."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_history"), {
-            "analysis_type": "histopathology"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_history"),
+            {"analysis_type": "histopathology"},
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HP 24/001")
         self.assertNotContains(response, "TMP-CT-20251024-002")
@@ -5369,9 +5448,10 @@ class ReceptionHistoryViewFilterTest(TestCase):
     def test_filter_by_veterinarian_license(self):
         """Test filtering by veterinarian license."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_history"), {
-            "veterinarian_license": "MP-123"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_history"),
+            {"veterinarian_license": "MP-123"},
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HP 24/001")
         self.assertContains(response, "TMP-CT-20251024-002")
@@ -5379,9 +5459,9 @@ class ReceptionHistoryViewFilterTest(TestCase):
     def test_filter_by_animal_name(self):
         """Test filtering by animal name."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_history"), {
-            "animal_name": "Bella"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_history"), {"animal_name": "Bella"}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HP 24/001")
         self.assertNotContains(response, "TMP-CT-20251024-002")
@@ -5389,10 +5469,13 @@ class ReceptionHistoryViewFilterTest(TestCase):
     def test_filter_by_date_range(self):
         """Test filtering by date range."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_history"), {
-            "reception_date_from": "2025-01-01",
-            "reception_date_to": "2025-12-31"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_history"),
+            {
+                "reception_date_from": "2025-01-01",
+                "reception_date_to": "2025-12-31",
+            },
+        )
         self.assertEqual(response.status_code, 200)
         # Should contain both logs as they were created today
         self.assertContains(response, "HP 24/001")
@@ -5401,10 +5484,10 @@ class ReceptionHistoryViewFilterTest(TestCase):
     def test_combined_filters(self):
         """Test multiple filters applied together."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_history"), {
-            "analysis_type": "histopathology",
-            "animal_name": "Bella"
-        })
+        response = self.client.get(
+            reverse("protocols:reception_history"),
+            {"analysis_type": "histopathology", "animal_name": "Bella"},
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HP 24/001")
         self.assertNotContains(response, "TMP-CT-20251024-002")
@@ -5420,17 +5503,16 @@ class ReceptionHistoryViewFilterTest(TestCase):
     def test_active_filters_detection(self):
         """Test that active filters are properly detected."""
         self.client.login(email="staff@example.com", password="testpass123")
-        
+
         # No filters
         response = self.client.get(reverse("protocols:reception_history"))
         self.assertFalse(response.context["has_active_filters"])
-        
-        # With filters
-        response = self.client.get(reverse("protocols:reception_history"), {
-            "protocol_code": "TMP-HP"
-        })
-        self.assertTrue(response.context["has_active_filters"])
 
+        # With filters
+        response = self.client.get(
+            reverse("protocols:reception_history"), {"protocol_code": "TMP-HP"}
+        )
+        self.assertTrue(response.context["has_active_filters"])
 
 
 class ProtocolDetailVeterinarianInfoTest(TestCase):
@@ -5447,7 +5529,7 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        
+
         # Create veterinarian
         self.vet_user = User.objects.create_user(
             email="vet@example.com",
@@ -5465,9 +5547,10 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
             phone="+54 341 1234567",
             email="juan.perez@vet.com",
         )
-        
+
         # Create address for the veterinarian
         from accounts.models import Address
+
         self.address = Address.objects.create(
             veterinarian=self.veterinarian,
             province="Córdoba",
@@ -5476,7 +5559,7 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
             number="123",
             postal_code="5000",
         )
-        
+
         # Create protocol
         self.protocol = Protocol.objects.create(
             temporary_code="TMP-HP-20251024-001",
@@ -5492,21 +5575,33 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
     def test_protocol_detail_accessible_by_staff(self):
         """Test that protocol detail view is accessible by staff users."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Protocolo:")
 
     def test_protocol_detail_accessible_by_veterinarian(self):
         """Test that protocol detail view is accessible by the protocol owner."""
         self.client.login(email="vet@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Protocolo:")
 
     def test_veterinarian_name_displayed(self):
         """Test that veterinarian name is displayed in the detail view."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Información del Veterinario")
         self.assertContains(response, "Dr. Juan Pérez")
@@ -5514,21 +5609,33 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
     def test_veterinarian_license_displayed(self):
         """Test that veterinarian license number is displayed."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "MP-123456")
 
     def test_veterinarian_phone_displayed(self):
         """Test that veterinarian phone number is displayed."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "+54 341 1234567")
 
     def test_veterinarian_email_displayed_with_mailto_link(self):
         """Test that veterinarian email is displayed with mailto link."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "juan.perez@vet.com")
         self.assertContains(response, "mailto:juan.perez@vet.com")
@@ -5536,7 +5643,11 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
     def test_veterinarian_address_displayed(self):
         """Test that veterinarian address is displayed."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Av. Principal 123")
         self.assertContains(response, "Córdoba")
@@ -5544,9 +5655,13 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
     def test_veterinarian_info_card_structure(self):
         """Test that the veterinarian information card has proper structure."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
-        
+
         # Check for card structure elements
         self.assertContains(response, "Información del Veterinario")
         self.assertContains(response, "Nombre")
@@ -5573,7 +5688,7 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
             license_number="MP-789012",
             # No phone, email, or address
         )
-        
+
         minimal_protocol = Protocol.objects.create(
             temporary_code="TMP-CT-20251024-002",
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -5584,15 +5699,19 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
             submission_date=date.today(),
             status=Protocol.Status.SUBMITTED,
         )
-        
+
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": minimal_protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": minimal_protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
-        
+
         # Should show name and license
         self.assertContains(response, "Dr. María González")
         self.assertContains(response, "MP-789012")
-        
+
         # Should not show empty fields
         self.assertNotContains(response, "Teléfono")
         self.assertNotContains(response, "Email")
@@ -5601,9 +5720,13 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
     def test_veterinarian_info_conditional_fields(self):
         """Test that conditional fields are properly handled."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
-        
+
         # All fields should be present since we have complete data
         self.assertContains(response, "Teléfono")
         self.assertContains(response, "Email")
@@ -5612,9 +5735,13 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
     def test_veterinarian_info_css_classes(self):
         """Test that proper CSS classes are applied."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
-        
+
         # Check for CSS classes
         self.assertContains(response, "font-mono")  # For license number
         self.assertContains(response, "text-blue-600")  # For email link
@@ -5623,15 +5750,19 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
     def test_veterinarian_info_sidebar_position(self):
         """Test that veterinarian info appears in the sidebar."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_detail", kwargs={"pk": self.protocol.pk}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
         self.assertEqual(response.status_code, 200)
-        
+
         # Should be in sidebar (after dates card, before status timeline)
         content = response.content.decode()
         dates_index = content.find("Fechas Importantes")
         vet_info_index = content.find("Información del Veterinario")
         status_timeline_index = content.find("Historial de Estado")
-        
+
         self.assertGreater(vet_info_index, dates_index)
         self.assertLess(vet_info_index, status_timeline_index)
 
@@ -5658,9 +5789,10 @@ class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
             phone="+54 351 9876543",
             email="carlos.rodriguez@vet.com",
         )
-        
+
         # Create address for the veterinarian
         from accounts.models import Address
+
         self.address = Address.objects.create(
             veterinarian=self.veterinarian,
             province="Santa Fe",
@@ -5669,7 +5801,7 @@ class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
             number="456",
             postal_code="2000",
         )
-        
+
         # Create protocol
         self.protocol = Protocol.objects.create(
             temporary_code="TMP-HP-20251024-003",
@@ -5685,9 +5817,14 @@ class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
     def test_public_protocol_detail_veterinarian_info(self):
         """Test that veterinarian info is displayed in public protocol detail view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_public_detail", kwargs={"external_id": self.protocol.external_id}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": self.protocol.external_id},
+            )
+        )
         self.assertEqual(response.status_code, 200)
-        
+
         # Check veterinarian information
         self.assertContains(response, "Información del Veterinario")
         self.assertContains(response, "Dr. Carlos Rodríguez")
@@ -5700,10 +5837,14 @@ class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
     def test_public_protocol_detail_email_link(self):
         """Test that email link is properly formatted in public view."""
         self.client.login(email="vet@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:protocol_public_detail", kwargs={"external_id": self.protocol.external_id}))
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_public_detail",
+                kwargs={"external_id": self.protocol.external_id},
+            )
+        )
         self.assertEqual(response.status_code, 200)
-        
+
         # Check for proper mailto link
         self.assertContains(response, "mailto:carlos.rodriguez@vet.com")
         self.assertContains(response, "text-blue-600 hover:text-blue-800")
-

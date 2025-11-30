@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import date
 from io import BytesIO
@@ -31,7 +30,6 @@ from accounts.mixins import (
     VeterinarianProfileRequiredMixin,
     VeterinarianRequiredMixin,
 )
-from accounts.models import Veterinarian
 from protocols.forms import (
     CytologyProtocolForm,
     HistopathologyProtocolForm,
@@ -236,21 +234,25 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
         protocol = self.object
 
         # Get status history with user information
-        status_history = protocol.status_history.all().select_related(
-            "changed_by"
-        ).order_by("-changed_at")
+        status_history = (
+            protocol.status_history.all()
+            .select_related("changed_by")
+            .order_by("-changed_at")
+        )
 
         # Get sample information
         sample = None
-        if hasattr(protocol, 'cytology_sample'):
+        if hasattr(protocol, "cytology_sample"):
             sample = protocol.cytology_sample
-        elif hasattr(protocol, 'histopathology_sample'):
+        elif hasattr(protocol, "histopathology_sample"):
             sample = protocol.histopathology_sample
 
-        context.update({
-            "status_history": status_history,
-            "sample": sample,
-        })
+        context.update(
+            {
+                "status_history": status_history,
+                "sample": sample,
+            }
+        )
 
         return context
 
@@ -273,7 +275,7 @@ class ProtocolPublicDetailView(DetailView):
         # Require authentication
         if not request.user.is_authenticated:
             return redirect("accounts:login")
-        
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -283,15 +285,17 @@ class ProtocolPublicDetailView(DetailView):
             "cytology_sample",
             "histopathology_sample",
         )
-        
+
         # Filter based on user permissions
         if self.request.user.is_admin_user or self.request.user.is_staff:
             # Admin and staff can see all protocols
             return queryset
         else:
             # Veterinarians can only see their own protocols
-            if hasattr(self.request.user, 'veterinarian_profile'):
-                return queryset.filter(veterinarian=self.request.user.veterinarian_profile)
+            if hasattr(self.request.user, "veterinarian_profile"):
+                return queryset.filter(
+                    veterinarian=self.request.user.veterinarian_profile
+                )
             else:
                 # User doesn't have veterinarian profile
                 return queryset.none()
@@ -299,15 +303,22 @@ class ProtocolPublicDetailView(DetailView):
     def get_object(self, queryset=None):
         """Get the protocol object and verify access permissions."""
         protocol = super().get_object(queryset)
-        
+
         # Additional security check: verify user can access this protocol
-        if not self.request.user.is_admin_user and not self.request.user.is_staff:
-            if not hasattr(self.request.user, 'veterinarian_profile'):
-                raise PermissionDenied("No tiene permisos para ver este protocolo.")
-            
+        if (
+            not self.request.user.is_admin_user
+            and not self.request.user.is_staff
+        ):
+            if not hasattr(self.request.user, "veterinarian_profile"):
+                raise PermissionDenied(
+                    "No tiene permisos para ver este protocolo."
+                )
+
             if protocol.veterinarian != self.request.user.veterinarian_profile:
-                raise PermissionDenied("No tiene permisos para ver este protocolo.")
-        
+                raise PermissionDenied(
+                    "No tiene permisos para ver este protocolo."
+                )
+
         return protocol
 
     def get_context_data(self, **kwargs):
@@ -316,21 +327,25 @@ class ProtocolPublicDetailView(DetailView):
         protocol = self.object
 
         # Get status history with user information
-        status_history = protocol.status_history.all().select_related(
-            "changed_by"
-        ).order_by("-changed_at")
+        status_history = (
+            protocol.status_history.all()
+            .select_related("changed_by")
+            .order_by("-changed_at")
+        )
 
         # Get sample information
         sample = None
-        if hasattr(protocol, 'cytology_sample'):
+        if hasattr(protocol, "cytology_sample"):
             sample = protocol.cytology_sample
-        elif hasattr(protocol, 'histopathology_sample'):
+        elif hasattr(protocol, "histopathology_sample"):
             sample = protocol.histopathology_sample
 
-        context.update({
-            "status_history": status_history,
-            "sample": sample,
-        })
+        context.update(
+            {
+                "status_history": status_history,
+                "sample": sample,
+            }
+        )
 
         return context
 
@@ -435,7 +450,8 @@ class ProtocolEditView(ProtocolOwnerOrStaffMixin, UpdateView):
         # Check if protocol is editable - only draft protocols can be edited
         if not self.object.is_editable:
             messages.warning(
-                request, _("Solo los protocolos en borrador pueden ser editados.")
+                request,
+                _("Solo los protocolos en borrador pueden ser editados."),
             )
             return redirect("protocols:protocol_detail", pk=self.object.pk)
 
@@ -445,29 +461,35 @@ class ProtocolEditView(ProtocolOwnerOrStaffMixin, UpdateView):
         """Add protocol and sample forms to context."""
         context = super().get_context_data(**kwargs)
         protocol = self.object
-        
+
         # Add protocol form as protocol_form for template compatibility
-        context['protocol_form'] = context['form']
-        
+        context["protocol_form"] = context["form"]
+
         # Add sample form based on analysis type
         if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
             from protocols.forms import CytologySampleEditForm
+
             try:
                 sample = protocol.cytology_sample
-                context['sample_form'] = CytologySampleEditForm(instance=sample)
+                context["sample_form"] = CytologySampleEditForm(
+                    instance=sample
+                )
             except protocol.cytology_sample.RelatedObjectDoesNotExist:
-                context['sample_form'] = CytologySampleEditForm()
+                context["sample_form"] = CytologySampleEditForm()
         else:  # HISTOPATHOLOGY
             from protocols.forms import HistopathologySampleEditForm
+
             try:
                 sample = protocol.histopathology_sample
-                context['sample_form'] = HistopathologySampleEditForm(instance=sample)
+                context["sample_form"] = HistopathologySampleEditForm(
+                    instance=sample
+                )
             except protocol.histopathology_sample.RelatedObjectDoesNotExist:
-                context['sample_form'] = HistopathologySampleEditForm()
-        
+                context["sample_form"] = HistopathologySampleEditForm()
+
         # Add analysis type for template
-        context['analysis_type'] = protocol.analysis_type
-        
+        context["analysis_type"] = protocol.analysis_type
+
         return context
 
     def get_success_url(self):
@@ -577,68 +599,76 @@ class ReceptionPendingView(StaffRequiredMixin, ListView):
 
     def get_queryset(self):
         """Get protocols pending reception with optional filtering."""
-        from protocols.forms import ReceptionPendingFilterForm
-        
+
         # Get base queryset
-        protocols = (
-            Protocol.objects.filter(status=Protocol.Status.SUBMITTED)
-            .select_related(
-                "veterinarian__user",
-                "cytology_sample",
-                "histopathology_sample",
-            )
+        protocols = Protocol.objects.filter(
+            status=Protocol.Status.SUBMITTED
+        ).select_related(
+            "veterinarian__user",
+            "cytology_sample",
+            "histopathology_sample",
         )
-        
+
         # Apply filters based on GET parameters
-        temporal_code = self.request.GET.get('temporal_code', '').strip()
-        analysis_type = self.request.GET.get('analysis_type', '').strip()
-        veterinarian_license = self.request.GET.get('veterinarian_license', '').strip()
-        animal_name = self.request.GET.get('animal_name', '').strip()
-        
+        temporal_code = self.request.GET.get("temporal_code", "").strip()
+        analysis_type = self.request.GET.get("analysis_type", "").strip()
+        veterinarian_license = self.request.GET.get(
+            "veterinarian_license", ""
+        ).strip()
+        animal_name = self.request.GET.get("animal_name", "").strip()
+
         # Filter by temporal code (case-insensitive partial match)
         if temporal_code:
-            protocols = protocols.filter(temporary_code__icontains=temporal_code)
-        
+            protocols = protocols.filter(
+                temporary_code__icontains=temporal_code
+            )
+
         # Filter by analysis type
         if analysis_type:
             protocols = protocols.filter(analysis_type=analysis_type)
-        
+
         # Filter by veterinarian license number (case-insensitive partial match)
         if veterinarian_license:
-            protocols = protocols.filter(veterinarian__license_number__icontains=veterinarian_license)
-        
+            protocols = protocols.filter(
+                veterinarian__license_number__icontains=veterinarian_license
+            )
+
         # Filter by animal name (case-insensitive partial match)
         if animal_name:
-            protocols = protocols.filter(animal_identification__icontains=animal_name)
-        
+            protocols = protocols.filter(
+                animal_identification__icontains=animal_name
+            )
+
         # Order by submission date
         protocols = protocols.order_by("submission_date")
-        
+
         # Calculate days pending for each protocol
         for protocol in protocols:
             days_pending = (date.today() - protocol.submission_date).days
             protocol.days_pending = days_pending
 
         return protocols
-    
+
     def get_context_data(self, **kwargs):
         """Add filter form to context."""
         context = super().get_context_data(**kwargs)
         from protocols.forms import ReceptionPendingFilterForm
-        
+
         # Initialize form with current GET parameters
         filter_form = ReceptionPendingFilterForm(self.request.GET)
-        context['filter_form'] = filter_form
-        
+        context["filter_form"] = filter_form
+
         # Check if any filters are active
-        has_active_filters = any([
-            self.request.GET.get('temporal_code', '').strip(),
-            self.request.GET.get('analysis_type', '').strip(),
-            self.request.GET.get('veterinarian_license', '').strip(),
-            self.request.GET.get('animal_name', '').strip(),
-        ])
-        context['has_active_filters'] = has_active_filters
-        
+        has_active_filters = any(
+            [
+                self.request.GET.get("temporal_code", "").strip(),
+                self.request.GET.get("analysis_type", "").strip(),
+                self.request.GET.get("veterinarian_license", "").strip(),
+                self.request.GET.get("animal_name", "").strip(),
+            ]
+        )
+        context["has_active_filters"] = has_active_filters
+
         return context
 
 
@@ -654,77 +684,86 @@ class ReceptionHistoryView(StaffRequiredMixin, ListView):
 
     def get_queryset(self):
         """Get reception logs with optional filtering."""
-        from protocols.forms import ReceptionHistoryFilterForm
-        
+
         # Get base queryset
-        logs = (
-            ReceptionLog.objects.select_related(
-                "protocol__veterinarian__user",
-                "protocol__cytology_sample",
-                "protocol__histopathology_sample",
-                "user",
-            )
+        logs = ReceptionLog.objects.select_related(
+            "protocol__veterinarian__user",
+            "protocol__cytology_sample",
+            "protocol__histopathology_sample",
+            "user",
         )
-        
+
         # Apply filters based on GET parameters
-        protocol_code = self.request.GET.get('protocol_code', '').strip()
-        analysis_type = self.request.GET.get('analysis_type', '').strip()
-        veterinarian_license = self.request.GET.get('veterinarian_license', '').strip()
-        animal_name = self.request.GET.get('animal_name', '').strip()
-        reception_date_from = self.request.GET.get('reception_date_from', '').strip()
-        reception_date_to = self.request.GET.get('reception_date_to', '').strip()
-        
+        protocol_code = self.request.GET.get("protocol_code", "").strip()
+        analysis_type = self.request.GET.get("analysis_type", "").strip()
+        veterinarian_license = self.request.GET.get(
+            "veterinarian_license", ""
+        ).strip()
+        animal_name = self.request.GET.get("animal_name", "").strip()
+        reception_date_from = self.request.GET.get(
+            "reception_date_from", ""
+        ).strip()
+        reception_date_to = self.request.GET.get(
+            "reception_date_to", ""
+        ).strip()
+
         # Filter by protocol code (search both temporary and final codes)
         if protocol_code:
             logs = logs.filter(
-                Q(protocol__temporary_code__icontains=protocol_code) |
-                Q(protocol__protocol_number__icontains=protocol_code)
+                Q(protocol__temporary_code__icontains=protocol_code)
+                | Q(protocol__protocol_number__icontains=protocol_code)
             )
-        
+
         # Filter by analysis type
         if analysis_type:
             logs = logs.filter(protocol__analysis_type=analysis_type)
-        
+
         # Filter by veterinarian license number
         if veterinarian_license:
-            logs = logs.filter(protocol__veterinarian__license_number__icontains=veterinarian_license)
-        
+            logs = logs.filter(
+                protocol__veterinarian__license_number__icontains=veterinarian_license
+            )
+
         # Filter by animal name
         if animal_name:
-            logs = logs.filter(protocol__animal_identification__icontains=animal_name)
-        
+            logs = logs.filter(
+                protocol__animal_identification__icontains=animal_name
+            )
+
         # Filter by reception date range
         if reception_date_from:
             logs = logs.filter(created_at__date__gte=reception_date_from)
-        
+
         if reception_date_to:
             logs = logs.filter(created_at__date__lte=reception_date_to)
-        
+
         # Order by creation date (most recent first)
         logs = logs.order_by("-created_at")
 
         return logs
-    
+
     def get_context_data(self, **kwargs):
         """Add filter form to context."""
         context = super().get_context_data(**kwargs)
         from protocols.forms import ReceptionHistoryFilterForm
-        
+
         # Initialize form with current GET parameters
         filter_form = ReceptionHistoryFilterForm(self.request.GET)
-        context['filter_form'] = filter_form
-        
+        context["filter_form"] = filter_form
+
         # Check if any filters are active
-        has_active_filters = any([
-            self.request.GET.get('protocol_code', '').strip(),
-            self.request.GET.get('analysis_type', '').strip(),
-            self.request.GET.get('veterinarian_license', '').strip(),
-            self.request.GET.get('animal_name', '').strip(),
-            self.request.GET.get('reception_date_from', '').strip(),
-            self.request.GET.get('reception_date_to', '').strip(),
-        ])
-        context['has_active_filters'] = has_active_filters
-        
+        has_active_filters = any(
+            [
+                self.request.GET.get("protocol_code", "").strip(),
+                self.request.GET.get("analysis_type", "").strip(),
+                self.request.GET.get("veterinarian_license", "").strip(),
+                self.request.GET.get("animal_name", "").strip(),
+                self.request.GET.get("reception_date_from", "").strip(),
+                self.request.GET.get("reception_date_to", "").strip(),
+            ]
+        )
+        context["has_active_filters"] = has_active_filters
+
         return context
 
 
@@ -732,6 +771,7 @@ class RejectedProtocolsView(StaffRequiredMixin, ListView):
     """
     Display list of rejected protocols.
     """
+
     model = Protocol
     template_name = "protocols/rejected_list.html"
     context_object_name = "protocols"
@@ -932,7 +972,7 @@ class ProcessingQueueView(StaffRequiredMixin, ListView):
         # Apply type filter
         if analysis_type != "all":
             protocols = protocols.filter(analysis_type=analysis_type)
-            
+
         # Apply status filter
         if status_filter != "all":
             protocols = protocols.filter(status=status_filter)
@@ -1190,7 +1230,9 @@ class CassetteCreateView(StaffRequiredMixin, View):
         if protocol.status == Protocol.Status.REJECTED:
             messages.error(
                 self.request,
-                _("No se puede procesar un protocolo rechazado. Cambie el estado primero."),
+                _(
+                    "No se puede procesar un protocolo rechazado. Cambie el estado primero."
+                ),
             )
             return None
 
@@ -1290,7 +1332,9 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
             self.email_service.send_rejection_email(protocol)
             messages.warning(
                 self.request,
-                _("Muestra rechazada. Protocolo: %(number)s. Se ha notificado al veterinario.")
+                _(
+                    "Muestra rechazada. Protocolo: %(number)s. Se ha notificado al veterinario."
+                )
                 % {"number": protocol.protocol_number},
             )
         else:
@@ -1585,15 +1629,17 @@ class SlideRegisterView(StaffRequiredMixin, View):
             ),
             pk=self.kwargs["protocol_pk"],
         )
-        
+
         # Check if protocol is rejected
         if protocol.status == Protocol.Status.REJECTED:
             messages.error(
                 self.request,
-                _("No se puede procesar un protocolo rechazado. Cambie el estado primero."),
+                _(
+                    "No se puede procesar un protocolo rechazado. Cambie el estado primero."
+                ),
             )
             return None
-            
+
         return protocol
 
 
@@ -1668,58 +1714,60 @@ class ProtocolResubmitView(StaffRequiredMixin, FormView):
     Handle resubmission of rejected protocols.
     Changes status from REJECTED to SUBMITTED with a reason.
     """
-    
+
     form_class = ProtocolResubmitForm
     template_name = "protocols/resubmit_form.html"
-    
+
     def get_protocol(self):
         """Get and validate protocol."""
         protocol = get_object_or_404(
             Protocol.objects.select_related("veterinarian__user"),
-            pk=self.kwargs["pk"]
+            pk=self.kwargs["pk"],
         )
-        
+
         # Validate protocol is in REJECTED status
         if protocol.status != Protocol.Status.REJECTED:
             raise ValueError("Solo se pueden reenviar protocolos rechazados")
-            
+
         return protocol
-    
+
     def get_context_data(self, **kwargs):
         """Add protocol to context."""
         context = super().get_context_data(**kwargs)
-        context['protocol'] = self.get_protocol()
+        context["protocol"] = self.get_protocol()
         return context
-    
+
     def form_valid(self, form):
         """Process resubmission with status change and logging."""
         try:
             protocol = self.get_protocol()
             reason = form.cleaned_data["reason"]
-            
+
             # Change status from REJECTED to SUBMITTED
             protocol.status = Protocol.Status.SUBMITTED
             protocol.save(update_fields=["status"])
-            
+
             # Log status change
             ProtocolStatusHistory.log_status_change(
                 protocol=protocol,
                 new_status=Protocol.Status.SUBMITTED,
                 changed_by=self.request.user,
-                description=f"Protocolo reenviado desde rechazado. Motivo: {reason}"
+                description=f"Protocolo reenviado desde rechazado. Motivo: {reason}",
             )
-            
+
             messages.success(
                 self.request,
-                f"Protocolo {protocol.temporary_code} reenviado exitosamente."
+                f"Protocolo {protocol.temporary_code} reenviado exitosamente.",
             )
-            
+
             return redirect("protocols:rejected_list")
-            
+
         except ValueError as e:
             messages.error(self.request, str(e))
             return redirect("protocols:rejected_list")
         except Exception as e:
-            logger.error(f"Error resubmitting protocol {self.kwargs['pk']}: {e}")
+            logger.error(
+                f"Error resubmitting protocol {self.kwargs['pk']}: {e}"
+            )
             messages.error(self.request, "Error interno del servidor")
             return redirect("protocols:rejected_list")

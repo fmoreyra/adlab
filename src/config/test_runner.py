@@ -46,10 +46,8 @@ class DockerTestRunner(DiscoverRunner):
 
         # Close all Django connections first
         for connection in connections.all():
-            try:
+            with contextlib.suppress(Exception):
                 connection.close()
-            except Exception:
-                pass
 
         # Force close any lingering connections
         self._force_close_connections()
@@ -65,8 +63,12 @@ class DockerTestRunner(DiscoverRunner):
             # If teardown fails due to lingering connections, that's OK
             # The database will be cleaned up on next test run
             if "being accessed by other users" in str(e):
-                print(f"Warning: Could not drop test database due to lingering connections: {e}")
-                print("This is harmless - the database will be cleaned up on the next test run.")
+                print(
+                    f"Warning: Could not drop test database due to lingering connections: {e}"
+                )
+                print(
+                    "This is harmless - the database will be cleaned up on the next test run."
+                )
             else:
                 raise
 
@@ -126,23 +128,21 @@ class DockerTestRunner(DiscoverRunner):
 
     def _terminate_all_db_connections(self, db_name):
         """Terminate all connections to a specific database."""
-        try:
-            import time
-            from django.db import connections
-            from django.conf import settings
+        import time
 
+        try:
             # Connect to postgres database (not the test database) to terminate connections
             # We need to use a different connection since we can't connect to a DB while terminating its connections
-            db_config = settings.DATABASES['default']
-            
+
             # Create a temporary connection to the postgres database
             from django.db import connection
-            original_db_name = connection.settings_dict['NAME']
-            
+
+            original_db_name = connection.settings_dict["NAME"]
+
             # Temporarily switch to postgres database
-            connection.settings_dict['NAME'] = 'postgres'
+            connection.settings_dict["NAME"] = "postgres"
             connection.close()  # Close existing connection
-            
+
             try:
                 with connection.cursor() as cursor:
                     # Terminate all connections to the test database
@@ -155,29 +155,36 @@ class DockerTestRunner(DiscoverRunner):
                     """,
                         [db_name],
                     )
-                    
+
                     terminated = cursor.fetchall()
                     count = sum(1 for row in terminated if row[0])
                     if count > 0:
-                        print(f"Terminated {count} connections to test database: {db_name}")
+                        print(
+                            f"Terminated {count} connections to test database: {db_name}"
+                        )
 
                     # Wait a bit for connections to close
                     time.sleep(1)
             finally:
                 # Restore original database name
-                connection.settings_dict['NAME'] = original_db_name
+                connection.settings_dict["NAME"] = original_db_name
                 connection.close()
 
         except Exception as e:
             # This is not critical - Django will handle cleanup
-            print(f"Note: Could not terminate all connections to {db_name}: {e}")
+            print(
+                f"Note: Could not terminate all connections to {db_name}: {e}"
+            )
 
     def _terminate_test_db_connections(self):
         """Terminate any lingering connections to the test database."""
         # Get the test database name
         test_db_name = None
         for alias, connection_config in connections.databases.items():
-            if "TEST" in connection_config and "NAME" in connection_config["TEST"]:
+            if (
+                "TEST" in connection_config
+                and "NAME" in connection_config["TEST"]
+            ):
                 test_db_name = connection_config["TEST"]["NAME"]
                 break
 
