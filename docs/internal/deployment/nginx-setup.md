@@ -1,11 +1,11 @@
 # Nginx Production Deployment Guide
 
 ## Overview
-This guide covers deploying nginx as a reverse proxy with SSL/TLS support for the Django application at `adlab.fmoreyra.com.ar`.
+This guide covers deploying nginx as a reverse proxy with SSL/TLS support for the Django application at `adlab.moreyra.com.ar`.
 
 ## Prerequisites
 - Django application already running on port 8000
-- Domain `adlab.fmoreyra.com.ar` DNS configured to point to your server
+- Domain `adlab.moreyra.com.ar` DNS configured to point to your server
 - Ports 80 and 443 open in firewall
 - Docker and docker-compose installed
 
@@ -17,8 +17,8 @@ Create or update your `.env` file on the server with these production settings:
 # Django Settings
 DEBUG=False
 SECRET_KEY=your-super-secret-key-here
-ALLOWED_HOSTS=adlab.fmoreyra.com.ar,.adlab.fmoreyra.com.ar
-CSRF_TRUSTED_ORIGINS=https://adlab.fmoreyra.com.ar
+ALLOWED_HOSTS=adlab.moreyra.com.ar,.adlab.moreyra.com.ar
+CSRF_TRUSTED_ORIGINS=https://adlab.moreyra.com.ar
 
 # Database
 POSTGRES_DB=adlab
@@ -38,8 +38,8 @@ EMAIL_HOST_USER=your-email@example.com
 EMAIL_HOST_PASSWORD=your-email-password
 EMAIL_USE_TLS=True
 EMAIL_USE_SSL=False
-DEFAULT_FROM_EMAIL=noreply@adlab.fmoreyra.com.ar
-SERVER_EMAIL=server@adlab.fmoreyra.com.ar
+DEFAULT_FROM_EMAIL=noreply@adlab.moreyra.com.ar
+SERVER_EMAIL=server@adlab.moreyra.com.ar
 
 # Docker Resource Limits (optional)
 DOCKER_NGINX_CPUS=0.5
@@ -66,7 +66,7 @@ docker compose -f compose.yaml -f compose.production.yaml --profile nginx up -d 
 
 ```bash
 # Replace with your actual email address
-./bin/init-letsencrypt.sh adlab.fmoreyra.com.ar your-email@example.com
+./bin/init-letsencrypt.sh adlab.moreyra.com.ar your-email@example.com
 ```
 
 ### 4. Enable Certbot Auto-Renewal
@@ -83,13 +83,13 @@ docker compose ps
 docker compose logs nginx
 
 # Test HTTP redirect
-curl -I http://adlab.fmoreyra.com.ar
+curl -I http://adlab.moreyra.com.ar
 
 # Test HTTPS
-curl -I https://adlab.fmoreyra.com.ar
+curl -I https://adlab.moreyra.com.ar
 
 # Test Django health check
-curl https://adlab.fmoreyra.com.ar/up
+curl https://adlab.moreyra.com.ar/up
 ```
 
 ## Security Features Enabled
@@ -153,16 +153,16 @@ docker compose -f compose.yaml -f compose.production.yaml start nginx
 - SSL renewal logs: `docker compose logs certbot`
 
 ### Health Checks
-- Nginx health: `curl -I https://adlab.fmoreyra.com.ar/up`
-- SSL rating: https://www.ssllabs.com/ssltest/analyze.html?d=adlab.fmoreyra.com.ar
+- Nginx health: `curl -I https://adlab.moreyra.com.ar/up`
+- SSL rating: https://www.ssllabs.com/ssltest/analyze.html?d=adlab.moreyra.com.ar
 
 ## Important Notes
 
-1. **DNS Configuration**: Ensure `adlab.fmoreyra.com.ar` A record points to your server IP before running SSL setup
+1. **DNS Configuration**: Ensure `adlab.moreyra.com.ar` A record points to your server IP before running SSL setup
 2. **Rate Limits**: Let's Encrypt has rate limits (5 failures/hour, 50 certificates/domain/week)
 3. **Certificate Renewal**: Automatic via certbot container running every 12 hours
 4. **Backup**: Always backup your database before major deployments
-5. **Testing**: Use Let's Encrypt staging environment for testing: `./bin/init-letsencrypt.sh adlab.fmoreyra.com.ar your-email@example.com 1`
+5. **Testing**: Use Let's Encrypt staging environment for testing: `./bin/init-letsencrypt.sh adlab.moreyra.com.ar your-email@example.com 1`
 
 ## Support
 

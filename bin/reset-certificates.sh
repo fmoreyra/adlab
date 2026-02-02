@@ -6,7 +6,7 @@
 #   ./bin/reset-certificates.sh check        # only show certificate status
 #   ./bin/reset-certificates.sh <domain> <email>
 #
-# Defaults: adlab.fmoreyra.com.ar, facundo@moreyra.com.ar
+# Defaults: adlab.moreyra.com.ar, facundo@moreyra.com.ar
 # Run from project root on the server: cd /opt/laboratory-system
 # Requires: Docker, domain pointing to this server, port 80 open.
 
@@ -24,7 +24,7 @@ if [[ "$COMMAND" == "check" ]]; then
   exit 0
 fi
 
-DOMAIN="${1:-adlab.fmoreyra.com.ar}"
+DOMAIN="${1:-adlab.moreyra.com.ar}"
 EMAIL="${2:-facundo@moreyra.com.ar}"
 
 echo -e "${YELLOW}### Certificate reset for $DOMAIN${NC}"
