@@ -33,18 +33,23 @@ echo -e "${YELLOW}### Certificate reset for $DOMAIN${NC}"
 echo -e "${YELLOW}### Current certificate status:${NC}"
 docker compose -f compose.yaml -f compose.production.yaml run --rm --entrypoint "certbot certificates" certbot 2>/dev/null || true
 
-# 2. Remove existing cert/archive for this domain (fixes "archive directory exists" errors)
+# 2. Remove existing cert/archive for this domain (fixes corrupted config and "archive directory exists")
+#    Use rm -rf so we don't rely on "certbot delete" (fails when renewal config is broken)
 echo -e "${YELLOW}### Removing existing certificate data for $DOMAIN (if any)...${NC}"
-docker compose -f compose.yaml -f compose.production.yaml run --rm --entrypoint "certbot delete --cert-name $DOMAIN --non-interactive" certbot 2>/dev/null || true
+rm -rf "certbot/conf/live/${DOMAIN}" "certbot/conf/archive/${DOMAIN}" "certbot/conf/renewal/${DOMAIN}.conf"
 
 # 3. Request new certificate via webroot (Nginx must be up to serve ACME challenge)
+#    Do not run if previous steps failed (set -e will have exited)
 echo -e "${YELLOW}### Requesting certificate (webroot)...${NC}"
-docker compose -f compose.yaml -f compose.production.yaml run --rm --entrypoint "\
+if ! docker compose -f compose.yaml -f compose.production.yaml run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
     --email $EMAIL \
     --agree-tos \
     --no-eff-email \
-    -d $DOMAIN" certbot
+    -d $DOMAIN" certbot; then
+  echo -e "${RED}### Certificate request failed. Not reloading Nginx. Fix errors above and re-run.${NC}" >&2
+  exit 1
+fi
 
 # 4. Reload Nginx to use new certs (container name: laboratory-nginx)
 echo -e "${YELLOW}### Reloading Nginx...${NC}"
