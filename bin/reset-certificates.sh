@@ -43,9 +43,9 @@ docker compose -f compose.yaml -f compose.production.yaml run --rm --entrypoint 
     --force-renewal \
     -d $DOMAIN" certbot
 
-# 3. Reload Nginx to use new certs
+# 3. Reload Nginx to use new certs (container name: laboratory-nginx)
 echo -e "${YELLOW}### Reloading Nginx...${NC}"
-docker compose -f compose.yaml -f compose.production.yaml exec nginx nginx -s reload
+docker exec laboratory-nginx nginx -s reload
 
 echo -e "${GREEN}### Certificates renewed. Check: https://$DOMAIN${NC}"
 echo -e "${YELLOW}If renewal failed (e.g. Nginx not running), run full init: ./bin/init-letsencrypt.sh $DOMAIN $EMAIL${NC}"

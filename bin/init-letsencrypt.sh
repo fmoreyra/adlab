@@ -82,9 +82,9 @@ docker compose -f compose.yaml -f compose.production.yaml run --rm --entrypoint 
     --force-renewal \
     -d $DOMAIN" certbot
 
-# Reload Nginx
+# Reload Nginx (container name: laboratory-nginx)
 echo -e "${YELLOW}### Reloading Nginx...${NC}"
-docker compose -f compose.yaml -f compose.production.yaml exec nginx nginx -s reload
+docker exec laboratory-nginx nginx -s reload
 
 echo -e "${GREEN}### SSL certificate successfully obtained!${NC}"
 echo -e "${GREEN}### Your site should now be accessible at https://$DOMAIN${NC}"
