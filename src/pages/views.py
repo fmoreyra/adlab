@@ -67,10 +67,6 @@ class DashboardView(LoginRequiredMixin, View):
             return VeterinarianDashboardView.as_view()(
                 request, *args, **kwargs
             )
-        elif user.is_histopathologist:
-            return HistopathologistDashboardView.as_view()(
-                request, *args, **kwargs
-            )
         elif user.is_lab_staff:
             return LabStaffDashboardView.as_view()(request, *args, **kwargs)
         elif user.is_admin_user:
@@ -159,17 +155,30 @@ class VeterinarianDashboardView(LoginRequiredMixin, TemplateView):
 class LabStaffDashboardView(LoginRequiredMixin, TemplateView):
     """
     Dashboard for laboratory staff showing processing queue and statistics.
+
+    For staff with can_create_reports=True, also shows report-related information.
     """
 
     template_name = "pages/dashboard_lab_staff.html"
 
     def get(self, request, *args, **kwargs):
         """Handle GET request with permission checks."""
-        user = request.user
+        user = self.request.user
 
         # Early return if not lab staff
         if not user.is_lab_staff:
             return redirect("pages:dashboard")
+
+        # Check if user has laboratory staff profile and get permissions
+        self.laboratory_staff = user.lab_staff_profile
+        if self.laboratory_staff:
+            self.can_create_reports = (
+                self.laboratory_staff.can_create_reports
+                and self.laboratory_staff.is_active
+            )
+        else:
+            # User is lab staff but has no profile - default to no report creation
+            self.can_create_reports = False
 
         return super().get(request, *args, **kwargs)
 
@@ -178,7 +187,7 @@ class LabStaffDashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Get statistics
+        # Get basic lab staff statistics
         pending_reception = Protocol.objects.filter(
             status=Protocol.Status.SUBMITTED
         ).count()
@@ -209,6 +218,7 @@ class LabStaffDashboardView(LoginRequiredMixin, TemplateView):
         context.update(
             {
                 "user": user,
+                "can_create_reports": self.can_create_reports,
                 "pending_reception_count": pending_reception,
                 "processing_count": processing_count,
                 "today_received_count": today_received,
@@ -216,109 +226,81 @@ class LabStaffDashboardView(LoginRequiredMixin, TemplateView):
             }
         )
 
-        return context
+        # Add report-related data if user can create reports
+        if self.can_create_reports:
+            from django.core.cache import cache
 
+            from protocols.models import Report
 
-class HistopathologistDashboardView(LoginRequiredMixin, TemplateView):
-    """
-    Dashboard for histopathologists showing pending reports and statistics.
-    """
+            # Cache report dashboard data for 2 minutes
+            cache_key = f"lab_staff_reports_dashboard_{user.id}"
+            report_data = cache.get(cache_key)
 
-    template_name = "pages/dashboard_histopathologist.html"
+            if report_data is None:
+                # Get report statistics
+                now = timezone.now()
+                month_start = now.replace(
+                    day=1, hour=0, minute=0, second=0, microsecond=0
+                )
 
-    def get(self, request, *args, **kwargs):
-        """Handle GET request with permission checks."""
-        user = request.user
-
-        # Early return if not histopathologist
-        if not user.is_histopathologist:
-            return redirect("pages:dashboard")
-
-        # Check if histopathologist profile exists
-        try:
-            self.histopathologist = user.histopathologist_profile
-        except user.histopathologist_profile.RelatedObjectDoesNotExist:
-            # User is marked as histopathologist but has no profile - redirect to dashboard
-            return redirect("pages:dashboard")
-
-        return super().get(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        """Add histopathologist-specific context data - OPTIMIZED VERSION."""
-        from django.core.cache import cache
-
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-
-        # Cache dashboard data for 2 minutes
-        cache_key = f"histopathologist_dashboard_{user.id}"
-        dashboard_data = cache.get(cache_key)
-
-        if dashboard_data is None:
-            # OPTIMIZED: Single query to get all statistics
-            now = timezone.now()
-            month_start = now.replace(
-                day=1, hour=0, minute=0, second=0, microsecond=0
-            )
-
-            # Get all statistics in one query using aggregation
-            stats = Report.objects.aggregate(
-                pending_count=Count(
-                    "id", filter=Q(status=Report.Status.DRAFT)
-                ),
-                monthly_count=Count(
-                    "id",
-                    filter=Q(
-                        status=Report.Status.FINALIZED,
-                        updated_at__gte=month_start,
+                # Get all statistics in one query using aggregation
+                stats = Report.objects.aggregate(
+                    pending_count=Count(
+                        "id", filter=Q(status=Report.Status.DRAFT)
                     ),
-                ),
-                avg_tat=Avg(
-                    Case(
-                        When(
+                    monthly_count=Count(
+                        "id",
+                        filter=Q(
                             status=Report.Status.FINALIZED,
-                            protocol__reception_date__isnull=False,
-                            then=Extract(
-                                F("updated_at")
-                                - F("protocol__reception_date"),
-                                "days",
-                            ),
+                            updated_at__gte=month_start,
                         ),
-                        default=None,
-                        output_field=IntegerField(),
-                    )
-                ),
+                    ),
+                    avg_tat=Avg(
+                        Case(
+                            When(
+                                status=Report.Status.FINALIZED,
+                                protocol__reception_date__isnull=False,
+                                then=Extract(
+                                    F("updated_at")
+                                    - F("protocol__reception_date"),
+                                    "days",
+                                ),
+                            ),
+                            default=None,
+                            output_field=IntegerField(),
+                        )
+                    ),
+                )
+
+                # Get pending reports list
+                pending_reports_list = (
+                    Report.objects.filter(status=Report.Status.DRAFT)
+                    .select_related("protocol__veterinarian")
+                    .order_by("created_at")[:10]
+                )
+
+                report_data = {
+                    "pending_reports_count": stats["pending_count"] or 0,
+                    "monthly_reports_count": stats["monthly_count"] or 0,
+                    "avg_report_time": round(stats["avg_tat"] or 0, 1),
+                    "pending_reports_list": list(pending_reports_list),
+                }
+
+                cache.set(cache_key, report_data, 120)  # Cache for 2 minutes
+
+            # Add report data to context
+            context.update(
+                {
+                    "pending_reports_count": report_data[
+                        "pending_reports_count"
+                    ],
+                    "monthly_reports_count": report_data[
+                        "monthly_reports_count"
+                    ],
+                    "avg_report_time": report_data["avg_report_time"],
+                    "pending_reports": report_data["pending_reports_list"],
+                }
             )
-
-            # Get pending reports list
-            pending_reports_list = (
-                Report.objects.filter(status=Report.Status.DRAFT)
-                .select_related("protocol__veterinarian")
-                .order_by("created_at")[:10]
-            )
-
-            dashboard_data = {
-                "pending_reports_count": stats["pending_count"] or 0,
-                "monthly_reports_count": stats["monthly_count"] or 0,
-                "avg_report_time": round(stats["avg_tat"] or 0, 1),
-                "pending_reports_list": list(pending_reports_list),
-            }
-
-            cache.set(cache_key, dashboard_data, 120)  # Cache for 2 minutes
-
-        context.update(
-            {
-                "user": user,
-                "pending_reports_count": dashboard_data[
-                    "pending_reports_count"
-                ],
-                "monthly_reports_count": dashboard_data[
-                    "monthly_reports_count"
-                ],
-                "avg_report_time": dashboard_data["avg_report_time"],
-                "pending_reports": dashboard_data["pending_reports_list"],
-            }
-        )
 
         return context
 
@@ -444,9 +426,7 @@ class ManagementDashboardView(LoginRequiredMixin, TemplateView):
         user = request.user
 
         # Early return if not management user
-        if not (
-            user.is_lab_staff or user.is_histopathologist or user.is_admin_user
-        ):
+        if not (user.is_lab_staff or user.is_admin_user):
             return redirect("pages:dashboard")
 
         return super().get(request, *args, **kwargs)

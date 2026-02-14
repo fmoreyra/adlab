@@ -240,16 +240,21 @@ Get current authenticated user information.
 
 ### Role-Based Access Control (RBAC)
 - **Veterinario**: Can submit protocols, view their own cases
-- **Personal de Laboratorio**: Can receive samples, process samples, view all protocols
-- **Histopatólogo**: All laboratory staff permissions + create reports
+- **Personal de Laboratorio**: Can receive samples, process samples, view all protocols + create reports (with permission)
 - **Administrador**: Full system access including user management
 
-### Histopathologist Authentication Flow
-- **Separate Login Page**: `/accounts/histopathologist/login/` - dedicated login page without registration link
-- **Admin Creation**: Only administrators can create histopathologist accounts via `/accounts/histopathologist/create/`
-- **Complete Profile Creation**: Single form creates both User account and Histopathologist profile
-- **Internal User Setup**: Histopathologists are created with `is_active=True`, `email_verified=True`, `is_staff=True`
-- **Audit Logging**: All histopathologist creation events logged with `USER_CREATED` action
+**Note**: Step-16 consolidates PERSONAL_LAB and HISTOPATOLOGO roles into unified PERSONAL_LAB role with granular report creation permissions.
+
+### Laboratory Staff Authentication Flow
+- **Separate Login Pages**: 
+  - `/accounts/login/` - General login (for veterinarians)
+  - `/accounts/histopathologist/login/` - Dedicated login (will be removed after Step-16)
+- **Admin Creation**: Only administrators can create laboratory staff accounts
+- **Complete Profile Creation**: Single forms create User account + respective profiles
+- **Internal User Setup**: Laboratory staff created with `is_active=True`, `email_verified=True`, `is_staff=True`
+- **Audit Logging**: All user creation events logged with `USER_CREATED` action
+
+**Post-Step-16 State**: After Step-16 implementation, all laboratory staff will use unified authentication and role structure.
 
 ## Acceptance Criteria
 
@@ -265,8 +270,9 @@ Get current authenticated user information.
 10. ✅ Different user roles have appropriate access levels
 11. ✅ All authentication events are logged in audit table
 12. ✅ Session timeout works correctly
-13. ✅ Histopathologists have dedicated login page without registration link
-14. ✅ Administrators can create complete histopathologist accounts (User + Profile)
+13. ✅ Histopathologists have dedicated login page without registration link (pre-Step-16)
+14. ✅ Administrators can create complete histopathologist accounts (User + Profile) (pre-Step-16)
+15. ✅ [Step-16] Laboratory staff role consolidation implemented with unified permissions
 15. ✅ Histopathologist creation is properly audited and logged
 16. ✅ Main webpage pathologist button uses dedicated login URL
 

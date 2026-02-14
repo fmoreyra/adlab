@@ -17,11 +17,6 @@ urlpatterns = [
         name="dashboard_lab_staff",
     ),
     path(
-        "dashboard/histopathologist/",
-        views.HistopathologistDashboardView.as_view(),
-        name="dashboard_histopathologist",
-    ),
-    path(
         "dashboard/admin/",
         views.AdminDashboardView.as_view(),
         name="dashboard_admin",

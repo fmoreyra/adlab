@@ -39,6 +39,7 @@ class UserModelTest(TestCase):
         """Test user role property methods."""
         self.assertTrue(self.user.is_veterinarian)
         self.assertFalse(self.user.is_lab_staff)
+        # is_histopathologist exists for backward compatibility (checks HISTOPATOLOGO role)
         self.assertFalse(self.user.is_histopathologist)
         self.assertFalse(self.user.is_admin_user)
 
@@ -70,6 +71,67 @@ class UserModelTest(TestCase):
             password="testpass123",
         )
         self.assertEqual(user_no_name.get_full_name(), "noname@example.com")
+
+    def test_step16_role_structure(self):
+        """Test role structure changes from Step 16."""
+        # HISTOPATOLOGO role is preserved for backward compatibility
+        self.assertTrue(hasattr(User.Role, "HISTOPATOLOGO"))
+
+        # Test that remaining roles still exist
+        self.assertTrue(hasattr(User.Role, "VETERINARIO"))
+        self.assertTrue(hasattr(User.Role, "PERSONAL_LAB"))
+        self.assertTrue(hasattr(User.Role, "ADMIN"))
+
+    def test_lab_staff_properties(self):
+        """Test lab staff user properties."""
+        # Create lab staff user
+        lab_user = User.objects.create_user(
+            email="lab@example.com",
+            username="labuser",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+        )
+
+        self.assertTrue(lab_user.is_lab_staff)
+        self.assertFalse(lab_user.is_veterinarian)
+        self.assertFalse(lab_user.is_admin_user)
+
+    def test_admin_properties(self):
+        """Test admin user properties."""
+        # Create admin user
+        admin_user = User.objects.create_user(
+            email="admin@example.com",
+            username="adminuser",
+            password="testpass123",
+            role=User.Role.ADMIN,
+        )
+
+        self.assertTrue(admin_user.is_admin_user)
+        self.assertTrue(admin_user.is_lab_staff)  # Admin is also lab staff
+        self.assertFalse(admin_user.is_veterinarian)
+
+    def test_can_login_behavior(self):
+        """Test login behavior for different user types."""
+        # Lab staff should be able to login without verification
+        lab_user = User.objects.create_user(
+            email="lab@example.com",
+            username="labuser",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+            is_active=True,
+        )
+        self.assertTrue(lab_user.can_login())
+
+        # Vet needs verification to login
+        vet_user = User.objects.create_user(
+            email="vet@example.com",
+            username="vetuser",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+            is_active=True,
+            email_verified=False,
+        )
+        self.assertFalse(vet_user.can_login())
 
 
 class LoginViewTest(TestCase):

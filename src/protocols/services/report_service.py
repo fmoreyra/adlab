@@ -6,7 +6,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -32,7 +32,7 @@ class ReportGenerationService:
     def create_report(
         self,
         protocol: Protocol,
-        histopathologist: User,
+        laboratory_staff: User,
         form_data: Optional[Dict] = None,
     ) -> Tuple[bool, Optional[Report], str]:
         """
@@ -40,7 +40,7 @@ class ReportGenerationService:
 
         Args:
             protocol: Protocol instance
-            histopathologist: User creating the report
+            laboratory_staff: User creating the report
             form_data: Optional form data to populate report fields
 
         Returns:
@@ -56,24 +56,24 @@ class ReportGenerationService:
 
             with transaction.atomic():
                 # Create basic report first
-                # Use histopathologist ID if it's an object, otherwise use as-is
-                histopathologist_id = (
-                    histopathologist.id
-                    if hasattr(histopathologist, "id")
-                    else histopathologist
+                # Use laboratory_staff ID if it's an object, otherwise use as-is
+                laboratory_staff_id = (
+                    laboratory_staff.id
+                    if hasattr(laboratory_staff, "id")
+                    else laboratory_staff
                 )
 
                 report = Report.objects.create(
                     protocol=protocol,
                     veterinarian=protocol.veterinarian,
-                    histopathologist_id=histopathologist_id,
+                    laboratory_staff_id=laboratory_staff_id,
                     status=Report.Status.DRAFT,
                     version=1,
                 )
 
                 # Update with form data if provided
                 if form_data:
-                    # Update form fields (skip histopathologist for now)
+                    # Update form fields (skip laboratory_staff for now)
                     for field in [
                         "macroscopic_observations",
                         "microscopic_observations",
@@ -91,7 +91,7 @@ class ReportGenerationService:
                 ProtocolStatusHistory.log_status_change(
                     protocol=protocol,
                     new_status=Protocol.Status.PROCESSING,
-                    changed_by=histopathologist.user,
+                    changed_by=laboratory_staff.user,
                     description="Report created",
                 )
 
@@ -342,9 +342,13 @@ class ReportGenerationService:
                     "license": report.veterinarian.license_number,
                     "email": report.veterinarian.email,
                 },
-                "histopathologist": {
-                    "name": report.histopathologist.get_formal_name(),
-                    "license": report.histopathologist.license_number,
+                "laboratory_staff": {
+                    "name": report.laboratory_staff.get_formal_name()
+                    if report.laboratory_staff
+                    else report.histopathologist.get_formal_name(),
+                    "license": report.laboratory_staff.license_number
+                    if report.laboratory_staff
+                    else report.histopathologist.license_number,
                 },
                 "patient": {
                     "species": report.protocol.species,
@@ -456,21 +460,24 @@ class ReportGenerationService:
 
         return len(errors) == 0, errors
 
-    def get_reports_for_histopathologist(
-        self, histopathologist: User, status_filter: Optional[str] = None
+    def get_reports_for_laboratory_staff(
+        self, laboratory_staff: User, status_filter: Optional[str] = None
     ) -> List[Report]:
         """
-        Get reports assigned to a specific histopathologist.
+        Get reports assigned to a specific laboratory staff member.
 
         Args:
-            histopathologist: User instance
+            laboratory_staff: User instance
             status_filter: Optional status filter
 
         Returns:
             List of Report instances
         """
         queryset = (
-            Report.objects.filter(histopathologist=histopathologist)
+            Report.objects.filter(
+                models.Q(laboratory_staff=laboratory_staff)
+                | models.Q(histopathologist=laboratory_staff)
+            )
             .select_related(
                 "protocol__veterinarian__user", "veterinarian__user"
             )
@@ -497,7 +504,7 @@ class ReportGenerationService:
         """
         queryset = (
             Report.objects.filter(veterinarian=veterinarian)
-            .select_related("protocol", "histopathologist")
+            .select_related("protocol", "laboratory_staff")
             .order_by("-created_at")
         )
 

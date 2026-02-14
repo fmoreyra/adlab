@@ -261,6 +261,18 @@ class ReportViewsTest(TestCase):
             is_active=True,
         )
 
+        # Also create LaboratoryStaff profile for unified report creation
+        from accounts.models import LaboratoryStaff
+
+        self.staff_lab = LaboratoryStaff.objects.create(
+            user=staff_user,
+            first_name="Ana",
+            last_name="López",
+            license_number="LAB-MV-99999",
+            can_create_reports=True,
+            is_active=True,
+        )
+
         # Create protocol
         self.protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
@@ -303,7 +315,7 @@ class ReportViewsTest(TestCase):
         self.client.login(username="staff@test.com", password="testpass123")
         url = reverse("protocols:report_create", args=[self.protocol.pk])
         data = {
-            "histopathologist": self.staff_histopathologist.pk,
+            "laboratory_staff": self.staff_lab.pk,
             "macroscopic_observations": "Masa de 3x2cm",
             "microscopic_observations": "Proliferación neoplásica",
             "diagnosis": "Carcinoma de células escamosas",

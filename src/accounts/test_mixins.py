@@ -11,7 +11,6 @@ from django.utils import timezone
 
 from accounts.mixins import (
     AdminRequiredMixin,
-    HistopathologistRequiredMixin,
     ProtocolOwnerOrStaffMixin,
     ReportAccessMixin,
     StaffRequiredMixin,
@@ -41,12 +40,19 @@ class StaffRequiredMixinTest(TestCase):
         self.factory = RequestFactory()
 
         # Create test users
-        self.staff_user = User.objects.create_user(
+        self.lab_staff_user = User.objects.create_user(
             email="staff@example.com",
             username="staff",
             password="testpass123",
             role=User.Role.PERSONAL_LAB,
             is_staff=True,
+        )
+
+        self.admin_user = User.objects.create_user(
+            email="admin@example.com",
+            username="admin",
+            password="testpass123",
+            role=User.Role.ADMIN,
         )
 
         self.vet_user = User.objects.create_user(
@@ -57,10 +63,20 @@ class StaffRequiredMixinTest(TestCase):
             is_staff=False,
         )
 
-    def test_staff_user_passes_test(self):
-        """Test that staff user passes the test."""
+    def test_lab_staff_user_passes_test(self):
+        """Test that lab staff user passes the test."""
         request = self.factory.get("/")
-        request.user = self.staff_user
+        request.user = self.lab_staff_user
+
+        mixin = StaffRequiredMixin()
+        mixin.request = request
+
+        self.assertTrue(mixin.test_func())
+
+    def test_admin_user_passes_test(self):
+        """Test that admin user passes the test."""
+        request = self.factory.get("/")
+        request.user = self.admin_user
 
         mixin = StaffRequiredMixin()
         mixin.request = request
@@ -122,48 +138,6 @@ class VeterinarianRequiredMixinTest(TestCase):
         request.user = self.staff_user
 
         mixin = VeterinarianRequiredMixin()
-        mixin.request = request
-
-        self.assertFalse(mixin.test_func())
-
-
-class HistopathologistRequiredMixinTest(TestCase):
-    """Test HistopathologistRequiredMixin functionality."""
-
-    def setUp(self):
-        """Set up test data."""
-        self.factory = RequestFactory()
-
-        self.histopathologist_user = User.objects.create_user(
-            email="histo@example.com",
-            username="histo",
-            password="testpass123",
-            role=User.Role.HISTOPATOLOGO,
-        )
-
-        self.vet_user = User.objects.create_user(
-            email="vet@example.com",
-            username="vet",
-            password="testpass123",
-            role=User.Role.VETERINARIO,
-        )
-
-    def test_histopathologist_user_passes_test(self):
-        """Test that histopathologist user passes the test."""
-        request = self.factory.get("/")
-        request.user = self.histopathologist_user
-
-        mixin = HistopathologistRequiredMixin()
-        mixin.request = request
-
-        self.assertTrue(mixin.test_func())
-
-    def test_non_histopathologist_user_fails_test(self):
-        """Test that non-histopathologist user fails the test."""
-        request = self.factory.get("/")
-        request.user = self.vet_user
-
-        mixin = HistopathologistRequiredMixin()
         mixin.request = request
 
         self.assertFalse(mixin.test_func())

@@ -375,15 +375,19 @@ class PDFGenerationService:
 
         # Signature
         elements.append(Spacer(1, 0.5 * inch))
-        histopath = report.histopathologist
+        signer = (
+            report.laboratory_staff
+            if report.laboratory_staff
+            else report.histopathologist
+        )
 
         # Add signature image if available
-        if histopath.signature_image and os.path.exists(
-            histopath.signature_image.path
+        if signer.signature_image and os.path.exists(
+            signer.signature_image.path
         ):
             try:
                 sig_img = Image(
-                    histopath.signature_image.path,
+                    signer.signature_image.path,
                     width=2 * inch,
                     height=1 * inch,
                 )
@@ -392,11 +396,11 @@ class PDFGenerationService:
                 logger.warning(f"Could not load signature image: {e}")
 
         signature_data = [
-            [histopath.get_formal_name()],
-            [f"Mat. {histopath.license_number}"],
+            [signer.get_formal_name()],
+            [f"Mat. {signer.license_number}"],
         ]
-        if histopath.position:
-            signature_data.append([histopath.position])
+        if signer.position:
+            signature_data.append([signer.position])
 
         signature_table = Table(signature_data, colWidths=[4 * inch])
         signature_table.setStyle(

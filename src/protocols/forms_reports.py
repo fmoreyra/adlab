@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 
-from accounts.models import Histopathologist
+from accounts.models import LaboratoryStaff
 from protocols.models import Cassette, CassetteObservation, Protocol, Report
 
 
@@ -33,7 +33,7 @@ class ReportCreateForm(forms.ModelForm):
     class Meta:
         model = Report
         fields = [
-            "histopathologist",
+            "laboratory_staff",
             "macroscopic_observations",
             "microscopic_observations",
             "diagnosis",
@@ -41,7 +41,7 @@ class ReportCreateForm(forms.ModelForm):
             "recommendations",
         ]
         widgets = {
-            "histopathologist": forms.Select(attrs={"class": "form-control"}),
+            "laboratory_staff": forms.Select(attrs={"class": "form-control"}),
             "macroscopic_observations": forms.Textarea(
                 attrs={
                     "class": "form-control",
@@ -89,7 +89,7 @@ class ReportCreateForm(forms.ModelForm):
             ),
         }
         labels = {
-            "histopathologist": _("Histopatólogo"),
+            "laboratory_staff": _("Personal de Laboratorio"),
             "macroscopic_observations": _("Observaciones Macroscópicas"),
             "microscopic_observations": _("Observaciones Microscópicas"),
             "diagnosis": _("Diagnóstico"),
@@ -101,10 +101,12 @@ class ReportCreateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.protocol = protocol
 
-        # Only show active histopathologists
+        # Only show active laboratory staff with report creation permission
         self.fields[
-            "histopathologist"
-        ].queryset = Histopathologist.objects.filter(is_active=True)
+            "laboratory_staff"
+        ].queryset = LaboratoryStaff.objects.filter(
+            is_active=True, can_create_reports=True
+        )
 
         # Set protocol veterinarian if creating new report
         if protocol and not self.instance.pk:

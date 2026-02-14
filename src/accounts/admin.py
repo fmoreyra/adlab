@@ -10,6 +10,7 @@ from .models import (
     Address,
     AuthAuditLog,
     Histopathologist,
+    LaboratoryStaff,
     PasswordResetToken,
     User,
     Veterinarian,
@@ -581,6 +582,115 @@ class VeterinarianChangeLogAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         """Audit logs are immutable - no deletion allowed."""
         return False
+
+
+# ============================================================================
+# LABORATORY STAFF ADMIN
+# ============================================================================
+
+
+@admin.register(LaboratoryStaff)
+class LaboratoryStaffAdmin(admin.ModelAdmin):
+    """Admin for laboratory staff profiles with unified management."""
+
+    list_display = [
+        "license_number",
+        "last_name",
+        "first_name",
+        "position",
+        "is_active",
+        "can_create_reports",
+        "has_signature_display",
+        "created_at",
+    ]
+    list_filter = ["is_active", "can_create_reports", "created_at"]
+    search_fields = [
+        "license_number",
+        "last_name",
+        "first_name",
+        "user__email",
+    ]
+    readonly_fields = ["created_at", "updated_at", "has_signature_display"]
+    ordering = ["last_name", "first_name"]
+
+    fieldsets = (
+        (
+            _("User Account"),
+            {
+                "fields": ("user",),
+            },
+        ),
+        (
+            _("Professional Information"),
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "license_number",
+                    "position",
+                    "specialty",
+                    "phone_number",
+                ),
+            },
+        ),
+        (
+            _("Permissions"),
+            {
+                "fields": (
+                    "is_active",
+                    "can_create_reports",
+                ),
+                "description": _(
+                    "Control which staff members can create and sign reports"
+                ),
+            },
+        ),
+        (
+            _("Signature"),
+            {
+                "fields": (
+                    "signature_image",
+                    "has_signature_display",
+                ),
+            },
+        ),
+        (
+            _("Timestamps"),
+            {
+                "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+    actions = ["enable_report_creation", "disable_report_creation"]
+
+    def has_signature_display(self, obj):
+        """Display if staff member has uploaded signature."""
+        return obj.has_signature()
+
+    has_signature_display.short_description = _("Has Signature")
+    has_signature_display.boolean = True
+
+    def enable_report_creation(self, request, queryset):
+        """Enable report creation for selected staff members."""
+        updated = queryset.update(can_create_reports=True)
+        self.message_user(
+            request,
+            f"Successfully enabled report creation for {updated} staff member(s).",
+        )
+
+    enable_report_creation.short_description = "Enable report creation"
+
+    def disable_report_creation(self, request, queryset):
+        """Disable report creation for selected staff members."""
+        updated = queryset.update(can_create_reports=False)
+        self.message_user(
+            request,
+            f"Successfully disabled report creation for {updated} staff member(s).",
+        )
+
+    disable_report_creation.short_description = "Disable report creation"
 
 
 # ============================================================================

@@ -66,17 +66,22 @@ The system needs **role-specific dashboards** that serve as central hubs where u
 
 **Dashboard Focus**: Operational workflow with processing status
 
-### 3. Histopatólogo (Histopathologist)
-**Primary Workflow**: Review cases → Generate reports → Sign documents
+### 3. Personal de Laboratorio (Laboratory Staff)
+**Primary Workflow**: Receive samples → Process samples → Generate reports → Sign documents
 
 **Available Features**:
-- ✅ **Report Generation**: Create and finalize diagnostic reports
+- ✅ **Sample Reception**: Confirm receipt and assign protocol numbers
+- ✅ **Processing Management**: Track cassettes and slides through stages
+- ✅ **Report Generation**: Create and finalize diagnostic reports (with permission)
 - ✅ **Case Review**: Access complete case information and samples
 - ✅ **Digital Signatures**: Sign reports and work orders
-- ✅ **Report Management**: Edit, finalize, and send reports
-- ✅ **Quality Control**: Review and approve processing quality
+- ✅ **Report Management**: Edit, finalize, and send reports (with permission)
+- ✅ **Quality Control**: Review and approve processing quality (with permission)
+- ✅ **Work Orders**: Generate and manage billing documents
 
-**Dashboard Focus**: Clinical workflow with report generation
+**Dashboard Focus**: Unified laboratory workflow with permission-based access to reporting functions
+
+**Note**: Step-16 consolidates Histopathologist functionality into Laboratory Staff role with granular permissions for report creation.
 
 ### 4. Administrador (Administrator)
 **Primary Workflow**: System management → User administration → Configuration

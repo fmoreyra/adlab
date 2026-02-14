@@ -15,7 +15,7 @@ def role_required(*roles):
         def my_view(request):
             ...
 
-        @role_required(User.Role.PERSONAL_LAB, User.Role.HISTOPATOLOGO)
+        @role_required(User.Role.PERSONAL_LAB)
         def another_view(request):
             ...
     """
@@ -40,14 +40,7 @@ def veterinarian_required(view_func):
 
 def lab_staff_required(view_func):
     """Decorator to restrict access to laboratory staff only."""
-    return role_required(User.Role.PERSONAL_LAB, User.Role.HISTOPATOLOGO)(
-        view_func
-    )
-
-
-def histopathologist_required(view_func):
-    """Decorator to restrict access to histopathologists only."""
-    return role_required(User.Role.HISTOPATOLOGO)(view_func)
+    return role_required(User.Role.PERSONAL_LAB)(view_func)
 
 
 def admin_required(view_func):

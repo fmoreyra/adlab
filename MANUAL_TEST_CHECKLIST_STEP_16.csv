@@ -1,0 +1,129 @@
+Test ID,Step,Feature Area,Test Scenario,Test Steps,Expected Result,Status,Tester,Date,Notes
+S16-001,Step 16,Registration,Create new LaboratoryStaff user,"1. Go to Django admin /admin/accounts/laboratorystaff/add/
+2. Select or create a user with role PERSONAL_LAB
+3. Fill first name: Juan
+4. Fill last name: Pérez
+5. Fill license number: LAB-MP-12345
+6. Fill position: Técnico Laboratorio
+7. Fill specialty: Patología Veterinaria
+8. Check 'can_create_reports'
+9. Check 'is_active'
+10. Click 'Save'","- LaboratoryStaff created successfully
+- Profile linked to user
+- can_create_reports enabled",,,
+S16-002,Step 16,Registration,Create LaboratoryStaff without report permissions,"1. Go to Django admin /admin/accounts/laboratorystaff/add/
+2. Select a user with role PERSONAL_LAB
+3. Fill required fields
+4. Uncheck 'can_create_reports'
+5. Click 'Save'","- LaboratoryStaff created with can_create_reports=False
+- User cannot create reports",,,
+S16-003,Step 16,Dashboard,Lab staff accesses unified dashboard,"1. Login as user with LaboratoryStaff profile
+2. Navigate to /dashboard/
+3. Observe dashboard","- Unified dashboard loads
+- Shows reception pending count
+- Shows appropriate menu options",,,
+S16-004,Step 16,Dashboard,Admin accesses unified dashboard,"1. Login as admin user
+2. Navigate to /dashboard/
+3. Observe dashboard","- Unified dashboard loads
+- Shows same view as lab staff",,,
+S16-005,Step 16,Dashboard,Veterinarian accesses dashboard,"1. Login as veterinarian
+2. Navigate to /dashboard/
+3. Observe dashboard","- Dashboard loads with veterinarian view
+- Shows their protocols only",,,
+S16-006,Step 16,Report Creation,Create report with LaboratoryStaff,"1. Login as LaboratoryStaff with can_create_reports=True
+2. Navigate to /protocols/reception/pending/
+3. Select a protocol ready for report
+4. Click 'Crear Informe'
+5. Fill report form with laboratory_staff selection
+6. Submit form","- Report created successfully
+- laboratory_staff field populated
+- Redirected to report edit page",,,
+S16-007,Step 16,Report Creation,Create report without permissions,"1. Login as LaboratoryStaff with can_create_reports=False
+2. Navigate to /protocols/reception/pending/
+3. Try to create report","- Permission denied or form doesn't show user in selection",,,
+S16-008,Step 16,Report Creation,Create report with legacy Histopathologist,"1. Login as user with Histopathologist profile (legacy)
+2. Navigate to protocol ready for report
+3. Try to create report","- Report can still be created using legacy profile
+- Works for backward compatibility",,,
+S16-009,Step 16,PDF Generation,Generate PDF with LaboratoryStaff signature,"1. Create and finalize a report with LaboratoryStaff
+2. Navigate to report detail
+3. Click 'Generar PDF'
+4. Download PDF","- PDF generated with LaboratoryStaff name and license
+- Signature image included if uploaded",,,
+S16-010,Step 16,PDF Generation,Generate PDF with fallback to Histopathologist,"1. Create report with only histopathologist field (legacy)
+2. Generate PDF","- PDF shows histopathologist name/license
+- Works for backward compatibility",,,
+S16-011,Step 16,Admin,View LaboratoryStaff in admin,"1. Login as admin
+2. Navigate to /admin/accounts/laboratorystaff/
+3. View list","- All LaboratoryStaff profiles visible
+- Shows license, name, is_active, can_create_reports",,,
+S16-012,Step 16,Admin,Bulk enable report creation,"1. Login as admin
+2. Go to /admin/accounts/laboratorystaff/
+3. Select multiple staff members
+4. Choose 'Enable report creation' action
+5. Submit","- Selected staff can_create_reports set to True",,,
+S16-013,Step 16,Admin,Bulk disable report creation,"1. Login as admin
+2. Go to /admin/accounts/laboratorystaff/
+3. Select multiple staff members
+4. Choose 'Disable report creation' action
+5. Submit","- Selected staff can_create_reports set to False",,,
+S16-014,Step 16,Admin,View Report with laboratory_staff field,"1. Login as admin
+2. Navigate to /admin/protocols/report/
+3. View report list","- Shows both laboratory_staff and histopathologist columns",,,
+S16-015,Step 16,User Properties,Test lab_staff_profile property,"1. Create user with LaboratoryStaff profile
+2. In Django shell: user.lab_staff_profile
+3. Verify returns LaboratoryStaff instance","- Returns correct LaboratoryStaff profile",,,
+S16-016,Step 16,User Properties,Test laboratory_staff_profile property,"1. Create user with LaboratoryStaff profile
+2. In Django shell: user.laboratory_staff_profile
+3. Verify returns LaboratoryStaff instance","- Returns correct LaboratoryStaff profile",,,
+S16-017,Step 16,User Properties,Test backward compatibility with Histopathologist,"1. Create user with only Histopathologist profile (legacy)
+2. In Django shell: user.laboratory_staff_profile
+3. Verify returns Histopathologist as fallback","- Returns Histopathologist for backward compatibility",,,
+S16-018,Step 16,User Properties,Test can_create_reports property on User,"1. Create user with LaboratoryStaff (can_create_reports=True)
+2. In Django shell: user.can_create_reports
+3. Verify returns True","- Returns True when LaboratoryStaff.can_create_reports=True",,,
+S16-019,Step 16,User Properties,Test can_sign_reports method,"1. Create LaboratoryStaff with can_create_reports=True and signature
+2. In Django shell: user.can_sign_reports()
+3. Verify returns True","- Returns True when active, can_create_reports, and has signature",,,
+S16-020,Step 16,Email,Report ready email notification,"1. Create and finalize report with LaboratoryStaff
+2. System sends email notification
+3. Check veterinarian email","- Email sent with report notification",,,
+S16-021,Step 16,Protocol List,Veterinarian sees their protocols,"1. Login as veterinarian
+2. Navigate to /protocols/
+3. View list","- Only shows protocols submitted by this veterinarian",,,
+S16-022,Step 16,Protocol List,Lab staff sees all protocols,"1. Login as LaboratoryStaff
+2. Navigate to /protocols/
+3. View list","- Shows all protocols in system",,,
+S16-023,Step 16,Reception,Reception workflow with LaboratoryStaff,"1. Login as LaboratoryStaff
+2. Navigate to /protocols/reception/
+3. Submit new protocol
+4. Complete reception workflow","- Reception completes successfully
+- Protocol status changes to RECEIVED",,,
+S16-024,Step 16,Cassette/Slide,Cassette management,"1. Login as LaboratoryStaff
+2. Navigate to ready protocol
+3. Create cassettes
+4. Create slides
+5. Link slides to cassettes","- Cassettes and slides created correctly",,,
+S16-025,Step 16,Report Edit,Edit existing report,"1. Create report as LaboratoryStaff
+2. Navigate to /protocols/reports/{id}/edit/
+3. Modify diagnosis
+4. Save","- Report updated successfully",,,
+S16-026,Step 16,Report Finalize,Finalize report,"1. Create report as LaboratoryStaff
+2. Navigate to edit view
+3. Click 'Finalizar'
+4. Confirm","- Report status changes to FINALIZED
+- PDF becomes available",,,
+S16-027,Step 16,Report List,View pending reports list,"1. Login as LaboratoryStaff with can_create_reports
+2. Navigate to /protocols/reports/pending/
+3. View list","- Shows protocols ready for report creation",,,
+S16-028,Step 16,Work Order,Create work order,"1. Login as LaboratoryStaff or Admin
+2. Navigate to work orders
+3. Create new work order with protocols","- Work order created successfully",,,
+S16-029,Step 16,Backwards Compatibility,Mixed laboratory_staff and histopathologist,"1. Create report with laboratory_staff set
+2. Verify histopathologist is still null
+3. Create report with histopathologist set (legacy)
+4. Verify laboratory_staff is null","- Both fields work independently
+- Backward compatibility maintained",,,
+S16-030,Step 16,Security,Non-staff user cannot create reports,"1. Login as veterinarian
+2. Try to access /protocols/reports/create/
+3. Observe","- Access denied / redirect to login",,,

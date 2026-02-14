@@ -92,7 +92,7 @@ class ReportHistoryView(StaffRequiredMixin, ListView):
         """Get all reports ordered by creation date."""
         return Report.objects.select_related(
             "protocol__veterinarian__user",
-            "histopathologist__user",
+            "laboratory_staff__user",
             "veterinarian__user",
         ).order_by("-created_at")
 
@@ -112,7 +112,11 @@ class ReportCreateView(StaffRequiredMixin, CreateView):
 
     def get_success_url(self):
         """Redirect to report edit after creation."""
-        return reverse("protocols:report_edit", kwargs={"pk": self.object.pk})
+        if self.object and hasattr(self.object, "pk"):
+            return reverse(
+                "protocols:report_edit", kwargs={"pk": self.object.pk}
+            )
+        return reverse("protocols:report_pending_list")
 
     def get_context_data(self, **kwargs):
         """Add protocol to context."""
@@ -131,7 +135,7 @@ class ReportCreateView(StaffRequiredMixin, CreateView):
                 "histopathology_sample__cassettes",
                 "slides",
             ),
-            pk=self.kwargs["protocol_id"],
+            pk=self.kwargs.get("protocol_id"),
         )
 
     def form_valid(self, form):
@@ -149,7 +153,7 @@ class ReportCreateView(StaffRequiredMixin, CreateView):
         # Create report using service with form data
         success, report, error_message = self.report_service.create_report(
             protocol,
-            self.request.user.histopathologist_profile,
+            self.request.user.lab_staff_profile,
             form.cleaned_data,
         )
 
@@ -269,7 +273,7 @@ class ReportDetailView(DetailView):
                 request.user.veterinarian_profile == self.object.veterinarian
             )
 
-        if not (request.user.is_staff or is_owner):
+        if not (request.user.is_lab_staff or is_owner):
             messages.error(
                 request, _("No tiene permisos para ver este informe.")
             )
@@ -281,7 +285,7 @@ class ReportDetailView(DetailView):
         """Get report with related objects."""
         return Report.objects.select_related(
             "protocol__veterinarian__user",
-            "histopathologist__user",
+            "laboratory_staff__user",
             "veterinarian__user",
         ).prefetch_related(
             "protocol__histopathology_sample__cassettes",
@@ -334,7 +338,7 @@ class ReportPDFView(View):
         if hasattr(request.user, "veterinarian_profile"):
             is_owner = request.user.veterinarian_profile == report.veterinarian
 
-        if not (request.user.is_staff or is_owner):
+        if not (request.user.is_lab_staff or is_owner):
             messages.error(
                 request, _("No tiene permisos para ver este informe.")
             )

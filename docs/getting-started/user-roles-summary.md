@@ -45,7 +45,7 @@ Esta página proporciona un resumen completo de las capacidades y característic
 
 ## 🔬 **PERSONAL_LAB (Personal de Laboratorio)**
 
-**Flujo de Trabajo Principal**: Recibir muestras → Procesar muestras → Actualizar estado
+**Flujo de Trabajo Principal**: Recibir muestras → Procesar muestras → Generar informes → Firmar documentos
 
 ### Características Principales:
 
@@ -61,11 +61,21 @@ Esta página proporciona un resumen completo de las capacidades y característic
 - Seguir las etapas de procesamiento
 - Actualizar el estado del procesamiento
 
+#### 📝 **Generación de Informes**
+- Crear informes diagnósticos completos (si tiene permiso)
+- Acceder a información de caso precargada
+- Generar informes PDF profesionales
+- Finalizar y enviar informes automáticamente
+
+#### ✍️ **Firmas Digitales**
+- Firmar informes digitalmente
+- Gestionar configuraciones de firma
+- Autenticación profesional de documentos
+
 #### 📋 **Actualizaciones de Estado**
 - Actualizar el estado del procesamiento del protocolo
 - Marcar hitos de procesamiento
 - Manejar retrasos o problemas de procesamiento
-- Comunicarse con histopatólogos
 
 #### 📄 **Creación de Órdenes de Trabajo**
 - Generar órdenes de trabajo para protocolos completados
@@ -77,43 +87,12 @@ Esta página proporciona un resumen completo de las capacidades y característic
 - Seguir el uso de cassettes y portaobjetos
 - Monitorear suministros de procesamiento
 
----
-
-## 🩺 **HISTOPATOLOGO (Histopatólogo)**
-
-**Flujo de Trabajo Principal**: Revisar casos → Generar informes → Firmar documentos
-
-### Características Principales:
-
-#### 📝 **Generación de Informes**
-- Crear informes diagnósticos completos
-- Acceder a información de caso precargada
-- Generar informes PDF profesionales
-- Finalizar y enviar informes automáticamente
-
-#### 🔍 **Revisión de Casos**
-- Acceder a información completa del caso
-- Revisar detalles de la muestra y procesamiento
-- Analizar historia clínica y signos
-- Acceder al diagnóstico presuntivo del veterinario
-
-#### ✍️ **Firmas Digitales**
-- Firmar informes digitalmente
-- Firmar órdenes de trabajo
-- Gestionar configuraciones de firma
-- Autenticación profesional de documentos
-
-#### 📊 **Gestión de Informes**
-- Editar y finalizar informes
-- Enviar informes por email
-- Gestionar plantillas de informes
-- Revisión de control de calidad
-
 #### 🎯 **Control de Calidad**
 - Revisar y aprobar la calidad del procesamiento
 - Asegurar el cumplimiento de estándares de informes
 - Monitorear la precisión de los informes
-- Acceder a estadísticas de productividad
+
+**Nota**: El rol unificado de Personal de Laboratorio incluye tanto las funciones tradicionales de laboratorio como la capacidad de generar informes diagnósticos, dependiendo de los permisos asignados a cada miembro del personal.
 
 ---
 
@@ -164,14 +143,13 @@ Esta página proporciona un resumen completo de las capacidades y característic
 ### Proceso Completo del Laboratorio:
 1. **Veterinario** envía protocolo con información de la muestra
 2. **Personal de Laboratorio** recibe y procesa la muestra
-3. **Histopatólogo** analiza y crea informe diagnóstico
+3. **Personal de Laboratorio (con permisos)** analiza y crea informe diagnóstico
 4. **Sistema** genera automáticamente órdenes de trabajo y envía notificaciones
 5. **Administrador** monitorea todo el proceso y gestiona la salud del sistema
 
 ### Beneficios Clave por Rol:
 - **Veterinarios**: Ahorro de tiempo con envío online y seguimiento en tiempo real
-- **Personal de Laboratorio**: Flujo de trabajo organizado con mejor trazabilidad
-- **Histopatólogos**: Reducción del 30% en tiempo de redacción de informes
+- **Personal de Laboratorio**: Flujo de trabajo organizado con mejor trazabilidad y acceso completo al ciclo de vida de las muestras
 - **Administradores**: Toma de decisiones basada en datos con analíticas completas
 
 ---
@@ -187,11 +165,9 @@ Esta página proporciona un resumen completo de las capacidades y característic
 - [Recibir muestras](user-guides/lab-staff/receiving-samples.md)
 - [Procesar muestras](user-guides/lab-staff/processing-samples.md)
 - [Gestionar inventario](user-guides/lab-staff/managing-inventory.md)
-
-### Para Histopatólogos
-- [Analizar muestras](user-guides/histopathologists/analyzing-samples.md)
-- [Crear informes](user-guides/histopathologists/creating-reports.md)
-- [Control de calidad](user-guides/histopathologists/quality-control.md)
+- [Analizar muestras](user-guides/histopathologists/analyzing-samples.md) (si tiene permiso)
+- [Crear informes](user-guides/histopathologists/creating-reports.md) (si tiene permiso)
+- [Control de calidad](user-guides/histopathologists/quality-control.md) (si tiene permiso)
 
 ### Para Administradores
 - [Gestionar usuarios](user-guides/administrators/managing-users.md)

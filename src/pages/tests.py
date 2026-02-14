@@ -173,16 +173,15 @@ class DashboardViewsTest(TestCase):
         self.assertIn("active_protocols_count", response.context)
 
     def test_dashboard_view_histopathologist_redirect(self):
-        """Test that dashboard_view redirects histopathologists to histopathologist_dashboard."""
+        """Test that dashboard_view shows unified lab staff dashboard for histopathologists."""
         self.client.login(email="histo@example.com", password="testpass123")
 
         response = self.client.get(reverse("pages:dashboard"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(
-            response, "pages/dashboard_histopathologist.html"
-        )
-        self.assertIn("pending_reports_count", response.context)
+        # With unified dashboard, histopathologists use the same dashboard as lab staff
+        self.assertTemplateUsed(response, "pages/dashboard_lab_staff.html")
+        self.assertIn("pending_reception_count", response.context)
 
     def test_dashboard_view_lab_staff_redirect(self):
         """Test that dashboard_view redirects lab staff to lab_staff_dashboard."""
@@ -195,14 +194,15 @@ class DashboardViewsTest(TestCase):
         self.assertIn("pending_reception_count", response.context)
 
     def test_dashboard_view_admin_redirect(self):
-        """Test that dashboard_view redirects admins to admin_dashboard."""
+        """Test that dashboard_view shows unified lab staff dashboard for admins."""
         self.client.login(email="admin@example.com", password="testpass123")
 
         response = self.client.get(reverse("pages:dashboard"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "pages/dashboard_admin.html")
-        self.assertIn("total_protocols_count", response.context)
+        # With unified dashboard, admins use the same dashboard as lab staff
+        self.assertTemplateUsed(response, "pages/dashboard_lab_staff.html")
+        self.assertIn("pending_reception_count", response.context)
 
     def test_dashboard_view_requires_login(self):
         """Test that dashboard_view requires login."""
@@ -333,54 +333,42 @@ class DashboardViewsTest(TestCase):
         )
 
     # =============================================================================
-    # HISTOPATHOLOGIST DASHBOARD TESTS
+    # UNIFIED LAB STAFF DASHBOARD TESTS (formerly histopathologist)
     # =============================================================================
 
     def test_histopathologist_dashboard_get(self):
-        """Test GET request to histopathologist dashboard."""
+        """Test GET request to unified lab staff dashboard."""
         self.client.login(email="histo@example.com", password="testpass123")
 
-        response = self.client.get(reverse("pages:dashboard_histopathologist"))
+        response = self.client.get(reverse("pages:dashboard"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(
-            response, "pages/dashboard_histopathologist.html"
-        )
-        self.assertIn("pending_reports_count", response.context)
-        self.assertIn("monthly_reports_count", response.context)
-        self.assertIn("avg_report_time", response.context)
-        self.assertIn("pending_reports", response.context)
+        self.assertTemplateUsed(response, "pages/dashboard_lab_staff.html")
 
     def test_histopathologist_dashboard_statistics(self):
-        """Test that histopathologist dashboard shows correct statistics."""
+        """Test that unified dashboard shows correct statistics for lab staff."""
         self.client.login(email="histo@example.com", password="testpass123")
 
-        response = self.client.get(reverse("pages:dashboard_histopathologist"))
+        response = self.client.get(reverse("pages:dashboard"))
 
-        # Should have 1 pending report (draft)
-        self.assertEqual(response.context["pending_reports_count"], 1)
-        # Should have 1 monthly report (finalized this month)
-        self.assertEqual(response.context["monthly_reports_count"], 1)
-        # Should have pending reports list
-        self.assertEqual(len(response.context["pending_reports"]), 1)
+        # Should have reception data
+        self.assertIn("pending_reception_count", response.context)
 
     def test_histopathologist_dashboard_permission_non_histopathologist(self):
-        """Test that non-histopathologists are redirected from histopathologist dashboard."""
+        """Test that veterinarians are redirected to login page for dashboard."""
         self.client.login(email="vet@example.com", password="testpass123")
 
-        response = self.client.get(reverse("pages:dashboard_histopathologist"))
+        response = self.client.get(reverse("pages:dashboard"))
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("pages:dashboard"))
+        # Veterinarians can access the dashboard too (they can see their protocols)
+        self.assertEqual(response.status_code, 200)
 
     def test_histopathologist_dashboard_requires_login(self):
-        """Test that histopathologist dashboard requires login."""
-        response = self.client.get(reverse("pages:dashboard_histopathologist"))
+        """Test that dashboard requires login."""
+        response = self.client.get(reverse("pages:dashboard"))
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response, "/accounts/login/?next=/dashboard/histopathologist/"
-        )
+        self.assertRedirects(response, "/accounts/login/?next=/dashboard/")
 
     # =============================================================================
     # ADMIN DASHBOARD TESTS

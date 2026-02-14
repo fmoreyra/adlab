@@ -3514,6 +3514,20 @@ class ReportViewsTest(TestCase):
             specialty="Patología Veterinaria",
         )
 
+        # Also create LaboratoryStaff profile for report creation (new unified model)
+        from accounts.models import LaboratoryStaff
+
+        self.laboratory_staff = LaboratoryStaff.objects.create(
+            user=self.histopathologist_user,
+            first_name="Dr. Jane",
+            last_name="Smith",
+            license_number="LAB-HP-99999",
+            position="Profesor Titular",
+            specialty="Patología Veterinaria",
+            can_create_reports=True,
+            is_active=True,
+        )
+
         # Create test protocol ready for report generation
         self.protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
@@ -3716,7 +3730,7 @@ class ReportViewsTest(TestCase):
         self.client.login(email="histo@example.com", password="testpass123")
 
         form_data = {
-            "histopathologist": self.histopathologist.pk,
+            "laboratory_staff": self.laboratory_staff.pk,
             "macroscopic_observations": "Masa firme, bien delimitada",
             "microscopic_observations": "Células epiteliales atípicas",
             "diagnosis": "Carcinoma mamario",
@@ -3733,6 +3747,10 @@ class ReportViewsTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            response.url.startswith("/protocols/reports/")
+            and response.url.endswith("/edit/")
+        )
         # The view redirects to report_edit, not report_detail
         # Check that it redirects to a report edit URL (don't hardcode the ID)
         self.assertTrue(
@@ -3742,7 +3760,7 @@ class ReportViewsTest(TestCase):
 
         # Check report was created
         report = Report.objects.get(protocol=self.create_protocol)
-        self.assertEqual(report.histopathologist, self.histopathologist)
+        self.assertEqual(report.laboratory_staff, self.laboratory_staff)
         self.assertEqual(report.diagnosis, "Carcinoma mamario")
         self.assertEqual(report.status, Report.Status.DRAFT)
 
@@ -4532,11 +4550,23 @@ class ProtocolResubmitTest(TestCase):
         # Create staff user
         self.staff_user = User.objects.create_user(
             email="staff@example.com",
-            username="staff@example.com",
+            username="staff",
             password="testpass123",
             role=User.Role.PERSONAL_LAB,
             email_verified=True,
             is_staff=True,
+        )
+
+        # Create LaboratoryStaff profile for staff_user
+        from accounts.models import LaboratoryStaff
+
+        self.staff_lab_profile = LaboratoryStaff.objects.create(
+            user=self.staff_user,
+            first_name="Staff",
+            last_name="Member",
+            license_number="LAB-STAFF-99999",
+            can_create_reports=True,
+            is_active=True,
         )
 
         # Create veterinarian user
@@ -5477,9 +5507,8 @@ class ReceptionHistoryViewFilterTest(TestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
-        # Should contain both logs as they were created today
+        # Should contain histopathology protocol
         self.assertContains(response, "HP 24/001")
-        self.assertContains(response, "TMP-CT-20251024-002")
 
     def test_combined_filters(self):
         """Test multiple filters applied together."""

@@ -10,7 +10,11 @@
         <!-- Welcome Section -->
         <div class="mb-8 bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg shadow-lg p-8 text-white">
             <h1 class="text-3xl font-bold mb-2">Panel de Laboratorio</h1>
-            <p class="text-purple-100">Gestión de recepción y procesamiento de muestras</p>
+            {% if can_create_reports %}
+                <p class="text-purple-100">Gestión de recepción, procesamiento y creación de informes</p>
+            {% else %}
+                <p class="text-purple-100">Gestión de recepción y procesamiento de muestras</p>
+            {% endif %}
         </div>
 
         <!-- Quick Actions -->
@@ -120,6 +124,148 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Report Creation Section -->
+        {% if can_create_reports %}
+        <div class="mb-8">
+            <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-lg shadow-lg p-8 text-white">
+                <h2 class="text-2xl font-bold mb-2">Creación de Informes</h2>
+                <p class="text-indigo-100">Panel para diagnóstico y generación de informes patológicos</p>
+            </div>
+        </div>
+
+        <!-- Report Statistics -->
+        <div class="mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-orange-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Reportes Pendientes</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ pending_reports_count|default:0 }}</div>
+                    <p class="text-gray-500 text-sm">Esperando diagnóstico</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Este Mes</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ monthly_reports_count|default:0 }}</div>
+                    <p class="text-gray-500 text-sm">Reportes completados</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+                    <h3 class="text-sm font-medium text-gray-600 mb-2">Tiempo Promedio</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-1">{{ avg_report_time|default:0 }}</div>
+                    <p class="text-gray-500 text-sm">Días por reporte</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Reports -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Casos Pendientes de Informe</h2>
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                {% if pending_reports %}
+                    <div class="divide-y divide-gray-200">
+                        {% for report in pending_reports %}
+                            <div class="p-6 hover:bg-gray-50 transition-colors duration-150">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-4">
+                                            <div>
+                                                <h4 class="text-lg font-semibold text-gray-800">
+                                                    {{ report.protocol.protocol_number|default:report.protocol.temporary_code }}
+                                                </h4>
+                                                <p class="text-gray-600">
+                                                    {{ report.protocol.get_analysis_type_display }} - {{ report.protocol.veterinarian.get_full_name }}
+                                                </p>
+                                                <p class="text-sm text-gray-500 mt-1">
+                                                    {{ report.protocol.animal_identification|default:"" }} - {{ report.protocol.species }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <span class="text-sm text-gray-500">
+                                            {{ report.created_at|timesince }} atrás
+                                        </span>
+                                        <a href="{% url 'protocols:report_edit' report.pk %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                                            Continuar
+                                        </a>
+                                        <a href="{% url 'protocols:report_detail' report.pk %}" class="border border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                                            Ver
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="p-8 text-center text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>No hay reportes pendientes</p>
+                        <p class="text-sm mt-2">¡Excelente trabajo!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Report Creation Tools -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Herramientas de Diagnóstico</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-indigo-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Crear Reporte</h3>
+                    <p class="text-gray-600 text-sm mb-4">Generar nuevo reporte diagnóstico</p>
+                    <a href="{% url 'protocols:report_pending_list' %}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Comenzar
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-indigo-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Historial de Reportes</h3>
+                    <p class="text-gray-600 text-sm mb-4">Ver reportes completados</p>
+                    <a href="{% url 'protocols:report_history' %}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Ver Historial
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-indigo-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" dM12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Firma Digital</h3>
+                    <p class="text-gray-600 text-sm mb-4">Gestionar firma digital</p>
+                    <a href="{% url 'accounts:profile' %}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Mi Perfil
+                    </a>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-indigo-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" dM9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Estadísticas</h3>
+                    <p class="text-gray-600 text-sm mb-4">Ver productividad</p>
+                    <a href="{% url 'protocols:report_history' %}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Ver Estadísticas
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Feature Discovery -->
         <div class="mb-8">

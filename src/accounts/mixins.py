@@ -22,7 +22,7 @@ class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def test_func(self):
         """Test if user is laboratory staff."""
-        return self.request.user.is_staff
+        return self.request.user.is_lab_staff
 
     def get_permission_denied_message(self):
         """Return custom permission denied message."""
@@ -102,41 +102,6 @@ class WorkOrderStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
         messages.error(self.request, self.get_permission_denied_message())
         return redirect("protocols:protocol_list")
-
-
-class HistopathologistRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """
-    Mixin that requires the user to be a histopathologist.
-
-    Used for views that only histopathologists should access,
-    such as report creation and editing.
-    """
-
-    def test_func(self):
-        """Test if user is a histopathologist."""
-        return self.request.user.is_histopathologist
-
-    def get_permission_denied_message(self):
-        """Return custom permission denied message."""
-        return _("Esta función está disponible solo para histopatólogos.")
-
-    def handle_no_permission(self):
-        """Handle permission denied by showing 403 error page with message."""
-        from django.contrib import messages
-        from django.http import HttpResponseForbidden
-        from django.template.loader import render_to_string
-
-        # If user is not authenticated, let LoginRequiredMixin handle it
-        if not self.request.user.is_authenticated:
-            return super().handle_no_permission()
-
-        # If user is authenticated but not a histopathologist, show 403
-        messages.error(self.request, self.get_permission_denied_message())
-        return HttpResponseForbidden(
-            render_to_string(
-                "403.html", {"user": self.request.user}, request=self.request
-            )
-        )
 
 
 class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -281,12 +246,12 @@ class ReportAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     - Staff can access all reports
     - Veterinarians can access reports for their protocols
-    - Histopathologists can access reports they created or are assigned to
+    - Laboratory staff can access reports they created or are assigned to (if can_create_reports)
     """
 
     def test_func(self):
         """Test if user has access to the report."""
-        if self.request.user.is_staff:
+        if self.request.user.is_lab_staff:
             return True
 
         # Get report from URL kwargs
@@ -303,13 +268,29 @@ class ReportAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
                 # Veterinarians can access reports for their protocols
                 return report.protocol.veterinarian.user == self.request.user
 
-            if self.request.user.is_histopathologist:
-                # Histopathologists can access reports they created or are assigned to
-                return (
-                    report.histopathologist
-                    == self.request.user.histopathologist_profile
-                    or report.created_by == self.request.user
-                )
+            if self.request.user.is_lab_staff:
+                # Laboratory staff can access reports they created or are assigned to
+                try:
+                    # Check both LaboratoryStaff and Histopathologist profiles
+                    if hasattr(self.request.user, "laboratory_staff_profile"):
+                        staff_profile = (
+                            self.request.user.laboratory_staff_profile
+                        )
+                        return (
+                            report.laboratory_staff == staff_profile
+                            or report.histopathologist == staff_profile
+                        )
+                    elif hasattr(
+                        self.request.user, "histopathologist_profile"
+                    ):
+                        return (
+                            report.histopathologist
+                            == self.request.user.histopathologist_profile
+                        )
+                    return False
+                except Exception:
+                    # Staff member doesn't have a profile
+                    return False
 
             return False
         except Exception:

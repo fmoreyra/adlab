@@ -102,7 +102,10 @@ class User(AbstractUser):
     @property
     def is_lab_staff(self):
         """Check if user is laboratory staff."""
-        return self.role in [self.Role.PERSONAL_LAB, self.Role.HISTOPATOLOGO]
+        return (
+            self.role in [self.Role.PERSONAL_LAB, self.Role.HISTOPATOLOGO]
+            or self.is_admin_user
+        )
 
     @property
     def is_histopathologist(self):
@@ -113,6 +116,58 @@ class User(AbstractUser):
     def is_admin_user(self):
         """Check if user is an administrator."""
         return self.role == self.Role.ADMIN or self.is_superuser
+
+    @property
+    def lab_staff_profile(self):
+        """Get laboratory staff profile if exists."""
+        try:
+            return self.laboratory_staff_profile
+        except LaboratoryStaff.DoesNotExist:
+            return None
+
+    @property
+    def laboratory_staff_profile(self):
+        """
+        Get laboratory staff profile for backward compatibility.
+        Returns LaboratoryStaff if exists, falls back to Histopathologist for legacy support.
+        """
+        # First try LaboratoryStaff
+        try:
+            return self.laboratory_staff
+        except LaboratoryStaff.DoesNotExist:
+            pass
+
+        # Fall back to Histopathologist for legacy compatibility
+        try:
+            return self.histopathologist_profile
+        except Histopathologist.DoesNotExist:
+            return None
+
+    @property
+    def can_create_reports(self):
+        """Check if user can create reports based on their lab staff profile."""
+        # Check LaboratoryStaff first
+        profile = self.lab_staff_profile
+        if profile:
+            return profile.can_create_reports and profile.is_active
+
+        # Fall back to Histopathologist for legacy compatibility
+        try:
+            histo = self.histopathologist_profile
+            return histo.is_active
+        except Histopathologist.DoesNotExist:
+            pass
+
+        return False
+
+    def can_sign_reports(self):
+        """Check if user can sign reports."""
+        # Check LaboratoryStaff first
+        profile = self.lab_staff_profile
+        if profile:
+            return profile.can_sign_reports()
+            return profile.can_sign_reports()
+        return False
 
     def can_login(self):
         """
@@ -682,3 +737,121 @@ class Histopathologist(models.Model):
     def has_signature(self):
         """Check if histopathologist has uploaded signature."""
         return bool(self.signature_image)
+
+
+class LaboratoryStaff(models.Model):
+    """
+    Unified laboratory staff profile for the laboratory system.
+    This model consolidates functionality from both PERSONAL_LAB and HISTOPATOLOGO roles.
+    Each laboratory staff member can have either or both roles.
+    """
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="laboratory_staff_profile",
+        verbose_name=_("usuario"),
+    )
+    last_name = models.CharField(
+        _("apellido"),
+        max_length=100,
+        blank=True,
+        help_text=_("Apellido del personal de laboratorio"),
+    )
+    first_name = models.CharField(
+        _("nombre"),
+        max_length=100,
+        blank=True,
+        help_text=_("Nombre del personal de laboratorio"),
+    )
+    license_number = models.CharField(
+        _("número de matrícula"),
+        max_length=50,
+        unique=True,
+        db_index=True,
+        blank=True,
+        help_text=_("Número de matrícula profesional"),
+    )
+    position = models.CharField(
+        _("cargo"),
+        max_length=100,
+        blank=True,
+        help_text=_("Ej: Profesor Titular, Profesor Asociado, Jefe de TP"),
+    )
+    specialty = models.CharField(
+        _("especialidad"),
+        max_length=200,
+        blank=True,
+        help_text=_("Especialidad o área de expertise"),
+    )
+    signature_image = models.ImageField(
+        _("firma digital"),
+        upload_to="signatures/lab_staff/",
+        blank=True,
+        null=True,
+        help_text=_("Imagen de la firma para incluir en informes"),
+    )
+    phone_number = models.CharField(
+        _("teléfono"),
+        max_length=20,
+        blank=True,
+        help_text=_("Número de teléfono de contacto"),
+    )
+
+    # Permission field
+    can_create_reports = models.BooleanField(
+        _("puede crear informes"),
+        default=True,
+        help_text=_(
+            "Si el personal puede crear y firmar informes patológicos"
+        ),
+    )
+
+    # Professional info
+    is_active = models.BooleanField(
+        _("activo"),
+        default=True,
+        help_text=_(
+            "Si el personal está activo para trabajar en el laboratorio"
+        ),
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(_("creado el"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("actualizado el"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("personal de laboratorio")
+        verbose_name_plural = _("personal de laboratorio")
+        ordering = ["last_name", "first_name"]
+        indexes = [
+            models.Index(fields=["license_number"]),
+            models.Index(fields=["is_active"]),
+            models.Index(fields=["can_create_reports"]),
+        ]
+
+    def __str__(self):
+        return self.get_full_name()
+
+    def get_full_name(self):
+        """Return staff's full name."""
+        return f"{self.first_name} {self.last_name}".strip()
+
+    def get_formal_name(self):
+        """Return formal name with title."""
+        return f"Dr./Dra. {self.get_full_name()}"
+
+    def has_signature(self):
+        """Check if staff has uploaded signature."""
+        return bool(self.signature_image)
+
+    def can_sign_reports(self):
+        """Check if staff can create and sign reports."""
+        return (
+            self.is_active and self.can_create_reports and self.has_signature()
+        )
+
+    @property
+    def is_histopathologist_equivalent(self):
+        """Check if laboratory staff is equivalent to histopathologist."""
+        return self.is_active and self.can_create_reports

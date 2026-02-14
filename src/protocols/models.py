@@ -1690,7 +1690,17 @@ class Report(models.Model):
         "accounts.Histopathologist",
         on_delete=models.PROTECT,
         related_name="reports",
+        blank=True,
+        null=True,
         verbose_name=_("histopatólogo"),
+    )
+    laboratory_staff = models.ForeignKey(
+        "accounts.LaboratoryStaff",
+        on_delete=models.PROTECT,
+        related_name="reports",
+        blank=True,
+        null=True,
+        verbose_name=_("personal de laboratorio"),
     )
     veterinarian = models.ForeignKey(
         "accounts.Veterinarian",
@@ -1791,6 +1801,7 @@ class Report(models.Model):
         indexes = [
             models.Index(fields=["protocol"]),
             models.Index(fields=["histopathologist", "-created_at"]),
+            models.Index(fields=["laboratory_staff", "-created_at"]),
             models.Index(fields=["veterinarian", "-created_at"]),
             models.Index(fields=["status", "-created_at"]),
             models.Index(fields=["-report_date"]),

@@ -42,6 +42,7 @@ class ReportAdmin(admin.ModelAdmin):
     list_display = [
         "id",
         "get_protocol_number",
+        "laboratory_staff",
         "histopathologist",
         "veterinarian",
         "status",
@@ -59,6 +60,8 @@ class ReportAdmin(admin.ModelAdmin):
         "protocol__protocol_number",
         "protocol__temporary_code",
         "protocol__animal_identification",
+        "laboratory_staff__last_name",
+        "laboratory_staff__first_name",
         "histopathologist__last_name",
         "histopathologist__first_name",
         "veterinarian__last_name",
@@ -74,6 +77,7 @@ class ReportAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "protocol",
+                    "laboratory_staff",
                     "histopathologist",
                     "veterinarian",
                 ),
