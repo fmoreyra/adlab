@@ -614,6 +614,20 @@ class VeterinarianProfileForm(forms.ModelForm):
 
         return license_number
 
+    def clean_dni(self):
+        """Validate DNI format (mandatory)."""
+        dni = self.cleaned_data.get("dni", "").strip()
+
+        # DNI is mandatory
+        if not dni:
+            raise ValidationError(_("DNI is required"))
+
+        # Validate DNI format (7-8 digits)
+        if not re.match(r"^\d{7,8}$", dni):
+            raise ValidationError(_("DNI must contain 7-8 digits"))
+
+        return dni
+
     def clean_cuil_cuit(self):
         """Validate CUIL/CUIT format (optional)."""
         cuil_cuit = self.cleaned_data.get("cuil_cuit", "").strip()
@@ -936,6 +950,24 @@ class VeterinarianProfileCompleteForm(forms.Form):
             )
 
         return license_number
+
+    def clean_dni(self):
+        """Validate DNI format (mandatory)."""
+        dni = self.cleaned_data.get("dni", "").strip()
+
+        # DNI is mandatory
+        if not dni:
+            raise ValidationError(_("DNI is required"))
+
+        # Validate DNI format (7-8 digits)
+        if not re.match(r"^\d{7,8}$", dni):
+            raise ValidationError(_("DNI must contain 7-8 digits"))
+
+        # Check uniqueness
+        if Veterinarian.objects.filter(dni=dni).exists():
+            raise ValidationError(_("This DNI is already registered."))
+
+        return dni
 
     def clean_phone(self):
         """Validate phone number format."""

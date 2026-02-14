@@ -521,6 +521,39 @@ class Veterinarian(models.Model):
         total = len(required_fields)
         return int((completed / total) * 100) if total > 0 else 0
 
+    def get_display_identifiers(self):
+        """
+        Return all available identifiers in priority order for display.
+
+        Returns:
+            str: Formatted string with all identifiers
+        """
+        identifiers = []
+        if self.license_number:
+            identifiers.append(f"Matrícula: {self.license_number}")
+        if self.cuil_cuit:
+            identifiers.append(f"CUIL/CUIT: {self.cuil_cuit}")
+        if self.dni:
+            identifiers.append(f"DNI: {self.dni}")
+        return (
+            " | ".join(identifiers) if identifiers else "Sin identificadores"
+        )
+
+    def get_primary_identifier(self):
+        """
+        Return primary identifier for display (license_number > cuil_cuit > dni).
+
+        Returns:
+            str: Primary identifier or 'N/A' if none available
+        """
+        if self.license_number:
+            return self.license_number
+        if self.cuil_cuit:
+            return self.cuil_cuit
+        if self.dni:
+            return self.dni
+        return "N/A"
+
 
 class Address(models.Model):
     """

@@ -627,10 +627,12 @@ class ReceptionPendingView(StaffRequiredMixin, ListView):
         if analysis_type:
             protocols = protocols.filter(analysis_type=analysis_type)
 
-        # Filter by veterinarian license number (case-insensitive partial match)
+        # Filter by veterinarian identifier (license_number, cuil_cuit, or dni)
         if veterinarian_license:
             protocols = protocols.filter(
-                veterinarian__license_number__icontains=veterinarian_license
+                Q(veterinarian__license_number__icontains=veterinarian_license)
+                | Q(veterinarian__cuil_cuit__icontains=veterinarian_license)
+                | Q(veterinarian__dni__icontains=veterinarian_license)
             )
 
         # Filter by animal name (case-insensitive partial match)
@@ -718,10 +720,18 @@ class ReceptionHistoryView(StaffRequiredMixin, ListView):
         if analysis_type:
             logs = logs.filter(protocol__analysis_type=analysis_type)
 
-        # Filter by veterinarian license number
+        # Filter by veterinarian identifier (license_number, cuil_cuit, or dni)
         if veterinarian_license:
             logs = logs.filter(
-                protocol__veterinarian__license_number__icontains=veterinarian_license
+                Q(
+                    protocol__veterinarian__license_number__icontains=veterinarian_license
+                )
+                | Q(
+                    protocol__veterinarian__cuil_cuit__icontains=veterinarian_license
+                )
+                | Q(
+                    protocol__veterinarian__dni__icontains=veterinarian_license
+                )
             )
 
         # Filter by animal name

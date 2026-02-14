@@ -235,3 +235,6 @@ flycheck_*.el
 
 # network security
 /network-security.data
+
+# test - generated files
+src/signatures/lab_staff/*

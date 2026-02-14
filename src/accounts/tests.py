@@ -1068,6 +1068,7 @@ class VeterinarianFormTest(TestCase):
             "first_name": "Juan",
             "last_name": "Pérez",
             "license_number": "MP-99999",
+            "dni": "12345678",
             "cuil_cuit": "20-12345678-9",
             "phone": "+54 342 1234567",
             "email": "vet@example.com",
@@ -1083,6 +1084,7 @@ class VeterinarianFormTest(TestCase):
             "first_name": "Juan",
             "last_name": "Pérez",
             "license_number": "12345",  # Invalid format
+            "dni": "12345678",
             "phone": "+54 342 1234567",
             "email": "vet@example.com",
         }
@@ -1098,6 +1100,7 @@ class VeterinarianFormTest(TestCase):
             "first_name": "Juan",
             "last_name": "Pérez",
             "license_number": "MP-99998",
+            "dni": "87654321",
             "phone": "123456",  # Invalid format
             "email": "vet@example.com",
         }
@@ -1121,6 +1124,7 @@ class VeterinarianFormTest(TestCase):
             first_name="Existing",
             last_name="User",
             license_number="MP-12345-ACCOUNTS-TESTS",
+            dni="11111111",
             phone="+54 342 1111111",
             email="existing@example.com",
         )
@@ -1130,6 +1134,7 @@ class VeterinarianFormTest(TestCase):
             "first_name": "Juan",
             "last_name": "Pérez",
             "license_number": "MP-12345-ACCOUNTS-TESTS-2",  # Duplicate
+            "dni": "22222222",
             "phone": "+54 342 1234567",
             "email": "vet@example.com",
         }
@@ -1170,6 +1175,7 @@ class CompleteProfileViewTest(TestCase):
             "first_name": "Juan",
             "last_name": "Pérez",
             "license_number": "MP-88888",
+            "dni": "12345678",
             "cuil_cuit": "20-12345678-9",
             "phone": "+54 342 1234567",
             "province": "Santa Fe",
