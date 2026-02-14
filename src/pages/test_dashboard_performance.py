@@ -7,7 +7,9 @@ and monitors query counts, response times, and caching effectiveness.
 
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -239,7 +241,8 @@ class DashboardPerformanceTest(TestCase):
 
     def test_cache_effectiveness(self):
         """Test that caching improves performance on subsequent requests."""
-        from django.core.cache import cache
+        if "DummyCache" in settings.CACHES["default"]["BACKEND"]:
+            self.skipTest("Cache test requires actual cache backend")
 
         client = Client()
         client.force_login(self.lab_staff)

@@ -9,44 +9,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Start all services (first time: 5-10 minutes to build)
 docker compose up --build
 
-# Run database migrations (from 2nd terminal)
-./run manage migrate
+# Run database migrations
+make manage ARGS="migrate"
 
-# Run the test suite
-./run manage test
+# Run the test suite (RECOMMENDED: use SQLite for faster local development)
+make test-with-sqlite              # Fast: ~10 seconds (uses SQLite in-memory)
+make test                           # Slow: ~3-5 minutes (uses PostgreSQL)
 
-# Run a single test file
-./run manage test accounts.tests.TestAuthenticationFlow
+# Run a single test file (RECOMMENDED: use SQLite for faster runs)
+make test-with-sqlite ARGS="accounts.tests"
 
-# Run a specific test method
-./run manage test protocols.tests.ProtocolTestCase.test_protocol_creation
+# Run a specific test method with SQLite
+make test-with-sqlite ARGS="protocols.tests.ProtocolTestCase.test_protocol_creation"
 
 # Code quality checks
-./run lint                # Lint Python code with ruff
-./run format              # Format Python code with ruff
-./run quality             # Run all quality checks (lint + format + shell checks)
+make lint                # Lint Python code with ruff
+make format              # Format Python code with ruff
+make quality             # Run all quality checks (lint + format + shell checks)
 
 # Clean up test database (if tests hang)
-./run test:cleanup
+make test-cleanup
 
 # Database operations
-./run psql                # Connect to PostgreSQL
-./run db:dump             # Generate database dump in ./backups/
+make psql                # Connect to PostgreSQL
+make db-dump             # Generate database dump in ./backups/
 
 # Shell access
-./run shell               # Bash shell in web container
-./run manage shell        # Django shell
+make shell               # Bash shell in web container
+make manage ARGS="shell" # Django shell
 
 # Check outdated dependencies
-./run uv:outdated         # Python packages
-./run yarn:outdated       # Node packages
+make uv-outdated         # Python packages
+make yarn-outdated       # Node packages
 ```
 
 ### Important Notes
-- All `./run` commands must be run from the project root
-- Use `./run manage <command>` for any Django management commands
+- Use `make <target>` or `make <target> ARGS="..."` to run commands
 - Tests automatically set `CELERY_TASK_ALWAYS_EAGER=True` (synchronous execution)
 - Test database is auto-created as `test_adlab` and cleaned up after tests
+- **For local development: always use `make test-with-sqlite`** - it's ~20x faster than PostgreSQL (10s vs 3-5min). The test settings in `config/settings_test.py` configure SQLite in-memory for maximum speed.
+- **For CI: use PostgreSQL** (`make test` or `./scripts/test-wrapper.sh`) to match production behavior
 
 ## Architecture Overview
 
@@ -292,16 +294,16 @@ Three-layer design:
 
 ```bash
 # Create new migration after model changes
-./run manage makemigrations
+make manage ARGS="makemigrations"
 
 # Apply migrations
-./run manage migrate
+make manage ARGS="migrate"
 
 # View migration SQL without applying
-./run manage sqlmigrate <app_label> <migration_name>
+make manage ARGS="sqlmigrate <app_label> <migration_name>"
 
 # Show migration status
-./run manage showmigrations
+make manage ARGS="showmigrations"
 ```
 
 ## Security Considerations

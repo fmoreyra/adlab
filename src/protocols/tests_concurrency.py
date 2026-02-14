@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import connection, transaction
 from django.test import TransactionTestCase
 
 from accounts.models import Histopathologist, Veterinarian
@@ -26,6 +26,10 @@ from protocols.models import (
 )
 
 User = get_user_model()
+
+
+def _is_sqlite():
+    return connection.vendor == "sqlite"
 
 
 class ConcurrencyTest(TransactionTestCase):
@@ -93,12 +97,19 @@ class ConcurrencyTest(TransactionTestCase):
                 with lock:
                     errors.append(e)
 
-        # Create 10 threads simultaneously
-        threads = [threading.Thread(target=create_protocol) for _ in range(10)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        if _is_sqlite():
+            # Run sequentially on SQLite (no proper concurrent write support)
+            for _ in range(10):
+                create_protocol()
+        else:
+            # Create 10 threads simultaneously
+            threads = [
+                threading.Thread(target=create_protocol) for _ in range(10)
+            ]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
 
         # Assertions
         self.assertEqual(len(errors), 0, f"Errors occurred: {errors}")
@@ -143,14 +154,19 @@ class ConcurrencyTest(TransactionTestCase):
                 with lock:
                     errors.append(e)
 
-        # Create 10 threads simultaneously
-        threads = [
-            threading.Thread(target=assign_protocol_number) for _ in range(10)
-        ]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        if _is_sqlite():
+            for _ in range(10):
+                assign_protocol_number()
+        else:
+            # Create 10 threads simultaneously
+            threads = [
+                threading.Thread(target=assign_protocol_number)
+                for _ in range(10)
+            ]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
 
         # Assertions
         self.assertEqual(len(errors), 0, f"Errors occurred: {errors}")
@@ -181,14 +197,18 @@ class ConcurrencyTest(TransactionTestCase):
                 with lock:
                     errors.append(e)
 
-        # Create 10 threads simultaneously
-        threads = [
-            threading.Thread(target=create_work_order) for _ in range(10)
-        ]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        if _is_sqlite():
+            for _ in range(10):
+                create_work_order()
+        else:
+            # Create 10 threads simultaneously
+            threads = [
+                threading.Thread(target=create_work_order) for _ in range(10)
+            ]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
 
         # Assertions
         self.assertEqual(len(errors), 0, f"Errors occurred: {errors}")
@@ -374,30 +394,39 @@ class ConcurrencyTest(TransactionTestCase):
                     errors.append(e)
 
         # Mix different counter operations
-        threads = []
-        threads.extend(
-            [
-                threading.Thread(target=get_next_protocol_number)
-                for _ in range(5)
-            ]
-        )
-        threads.extend(
-            [
-                threading.Thread(target=get_next_temporary_code)
-                for _ in range(5)
-            ]
-        )
-        threads.extend(
-            [
-                threading.Thread(target=get_next_work_order_number)
-                for _ in range(5)
-            ]
-        )
+        if _is_sqlite():
+            # Run sequentially on SQLite
+            for _ in range(5):
+                get_next_protocol_number()
+            for _ in range(5):
+                get_next_temporary_code()
+            for _ in range(5):
+                get_next_work_order_number()
+        else:
+            threads = []
+            threads.extend(
+                [
+                    threading.Thread(target=get_next_protocol_number)
+                    for _ in range(5)
+                ]
+            )
+            threads.extend(
+                [
+                    threading.Thread(target=get_next_temporary_code)
+                    for _ in range(5)
+                ]
+            )
+            threads.extend(
+                [
+                    threading.Thread(target=get_next_work_order_number)
+                    for _ in range(5)
+                ]
+            )
 
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
 
         # Assertions
         self.assertEqual(len(errors), 0, f"Errors occurred: {errors}")
@@ -434,15 +463,20 @@ class ConcurrencyTest(TransactionTestCase):
                 with lock:
                     errors.append(e)
 
-        # Create protocols in separate transactions
-        threads = [
-            threading.Thread(target=create_protocol_in_transaction)
-            for _ in range(5)
-        ]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        if _is_sqlite():
+            # Run sequentially on SQLite
+            for _ in range(5):
+                create_protocol_in_transaction()
+        else:
+            # Create protocols in separate transactions
+            threads = [
+                threading.Thread(target=create_protocol_in_transaction)
+                for _ in range(5)
+            ]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
 
         # Assertions
         self.assertEqual(len(errors), 0, f"Errors occurred: {errors}")

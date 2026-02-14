@@ -12,7 +12,7 @@ TTY := $(shell [ -t 1 ] && echo "" || echo "-T")
 # .PHONY declarations for all targets
 # -----------------------------------------------------------------------------
 
-.PHONY: help cmd shell psql redis-cli manage secret test test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test pre-commit-install pre-commit-run pre-commit-update server-connect deploy deploy-prod safety-check safety-report
+.PHONY: help cmd shell psql redis-cli manage secret test test-with-sqlite test-specific test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test pre-commit-install pre-commit-run pre-commit-update server-connect deploy deploy-prod safety-check safety-report
 
 # -----------------------------------------------------------------------------
 # Help target (default)
@@ -33,6 +33,7 @@ help: ## Display available targets
 	@echo ""
 	@echo "Testing:"
 	@echo "  test                   Run the full Django test suite"
+	@echo "  test-with-sqlite      Run tests with SQLite (faster for local dev)"
 	@echo "  test-specific          Run specific tests (use: make test-specific ARGS=\"protocols.tests.ProtocolViewsTest\")"
 	@echo "  test-cleanup           Clean up test database connections"
 	@echo ""
@@ -125,6 +126,9 @@ secret: ## Generate a Django secret key
 
 test: ## Run the full Django test suite
 	@./scripts/test-wrapper.sh
+
+test-with-sqlite: ## Run tests with SQLite (faster for local dev)
+	@source scripts/docker-helper.sh && _dc -e DJANGO_TESTING=true -e RUNNING_TESTS=true web python3 manage.py test --settings=config.settings_test $(ARGS)
 
 test-specific: ## Run specific tests (use: make test-specific ARGS="protocols.tests.ProtocolViewsTest")
 	@source scripts/docker-helper.sh && _dc web python3 manage.py collectstatic --no-input
