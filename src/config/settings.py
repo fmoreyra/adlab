@@ -233,20 +233,45 @@ SITE_URL = os.getenv(
 
 # Email configuration
 # For development, use console backend. In production, configure SMTP.
-EMAIL_BACKEND = os.getenv(
-    "EMAIL_BACKEND",
-    "django.core.mail.backends.console.EmailBackend"
-    if DEBUG
-    else "django.core.mail.backends.smtp.EmailBackend",
-)
-EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = bool(strtobool(os.getenv("EMAIL_USE_TLS", "true")))
-EMAIL_USE_SSL = bool(strtobool(os.getenv("EMAIL_USE_SSL", "false")))
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@adlab.com")
-SERVER_EMAIL = os.getenv("SERVER_EMAIL", "server@adlab.com")
+# Optional: set TESTING_EMAIL=true to send real emails via Gmail (Google account + app password).
+# Never use TESTING_EMAIL when running tests (CI or local); see override below.
+TESTING_EMAIL = bool(strtobool(os.getenv("TESTING_EMAIL", "false")))
+if TESTING:
+    TESTING_EMAIL = False  # Never send real email from test runs (CI or local)
+
+if TESTING_EMAIL:
+    # Use Gmail SMTP with a Google account and app password.
+    # Set TESTING_EMAIL_USER (your Gmail) and TESTING_EMAIL_APP_PASSWORD (16-char app password).
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = os.getenv("TESTING_EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT = int(os.getenv("TESTING_EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.getenv("TESTING_EMAIL_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("TESTING_EMAIL_APP_PASSWORD", "")
+    EMAIL_USE_TLS = True
+    EMAIL_USE_SSL = False
+    DEFAULT_FROM_EMAIL = os.getenv(
+        "TESTING_EMAIL_FROM",
+        os.getenv("TESTING_EMAIL_USER", "noreply@adlab.com"),
+    )
+    SERVER_EMAIL = os.getenv(
+        "TESTING_EMAIL_SERVER",
+        os.getenv("TESTING_EMAIL_USER", "server@adlab.com"),
+    )
+else:
+    EMAIL_BACKEND = os.getenv(
+        "EMAIL_BACKEND",
+        "django.core.mail.backends.console.EmailBackend"
+        if DEBUG
+        else "django.core.mail.backends.smtp.EmailBackend",
+    )
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = bool(strtobool(os.getenv("EMAIL_USE_TLS", "true")))
+    EMAIL_USE_SSL = bool(strtobool(os.getenv("EMAIL_USE_SSL", "false")))
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@adlab.com")
+    SERVER_EMAIL = os.getenv("SERVER_EMAIL", "server@adlab.com")
 
 # Security settings for production
 # https://docs.djangoproject.com/en/5.2/ref/settings/#security

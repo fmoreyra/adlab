@@ -27,6 +27,12 @@ from .settings import BASE_DIR
 DEBUG = False
 TESTING = True
 
+# Never use Gmail/testing email in tests (CI or local)
+TESTING_EMAIL = False
+
+# Use simple email backend for tests (no real email)
+EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
 # Override database to use SQLite for faster tests
 DATABASES = {
     "default": {
@@ -39,9 +45,6 @@ DATABASES = {
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]
-
-# Use simple email backend for tests
-EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 # Disable caching during tests
 CACHES = {
