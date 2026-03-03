@@ -15,7 +15,9 @@ import socket
 import sys
 from pathlib import Path
 
+import sentry_sdk
 from distutils.util import strtobool
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,6 +49,27 @@ if TESTING:
 # https://docs.djangoproject.com/en/5.2/ref/settings/#std:setting-ALLOWED_HOSTS
 allowed_hosts = os.getenv("ALLOWED_HOSTS", ".localhost,127.0.0.1,[::1]")
 ALLOWED_HOSTS = list(map(str.strip, allowed_hosts.split(",")))
+
+# Sentry Configuration
+sentry_dsn = os.getenv("SENTRY_DSN")
+if sentry_dsn:
+    sentry_environment = os.getenv("SENTRY_ENVIRONMENT", "development")
+    sentry_traces_sample_rate = float(
+        os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1" if DEBUG else "1.0")
+    )
+    sentry_profiles_sample_rate = float(
+        os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.0" if DEBUG else "1.0")
+    )
+
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        integrations=[DjangoIntegration()],
+        environment=sentry_environment,
+        send_default_pii=True,
+        traces_sample_rate=sentry_traces_sample_rate,
+        profile_session_sample_rate=sentry_profiles_sample_rate,
+        profile_lifecycle="trace" if not DEBUG else "off",
+    )
 
 # Application definitions
 INSTALLED_APPS = [

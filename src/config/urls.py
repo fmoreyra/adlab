@@ -21,6 +21,11 @@ from django.urls import include, path
 
 from pages import views
 
+
+def trigger_error(request):
+    return 1 / 0
+
+
 urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),  # Global home URL
     path("accounts/", include("accounts.urls")),
@@ -37,6 +42,7 @@ if not settings.TESTING and settings.DEBUG:
     urlpatterns = [
         *urlpatterns,
         path("__debug__/", include("debug_toolbar.urls")),
+        path("sentry-debug/", trigger_error),
     ]
 
 # WhiteNoise handles static files automatically via middleware
