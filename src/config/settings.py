@@ -18,6 +18,7 @@ from pathlib import Path
 import sentry_sdk
 from distutils.util import strtobool
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import ignore_logger
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -71,6 +72,8 @@ if sentry_dsn:
         profile_lifecycle="trace" if not DEBUG else "off",
         enable_logs=True,
     )
+
+    ignore_logger("gunicorn.access")
 
 # Application definitions
 INSTALLED_APPS = [
