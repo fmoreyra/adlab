@@ -76,6 +76,8 @@ LABEL maintainer="Nick Janetakis <nick.janetakis@gmail.com>"
 
 WORKDIR /app
 
+SHELL ["/bin/bash", "-o", "pipefail"]
+
 ARG UID=1000
 ARG GID=1000
 
