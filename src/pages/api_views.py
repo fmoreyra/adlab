@@ -7,6 +7,7 @@ Provides real-time metrics for laboratory management including:
 - Turnaround Time (TAT) metrics
 - Productivity per histopathologist
 - Sample aging and alerts
+- Server stats (admin-only: CPU, RAM, disk, I/O, Docker)
 """
 
 from datetime import timedelta
@@ -15,6 +16,7 @@ from typing import Dict, List
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.cache import cache
 from django.db.models import Count, Q
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import View
@@ -40,6 +42,17 @@ class ManagementDashboardRequiredMixin(UserPassesTestMixin):
         return user.is_authenticated and (
             user.is_lab_staff or user.is_histopathologist or user.is_admin_user
         )
+
+
+class AdminDashboardRequiredMixin(UserPassesTestMixin):
+    """
+    Mixin to ensure only admin users can access server-stats API.
+    """
+
+    def test_func(self):
+        """Check if user is admin."""
+        user = self.request.user
+        return user.is_authenticated and user.is_admin_user
 
 
 class DashboardWIPView(
@@ -879,3 +892,28 @@ class DashboardAlertsView(
             )
 
         return alerts
+
+
+class ServerStatsView(LoginRequiredMixin, AdminDashboardRequiredMixin, View):
+    """
+    Get server stats (CPU, RAM, disk, I/O, Docker containers).
+
+    Admin-only. GET /api/dashboard/server-stats/
+    Returns JSON. No caching.
+    """
+
+    def get(self, request, *args, **kwargs):
+        """Return server stats as JSON."""
+        from services.server_stats_service import (
+            get_docker_stats,
+            get_system_stats,
+        )
+
+        system = get_system_stats()
+        docker = get_docker_stats()
+        return JsonResponse(
+            {
+                "system": system,
+                "docker": docker,
+            }
+        )

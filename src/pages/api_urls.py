@@ -42,4 +42,9 @@ urlpatterns = [
         api_views.DashboardAlertsView.as_view(),
         name="dashboard_alerts",
     ),
+    path(
+        "dashboard/server-stats/",
+        api_views.ServerStatsView.as_view(),
+        name="dashboard_server_stats",
+    ),
 ]
