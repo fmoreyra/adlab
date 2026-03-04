@@ -64,6 +64,13 @@ start_infrastructure() {
   docker compose $COMPOSE_FILES up -d postgres redis
 }
 
+start_app_services() {
+  log_step "Starting application services (web, worker, beat)..."
+
+  # shellcheck disable=SC2086
+  docker compose $COMPOSE_FILES up -d web worker beat
+}
+
 # Pull latest changes
 pull_changes() {
   log_step "Pulling latest changes..."
@@ -165,6 +172,7 @@ main() {
   backup_database
   pull_changes
   build_images
+  start_app_services
   build_documentation
   run_migrations
   collect_static
