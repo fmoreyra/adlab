@@ -79,8 +79,10 @@ start_app_services() {
 start_proxy() {
   log_step "Starting reverse proxy (nginx)..."
 
+  # Force-recreate so Nginx re-resolves the upstream DNS (web container IP may
+  # have changed after restart_services force-recreated it).
   # shellcheck disable=SC2086
-  docker compose $COMPOSE_FILES up -d nginx
+  docker compose $COMPOSE_FILES up -d --force-recreate nginx
 }
 
 # Pull latest changes
@@ -154,9 +156,9 @@ collect_static() {
   log_success "Static files collected successfully"
 }
 
-# Restart services
+# Restart app services (web, worker, beat)
 restart_services() {
-  log_step "Restarting services..."
+  log_step "Restarting application services..."
 
   # Force-recreate app services so that Gunicorn/WhiteNoise re-reads the
   # freshly generated staticfiles.json manifest.  A plain "up -d" skips
@@ -166,7 +168,13 @@ restart_services() {
   # shellcheck disable=SC2086
   docker compose $COMPOSE_FILES up -d --force-recreate web worker beat
 
-  # Wait for health check
+  log_success "Application services restarted"
+}
+
+# Verify all services are healthy (must run after nginx is up)
+verify_health() {
+  log_step "Verifying services are healthy..."
+
   local max_attempts=30
   local attempt=1
 
@@ -180,7 +188,7 @@ restart_services() {
     attempt=$((attempt + 1))
   done
 
-  log_error "Services failed to start"
+  log_error "Services failed health check after $((max_attempts * 2)) seconds"
   exit 1
 }
 
@@ -199,8 +207,9 @@ main() {
   run_migrations
   collect_static
   build_documentation
-  start_proxy
   restart_services
+  start_proxy
+  verify_health
 
   echo
   echo -e "${GREEN}🎉 Deployment completed successfully!${NC}"

@@ -2,11 +2,14 @@
 # Usage: docker compose -f compose.yaml -f compose.production.yaml up -d
 
 services:
-  # Override web service to not expose ports directly
+  # Override web service to not expose ports publicly.
+  # !reset clears the ports list inherited from compose.yaml so Gunicorn is
+  # only reachable via the Docker network (nginx → web:8000).
+  # Requires Docker Compose v2.24.0+ (released Jan 2024).
   web:
-    ports: []  # Remove direct port exposure
+    ports: !reset []
     expose:
-      - "8000"  # Only expose to Docker network
+      - "8000"
 
   # Add Nginx reverse proxy
   nginx:
