@@ -235,6 +235,32 @@ if TESTING:
     CELERY_BROKER_URL = "memory://"
     CELERY_RESULT_BACKEND = "cache+memory://"
 
+# Celery Beat: periodic tasks (only applied when beat is running)
+# https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
+CELERY_BEAT_SCHEDULE = {
+    "check-container-memory-alerts": {
+        "task": "protocols.tasks.check_container_memory_alerts",
+        "schedule": 600.0,  # Every 10 minutes
+        "options": {"queue": "default"},
+    },
+}
+
+# Container memory alert: threshold (percent) and optional name substring filter.
+# Containers with memory_percent >= threshold are reported to admins (email).
+# Set to 0 to disable alerting.
+CONTAINER_MEMORY_ALERT_THRESHOLD = int(
+    os.getenv("CONTAINER_MEMORY_ALERT_THRESHOLD", "85")
+)
+# Only check containers whose name contains this string (e.g. "laboratory-web").
+# Empty string = check all containers.
+CONTAINER_MEMORY_ALERT_NAME_FILTER = os.getenv(
+    "CONTAINER_MEMORY_ALERT_NAME_FILTER", "laboratory-web"
+)
+# After sending an alert, do not send again for this many seconds (cooldown).
+CONTAINER_MEMORY_ALERT_COOLDOWN_SECONDS = int(
+    os.getenv("CONTAINER_MEMORY_ALERT_COOLDOWN_SECONDS", "3600")
+)  # 1 hour
+
 # Authentication settings
 # Session configuration
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"

@@ -1,6 +1,6 @@
 """
 Celery tasks for the protocols app.
-Handles asynchronous email sending with retry logic.
+Handles asynchronous email sending with retry logic and optional monitoring alerts.
 """
 
 import logging
@@ -8,6 +8,7 @@ import logging
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -201,3 +202,107 @@ def send_email(
 
         # Re-raise for Celery retry
         raise
+
+
+_CONTAINER_ALERT_CACHE_KEY = "container_memory_alert_cooldown"
+
+
+@shared_task
+def check_container_memory_alerts():
+    """
+    Periodic task: check Docker container memory usage and email admins if any
+    container is above CONTAINER_MEMORY_ALERT_THRESHOLD. Uses a cooldown so
+    the same alert is not sent more than once per CONTAINER_MEMORY_ALERT_COOLDOWN_SECONDS.
+    """
+    from django.contrib.auth import get_user_model
+    from django.core.cache import cache
+
+    User = get_user_model()
+    threshold = getattr(settings, "CONTAINER_MEMORY_ALERT_THRESHOLD", 85)
+    name_filter = getattr(
+        settings, "CONTAINER_MEMORY_ALERT_NAME_FILTER", "laboratory-web"
+    )
+    cooldown_seconds = getattr(
+        settings, "CONTAINER_MEMORY_ALERT_COOLDOWN_SECONDS", 3600
+    )
+
+    if threshold <= 0:
+        return
+
+    if cache.get(_CONTAINER_ALERT_CACHE_KEY):
+        logger.debug("Container memory alert skipped (cooldown active)")
+        return
+
+    try:
+        from services.server_stats_service import get_docker_stats
+    except ImportError:
+        logger.debug("Docker stats not available, skipping container alert")
+        return
+
+    data = get_docker_stats()
+    if data.get("error"):
+        logger.warning("Container memory check failed: %s", data["error"])
+        return
+
+    over = []
+    for c in data.get("containers") or []:
+        name = c.get("name") or ""
+        if name_filter and name_filter not in name:
+            continue
+        pct = c.get("memory_percent")
+        if pct is not None and pct >= threshold:
+            over.append(
+                {
+                    "name": name,
+                    "memory_percent": pct,
+                    "memory_usage_bytes": c.get("memory_usage_bytes"),
+                    "memory_limit_bytes": c.get("memory_limit_bytes"),
+                }
+            )
+
+    if not over:
+        return
+
+    admin_emails = list(
+        User.objects.filter(
+            Q(role=User.Role.ADMIN) | Q(is_superuser=True),
+            is_active=True,
+        )
+        .exclude(email="")
+        .values_list("email", flat=True)
+        .distinct()
+    )
+    if not admin_emails:
+        logger.warning("No admin emails for container memory alert")
+        return
+
+    lines = [
+        "Los siguientes contenedores superan el umbral de memoria configurado (%s%%):",
+        "",
+    ]
+    for item in over:
+        lines.append("  - %s: %.1f%%" % (item["name"], item["memory_percent"]))
+    lines.extend(
+        [
+            "",
+            "Revisa el panel de administración del servidor o considera aumentar el límite de memoria del contenedor.",
+        ]
+    )
+    body = "\n".join(lines) % threshold
+
+    try:
+        email = EmailMultiAlternatives(
+            subject="[AdLab] Alerta: uso alto de memoria en contenedores",
+            body=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=admin_emails,
+        )
+        email.send(fail_silently=False)
+        cache.set(_CONTAINER_ALERT_CACHE_KEY, "1", cooldown_seconds)
+        logger.info(
+            "Container memory alert sent to %s admins for %s",
+            len(admin_emails),
+            [x["name"] for x in over],
+        )
+    except Exception as e:
+        logger.exception("Failed to send container memory alert: %s", e)
