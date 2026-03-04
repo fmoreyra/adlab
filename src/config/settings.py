@@ -69,6 +69,7 @@ if sentry_dsn:
         traces_sample_rate=sentry_traces_sample_rate,
         profile_session_sample_rate=sentry_profiles_sample_rate,
         profile_lifecycle="trace" if not DEBUG else "off",
+        enable_logs=True,
     )
 
 # Application definitions
