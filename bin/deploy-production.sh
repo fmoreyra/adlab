@@ -49,20 +49,8 @@ check_production_mode() {
 backup_database() {
   log_step "Creating database backup..."
 
-  local backup_dir="./backups"
-  mkdir -p "$backup_dir"
-
-  local timestamp
-  timestamp=$(date +"%Y%m%d_%H%M%S")
-  local backup_file="$backup_dir/db_backup_$timestamp.sql.gz"
-
-  # shellcheck disable=SC1091
-  source .env
-  # shellcheck disable=SC2086
-  docker compose $COMPOSE_FILES exec -T postgres pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip >"$backup_file"
-
-  if [[ -f "$backup_file" ]] && [[ -s "$backup_file" ]]; then
-    log_success "Database backed up to: $backup_file"
+  if make db-dump; then
+    log_success "Database backup completed (see ./backups directory)"
   else
     log_error "Database backup failed"
     exit 1
@@ -100,14 +88,11 @@ build_images() {
 build_documentation() {
   log_step "Building documentation..."
 
-  # Check if mkdocs and make are available in the container
-  # shellcheck disable=SC2086
-  if docker compose $COMPOSE_FILES exec -T web which mkdocs >/dev/null 2>&1; then
-    make docs-build
+  if make docs-build; then
     log_success "Documentation built successfully"
   else
-    log_warning "MkDocs not found in container, skipping docs build"
-    log_info "Pre-built documentation from repository will be used"
+    log_warning "Documentation build failed; continuing deployment"
+    log_info "Run 'make docs-build' manually to inspect the error"
   fi
 }
 
@@ -115,12 +100,12 @@ build_documentation() {
 run_migrations() {
   log_step "Running migrations..."
 
-  if ! ./run manage migrate --check; then
+  if ! make manage ARGS="migrate --check"; then
     log_error "Migration check failed"
     exit 1
   fi
 
-  ./run manage migrate --no-input
+  make manage ARGS="migrate --no-input"
   log_success "Migrations applied"
 }
 
@@ -128,7 +113,7 @@ run_migrations() {
 collect_static() {
   log_step "Collecting static files..."
 
-  ./run manage collectstatic --no-input
+  make manage ARGS="collectstatic --no-input"
   log_success "Static files collected successfully"
 }
 
