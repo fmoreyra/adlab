@@ -113,7 +113,9 @@ run_migrations() {
 collect_static() {
   log_step "Collecting static files..."
 
-  make manage ARGS="collectstatic --no-input"
+  # Use --clear to ensure the WhiteNoise manifest and collected files
+  # are fully regenerated, avoiding stale manifest entries for CSS / JS.
+  make manage ARGS="collectstatic --no-input --clear"
   log_success "Static files collected successfully"
 }
 
