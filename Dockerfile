@@ -99,13 +99,17 @@ ENV DEBUG="${DEBUG}" \
   USER="python"
 
 COPY --chown=python:python --from=assets /app/public /public
+# Ensure app images (e.g. logo-unl-fcv.png) are always from current build context
+# so collectstatic can repair manifest even when assets stage is cached.
+COPY --chown=python:python assets/static/images/ /public/images/
 COPY --chown=python:python --from=app-build /home/python/.local /home/python/.local
 COPY --from=app-build /usr/local/bin/uv /usr/local/bin/uvx /usr/local/bin/
 COPY --chown=python:python . .
 
 WORKDIR /app/src
 
-RUN if [ "${DEBUG}" = "false" ]; then \
+RUN DEBUG_LOWER="$(echo "${DEBUG}" | tr '[:upper:]' '[:lower:]')"; \
+  if [ "${DEBUG_LOWER}" = "false" ]; then \
   SECRET_KEY=dummyvalue python3 manage.py collectstatic --no-input; \
   else mkdir -p /app/public_collected; fi
 

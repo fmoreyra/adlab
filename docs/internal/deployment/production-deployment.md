@@ -140,13 +140,13 @@ docker compose -f compose.yaml -f compose.production.yaml up -d postgres redis
 sleep 10
 
 # Run migrations
-./run manage migrate
+make  manage migrate
 
 # Create superuser
-./run manage createsuperuser
+make  manage createsuperuser
 
 # Collect static files
-./run manage collectstatic --no-input
+make  manage collectstatic --no-input
 
 # Start application services
 docker compose -f compose.yaml -f compose.production.yaml up -d web worker beat
@@ -256,12 +256,12 @@ The deployment script performs these steps in order:
 2. 🗄️ **Start infrastructure** — Bring up Postgres and Redis so backup and migrations can run (idempotent if already up).
 3. 💾 **Backup** — Create a database dump in `./backups` (fails if DB is unreachable).
 4. 📥 **Pull** — Fetch and pull latest from `origin/main` (skips if already up to date).
-5. 🏗️ **Build** — Build Docker images for web, worker, and beat.
-6. 🚀 **Start app services** — Start web, worker, and beat so docs-build and migrations can run inside the web container.
-7. 🌐 **Start proxy** — Start nginx so the app is reachable via HTTPS (idempotent if already up).
-8. 🔄 **Migrations** — Run `migrate --check` then `migrate --no-input` (fails on migration errors).
-9. 📦 **Collect static** — Run `collectstatic --no-input --clear` to rebuild the WhiteNoise manifest and collected files from the image’s static sources (repairs references like `images/logo-unl-fcv.png`). App images must live in `assets/static/images/` so the image build includes them. Runs before docs-build so generated docs are not removed.
-10. 📚 **Build documentation** — Run `make docs-build` in the web container to write MkDocs output into `public_collected/docs/` (continues on failure with a warning).
+5. 🏗️ **Build** — Build Docker images for web, worker, and beat. The Dockerfile runs `collectstatic` during image build (case-insensitive DEBUG check), so the image always contains a valid WhiteNoise manifest.
+6. 🚀 **Start app services** — Start web, worker, and beat so migrations and collectstatic can run inside the web container. Nginx is NOT started yet, so no external traffic reaches the app while the manifest is being rebuilt.
+7. 🔄 **Migrations** — Run `migrate --check` then `migrate --no-input` (fails on migration errors).
+8. 📦 **Collect static** — Run `collectstatic --no-input --clear` to rebuild the WhiteNoise manifest from the image's static sources (repairs references like `images/logo-unl-fcv.png`). Output is persisted to the host via the volume mount at `/public_collected` (matching `STATIC_ROOT`).
+9. 📚 **Build documentation** — Run `make docs-build` in the web container to write MkDocs output into `public_collected/docs/` (continues on failure with a warning).
+10. 🌐 **Start proxy** — Start nginx so the app is reachable via HTTPS. By this point migrations, static files, and documentation are all ready.
 11. 🔁 **Recreate app services** — Run `docker compose up -d web worker beat` so containers use the current production config (e.g. **web has no published port 8000**; all traffic must go through nginx).
 12. ✅ **Health check** — Poll `http://localhost/up` until success or timeout; exit with error if services do not become healthy.
 
@@ -376,7 +376,7 @@ ls -lh /opt/laboratory-system/backups/
 mkdir -p backups
 
 # Backup database
-./run db:dump
+make  db:dump
 # Creates: backups/adlab_dump_YYYYMMDD_HHMMSS.sql
 
 # Or using Docker directly:
@@ -492,7 +492,7 @@ docker compose -f compose.yaml -f compose.production.yaml ps postgres
 docker compose -f compose.yaml -f compose.production.yaml exec postgres psql -U lab_user laboratory_db
 
 # Check Django can connect
-./run manage check --database default
+make  manage check --database default
 
 # View database logs
 docker compose -f compose.yaml -f compose.production.yaml logs postgres
@@ -502,7 +502,7 @@ docker compose -f compose.yaml -f compose.production.yaml logs postgres
 
 ```bash
 # Collect static files again
-./run manage collectstatic --no-input
+make  manage collectstatic --no-input
 
 # Check Nginx configuration
 docker compose -f compose.yaml -f compose.production.yaml exec nginx nginx -t
@@ -577,7 +577,7 @@ After successful deployment:
    - Configure alerting
 
 3. **Configure Email**
-   - Test email sending: `./run manage sendtestemail admin@yourdomain.com`
+   - Test email sending: `make  manage sendtestemail admin@yourdomain.com`
    - Configure SMTP properly
    - See [Email Setup Guide](../configuration/email-setup.md)
 

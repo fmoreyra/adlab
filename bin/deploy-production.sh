@@ -137,6 +137,13 @@ run_migrations() {
 collect_static() {
   log_step "Collecting static files..."
 
+  # Ensure app images exist in repo so the image build (and collectstatic) can include them.
+  if [[ ! -f "assets/static/images/logo-unl-fcv.png" ]]; then
+    log_error "assets/static/images/logo-unl-fcv.png is missing from the repo."
+    log_error "Add the file and redeploy. If it was removed, restore it from git."
+    exit 1
+  fi
+
   # Rebuild manifest and collected files from the image's static sources (repair
   # references like images/logo-unl-fcv.png). The web container was started from
   # the image we just built, so /public in the container includes app images from
@@ -185,10 +192,10 @@ main() {
   pull_changes
   build_images
   start_app_services
-  start_proxy
   run_migrations
   collect_static
   build_documentation
+  start_proxy
   restart_services
 
   echo
