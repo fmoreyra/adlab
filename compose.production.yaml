@@ -11,7 +11,10 @@ services:
     expose:
       - "8000"
 
-  # Add Nginx reverse proxy
+  # Nginx reverse proxy with background reload loop.
+  # Every 6 hours nginx gracefully re-reads SSL certificates so renewals
+  # performed by the certbot container are picked up automatically.
+  # `nginx -s reload` is zero-downtime and idempotent.
   nginx:
     image: nginx:1.25-alpine
     container_name: laboratory-nginx
@@ -29,6 +32,8 @@ services:
     depends_on:
       - web
     profiles: ["nginx"]
+    command: >-
+      /bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'
     deploy:
       resources:
         limits:
