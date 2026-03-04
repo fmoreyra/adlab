@@ -57,6 +57,13 @@ backup_database() {
   fi
 }
 
+start_infrastructure() {
+  log_step "Starting core services (postgres, redis)..."
+
+  # shellcheck disable=SC2086
+  docker compose $COMPOSE_FILES up -d postgres redis
+}
+
 # Pull latest changes
 pull_changes() {
   log_step "Pulling latest changes..."
@@ -154,6 +161,7 @@ main() {
   echo
 
   check_production_mode
+  start_infrastructure
   backup_database
   pull_changes
   build_images
