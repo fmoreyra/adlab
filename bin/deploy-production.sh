@@ -34,7 +34,9 @@ check_production_mode() {
   # shellcheck disable=SC1091
   source .env
 
-  if [[ "${DEBUG:-true}" == "True" ]]; then
+  local debug_val
+  debug_val="$(echo "${DEBUG:-true}" | tr '[:upper:]' '[:lower:]')"
+  if [[ "$debug_val" == "true" ]]; then
     log_error "DEBUG is set to True. This is not safe for production!"
     log_error "Set DEBUG=False in .env file"
     exit 1
@@ -156,11 +158,13 @@ collect_static() {
 restart_services() {
   log_step "Restarting services..."
 
-  # Recreate app services with current production config (not nginx)
-  # This ensures port mappings and other settings from compose.production.yaml
-  # are correctly applied (e.g., web only behind nginx, no public :8000).
+  # Force-recreate app services so that Gunicorn/WhiteNoise re-reads the
+  # freshly generated staticfiles.json manifest.  A plain "up -d" skips
+  # containers whose image + config haven't changed, leaving the process
+  # running with a stale (or empty) cached manifest from before
+  # collect_static ran.
   # shellcheck disable=SC2086
-  docker compose $COMPOSE_FILES up -d web worker beat
+  docker compose $COMPOSE_FILES up -d --force-recreate web worker beat
 
   # Wait for health check
   local max_attempts=30

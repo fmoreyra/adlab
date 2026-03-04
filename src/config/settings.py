@@ -339,7 +339,7 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "config.storage.ForgivingManifestStaticFilesStorage",
         "OPTIONS": {
             "location": "/public_collected",
             "base_url": "/static/",
