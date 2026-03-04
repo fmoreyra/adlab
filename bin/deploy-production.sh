@@ -123,9 +123,11 @@ collect_static() {
 restart_services() {
   log_step "Restarting services..."
 
-  # Restart app services (not nginx)
+  # Recreate app services with current production config (not nginx)
+  # This ensures port mappings and other settings from compose.production.yaml
+  # are correctly applied (e.g., web only behind nginx, no public :8000).
   # shellcheck disable=SC2086
-  docker compose $COMPOSE_FILES restart web worker beat
+  docker compose $COMPOSE_FILES up -d web worker beat
 
   # Wait for health check
   local max_attempts=30
