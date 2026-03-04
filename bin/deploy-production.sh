@@ -77,12 +77,17 @@ start_app_services() {
 }
 
 start_proxy() {
-  log_step "Starting reverse proxy (nginx)..."
+  log_step "Starting reverse proxy (nginx) and SSL renewal (certbot)..."
 
   # Force-recreate so Nginx re-resolves the upstream DNS (web container IP may
   # have changed after restart_services force-recreated it).
   # shellcheck disable=SC2086
   docker compose $COMPOSE_FILES up -d --force-recreate nginx
+
+  # Start the certbot container which renews certificates every 12h.
+  # Nginx reloads every 6h to pick up renewed certs (see compose.production.yaml).
+  # shellcheck disable=SC2086
+  docker compose $COMPOSE_FILES up -d certbot
 }
 
 # Pull latest changes
