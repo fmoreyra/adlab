@@ -78,7 +78,7 @@ class GetSystemStatsTest(SimpleTestCase):
 
     @patch("services.server_stats_service.psutil")
     def test_cpu_percent_called_with_interval(self, mock_psutil):
-        """cpu_percent is called with interval=0.5 for sampling."""
+        """cpu_percent is called with interval=0.1 for sampling."""
         mock_psutil.cpu_percent.return_value = 5.0
         mock_psutil.virtual_memory.return_value = MagicMock(
             total=1024, used=256, available=768, percent=25.0
@@ -92,7 +92,7 @@ class GetSystemStatsTest(SimpleTestCase):
 
         get_system_stats()
 
-        mock_psutil.cpu_percent.assert_called_once_with(interval=0.5)
+        mock_psutil.cpu_percent.assert_called_once_with(interval=0.1)
 
 
 class GetDockerStatsTest(SimpleTestCase):

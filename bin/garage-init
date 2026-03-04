@@ -20,7 +20,7 @@ BUCKET_NAME="${AWS_STORAGE_BUCKET_NAME:-adlab-media}"
 KEY_NAME="${GARAGE_KEY_NAME:-adlab-app-key}"
 
 garage_exec() {
-  docker compose ${COMPOSE_FILES} exec -T garage /garage "$@"
+  docker compose "${COMPOSE_FILES}" exec -T garage /garage "$@"
 }
 
 echo "=== Garage Initialization ==="

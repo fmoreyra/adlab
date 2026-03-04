@@ -55,7 +55,7 @@ def get_system_stats() -> Dict[str, Any]:
     if psutil is None:
         return _SYSTEM_ERROR.copy()
 
-    cpu_percent = psutil.cpu_percent(interval=0.5)
+    cpu_percent = psutil.cpu_percent(interval=0.1)
     mem = psutil.virtual_memory()
     disk = psutil.disk_usage("/")
     io_counters = psutil.disk_io_counters()
