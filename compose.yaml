@@ -129,7 +129,6 @@ services:
 
   garage:
     image: "dxflrs/garage:v1.3.1"
-    command: "server"
     profiles: ["garage"]
     volumes:
       - "./etc/garage.toml:/etc/garage.toml:ro"
