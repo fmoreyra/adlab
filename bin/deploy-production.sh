@@ -71,6 +71,13 @@ start_app_services() {
   docker compose $COMPOSE_FILES up -d web worker beat
 }
 
+start_proxy() {
+  log_step "Starting reverse proxy (nginx)..."
+
+  # shellcheck disable=SC2086
+  docker compose $COMPOSE_FILES up -d nginx
+}
+
 # Pull latest changes
 pull_changes() {
   log_step "Pulling latest changes..."
@@ -173,6 +180,7 @@ main() {
   pull_changes
   build_images
   start_app_services
+  start_proxy
   build_documentation
   run_migrations
   collect_static
