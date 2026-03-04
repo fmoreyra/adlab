@@ -2,36 +2,41 @@
 
 ## Quick Reference
 
-This guide provides a quick reference for implementing MinIO object storage and comprehensive backup/restore procedures for the AdLab Veterinary Laboratory system.
+This guide is **for future reference** when you implement the backup system. The current Step 14 scope is **Garage + Django only** (get Garage up and Django talking to it). Backups will be implemented **later**.
+
+Quick reference for **Garage** object storage (now) and backup/restore procedures (later) for the AdLab Veterinary Laboratory system.
 
 **Full documentation**: See `main-project-docs/steps/step-14-storage-backup.md`
 
-## Quick Start
+---
 
-### 1. Start MinIO
+## Garage Quick Start (Current Scope)
+
+Use this section to get Garage running and Django using it. Backup steps below are for later.
+
+### 1. Start Garage
+
+[Garage](https://garagehq.deuxfleurs.fr/documentation/quick-start/) is S3-compatible object storage for self-hosting. Use path-style addressing and region `garage`.
 
 ```bash
-# Add MinIO profile
-docker compose --profile minio up -d
+# Create etc/garage.toml (see step-14), then:
+docker compose --profile garage up -d
 
-# Initialize buckets
-docker compose exec web ./bin/minio-init
-
-# Access MinIO Console
-# URL: http://localhost:9001
-# User: adlab_admin
-# Password: (from .env)
+# One-time: layout assign, bucket create, key new, bucket allow (see step-14)
 ```
 
 ### 2. Enable S3 Storage
 
 Update `.env`:
+
 ```bash
 USE_S3_STORAGE=true
-AWS_ACCESS_KEY_ID=adlab_admin
-AWS_SECRET_ACCESS_KEY=your_secure_password
+AWS_ACCESS_KEY_ID=GKxxxx
+AWS_SECRET_ACCESS_KEY=<secret_from_garage_key_new>
 AWS_STORAGE_BUCKET_NAME=adlab-media
-AWS_S3_ENDPOINT_URL=http://minio:9000
+AWS_S3_ENDPOINT_URL=http://garage:3900
+AWS_S3_REGION_NAME=garage
+AWS_S3_ADDRESSING_STYLE=path
 ```
 
 Restart application:
@@ -39,7 +44,18 @@ Restart application:
 docker compose restart web worker
 ```
 
-### 3. Run Manual Backup
+### 3. Configure mc for Backups (LATER)
+
+When you implement backups:
+
+```bash
+export MC_REGION=garage
+mc alias set adlab http://garage:3900 <KEY_ID> <SECRET> --api S3v4
+```
+
+### 4. Run Manual Backup (LATER)
+
+When the backup system is implemented:
 
 ```bash
 # Database backup
@@ -52,7 +68,7 @@ docker compose restart web worker
 ./bin/backup-complete
 ```
 
-### 4. Test Restore
+### 5. Test Restore (LATER)
 
 ```bash
 # List available backups
@@ -65,7 +81,7 @@ ls -lh /backups/database/daily/
 ./bin/restore-files /backups/files/backup.tar.gz
 ```
 
-### 5. Enable Automated Backups
+### 6. Enable Automated Backups (LATER)
 
 ```bash
 # Start backup service
@@ -75,7 +91,9 @@ docker compose --profile backup up -d
 docker compose exec backup crontab -l
 ```
 
-## Common Operations
+## Backup & Restore (Future Reference)
+
+The sections below apply when you implement the backup system later.
 
 ### View Backup Status
 
@@ -83,7 +101,7 @@ docker compose exec backup crontab -l
 # Run verification
 ./bin/verify-backups
 
-# Check MinIO storage
+# Check Garage
 docker compose exec web mc du adlab/adlab-media
 docker compose exec web mc du adlab/adlab-backups
 ```
@@ -105,7 +123,7 @@ find /backups/database -name "*.sql.gz" -mtime +30 -delete
 
 ## Backup Schedule
 
-- **Hourly**: File sync to MinIO
+- **Hourly**: File sync to Garage
 - **Daily 2 AM**: Database backup
 - **Daily 3 AM**: File archive backup
 - **Sunday 4 AM**: Complete system backup
@@ -114,7 +132,7 @@ find /backups/database -name "*.sql.gz" -mtime +30 -delete
 ## Storage Structure
 
 ```
-MinIO Buckets:
+Garage buckets:
 ├── adlab-media/          # Application files
 │   ├── signatures/       # Histopathologist signatures
 │   ├── reports/          # Generated PDF reports
@@ -135,8 +153,8 @@ MinIO Buckets:
 # View recent backups
 ls -lh /backups/database/daily/ | tail -5
 
-# Check MinIO health
-docker compose exec web mc admin info adlab
+# Check Garage (no admin API; use mc ls)
+docker compose exec web mc ls adlab/adlab-media
 
 # View backup logs
 tail -f /var/log/backup.log
@@ -146,22 +164,22 @@ tail -f /var/log/backup.log
 
 1. Backup failure notifications
 2. Storage space warnings (>80%)
-3. MinIO service down
+3. Garage service down
 4. Restore test failures
 
 ## Troubleshooting
 
-### MinIO Not Accessible
+### Garage Not Accessible
 
 ```bash
 # Check service
-docker compose ps minio
+docker compose ps garage
 
-# Restart MinIO
-docker compose restart minio
+# Restart
+docker compose restart garage
 
 # Check logs
-docker compose logs minio
+docker compose logs garage
 ```
 
 ### Backup Failed
@@ -192,11 +210,11 @@ ls -lh /backups/database/daily/
 
 ## Security Best Practices
 
-1. **Rotate MinIO credentials** every 90 days
+1. **Rotate Garage key** every 90 days
 2. **Encrypt backups** before off-site storage
 3. **Test restores** monthly
 4. **Keep 3 copies** of critical data (3-2-1 rule)
-5. **Restrict MinIO access** to internal network only
+5. **Restrict object storage access** to internal network only
 6. **Monitor access logs** regularly
 
 ## Next Steps
@@ -213,7 +231,7 @@ ls -lh /backups/database/daily/
 For issues or questions:
 1. Check full documentation: `main-project-docs/steps/step-14-storage-backup.md`
 2. Review logs: `/var/log/backup.log`
-3. Check MinIO console: http://localhost:9001
+3. Garage: no web UI; use `garage status`, `garage bucket list`.
 4. Contact system administrator
 
 ---

@@ -127,6 +127,27 @@ services:
       - "${DOCKER_FLOWER_PORT_FORWARD:-127.0.0.1:5555}:5555"
     profiles: ["flower"]
 
+  garage:
+    image: "dxflrs/garage:v1.3.1"
+    command: "server"
+    profiles: ["garage"]
+    volumes:
+      - "./etc/garage.toml:/etc/garage.toml:ro"
+      - "garage_meta:/var/lib/garage/meta"
+      - "garage_data:/var/lib/garage/data"
+    ports:
+      - "127.0.0.1:3900:3900"
+      - "127.0.0.1:3901:3901"
+      - "127.0.0.1:3902:3902"
+    environment:
+      RUST_LOG: "garage=info"
+    healthcheck:
+      test: ["CMD", "garage", "status"]
+      interval: "30s"
+      timeout: "10s"
+      retries: 3
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+
   js:
     <<: *default-assets
     command: "../run yarn:build:js"
@@ -139,3 +160,5 @@ volumes:
   postgres: {}
   redis: {}
   celerybeat: {}
+  garage_meta: {}
+  garage_data: {}

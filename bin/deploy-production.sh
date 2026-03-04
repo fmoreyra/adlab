@@ -69,6 +69,36 @@ start_infrastructure() {
   docker compose $COMPOSE_FILES up -d postgres redis
 }
 
+start_garage() {
+  log_step "Starting object storage (Garage)..."
+
+  # shellcheck disable=SC2086
+  docker compose $COMPOSE_FILES up -d garage
+
+  local max_attempts=15
+  local attempt=1
+  while [[ $attempt -le $max_attempts ]]; do
+    # shellcheck disable=SC2086
+    if docker compose $COMPOSE_FILES exec -T garage /garage status >/dev/null 2>&1; then
+      log_success "Garage is healthy"
+
+      # First-time init: if bucket doesn't exist yet, run garage-init
+      # shellcheck disable=SC2086
+      if ! docker compose $COMPOSE_FILES exec -T garage /garage bucket info "${AWS_STORAGE_BUCKET_NAME:-adlab-media}" >/dev/null 2>&1; then
+        log_info "Running first-time Garage initialization..."
+        bin/garage-init
+      fi
+      return 0
+    fi
+    log_info "Waiting for Garage... ($attempt/$max_attempts)"
+    sleep 2
+    attempt=$((attempt + 1))
+  done
+
+  log_error "Garage failed health check after $((max_attempts * 2)) seconds"
+  exit 1
+}
+
 start_app_services() {
   log_step "Starting application services (web, worker, beat)..."
 
@@ -205,6 +235,7 @@ main() {
 
   check_production_mode
   start_infrastructure
+  start_garage
   backup_database
   pull_changes
   build_images

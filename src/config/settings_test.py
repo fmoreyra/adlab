@@ -21,7 +21,7 @@ logic correctness - the atomic counter pattern is still validated.
 """
 
 from .settings import *  # noqa
-from .settings import BASE_DIR
+from .settings import BASE_DIR, STORAGES  # noqa: F811
 
 # Must be False for tests
 DEBUG = False
@@ -55,6 +55,14 @@ CACHES = {
 
 # Use database sessions for tests (cache backend doesn't work with DummyCache)
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+# Media files go to a temp directory so tests don't pollute real storage
+MEDIA_ROOT = str(BASE_DIR / ".." / "tmp_test_media")
+
+# Ensure default storage is local filesystem (never S3 in tests)
+STORAGES["default"] = {
+    "BACKEND": "django.core.files.storage.FileSystemStorage",
+}
 
 # Use default test runner instead of DockerTestRunner (for SQLite)
 TEST_RUNNER = "django.test.runner.DiscoverRunner"

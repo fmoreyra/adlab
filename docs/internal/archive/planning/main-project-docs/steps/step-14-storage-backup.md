@@ -1,4 +1,18 @@
-# Step 14: Object Storage (MinIO) & Backup/Restore System
+# Step 14: Object Storage (Garage) & Backup/Restore System
+
+## Scope — For Future Reference
+
+**Implement now (current task):**
+- Get **Garage** up and running (Docker, config, layout, buckets, keys).
+- **Django talking to Garage**: django-storages S3 backend, settings, models and views using Garage for media (signatures, reports, microscopy images, labels).
+- Verification that the app reads/writes files to Garage.
+
+**Implement later (not in scope now):**
+- Backup system (database backups, file backups, backup scripts, cron, verification).
+- Restore procedures and disaster recovery.
+- All content in this document about backups, restore scripts, and backup automation is **for future reference** when you implement backups in a later phase.
+
+---
 
 ## Problem Statement
 
@@ -12,21 +26,21 @@ Currently, the laboratory system stores files (PDF reports, signature images, mi
 6. **No Disaster Recovery**: Missing automated backup and restore procedures
 7. **Migration Difficulty**: Hard to move between environments or cloud providers
 
-**Solution**: Implement MinIO (S3-compatible object storage) for centralized file management and comprehensive backup/restore strategies.
+**Solution**: Implement **Garage** (lightweight, S3-compatible object storage) for centralized file management and comprehensive backup/restore strategies. Garage is designed for self-hosting on modest hardware, supports replication, and exposes a standard S3 API.
 
 ## Requirements
 
 ### Functional Requirements (RF14)
 
 **Storage Requirements:**
-- **RF14.1**: Store all application files in object storage (MinIO/S3)
+- **RF14.1**: Store all application files in object storage (Garage/S3-compatible)
   - Histopathologist signature images
   - Generated PDF reports
   - Microscopy images
   - QR code labels
 - **RF14.2**: Maintain file versioning for audit trail
 - **RF14.3**: Generate presigned URLs for secure file access
-- **RF14.4**: Support both local (MinIO) and cloud (AWS S3) storage backends
+- **RF14.4**: Support both self-hosted (Garage) and cloud (AWS S3) storage backends
 
 **Backup Requirements:**
 - **RF14.5**: Automated daily database backups
@@ -104,8 +118,8 @@ Currently, the laboratory system stores files (PDF reports, signature images, mi
                                   │ boto3 API
                                   ▼
                     ┌──────────────────────────┐
-                    │    MinIO / AWS S3        │
-                    │  (Object Storage)        │
+                    │  Garage / AWS S3  │
+                    │  (Object Storage)         │
                     │                          │
                     │  Buckets:                │
                     │  - adlab-media          │
@@ -116,7 +130,7 @@ Currently, the laboratory system stores files (PDF reports, signature images, mi
                     ┌─────────────┴─────────────┐
                     ▼                           ▼
           ┌──────────────────┐        ┌──────────────────┐
-          │  MinIO Backup    │        │  PostgreSQL      │
+          │  Garage          │        │  PostgreSQL      │
           │  (Replication)   │        │  (Database)      │
           └──────────────────┘        └──────────────────┘
                     │                           │
@@ -184,9 +198,71 @@ adlab-backups/
 
 ## Implementation Details
 
-### Phase 1: Add MinIO Service
+### Decisions
 
-#### 1.1 Update Docker Compose
+**Decided:**
+- **Static files and assets** remain served by WhiteNoise (CSS, JS, collected static). Only **media files** (signatures, report PDFs, and any other user-generated or app-generated content) use Garage/S3.
+- **File access: Django as proxy.** Garage stays internal (private bucket, not exposed to the internet). Django checks permissions and streams files from Garage to the browser. The browser never talks to Garage directly. This ensures full access control on every download and is appropriate for the sensitive medical/legal documents stored (reports, signatures). Presigned URLs are not used.
+
+**Not yet decided (to be decided at implementation time):**
+
+1. **Report PDF:** Save PDF on finalize and serve from storage (as in step) vs keep generating on demand and optionally store a copy in Garage.
+2. **Work order PDFs:** Include WorkOrder PDF storage in this phase or leave for later when work order PDF generation is fully wired.
+3. **Microscopy images and QR labels:** Wire ReportImage / label PDFs to Garage in this phase, or only signatures + report PDFs for now.
+4. **Django storage config:** Use `STORAGES["default"]` (Django 4.2+) vs legacy `DEFAULT_FILE_STORAGE` + `MEDIA_ROOT`/`MEDIA_URL`; recommend using existing `STORAGES` for consistency.
+5. **Signature models:** Use the same Garage-backed storage for both Histopathologist and LaboratoryStaff `signature_image` when S3 is enabled.
+6. **Garage Docker image tag:** Use a specific tag (e.g. `v1.0.0`) or `latest`; verify tag exists on Docker Hub.
+7. **Compose profiles:** Run Garage via `docker compose --profile garage --profile web ...` (multiple profiles) vs including Garage in the default run (e.g. no profile so a single `docker compose up` brings up app + Garage).
+
+---
+
+### Implementation checklist (current scope)
+
+When implementing Garage + Django storage, do the following in order:
+
+1. **Phase 1:** Add Garage service (config, Docker, layout, buckets, keys).
+2. **Settings:** Add storage config and `MEDIA_*`; use `STORAGES["default"]` (or `DEFAULT_FILE_STORAGE`) for S3 when `USE_S3_STORAGE=true`. Ensure **tests** override default storage to `FileSystemStorage` (temp dir) so tests don’t require Garage — see [Testing (storage)](#testing-storage) below.
+3. **Application code:** Use only the storage API (`storage.save()`, `storage.open()`, `.name`, `.exists()`). Never use `.path` or filesystem paths for stored files so the same code works with S3 and with FileSystemStorage in tests.
+4. **PDF service:** Load signature images via storage (e.g. `storage.open(file.name, 'rb')`), not `signer.signature_image.path`.
+5. **Report flow:** On finalize, generate PDF, save via storage, set `report.pdf_path` and `report.pdf_hash`. In the PDF view, serve from storage using `report.pdf_path`.
+6. **Optional:** Add S3-related variables to `.env.example` for reference (see Phase 1 env section).
+
+---
+
+### Phase 1: Add Garage Service
+
+Object storage is provided by **Garage** ([quick-start](https://garagehq.deuxfleurs.fr/documentation/quick-start/)).
+
+#### 1.1 Create Garage Configuration
+
+Create `etc/garage.toml` (or mount path of your choice):
+
+```toml
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+
+replication_mode = "none"
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+rpc_secret = "CHANGE_ME_GENERATE_WITH_openssl_rand_hex_32"
+
+bootstrap_peers = []
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage"
+
+[s3_web]
+bind_addr = "[::]:3902"
+root_domain = ".web.garage"
+index = "index.html"
+```
+
+Generate a secure `rpc_secret`: `openssl rand -hex 32`. For production, use persistent paths for `metadata_dir` and `data_dir` (not `/tmp`).
+
+#### 1.2 Update Docker Compose
 
 Add to `compose.yaml`:
 
@@ -194,138 +270,127 @@ Add to `compose.yaml`:
 services:
   # ... existing services ...
 
-  minio:
-    image: "minio/minio:RELEASE.2024-10-02T17-50-41Z"
-    profiles: ["minio"]
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-adlab_admin}"
-      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
-      MINIO_REGION: "${MINIO_REGION:-us-east-1}"
-    ports:
-      - "${MINIO_API_PORT:-127.0.0.1:9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-127.0.0.1:9001}:9001"
+  garage:
+    image: "dxflrs/garage:v1.0"
+    profiles: ["garage"]
+    command: server
     volumes:
-      - "minio_data:/data"
+      - "./etc/garage.toml:/etc/garage.toml"
+      - "garage_meta:/var/lib/garage/meta"
+      - "garage_data:/var/lib/garage/data"
+    ports:
+      - "${GARAGE_API_PORT:-127.0.0.1:3900}:3900"
+      - "3901:3901"
+      - "3902:3902"
+    environment:
+      RUST_LOG: "garage=info"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "garage", "status"]
       interval: 30s
-      timeout: 20s
+      timeout: 10s
       retries: 3
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
-    stop_grace_period: "3s"
-    networks:
-      - default
-
-  # MinIO Client (mc) for administration
-  minio-client:
-    image: "minio/mc:RELEASE.2024-10-02T08-55-05Z"
-    profiles: ["minio-admin"]
-    depends_on:
-      - minio
-    entrypoint: /bin/sh
-    volumes:
-      - "./bin:/scripts"
     networks:
       - default
 
 volumes:
-  minio_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: "${MINIO_DATA_PATH:-./data/minio}"
+  garage_meta:
+  garage_data:
 ```
 
-#### 1.2 Environment Configuration
+#### 1.3 Initialize Garage (Single-Node)
+
+After starting the container once, create layout and buckets:
+
+```bash
+# Start Garage
+docker compose --profile garage up -d garage
+sleep 5
+
+# Get node ID (first column of garage status)
+docker compose exec garage garage status
+
+# Assign layout (single node, zone dc1, capacity 1)
+docker compose exec garage garage layout assign -z dc1 -c 1 <NODE_ID>
+docker compose exec garage garage layout apply
+
+# Create buckets
+docker compose exec garage garage bucket create adlab-media
+docker compose exec garage garage bucket create adlab-backups
+docker compose exec garage garage bucket create adlab-logs
+
+# Create API key for application
+docker compose exec garage garage key new --name adlab-app-key
+# Save the Key ID and Secret key from output (e.g. GK..., secret hex string)
+
+# Allow key to read/write buckets
+docker compose exec garage garage bucket allow --read --write adlab-media --key adlab-app-key
+docker compose exec garage garage bucket allow --read --write adlab-backups --key adlab-app-key
+docker compose exec garage garage bucket allow --read --write adlab-logs --key adlab-app-key
+```
+
+#### 1.4 Environment Configuration
 
 Add to `.env`:
 
 ```bash
-# MinIO Configuration
-MINIO_ROOT_USER=adlab_admin
-MINIO_ROOT_PASSWORD=your_secure_password_min_8_chars
-MINIO_REGION=us-east-1
-MINIO_DATA_PATH=./data/minio
+# Garage Configuration (when using Garage)
+GARAGE_API_PORT=127.0.0.1:3900
 
 # Storage Backend Selection
-USE_S3_STORAGE=true  # false for local filesystem
-AWS_ACCESS_KEY_ID=adlab_admin
-AWS_SECRET_ACCESS_KEY=your_secure_password_min_8_chars
+USE_S3_STORAGE=true
+
+# S3-compatible (Garage): use endpoint + path-style + region "garage"
+AWS_ACCESS_KEY_ID=GKxxxx
+AWS_SECRET_ACCESS_KEY=<secret_from_garage_key_new>
 AWS_STORAGE_BUCKET_NAME=adlab-media
-AWS_S3_ENDPOINT_URL=http://minio:9000  # Empty for AWS S3
-AWS_S3_REGION_NAME=us-east-1
+AWS_S3_ENDPOINT_URL=http://garage:3900
+AWS_S3_REGION_NAME=garage
+AWS_S3_ADDRESSING_STYLE=path
 
 # Backup Configuration
 BACKUP_ENABLED=true
 BACKUP_RETENTION_DAYS=30
 BACKUP_S3_BUCKET=adlab-backups
-BACKUP_SCHEDULE_DATABASE="0 2 * * *"  # 2 AM daily
-BACKUP_SCHEDULE_FILES="0 3 * * *"     # 3 AM daily
-BACKUP_SCHEDULE_COMPLETE="0 4 * * 0"  # 4 AM Sunday
+BACKUP_SCHEDULE_DATABASE="0 2 * * *"
+BACKUP_SCHEDULE_FILES="0 3 * * *"
+BACKUP_SCHEDULE_COMPLETE="0 4 * * 0"
 ```
 
-#### 1.3 Initialize MinIO Buckets
+**Important for Garage**: Clients must use **path-style** bucket addressing (not virtual-hosted style) and region **`garage`**. django-storages with boto3 supports this via `AWS_S3_ENDPOINT_URL` and `AWS_S3_ADDRESSING_STYLE=path`.
 
-Create `bin/minio-init`:
+#### 1.5 Garage Init Script (Optional)
+
+Create `bin/garage-init` to create buckets (run after layout is applied):
 
 ```bash
 #!/bin/bash
-# Initialize MinIO buckets and policies
+# Ensure Garage buckets exist. Key creation done separately via garage key new / bucket allow.
 
 set -euo pipefail
 
-MINIO_HOST="${MINIO_HOST:-minio:9000}"
-MINIO_ALIAS="adlab"
+GARAGE_CMD="${GARAGE_CMD:-docker compose exec -T garage garage}"
 
-echo "🔧 Configuring MinIO client..."
-mc alias set $MINIO_ALIAS http://$MINIO_HOST $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
+$GARAGE_CMD bucket create adlab-media || true
+$GARAGE_CMD bucket create adlab-backups || true
+$GARAGE_CMD bucket create adlab-logs || true
 
-echo "📦 Creating buckets..."
-mc mb --ignore-existing ${MINIO_ALIAS}/adlab-media
-mc mb --ignore-existing ${MINIO_ALIAS}/adlab-backups
-mc mb --ignore-existing ${MINIO_ALIAS}/adlab-logs
-
-echo "🔒 Setting bucket policies..."
-# Private bucket for sensitive medical data
-mc anonymous set none ${MINIO_ALIAS}/adlab-media
-mc anonymous set none ${MINIO_ALIAS}/adlab-backups
-
-echo "📝 Enabling versioning..."
-mc version enable ${MINIO_ALIAS}/adlab-media
-mc version enable ${MINIO_ALIAS}/adlab-backups
-
-echo "⏰ Setting lifecycle policies..."
-# Auto-delete old versions after 90 days
-cat > /tmp/lifecycle.json <<EOF
-{
-  "Rules": [
-    {
-      "ID": "DeleteOldVersions",
-      "Status": "Enabled",
-      "Filter": {
-        "Prefix": ""
-      },
-      "NoncurrentVersionExpiration": {
-        "NoncurrentDays": 90
-      }
-    }
-  ]
-}
-EOF
-mc ilm import ${MINIO_ALIAS}/adlab-media < /tmp/lifecycle.json
-
-echo "✅ MinIO initialized successfully!"
-echo ""
-echo "📊 Bucket Status:"
-mc admin info ${MINIO_ALIAS}
+echo "To create app key: garage key new --name adlab-app-key"
+echo "Then: garage bucket allow --read --write adlab-media --key adlab-app-key"
 ```
 
-Make executable:
+Make executable: `chmod +x bin/garage-init`.
+
+#### 1.6 Configure mc for Backups (only when implementing backups later)
+
+For backup scripts that use `mc`, configure an alias (e.g. on the host or in a backup container). Skip this until you implement backups.
+
 ```bash
-chmod +x bin/minio-init
+export MC_REGION=garage
+mc alias set adlab http://garage:3900 <ACCESS_KEY> <SECRET_KEY> --api S3v4
 ```
+
+Replace `<ACCESS_KEY>` and `<SECRET_KEY>` with the Garage key ID and secret from `garage key new`. Use the same endpoint (e.g. `http://127.0.0.1:3900` from host) as needed.
 
 ### Phase 2: Django Storage Integration
 
@@ -359,12 +424,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "..", "media")
 USE_S3_STORAGE = bool(strtobool(os.getenv("USE_S3_STORAGE", "false")))
 
 if USE_S3_STORAGE:
-    # MinIO/S3 Configuration
+    # Garage / AWS S3 Configuration
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "adlab-media")
-    AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")  # None for AWS S3
-    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
+    AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")  # e.g. http://garage:3900
+    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")  # Use "garage" for Garage
+    # Garage requires path-style addressing (not virtual-hosted)
+    AWS_S3_ADDRESSING_STYLE = os.getenv("AWS_S3_ADDRESSING_STYLE", "auto")  # "path" for Garage
     
     # S3 Configuration
     AWS_S3_OBJECT_PARAMETERS = {
@@ -375,7 +442,7 @@ if USE_S3_STORAGE:
     AWS_QUERYSTRING_EXPIRE = 3600  # URLs expire in 1 hour
     AWS_S3_FILE_OVERWRITE = False  # Prevent overwriting
     AWS_S3_VERIFY = True  # Verify SSL certificates
-    AWS_S3_USE_SSL = True  # Use HTTPS (set False for local MinIO without SSL)
+    AWS_S3_USE_SSL = True  # Use HTTPS (set False for local Garage without SSL)
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     
     # Custom domain (if using CloudFront or similar)
@@ -565,7 +632,20 @@ def report_pdf_view(request, pk):
         return redirect("protocols:report_detail", pk=report.pk)
 ```
 
-### Phase 3: Backup System Implementation
+**Current scope ends here.** With Phase 1 (Garage) and Phase 2 (Django integration) done, Garage is up and Django is talking to it. The rest of this step is for future implementation.
+
+### Testing (storage) {#testing-storage}
+
+- **Use S3 (Garage) in development and production** by setting `USE_S3_STORAGE=true` and configuring the S3 backend.
+- **In tests, use FileSystemStorage** so the test suite does not depend on Garage or AWS. In your test settings (or when `TESTING` is true), set default storage to `FileSystemStorage` with a temp directory (e.g. `tmp_test_media`). Do not set `USE_S3_STORAGE=true` during tests.
+- **Application code must use only the storage API** (`storage.save()`, `storage.open()`, `file.name`, `storage.exists()`). Do not use `file.path` or raw filesystem paths for stored files. Then the same tests remain valid when production uses S3.
+- Optional: add a small set of integration tests that run with a real Garage or an S3 mock (e.g. moto) for extra confidence.
+
+### Phase 3: Backup System Implementation — LATER (Future Reference)
+
+**Not in current scope.** The sections below (Phase 3–5, backup/restore scripts, deployment backup steps, disaster recovery) are documented for when backups are implemented in a later phase. Focus now on Phase 1 (Garage) and Phase 2 (Django integration) only.
+
+---
 
 #### 3.1 Database Backup Script
 
@@ -614,9 +694,10 @@ else
     exit 1
 fi
 
-# Upload to MinIO
+# Upload to Garage
 if [ "${USE_S3_STORAGE:-false}" = "true" ]; then
-    echo "☁️  Uploading to MinIO..."
+    echo "☁️  Uploading to object storage..."
+    # For Garage: ensure mc alias uses --api S3v4 and MC_REGION=garage
     mc cp "${BACKUP_PATH}/${BACKUP_FILE}" \
         adlab/adlab-backups/database/daily/${DATE_FOLDER}/${BACKUP_FILE}
     mc cp "${BACKUP_PATH}/${BACKUP_FILE}.sha256" \
@@ -660,7 +741,7 @@ Create `bin/backup-files`:
 
 ```bash
 #!/bin/bash
-# Backup files from MinIO to local storage or remote
+# Backup files from Garage to local storage or remote
 
 set -euo pipefail
 
@@ -671,8 +752,8 @@ SNAPSHOT_DIR="${BACKUP_DIR}/snapshots/${TIMESTAMP}"
 
 mkdir -p "$SNAPSHOT_DIR"
 
-echo "📁 Starting file backup from MinIO..."
-echo "   Source: minio/${BUCKET}"
+echo "📁 Starting file backup from Garage..."
+echo "   Source: adlab/${BUCKET}"
 echo "   Target: ${SNAPSHOT_DIR}"
 
 # Mirror bucket to local storage (preserves metadata)
@@ -745,8 +826,8 @@ cp "$DB_BACKUP" "${BACKUP_DIR}/database.sql.gz"
 echo "✅ Database backup copied"
 echo ""
 
-# 2. Backup files from MinIO
-echo "📁 [2/5] Backing up files from MinIO..."
+# 2. Backup files from Garage
+echo "📁 [2/5] Backing up files from Garage..."
 mc mirror --preserve adlab/adlab-media "${BACKUP_DIR}/media"
 echo "✅ Files backed up"
 echo ""
@@ -767,7 +848,7 @@ cat > "${BACKUP_DIR}/backup_info.json" <<EOF
   "backup_date": "$(date -Iseconds)",
   "backup_type": "complete",
   "database": "${POSTGRES_DB}",
-  "minio_bucket": "adlab-media",
+  "garage_bucket": "adlab-media",
   "git_commit": "$(git rev-parse HEAD 2>/dev/null || echo 'unknown')",
   "git_branch": "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')",
   "hostname": "$(hostname)",
@@ -792,7 +873,7 @@ tar -czf "${BACKUP_ROOT}/${ARCHIVE_NAME}" \
 cd "$BACKUP_ROOT"
 sha256sum "${ARCHIVE_NAME}" > "${ARCHIVE_NAME}.sha256"
 
-# Upload to MinIO
+# Upload to Garage
 mc cp "${ARCHIVE_NAME}" adlab/adlab-backups/complete/
 mc cp "${ARCHIVE_NAME}.sha256" adlab/adlab-backups/complete/
 
@@ -878,7 +959,7 @@ function show_usage() {
     echo "  Local:"
     find /backups/database -name "*.sql.gz" -type f -printf "    %TY-%Tm-%Td %TH:%TM  %p\n" | sort -r | head -10
     echo ""
-    echo "  Remote (MinIO):"
+    echo "  Remote (Garage):"
     mc ls --recursive adlab/adlab-backups/database/ | tail -10
     echo ""
     exit 1
@@ -893,9 +974,9 @@ FORCE_RESTORE="${2:-}"
 
 # Verify backup file
 if [ ! -f "$BACKUP_FILE" ]; then
-    # Try to fetch from MinIO
+    # Try to fetch from Garage
     if [[ "$BACKUP_FILE" == adlab/* ]]; then
-        echo "📥 Downloading from MinIO..."
+        echo "📥 Downloading from Garage..."
         LOCAL_FILE="/tmp/$(basename $BACKUP_FILE)"
         mc cp "$BACKUP_FILE" "$LOCAL_FILE"
         BACKUP_FILE="$LOCAL_FILE"
@@ -988,7 +1069,7 @@ Create `bin/restore-files`:
 
 ```bash
 #!/bin/bash
-# Restore files to MinIO
+# Restore files to Garage
 
 set -euo pipefail
 
@@ -999,7 +1080,7 @@ function show_usage() {
     echo "  Local:"
     find /backups/files -name "*.tar.gz" -type f -printf "    %TY-%Tm-%Td  %p\n" | sort -r | head -10
     echo ""
-    echo "  Remote (MinIO):"
+    echo "  Remote (Garage):"
     mc ls adlab/adlab-backups/files/ | tail -10
     echo ""
     exit 1
@@ -1015,7 +1096,7 @@ TEMP_DIR="/tmp/restore_$$"
 
 # Confirmation
 if [ "$FORCE_RESTORE" != "--force" ]; then
-    echo "⚠️  WARNING: This will OVERWRITE files in MinIO!"
+    echo "⚠️  WARNING: This will OVERWRITE files in Garage!"
     echo "   Bucket: adlab-media"
     echo "   Source: $BACKUP_SOURCE"
     echo ""
@@ -1041,8 +1122,8 @@ else
     exit 1
 fi
 
-# Upload files to MinIO
-echo "☁️  Uploading files to MinIO..."
+# Upload files to Garage
+echo "☁️  Uploading files to Garage..."
 mc mirror --overwrite --preserve \
     "$RESTORE_DIR" \
     adlab/adlab-media/
@@ -1199,9 +1280,11 @@ else
 fi
 echo "" | tee -a "$REPORT_FILE"
 
-# 2. Check MinIO storage
-echo "☁️  MINIO STORAGE" | tee -a "$REPORT_FILE"
+# 2. Check Garage
+echo "☁️  GARAGE STORAGE" | tee -a "$REPORT_FILE"
 echo "-----------------------------------" | tee -a "$REPORT_FILE"
+
+# For Garage: mc alias must use --api S3v4 and MC_REGION=garage
 
 # Bucket status
 mc du adlab/adlab-media | tee -a "$REPORT_FILE"
@@ -1232,11 +1315,11 @@ echo "-----------------------------------" | tee -a "$REPORT_FILE"
 BACKUP_SIZE=$(mc du adlab/adlab-backups | awk '{print $1}')
 echo "  Total backup size: ${BACKUP_SIZE}" | tee -a "$REPORT_FILE"
 
-# Database backups in MinIO
+# Database backups in Garage
 DB_BACKUPS=$(mc ls --recursive adlab/adlab-backups/database/ | wc -l)
 echo "  Database backups: ${DB_BACKUPS}" | tee -a "$REPORT_FILE"
 
-# File backups in MinIO
+# File backups in Garage
 FILE_BACKUPS=$(mc ls adlab/adlab-backups/files/ | wc -l)
 echo "  File backups: ${FILE_BACKUPS}" | tee -a "$REPORT_FILE"
 
@@ -1277,11 +1360,16 @@ else
     echo "  ❌ Database: Not reachable" | tee -a "$REPORT_FILE"
 fi
 
-# MinIO health
-if mc admin info adlab &>/dev/null; then
-    echo "  ✅ MinIO: Healthy" | tee -a "$REPORT_FILE"
+# Garage health (alias 'adlab' configured via mc alias set)
+if mc admin info adlab &>/dev/null 2>&1; then
+    echo "  ✅ Garage: Healthy (admin API)" | tee -a "$REPORT_FILE"
 else
-    echo "  ❌ MinIO: Not reachable" | tee -a "$REPORT_FILE"
+    # Garage has no admin info; check bucket access instead
+    if mc ls adlab/adlab-media &>/dev/null; then
+        echo "  ✅ Garage: Access OK" | tee -a "$REPORT_FILE"
+    else
+        echo "  ❌ Garage: Not reachable" | tee -a "$REPORT_FILE"
+    fi
 fi
 
 # Disk space
@@ -1311,7 +1399,7 @@ Make all scripts executable:
 chmod +x bin/backup-*
 chmod +x bin/restore-*
 chmod +x bin/verify-backups
-chmod +x bin/minio-init
+chmod +x bin/garage-init
 ```
 
 ## Testing Approach
@@ -1331,7 +1419,7 @@ class StorageBackendTest(TestCase):
     
     @override_settings(USE_S3_STORAGE=True)
     def test_save_file_to_s3(self):
-        """Test saving file to S3/MinIO."""
+        """Test saving file to S3 (Garage)."""
         content = ContentFile(b"test content")
         path = default_storage.save("test/file.txt", content)
         self.assertTrue(default_storage.exists(path))
@@ -1373,9 +1461,9 @@ class BackupRestoreTest(TestCase):
 ```markdown
 ## Pre-Implementation Testing
 
-- [ ] MinIO service starts successfully
+- [ ] Garage service starts successfully
 - [ ] Buckets are created correctly
-- [ ] Django can connect to MinIO
+- [ ] Django can connect to object storage
 - [ ] Files upload successfully
 - [ ] Files download successfully
 - [ ] Presigned URLs work correctly
@@ -1383,9 +1471,9 @@ class BackupRestoreTest(TestCase):
 ## Backup Testing
 
 - [ ] Database backup runs successfully
-- [ ] Database backup uploads to MinIO
+- [ ] Database backup uploads to object storage
 - [ ] File backup creates archive
-- [ ] File backup uploads to MinIO
+- [ ] File backup uploads to object storage
 - [ ] Complete backup includes all components
 - [ ] Backup checksums are created
 - [ ] Old backups are cleaned up correctly
@@ -1406,11 +1494,134 @@ class BackupRestoreTest(TestCase):
 - [ ] Disk space monitoring works
 - [ ] Documentation is complete
 - [ ] Team is trained on restore procedures
+- [ ] (Garage) mc alias uses --api S3v4 and MC_REGION=garage
 ```
 
 ## Production Deployment
 
+### Deployment Instructions
+
+**Current task:** Get Garage up and Django talking to it. The steps below focus on that. Anything about backup scripts, `mc`, or the backup service is for **later** when you implement backups.
+
+Deploy Garage (and optionally add to an existing deployment) as follows.
+
+#### Prerequisites
+
+- Docker and Docker Compose installed
+- Application (web, worker, postgres) already running from main `compose.yaml`
+- `.env` with `POSTGRES_*`, `SECRET_KEY`, and other app settings
+- (Later, for backups: `mc` or similar S3 client where backup scripts will run)
+
+#### Deploying with Garage
+
+**Step 1 — Create Garage configuration**
+
+On the server:
+
+```bash
+mkdir -p etc
+```
+
+Create `etc/garage.toml` with content from [Phase 1, §1.1](#11-create-garage-configuration). Set:
+
+- `metadata_dir` and `data_dir` to persistent paths (e.g. `/var/lib/garage/meta` and `/var/lib/garage/data`).
+- `rpc_secret` to a value from: `openssl rand -hex 32`.
+
+**Step 2 — Add Garage to Docker Compose**
+
+Add the `garage` service and `garage_meta` / `garage_data` volumes from [Phase 1, §1.2](#12-update-docker-compose) to your `compose.yaml`. Ensure the `garage` service is on the same Docker network as `web` so the app can reach `http://garage:3900`.
+
+**Step 3 — Start Garage and apply layout**
+
+```bash
+docker compose --profile garage up -d garage
+sleep 5
+
+# Get node ID (first column)
+docker compose exec garage garage status
+
+# Assign layout (single node; use your node ID or prefix, e.g. 563e)
+docker compose exec garage garage layout assign -z dc1 -c 1 <NODE_ID>
+docker compose exec garage garage layout apply
+```
+
+**Step 4 — Create buckets and application key**
+
+```bash
+docker compose exec garage garage bucket create adlab-media
+docker compose exec garage garage bucket create adlab-backups
+docker compose exec garage garage bucket create adlab-logs
+
+docker compose exec garage garage key new --name adlab-app-key
+# Save the Key ID (GK...) and Secret key from the output.
+
+docker compose exec garage garage bucket allow --read --write adlab-media --key adlab-app-key
+docker compose exec garage garage bucket allow --read --write adlab-backups --key adlab-app-key
+docker compose exec garage garage bucket allow --read --write adlab-logs --key adlab-app-key
+```
+
+**Step 5 — Configure application environment**
+
+In `.env` (or your production env source):
+
+```bash
+USE_S3_STORAGE=true
+AWS_ACCESS_KEY_ID=<Key ID from step 4>
+AWS_SECRET_ACCESS_KEY=<Secret key from step 4>
+AWS_STORAGE_BUCKET_NAME=adlab-media
+AWS_S3_ENDPOINT_URL=http://garage:3900
+AWS_S3_REGION_NAME=garage
+AWS_S3_ADDRESSING_STYLE=path
+```
+
+**Step 6 — Restart application and verify storage**
+
+```bash
+docker compose up -d web worker
+docker compose exec web python manage.py shell -c "
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+default_storage.save('deploy-test.txt', ContentFile(b'ok'))
+assert default_storage.exists('deploy-test.txt')
+print('Storage OK')
+"
+```
+
+**Step 7 — Configure mc for backup scripts (LATER)**
+
+When you implement backups, where backup scripts run (host or backup container), set an alias so `mc` talks to Garage:
+
+```bash
+export MC_REGION=garage
+mc alias set adlab http://garage:3900 <Key_ID> <Secret_key> --api S3v4
+```
+
+Use the same Key ID and Secret as in step 5. If backups run in a container, ensure it can resolve and reach `garage:3900` (e.g. attach the container to the same Docker network and use hostname `garage`).
+
+**Step 8 — Enable automated backups (LATER)**
+
+When you implement the backup system:
+
+```bash
+docker compose --profile backup up -d
+# Ensure the backup container has mc configured (e.g. same alias) and network access to garage.
+```
+
+---
+
+#### Post-deployment checklist (current task: Garage + Django)
+
+- [ ] Garage is running and reachable from the app.
+- [ ] `USE_S3_STORAGE=true` and correct `AWS_*` (and for Garage: `AWS_S3_ADDRESSING_STYLE=path`, `AWS_S3_REGION_NAME=garage`) in production `.env`.
+- [ ] Django can save and read a test file (step 6 above).
+
+*(When you implement backups later: mc alias, backup scripts, backup service.)*
+
+---
+
 ### Pre-Deployment Checklist
+
+Quick verification before going live. For full step-by-step deployment, see [Deployment Instructions](#deployment-instructions) above. **Current task:** Garage + Django only (no backup steps yet).
 
 ```bash
 # 1. Update dependencies
@@ -1419,36 +1630,27 @@ docker compose exec web uv sync
 # 2. Run migrations
 docker compose exec web python manage.py migrate
 
-# 3. Start MinIO
-docker compose --profile minio up -d
+# 3. Start Garage
+docker compose --profile garage up -d
 
-# 4. Initialize MinIO
-docker compose exec web ./bin/minio-init
+# 4. Initialize (layout + buckets + key per Deployment Instructions above)
 
-# 5. Test storage
+# 5. Test storage (after .env is set)
 docker compose exec web python manage.py shell <<EOF
+from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 default_storage.save("test.txt", ContentFile(b"test"))
 assert default_storage.exists("test.txt")
 print("✅ Storage working!")
 EOF
 
-# 6. Run backup test
-./bin/backup-database
-./bin/backup-files
+# 6. Ensure USE_S3_STORAGE=true in production .env
 
-# 7. Verify backups
-./bin/verify-backups
-
-# 8. Start backup service
-docker compose --profile backup up -d
-
-# 9. Update environment
-# Set USE_S3_STORAGE=true in production .env
-
-# 10. Restart application
+# 7. Restart application
 docker compose restart web worker
 ```
+
+*(When you implement backups later: run backup scripts, verify-backups, backup service.)*
 
 ### Monitoring & Alerts
 
@@ -1460,7 +1662,7 @@ Set up monitoring for:
    - Track backup duration
 
 2. **Storage Health**
-   - Monitor MinIO uptime
+   - Monitor Garage uptime
    - Track storage usage
    - Alert on high disk usage
 
@@ -1518,9 +1720,10 @@ docker compose ps
 
 ### Storage Costs (Monthly)
 
-**MinIO (Self-Hosted)**:
+**Garage (Self-Hosted)**:
 - Server: $0 (uses existing infrastructure)
 - Disk (500GB): ~$20-40 per month
+- Lightweight: 512MB–1GB RAM per node
 - Maintenance: Minimal
 
 **AWS S3 (Alternative)**:
@@ -1550,22 +1753,21 @@ docker compose ps
    - Emergency contact list
    - Disaster recovery runbook
 
-3. **MinIO Administration Guide**
-   - User management
-   - Bucket policies
+3. **Garage Administration Guide**
+   - Layout, buckets, keys, `garage bucket allow`
    - Performance tuning
 
 ### Team Training
 
 1. **Administrators**
-   - MinIO console usage
+   - Garage CLI (`garage status`, bucket/key management)
    - Backup script execution
    - Restore procedures
 
 2. **Developers**
    - Django storage API
    - File upload best practices
-   - Testing with MinIO
+   - Testing with Garage
 
 3. **Support Staff**
    - Monitoring dashboards
@@ -1596,23 +1798,25 @@ docker compose ps
 
 ## Success Criteria
 
-✅ MinIO service running and accessible  
-✅ All files stored in object storage  
-✅ Automated daily backups running  
-✅ Successful restore test completed  
-✅ Backup verification passing  
-✅ Team trained on procedures  
-✅ Documentation complete  
-✅ Monitoring and alerts configured  
-✅ Disaster recovery plan tested  
-✅ Zero data loss in 30 days  
+**Current scope (Garage + Django):**
+- ✅ Garage service running and accessible
+- ✅ Django reads and writes files to Garage (media: signatures, reports, etc.)
+- ✅ `USE_S3_STORAGE=true` and correct env in production
+- ✅ Storage test passes (save/read file via default_storage)
+
+**Later (when backups are implemented):**
+- ✅ Automated daily backups running
+- ✅ Successful restore test completed
+- ✅ Backup verification passing
+- ✅ Team trained on procedures
+- ✅ Disaster recovery plan tested  
 
 ## Estimated Effort
 
 **Time**: 1.5 weeks
 
 **Breakdown**:
-- MinIO setup and configuration: 1 day
+- Garage setup and configuration: 1 day
 - Django storage integration: 2 days
 - Backup scripts development: 2 days
 - Restore procedures: 1 day
@@ -1632,12 +1836,13 @@ docker compose ps
 
 ## References
 
-- [MinIO Documentation](https://min.io/docs/minio/linux/index.html)
+- [Garage Quick Start](https://garagehq.deuxfleurs.fr/documentation/quick-start/)
+- [Garage S3 API & Client Configuration](https://garagehq.deuxfleurs.fr/cookbook/clients.html)
 - [django-storages Documentation](https://django-storages.readthedocs.io/)
 - [PostgreSQL Backup Best Practices](https://www.postgresql.org/docs/current/backup.html)
 - [AWS S3 Best Practices](https://docs.aws.amazon.com/AmazonS3/latest/userguide/best-practices.html)
 
 ---
 
-**Note**: This step should be implemented before going to production to ensure data safety and disaster recovery capability.
+**Note**: This step should be implemented before going to production to ensure data safety. **Current focus:** Garage + Django storage integration only. Backup/restore is for a later phase.
 

@@ -337,6 +337,14 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = ["/public", os.path.join(BASE_DIR, "..", "public")]
 STATIC_ROOT = "/public_collected"
+
+# Media files (user uploads: signatures, reports, etc.)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "..", "media")
+
+# Object storage (Garage / S3)
+USE_S3_STORAGE = bool(strtobool(os.getenv("USE_S3_STORAGE", "false")))
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -350,8 +358,27 @@ STORAGES = {
     },
 }
 
+if USE_S3_STORAGE and not TESTING:
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": os.getenv("AWS_ACCESS_KEY_ID"),
+            "secret_key": os.getenv("AWS_SECRET_ACCESS_KEY"),
+            "bucket_name": os.getenv("AWS_STORAGE_BUCKET_NAME", "adlab-media"),
+            "endpoint_url": os.getenv("AWS_S3_ENDPOINT_URL"),
+            "region_name": os.getenv("AWS_S3_REGION_NAME", "garage"),
+            "addressing_style": os.getenv("AWS_S3_ADDRESSING_STYLE", "path"),
+            "signature_version": "s3v4",
+            "default_acl": None,
+            "querystring_auth": False,
+            "file_overwrite": False,
+            "use_ssl": False,
+        },
+    }
+
 # Test-specific static files configuration
 if TESTING:
+    MEDIA_ROOT = os.path.join(BASE_DIR, "..", "tmp_test_media")
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",

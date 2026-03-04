@@ -447,39 +447,43 @@ Sprint 14-16: Step 11
 
 ---
 
-### Step 14: Object Storage & Backup/Restore System
+### Step 14: Object Storage (Garage) & Backup/Restore System
 **Archivo**: [`step-14-storage-backup.md`](./step-14-storage-backup.md)
 
-**Propósito**: Implementar almacenamiento de objetos centralizado (MinIO/S3) para archivos y un sistema completo de backup/restore para protección de datos.
+**Propósito**: Almacenamiento de objetos con **Garage** (S3-compatible) y Django usándolo para media (firmas, informes, imágenes). Backup/restore se implementará **más adelante**; el alcance actual es solo Garage en marcha y Django hablando con Garage.
+
+**Alcance actual (implementar ahora):**
+- Garage en Docker (config, layout, buckets, keys)
+- Django con django-storages apuntando a Garage
+- Verificación de que la app escribe/lee en Garage
+
+**Alcance futuro (referencia para más adelante):**
+- Sistema de backups (scripts, cron, verificación)
+- Procedimientos de restore y disaster recovery
 
 **Componentes Clave**:
-- MinIO (S3-compatible) para almacenamiento de archivos
-- Migración de FileSystemStorage a S3 storage backend
-- Scripts automatizados de backup de base de datos
-- Scripts automatizados de backup de archivos
-- Procedimientos de restore completo del sistema
-- Verificación automática de integridad de backups
-- Políticas de retención de backups (30 días)
-- Disaster recovery plan documentado
+- Garage — almacenamiento S3-compatible para archivos
+- Migración de FileSystemStorage a S3 storage backend (Django hablando con Garage)
+- *(Futuro)* Scripts de backup, restore, disaster recovery
 
-**Entregables**:
-- MinIO service integrado en Docker Compose
-- Django configurado con django-storages (S3 backend)
-- Scripts de backup/restore ejecutables
-- Servicio automatizado de backups con cron
-- Documentación de procedimientos de emergencia
-- Tests de restore verificados
+**Entregables (ahora):**
+- Servicio Garage integrado en Docker Compose
+- Django configurado con django-storages (S3 backend) hablando con Garage
+- Verificación de lectura/escritura en Garage
+
+**Entregables (futuro):**
+- Scripts de backup/restore, cron, documentación de restore
 
 **Beneficios**:
 - 📦 Almacenamiento escalable y replicable
-- 🔄 Backups automáticos diarios
-- 🚨 Disaster recovery en <2 horas
+- 🔄 (Futuro) Backups automáticos diarios
+- 🚨 (Futuro) Disaster recovery en <2 horas
 - 📊 Versionado de archivos para auditoría
 - ☁️ Compatible con cloud providers (AWS S3, etc.)
 - 🔒 Seguridad mejorada con presigned URLs
 
 **Decisiones Técnicas Pendientes**:
-- MinIO local vs AWS S3 en producción
+- Garage self-hosted vs AWS S3 en producción
 - Estrategia de backup off-site (adicional a local)
 - Frecuencia de tests de restore
 

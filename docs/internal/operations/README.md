@@ -19,6 +19,11 @@ Pre-launch verification checklist for production deployments.
 
 **When to use**: Before going live, after major updates
 
+### [Monitoring](./monitoring.md)
+Sentry configuration and monitoring setup.
+
+**When to use**: Error tracking, performance monitoring, debugging
+
 ## 🎯 Common Operations
 
 ### Daily Tasks
@@ -98,13 +103,13 @@ docker stats
 
 ## 📊 Monitoring
 
-### Key Metrics to Watch
-- Response time
-- Error rates
-- Database connections
-- Disk space
-- Memory usage
-- CPU usage
+### Sentry (Active)
+- **Error Tracking**: All errors sent to Sentry automatically
+- **Performance**: Request traces and profiling data
+- **Environment**: Development/production separation
+- **Access**: Sentry dashboard for detailed analysis
+
+See [Monitoring](./monitoring.md) for detailed configuration.
 
 ### Log Files
 - Application: `docker compose logs web`

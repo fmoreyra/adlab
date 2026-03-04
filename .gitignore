@@ -238,3 +238,7 @@ flycheck_*.el
 
 # test - generated files
 src/signatures/lab_staff/*
+tmp_test_media/
+
+# Media uploads (local dev / FileSystemStorage fallback)
+media/

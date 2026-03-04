@@ -5,7 +5,6 @@ PDF generation service for work orders and reports.
 import hashlib
 import io
 import logging
-import os
 from typing import Tuple
 
 from reportlab.lib import colors
@@ -381,17 +380,16 @@ class PDFGenerationService:
             else report.histopathologist
         )
 
-        # Add signature image if available
-        if signer.signature_image and os.path.exists(
-            signer.signature_image.path
-        ):
+        # Add signature image if available (storage-agnostic)
+        if signer.signature_image:
             try:
-                sig_img = Image(
-                    signer.signature_image.path,
-                    width=2 * inch,
-                    height=1 * inch,
-                )
-                elements.append(sig_img)
+                with signer.signature_image.open("rb") as img_file:
+                    sig_img = Image(
+                        img_file,
+                        width=2 * inch,
+                        height=1 * inch,
+                    )
+                    elements.append(sig_img)
             except Exception as e:
                 logger.warning(f"Could not load signature image: {e}")
 
