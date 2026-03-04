@@ -145,7 +145,7 @@
             </div>
             <div id="server-stats-error" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
             <div id="server-stats-content" class="hidden">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
                     <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-cyan-500" id="stat-cpu">
                         <h3 class="text-sm font-medium text-gray-600 mb-2">CPU</h3>
                         <div class="text-4xl font-bold text-gray-800 mb-1" id="stat-cpu-value">—</div>
@@ -166,6 +166,12 @@
                         <div class="text-sm font-bold text-gray-800 mb-1">Lectura: <span id="stat-io-read">—</span></div>
                         <div class="text-sm font-bold text-gray-800">Escritura: <span id="stat-io-write">—</span></div>
                     </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-sky-600 hidden" id="stat-storage">
+                        <h3 class="text-sm font-medium text-gray-600 mb-2">Almacenamiento (Garage)</h3>
+                        <div class="text-4xl font-bold text-gray-800 mb-1" id="stat-storage-objects">—</div>
+                        <p class="text-gray-500 text-sm" id="stat-storage-detail">—</p>
+                        <p class="text-gray-400 text-xs mt-1" id="stat-storage-bucket"></p>
+                    </div>
                 </div>
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                     <h3 class="text-lg font-bold text-gray-800 p-4 border-b border-gray-200">Contenedores Docker</h3>
@@ -177,6 +183,8 @@
                                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Nombre</th>
                                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Imagen</th>
                                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Estado</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">RAM</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">CPU</th>
                                     <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Inicio</th>
                                 </tr>
                             </thead>
@@ -374,6 +382,17 @@
         document.getElementById("stat-io-read").textContent = sys.io.read_human || "—";
         document.getElementById("stat-io-write").textContent = sys.io.write_human || "—";
 
+        var storage = data.storage;
+        var storageCard = document.getElementById("stat-storage");
+        if (storage && storage.bucket) {
+            storageCard.classList.remove("hidden");
+            document.getElementById("stat-storage-objects").textContent = storage.object_count.toLocaleString("es-ES");
+            document.getElementById("stat-storage-detail").textContent = formatBytes(storage.total_size_bytes);
+            document.getElementById("stat-storage-bucket").textContent = storage.bucket;
+        } else {
+            storageCard.classList.add("hidden");
+        }
+
         var docker = data.docker;
         var dockerError = document.getElementById("docker-error");
         var tbody = document.getElementById("docker-containers");
@@ -384,9 +403,20 @@
         } else {
             dockerError.classList.add("hidden");
             tbody.innerHTML = docker.containers.map(function(c) {
+                var ramText = "—";
+                if (c.memory_usage_bytes != null) {
+                    ramText = formatBytes(c.memory_usage_bytes);
+                    if (c.memory_limit_bytes != null) {
+                        ramText += " / " + formatBytes(c.memory_limit_bytes);
+                        if (c.memory_percent != null) ramText += " (" + c.memory_percent + " %)";
+                    }
+                }
+                var cpuText = (c.cpu_percent != null) ? (c.cpu_percent + " %") : "—";
                 return "<tr><td class=\"px-4 py-2 text-gray-800\">" + (c.name || "—") + "</td>" +
                     "<td class=\"px-4 py-2 text-gray-600 text-sm\">" + (c.image || "—") + "</td>" +
                     "<td class=\"px-4 py-2\"><span class=\"px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800\">" + (c.status || "—") + "</span></td>" +
+                    "<td class=\"px-4 py-2 text-gray-600 text-sm\">" + ramText + "</td>" +
+                    "<td class=\"px-4 py-2 text-gray-600 text-sm\">" + cpuText + "</td>" +
                     "<td class=\"px-4 py-2 text-gray-600 text-sm\">" + formatIsoDate(c.started_at) + "</td></tr>";
             }).join("");
         }

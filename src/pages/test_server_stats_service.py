@@ -10,6 +10,7 @@ from django.test import SimpleTestCase
 
 from services.server_stats_service import (
     get_docker_stats,
+    get_media_bucket_stats,
     get_system_stats,
 )
 
@@ -109,13 +110,30 @@ class GetDockerStatsTest(SimpleTestCase):
         self.assertEqual(result["error"], "Cannot connect to socket")
 
     def test_success_returns_containers_list(self):
-        """When Docker is available, returns list of containers."""
+        """When Docker is available, returns list of containers with RAM/CPU stats."""
         mock_container = MagicMock()
         mock_container.name = "web"
         mock_container.status = "running"
         mock_container.image.tags = ["adlab:latest"]
         mock_container.image.short_id = "abc123"
         mock_container.attrs = {"State": {"StartedAt": "2024-01-15T10:00:00Z"}}
+        mock_container.stats.return_value = {
+            "memory_stats": {
+                "usage": 100 * 1024 * 1024,
+                "limit": 512 * 1024 * 1024,
+            },
+            "cpu_stats": {
+                "cpu_usage": {
+                    "total_usage": 5000000000,
+                    "percpu_usage": [1, 2],
+                },
+                "system_cpu_usage": 20000000000,
+            },
+            "precpu_stats": {
+                "cpu_usage": {"total_usage": 4000000000},
+                "system_cpu_usage": 19000000000,
+            },
+        }
 
         mock_client = MagicMock()
         mock_client.containers.list.return_value = [mock_container]
@@ -133,6 +151,14 @@ class GetDockerStatsTest(SimpleTestCase):
         self.assertEqual(
             result["containers"][0]["started_at"], "2024-01-15T10:00:00Z"
         )
+        self.assertEqual(
+            result["containers"][0]["memory_usage_bytes"], 100 * 1024 * 1024
+        )
+        self.assertEqual(
+            result["containers"][0]["memory_limit_bytes"], 512 * 1024 * 1024
+        )
+        self.assertIsNotNone(result["containers"][0]["memory_percent"])
+        self.assertIsNotNone(result["containers"][0]["cpu_percent"])
 
     def test_container_without_image_tags_uses_short_id(self):
         """When image has no tags, use image short_id."""
@@ -142,6 +168,7 @@ class GetDockerStatsTest(SimpleTestCase):
         mock_container.image.tags = []
         mock_container.image.short_id = "def456"
         mock_container.attrs = {"State": {}}
+        mock_container.stats.return_value = {}
 
         mock_client = MagicMock()
         mock_client.containers.list.return_value = [mock_container]
@@ -153,3 +180,99 @@ class GetDockerStatsTest(SimpleTestCase):
 
         self.assertEqual(result["containers"][0]["image"], "def456")
         self.assertEqual(result["containers"][0]["started_at"], "—")
+
+    def test_container_stats_exception_keeps_containers_with_none_stats(self):
+        """When stats(stream=False) raises, container still has stats keys as None."""
+        mock_container = MagicMock()
+        mock_container.name = "web"
+        mock_container.status = "running"
+        mock_container.image.tags = ["adlab:latest"]
+        mock_container.image.short_id = "abc123"
+        mock_container.attrs = {"State": {}}
+        mock_container.stats.side_effect = Exception("stats failed")
+
+        mock_client = MagicMock()
+        mock_client.containers.list.return_value = [mock_container]
+        mock_docker = MagicMock()
+        mock_docker.from_env.return_value = mock_client
+
+        with patch.dict("sys.modules", {"docker": mock_docker}):
+            result = get_docker_stats()
+
+        self.assertIsNone(result["error"])
+        self.assertEqual(len(result["containers"]), 1)
+        self.assertEqual(result["containers"][0]["name"], "web")
+        self.assertIsNone(result["containers"][0]["memory_usage_bytes"])
+        self.assertIsNone(result["containers"][0]["memory_limit_bytes"])
+        self.assertIsNone(result["containers"][0]["memory_percent"])
+        self.assertIsNone(result["containers"][0]["cpu_percent"])
+
+
+class GetMediaBucketStatsTest(SimpleTestCase):
+    """Tests for get_media_bucket_stats()."""
+
+    @patch("django.conf.settings")
+    def test_returns_none_when_testing(self, mock_settings):
+        """When TESTING is True, returns None."""
+        mock_settings.TESTING = True
+        mock_settings.USE_S3_STORAGE = True
+        self.assertIsNone(get_media_bucket_stats())
+
+    @patch("django.conf.settings")
+    def test_returns_none_when_use_s3_storage_false(self, mock_settings):
+        """When USE_S3_STORAGE is False, returns None."""
+        mock_settings.TESTING = False
+        mock_settings.USE_S3_STORAGE = False
+        self.assertIsNone(get_media_bucket_stats())
+
+    @patch("django.core.cache.cache")
+    @patch("django.conf.settings")
+    def test_returns_stats_when_s3_enabled(self, mock_settings, mock_cache):
+        """When S3 is enabled and storage is mocked, returns bucket stats."""
+        mock_settings.TESTING = False
+        mock_settings.USE_S3_STORAGE = True
+        mock_cache.get.return_value = None
+
+        mock_paginator = MagicMock()
+        mock_paginator.paginate.return_value = [
+            {"Contents": [{"Size": 100}, {"Size": 200}]}
+        ]
+        mock_client = MagicMock()
+        mock_client.get_paginator.return_value = mock_paginator
+        mock_bucket = MagicMock()
+        mock_bucket.name = "adlab-media"
+        mock_storage = MagicMock()
+        mock_storage.bucket = mock_bucket
+        mock_storage.connection.meta.client = mock_client
+
+        with patch("django.core.files.storage.default_storage", mock_storage):
+            result = get_media_bucket_stats()
+
+            assert result is not None
+            self.assertEqual(result["bucket"], "adlab-media")
+            self.assertEqual(result["object_count"], 2)
+            self.assertEqual(result["total_size_bytes"], 300)
+            mock_cache.set.assert_called_once()
+
+    @patch("django.core.cache.cache")
+    @patch("django.conf.settings")
+    def test_returns_none_on_list_error(self, mock_settings, mock_cache):
+        """When list_objects_v2 raises, returns None and does not raise."""
+        mock_settings.TESTING = False
+        mock_settings.USE_S3_STORAGE = True
+        mock_cache.get.return_value = None
+
+        mock_paginator = MagicMock()
+        mock_paginator.paginate.side_effect = Exception("S3 error")
+        mock_client = MagicMock()
+        mock_client.get_paginator.return_value = mock_paginator
+        mock_bucket = MagicMock()
+        mock_bucket.name = "adlab-media"
+        mock_storage = MagicMock()
+        mock_storage.bucket = mock_bucket
+        mock_storage.connection.meta.client = mock_client
+
+        with patch("django.core.files.storage.default_storage", mock_storage):
+            result = get_media_bucket_stats()
+
+        self.assertIsNone(result)

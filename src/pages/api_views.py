@@ -906,14 +906,17 @@ class ServerStatsView(LoginRequiredMixin, AdminDashboardRequiredMixin, View):
         """Return server stats as JSON."""
         from services.server_stats_service import (
             get_docker_stats,
+            get_media_bucket_stats,
             get_system_stats,
         )
 
         system = get_system_stats()
         docker = get_docker_stats()
+        storage = get_media_bucket_stats()
         return JsonResponse(
             {
                 "system": system,
                 "docker": docker,
+                "storage": storage,
             }
         )
