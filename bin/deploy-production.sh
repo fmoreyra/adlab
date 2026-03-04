@@ -15,6 +15,9 @@ NC='\033[0m'
 
 COMPOSE_FILES="-f compose.yaml -f compose.production.yaml"
 
+# So make manage / docker compose use the same project when we exec into web
+export COMPOSE_FILE=compose.yaml:compose.production.yaml
+
 log_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
 log_success() { echo -e "${GREEN}✅ $1${NC}"; }
 log_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
@@ -134,8 +137,10 @@ run_migrations() {
 collect_static() {
   log_step "Collecting static files..."
 
-  # Use --clear to ensure the WhiteNoise manifest and collected files
-  # are fully regenerated, avoiding stale manifest entries for CSS / JS.
+  # Rebuild manifest and collected files from the image's static sources (repair
+  # references like images/logo-unl-fcv.png). The web container was started from
+  # the image we just built, so /public in the container includes app images from
+  # assets/static/images/. Ensure those files are committed so the image build has them.
   make manage ARGS="collectstatic --no-input --clear"
   log_success "Static files collected successfully"
 }
@@ -181,9 +186,9 @@ main() {
   build_images
   start_app_services
   start_proxy
-  build_documentation
   run_migrations
   collect_static
+  build_documentation
   restart_services
 
   echo

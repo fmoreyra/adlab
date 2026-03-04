@@ -250,15 +250,20 @@ Use the deployment script for updates:
 ./bin/deploy-production.sh
 ```
 
-The deployment script will:
-1. 🔍 **Validate** environment and configuration
-2. 💾 **Backup** current database automatically
-3. 📥 **Pull** latest changes from git
-4. 🏗️ **Build** new Docker images
-5. 🔄 **Run** database migrations (if any)
-6. 🚀 **Restart** services with zero downtime
-7. ✅ **Verify** deployment health
-8. 🧹 **Cleanup** old Docker resources
+The deployment script performs these steps in order:
+
+1. 🔍 **Validate** — Check production mode (DEBUG=False, ALLOWED_HOSTS set) and exit if invalid.
+2. 🗄️ **Start infrastructure** — Bring up Postgres and Redis so backup and migrations can run (idempotent if already up).
+3. 💾 **Backup** — Create a database dump in `./backups` (fails if DB is unreachable).
+4. 📥 **Pull** — Fetch and pull latest from `origin/main` (skips if already up to date).
+5. 🏗️ **Build** — Build Docker images for web, worker, and beat.
+6. 🚀 **Start app services** — Start web, worker, and beat so docs-build and migrations can run inside the web container.
+7. 🌐 **Start proxy** — Start nginx so the app is reachable via HTTPS (idempotent if already up).
+8. 🔄 **Migrations** — Run `migrate --check` then `migrate --no-input` (fails on migration errors).
+9. 📦 **Collect static** — Run `collectstatic --no-input --clear` to rebuild the WhiteNoise manifest and collected files from the image’s static sources (repairs references like `images/logo-unl-fcv.png`). App images must live in `assets/static/images/` so the image build includes them. Runs before docs-build so generated docs are not removed.
+10. 📚 **Build documentation** — Run `make docs-build` in the web container to write MkDocs output into `public_collected/docs/` (continues on failure with a warning).
+11. 🔁 **Recreate app services** — Run `docker compose up -d web worker beat` so containers use the current production config (e.g. **web has no published port 8000**; all traffic must go through nginx).
+12. ✅ **Health check** — Poll `http://localhost/up` until success or timeout; exit with error if services do not become healthy.
 
 ### Monitor Deployment
 
