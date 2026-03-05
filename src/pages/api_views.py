@@ -899,31 +899,17 @@ class ServerStatsView(LoginRequiredMixin, AdminDashboardRequiredMixin, View):
     Get server stats (CPU, RAM, disk, I/O, Docker containers).
 
     Admin-only. GET /api/dashboard/server-stats/
-    Returns JSON. Cached for 90 seconds to avoid slow Docker/bucket calls on every request.
+    Returns JSON from the latest ServerStatsSnapshot (updated by Celery Beat).
     """
 
-    CACHE_KEY = "dashboard_server_stats"
-    CACHE_TIMEOUT = 90  # seconds
-
     def get(self, request, *args, **kwargs):
-        """Return server stats as JSON (cached 90s)."""
-        from services.server_stats_service import (
-            get_docker_stats,
-            get_media_bucket_stats,
-            get_system_stats,
-        )
+        """Return server stats as JSON from database (read-only)."""
+        from pages.models import ServerStatsSnapshot
 
-        payload = cache.get(self.CACHE_KEY)
-        if payload is not None:
-            return JsonResponse(payload)
-
-        system = get_system_stats()
-        docker = get_docker_stats()
-        storage = get_media_bucket_stats()
-        payload = {
-            "system": system,
-            "docker": docker,
-            "storage": storage,
-        }
-        cache.set(self.CACHE_KEY, payload, self.CACHE_TIMEOUT)
-        return JsonResponse(payload)
+        snapshot = ServerStatsSnapshot.get_latest()
+        if snapshot is None:
+            return JsonResponse(
+                {"error": "Estadísticas aún no recopiladas."},
+                status=503,
+            )
+        return JsonResponse(snapshot.payload)

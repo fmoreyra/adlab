@@ -555,3 +555,74 @@ class DashboardPerformanceTest(DashboardAPITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Protocolos Histopatología")
+
+
+class ServerStatsViewTest(DashboardAPITestCase):
+    """Test server stats dashboard API (admin-only, reads from ServerStatsSnapshot)."""
+
+    def test_server_stats_requires_admin(self):
+        """Only admin can access server-stats; lab staff and histopathologist get 403."""
+        url = reverse("pages_api:dashboard_server_stats")
+        # Lab staff: 403
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+        # Histopathologist: 403
+        self.client.login(email="histo@example.com", password="testpass123")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+        # Admin: allowed (200 if snapshot exists, 503 if not)
+        self.client.login(email="admin@example.com", password="testpass123")
+        response = self.client.get(url)
+        self.assertIn(response.status_code, (200, 503))
+
+    def test_server_stats_requires_login(self):
+        """Anonymous user is redirected to login."""
+        response = self.client.get(reverse("pages_api:dashboard_server_stats"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_server_stats_503_when_no_snapshot(self):
+        """When no ServerStatsSnapshot exists, view returns 503 and error message."""
+        from pages.models import ServerStatsSnapshot
+
+        ServerStatsSnapshot.objects.all().delete()
+        self.client.login(email="admin@example.com", password="testpass123")
+        response = self.client.get(reverse("pages_api:dashboard_server_stats"))
+        self.assertEqual(response.status_code, 503)
+        data = response.json()
+        self.assertIn("error", data)
+        self.assertIn("recopiladas", data["error"])
+
+    def test_server_stats_200_returns_stored_payload(self):
+        """When ServerStatsSnapshot exists, view returns 200 with stored payload."""
+        from pages.models import ServerStatsSnapshot
+
+        payload = {
+            "system": {"cpu": {"percent": 10.5}, "ram": {"percent": 50.0}},
+            "docker": {"containers": [], "error": None},
+            "storage": None,
+        }
+        ServerStatsSnapshot.update_payload(payload)
+        self.client.login(email="admin@example.com", password="testpass123")
+        response = self.client.get(reverse("pages_api:dashboard_server_stats"))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["system"]["cpu"]["percent"], 10.5)
+        self.assertEqual(data["system"]["ram"]["percent"], 50.0)
+        self.assertEqual(data["docker"]["containers"], [])
+        self.assertIsNone(data["storage"])
+
+    def test_refresh_server_stats_task_updates_snapshot(self):
+        """refresh_server_stats task populates ServerStatsSnapshot."""
+        from pages.models import ServerStatsSnapshot
+        from pages.tasks import refresh_server_stats
+
+        ServerStatsSnapshot.objects.all().delete()
+        self.assertIsNone(ServerStatsSnapshot.get_latest())
+        # Run task synchronously (CELERY_TASK_ALWAYS_EAGER=True in tests)
+        refresh_server_stats()
+        snapshot = ServerStatsSnapshot.get_latest()
+        self.assertIsNotNone(snapshot)
+        self.assertIn("system", snapshot.payload)
+        self.assertIn("docker", snapshot.payload)
+        self.assertIn("storage", snapshot.payload)

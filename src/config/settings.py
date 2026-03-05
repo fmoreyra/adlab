@@ -237,13 +237,24 @@ if TESTING:
 
 # Celery Beat: periodic tasks (only applied when beat is running)
 # https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
+SERVER_STATS_REFRESH_INTERVAL = float(
+    os.getenv("SERVER_STATS_REFRESH_INTERVAL", "5.0")
+)  # seconds
 CELERY_BEAT_SCHEDULE = {
     "check-container-memory-alerts": {
         "task": "protocols.tasks.check_container_memory_alerts",
         "schedule": 600.0,  # Every 10 minutes
         "options": {"queue": "default"},
     },
+    "refresh-server-stats": {
+        "task": "pages.tasks.refresh_server_stats",
+        "schedule": SERVER_STATS_REFRESH_INTERVAL,
+        "options": {"queue": "default"},
+    },
 }
+# For sub-minute schedules, beat must wake often enough (default is 5 min).
+if SERVER_STATS_REFRESH_INTERVAL < 60:
+    CELERY_BEAT_MAX_LOOP_INTERVAL = 5  # seconds
 
 # Container memory alert: threshold (percent) and optional name substring filter.
 # Containers with memory_percent >= threshold are reported to admins (email).
