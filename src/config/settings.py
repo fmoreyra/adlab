@@ -253,9 +253,12 @@ CELERY_BEAT_SCHEDULE = {
         "options": {"queue": "celery"},
     },
 }
-# For sub-minute schedules, beat must wake often enough (default is 5 min).
-if SERVER_STATS_REFRESH_INTERVAL < 60:
-    CELERY_BEAT_MAX_LOOP_INTERVAL = 5  # seconds
+# Beat must wake at least as often as the shortest schedule (default 5 min is too long).
+# Cap max loop interval so we see tasks every minute when refresh is 60s.
+CELERY_BEAT_MAX_LOOP_INTERVAL = min(
+    int(os.getenv("CELERY_BEAT_MAX_LOOP_INTERVAL", "60")),
+    max(5, int(SERVER_STATS_REFRESH_INTERVAL)),
+)
 
 # Container memory alert: threshold (percent) and optional name substring filter.
 # Containers with memory_percent >= threshold are reported to admins (email).

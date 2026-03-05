@@ -103,7 +103,7 @@ services:
 
   beat:
     <<: *default-app
-    command: celery -A config beat -l "${CELERY_LOG_LEVEL:-info}"
+    command: celery -A config beat -l "${CELERY_LOG_LEVEL:-info}" -s /app/src/celerybeat_data/celerybeat-schedule
     entrypoint: []
     deploy:
       resources:
@@ -112,7 +112,7 @@ services:
           memory: "${DOCKER_BEAT_MEMORY:-0}"
     profiles: ["beat"]
     volumes:
-      - "celerybeat:/app/src"
+      - "celerybeat:/app/src/celerybeat_data"
 
   flower:
     <<: *default-app

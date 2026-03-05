@@ -87,6 +87,7 @@ instance/
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
+celerybeat_data/
 
 # Sphinx documentation
 docs/_build/
