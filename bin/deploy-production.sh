@@ -159,16 +159,25 @@ build_documentation() {
   fi
 }
 
-# Run migrations
+# Run migrations (use one-off container so table exists before worker/beat start)
 run_migrations() {
   log_step "Running migrations..."
 
-  if ! make manage ARGS="migrate --check"; then
-    log_error "Migration check failed"
+  # Run migrate in a one-off web container so we don't require web to be up.
+  # This must run before start_app_services so Celery beat doesn't query
+  # ServerStatsSnapshot before the table exists.
+  # shellcheck disable=SC2086
+  if ! docker compose $COMPOSE_FILES run --rm web python3 manage.py migrate --no-input; then
+    log_error "Migration apply failed"
     exit 1
   fi
 
-  make manage ARGS="migrate --no-input"
+  # shellcheck disable=SC2086
+  if ! docker compose $COMPOSE_FILES run --rm web python3 manage.py migrate --check; then
+    log_error "Migration check failed (unapplied migrations may remain)"
+    exit 1
+  fi
+
   log_success "Migrations applied"
 }
 
@@ -239,8 +248,8 @@ main() {
   backup_database
   pull_changes
   build_images
-  start_app_services
   run_migrations
+  start_app_services
   collect_static
   build_documentation
   restart_services

@@ -238,18 +238,19 @@ if TESTING:
 # Celery Beat: periodic tasks (only applied when beat is running)
 # https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
 SERVER_STATS_REFRESH_INTERVAL = float(
-    os.getenv("SERVER_STATS_REFRESH_INTERVAL", "5.0")
-)  # seconds
+    os.getenv("SERVER_STATS_REFRESH_INTERVAL", "60.0")
+)  # seconds (once per minute)
+# Worker consumes the "celery" queue by default; do not use "default" or tasks are never picked up.
 CELERY_BEAT_SCHEDULE = {
     "check-container-memory-alerts": {
         "task": "protocols.tasks.check_container_memory_alerts",
         "schedule": 600.0,  # Every 10 minutes
-        "options": {"queue": "default"},
+        "options": {"queue": "celery"},
     },
     "refresh-server-stats": {
         "task": "pages.tasks.refresh_server_stats",
         "schedule": SERVER_STATS_REFRESH_INTERVAL,
-        "options": {"queue": "default"},
+        "options": {"queue": "celery"},
     },
 }
 # For sub-minute schedules, beat must wake often enough (default is 5 min).

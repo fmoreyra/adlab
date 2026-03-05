@@ -12,7 +12,7 @@ TTY := $(shell [ -t 1 ] && echo "" || echo "-T")
 # .PHONY declarations for all targets
 # -----------------------------------------------------------------------------
 
-.PHONY: help cmd shell psql redis-cli manage secret test test-with-sqlite test-specific test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test pre-commit-install pre-commit-run pre-commit-update server-connect deploy deploy-prod safety-check safety-report
+.PHONY: help cmd shell psql redis-cli manage secret test test-with-sqlite test-specific test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups celery-refresh-stats deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test pre-commit-install pre-commit-run pre-commit-update server-connect deploy deploy-prod safety-check safety-report
 
 # -----------------------------------------------------------------------------
 # Help target (default)
@@ -206,6 +206,13 @@ db-restore: ## Restore database from dump
 
 db-list-backups: ## List available database backups
 	@./scripts/db-list-backups.sh
+
+# -----------------------------------------------------------------------------
+# Celery / server stats (production 503 fix)
+# -----------------------------------------------------------------------------
+
+celery-refresh-stats: ## Refresh ServerStatsSnapshot once (fixes 503 if worker/beat are down). Run in prod: make celery-refresh-stats
+	@source scripts/docker-helper.sh && _dc web python3 manage.py refresh_server_stats_snapshot
 
 # -----------------------------------------------------------------------------
 # Dependencies
