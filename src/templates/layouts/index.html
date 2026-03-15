@@ -73,6 +73,7 @@
               <!-- User Menu -->
               <div class="flex items-center space-x-4">
                 <!-- Notifications (Step 21) -->
+                {% if sockudo_config %}{{ sockudo_config|json_script:"sockudo-config" }}{% endif %}
                 <div class="relative" id="notifications-container"
                      data-api-list="{% url 'pages_api:notifications:list' %}"
                      data-api-unread-count="{% url 'pages_api:notifications:unread_count' %}"

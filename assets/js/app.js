@@ -1,7 +1,9 @@
 /**
  * AdLab - Main application JavaScript
- * Step 21: In-app notifications (bell + dropdown)
+ * Step 21: In-app notifications (bell + dropdown + realtime via Sockudo)
  */
+
+import Pusher from "pusher-js";
 
 (function () {
   "use strict";
@@ -182,4 +184,40 @@
   });
 
   loadUnreadCount();
+
+  // Realtime: connect to Sockudo (Pusher-compatible) when config is present
+  const sockudoEl = document.getElementById("sockudo-config");
+  if (sockudoEl) {
+    try {
+      const cfg = JSON.parse(sockudoEl.textContent);
+      if (cfg && cfg.enabled && cfg.app_key && cfg.user_id) {
+        const pusherOpts = {
+          cluster: "mt1",
+          forceTLS: cfg.ws_use_tls,
+          channelAuthorization: {
+            endpoint: cfg.auth_endpoint,
+            transport: "ajax",
+            params: {},
+            headers: { "X-CSRFToken": getCsrfToken() },
+          },
+        };
+        if (cfg.ws_host) {
+          pusherOpts.wsHost = cfg.ws_host;
+          pusherOpts.wsPort = cfg.ws_port || (cfg.ws_use_tls ? 443 : 6001);
+          pusherOpts.wssPort = cfg.ws_port || 443;
+          pusherOpts.disableStats = true;
+        }
+        const pusher = new Pusher(cfg.app_key, pusherOpts);
+        const channel = pusher.subscribe(`private-user-${cfg.user_id}`);
+        channel.bind("notification.created", () => {
+          loadUnreadCount();
+          if (!dropdown.classList.contains("hidden")) {
+            loadList();
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Sockudo realtime init failed:", e);
+    }
+  }
 })();

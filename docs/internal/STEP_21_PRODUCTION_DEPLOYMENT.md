@@ -7,7 +7,7 @@ Guía para llevar las notificaciones in-app (Step 21) a producción.
 ## Resumen
 
 - **Sin Sockudo**: Las notificaciones funcionan (bandeja, badge, marcar leídas). Se actualizan al abrir el dropdown.
-- **Con Sockudo**: Infraestructura lista para realtime. El frontend actual no conecta a Sockudo (falta `pusher-js`); las notificaciones se actualizan al abrir el dropdown. Configurar Sockudo ahora deja todo listo para cuando se agregue la conexión WebSocket en el frontend.
+- **Con Sockudo**: Notificaciones en tiempo real. El frontend usa `pusher-js` para conectarse al WebSocket; al recibir `notification.created` actualiza el badge y la lista sin recargar.
 
 ---
 
@@ -102,15 +102,22 @@ Ejemplo del bloque completo:
     }
 ```
 
-### 2.4 Levantar Sockudo y recargar Nginx
+### 2.4 Levantar Sockudo, reiniciar app y recargar Nginx
+
+Los contenedores leen `.env` al iniciar. Tras cambiar variables, hay que recrearlos:
 
 ```bash
 # Levantar el contenedor Sockudo
 docker compose -f compose.yaml -f compose.production.yaml up -d sockudo
 
+# Reiniciar web, worker y beat para que tomen las nuevas SOCKUDO_*
+docker compose -f compose.yaml -f compose.production.yaml up -d --force-recreate web worker beat
+
 # Recargar Nginx para aplicar el include
 docker compose -f compose.yaml -f compose.production.yaml exec nginx nginx -s reload
 ```
+
+**Por qué**: Web usa `SOCKUDO_*` al crear notificaciones. Worker y beat no las usan, pero se reinician por consistencia cuando cambia `.env`.
 
 ### 2.5 Verificación de Sockudo
 
@@ -146,6 +153,7 @@ Debería devolver `101 Switching Protocols` si el proxy funciona.
 - [ ] `sockudo` en COMPOSE_PROFILES
 - [ ] Línea `include` en `laboratory.conf`
 - [ ] `docker compose up -d sockudo`
+- [ ] `docker compose up -d --force-recreate web worker beat` (para que tomen las nuevas env)
 - [ ] `nginx -s reload`
 
 ---
