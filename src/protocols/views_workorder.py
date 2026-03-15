@@ -379,6 +379,22 @@ class WorkOrderSendView(WorkOrderStaffRequiredMixin, View):
         try:
             workorder.mark_as_sent()
             send_work_order_notification(workorder)
+
+            # In-app notification (Step 21)
+            from protocols.services.notification_service import (
+                NotificationService,
+            )
+
+            notif_svc = NotificationService()
+            veterinarians = {
+                p.veterinarian
+                for p in workorder.protocols.select_related(
+                    "veterinarian__user"
+                )
+            }
+            for vet in veterinarians:
+                notif_svc.create_for_work_order(workorder, vet.user)
+
             messages.success(
                 request, _("Orden de trabajo enviada exitosamente.")
             )

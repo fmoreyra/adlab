@@ -13,6 +13,7 @@ from protocols.models import (
     CytologySample,
     EmailLog,
     HistopathologySample,
+    InAppNotification,
     NotificationPreference,
     PricingCatalog,
     ProcessingLog,
@@ -255,6 +256,9 @@ class ProtocolAdmin(admin.ModelAdmin):
     @admin.action(description=_("Mark selected protocols as received"))
     def mark_as_received(self, request, queryset):
         """Mark selected protocols as received and assign protocol numbers."""
+        import logging
+
+        logger = logging.getLogger(__name__)
         count = 0
         for protocol in queryset:
             if protocol.status in [
@@ -275,11 +279,20 @@ class ProtocolAdmin(admin.ModelAdmin):
                         send_sample_reception_notification(protocol)
                     except Exception as e:
                         # Log but don't fail the action
-                        import logging
-
-                        logger = logging.getLogger(__name__)
                         logger.error(
                             f"Failed to send reception email for protocol {protocol.pk}: {e}"
+                        )
+
+                    # In-app notification (Step 21)
+                    try:
+                        from protocols.services.notification_service import (
+                            NotificationService,
+                        )
+
+                        NotificationService().create_for_reception(protocol)
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to create in-app notification for protocol {protocol.pk}: {e}"
                         )
 
                     count += 1
@@ -316,6 +329,9 @@ class ProtocolAdmin(admin.ModelAdmin):
     @admin.action(description=_("Mark selected protocols as ready"))
     def mark_as_ready(self, request, queryset):
         """Mark selected protocols as ready."""
+        import logging
+
+        logger = logging.getLogger(__name__)
         count = queryset.filter(status=Protocol.Status.PROCESSING).update(
             status=Protocol.Status.READY
         )
@@ -344,12 +360,20 @@ class ProtocolAdmin(admin.ModelAdmin):
                     veterinarian=protocol.veterinarian,
                 )
             except Exception as e:
-                # Log but don't fail the action
-                import logging
-
-                logger = logging.getLogger(__name__)
                 logger.error(
                     f"Failed to send ready email for protocol {protocol.pk}: {e}"
+                )
+
+            # In-app notification (Step 21)
+            try:
+                from protocols.services.notification_service import (
+                    NotificationService,
+                )
+
+                NotificationService().create_for_ready(protocol)
+            except Exception as e:
+                logger.error(
+                    f"Failed to create in-app notification for protocol {protocol.pk}: {e}"
                 )
 
         self.message_user(
@@ -814,6 +838,9 @@ class WorkOrderAdmin(admin.ModelAdmin):
     @admin.action(description=_("Mark as issued"))
     def mark_as_issued(self, request, queryset):
         """Mark selected work orders as issued."""
+        import logging
+
+        logger = logging.getLogger(__name__)
         count = 0
         for wo in queryset.filter(status=WorkOrder.Status.DRAFT):
             try:
@@ -825,12 +852,26 @@ class WorkOrderAdmin(admin.ModelAdmin):
                         work_order=wo, work_order_pdf_path=None
                     )
                 except Exception as e:
-                    # Log but don't fail the action
-                    import logging
-
-                    logger = logging.getLogger(__name__)
                     logger.error(
                         f"Failed to send work order email for {wo.pk}: {e}"
+                    )
+
+                # In-app notification (Step 21)
+                try:
+                    from protocols.services.notification_service import (
+                        NotificationService,
+                    )
+
+                    notif_svc = NotificationService()
+                    for protocol in wo.protocols.select_related(
+                        "veterinarian__user"
+                    ):
+                        notif_svc.create_for_work_order(
+                            wo, protocol.veterinarian.user
+                        )
+                except Exception as e:
+                    logger.error(
+                        f"Failed to create in-app notification for work order {wo.pk}: {e}"
                     )
 
                 count += 1
@@ -1813,3 +1854,32 @@ class NotificationPreferenceAdmin(admin.ModelAdmin):
     )
     date_hierarchy = "updated_at"
     ordering = ["veterinarian__last_name", "veterinarian__first_name"]
+
+
+@admin.register(InAppNotification)
+class InAppNotificationAdmin(admin.ModelAdmin):
+    """Admin for in-app notifications (Step 21)."""
+
+    list_display = [
+        "id",
+        "recipient",
+        "notification_type",
+        "title",
+        "is_read",
+        "created_at",
+    ]
+    list_filter = [
+        "notification_type",
+        "is_read",
+        "created_at",
+    ]
+    search_fields = [
+        "recipient__email",
+        "recipient__first_name",
+        "recipient__last_name",
+        "title",
+        "body",
+    ]
+    readonly_fields = ["created_at", "read_at"]
+    date_hierarchy = "created_at"
+    ordering = ["-created_at"]

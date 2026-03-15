@@ -2184,3 +2184,79 @@ class NotificationPreference(models.Model):
         return type_map.get(
             email_type, True
         )  # Default to True for other types
+
+
+class InAppNotification(models.Model):
+    """
+    In-app notification for the notification center (Step 21).
+    Persisted in PostgreSQL; Sockudo used only for realtime push.
+    """
+
+    class NotificationType(models.TextChoices):
+        SUBMITTED = "submitted", _("Protocolo enviado")
+        RECEPTION = "reception", _("Muestra recibida")
+        REJECTION = "rejection", _("Muestra rechazada")
+        DISCREPANCY = "discrepancy", _("Discrepancias en recepción")
+        READY = "ready", _("Muestra lista para diagnóstico")
+        REPORT_READY = "report_ready", _("Informe disponible")
+        WORK_ORDER = "work_order", _("Orden de trabajo")
+        CUSTOM = "custom", _("Notificación personalizada")
+
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="in_app_notifications",
+        verbose_name=_("destinatario"),
+    )
+    notification_type = models.CharField(
+        _("tipo"),
+        max_length=30,
+        choices=NotificationType.choices,
+    )
+    title = models.CharField(_("título"), max_length=255)
+    body = models.TextField(_("cuerpo"), blank=True)
+    link_url = models.URLField(_("enlace"), blank=True)
+    is_read = models.BooleanField(_("leída"), default=False)
+    read_at = models.DateTimeField(_("leída el"), null=True, blank=True)
+    created_at = models.DateTimeField(_("creada el"), auto_now_add=True)
+    protocol = models.ForeignKey(
+        "protocols.Protocol",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="in_app_notifications",
+        verbose_name=_("protocolo"),
+    )
+    work_order = models.ForeignKey(
+        "protocols.WorkOrder",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="in_app_notifications",
+        verbose_name=_("orden de trabajo"),
+    )
+
+    class Meta:
+        verbose_name = _("notificación in-app")
+        verbose_name_plural = _("notificaciones in-app")
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["recipient", "is_read", "-created_at"],
+                name="inapp_notif_recip_read_created",
+            ),
+            models.Index(
+                fields=["recipient", "-created_at"],
+                name="inapp_notif_recip_created",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_notification_type_display()} → {self.recipient} ({self.created_at})"
+
+    def mark_as_read(self):
+        """Mark notification as read."""
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=["is_read", "read_at"])

@@ -824,6 +824,13 @@ class ProtocolSubmitView(ProtocolOwnerOrStaffMixin, View):
             # Send submission confirmation email using service
             self.email_service.send_submission_confirmation_email(protocol)
 
+            # In-app notification (Step 21)
+            from protocols.services.notification_service import (
+                NotificationService,
+            )
+
+            NotificationService().create_for_protocol_submitted(protocol)
+
             messages.success(
                 request,
                 _(
@@ -1340,6 +1347,11 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
         # Check if protocol was rejected and send appropriate email
         if protocol.status == Protocol.Status.REJECTED:
             self.email_service.send_rejection_email(protocol)
+            from protocols.services.notification_service import (
+                NotificationService,
+            )
+
+            NotificationService().create_for_rejection(protocol)
             messages.warning(
                 self.request,
                 _(
@@ -1351,13 +1363,19 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
             # Send normal reception email
             self.email_service.send_reception_email(protocol)
 
-            # Send discrepancy alert if issues found
+            from protocols.services.notification_service import (
+                NotificationService,
+            )
+
+            notif_svc = NotificationService()
+            notif_svc.create_for_reception(protocol)
             discrepancies = form_data.get("discrepancies", "")
             if discrepancies:
                 sample_condition = form_data.get("sample_condition", "")
                 self.email_service.send_discrepancy_alert_email(
                     protocol, discrepancies, sample_condition
                 )
+                notif_svc.create_for_discrepancy(protocol, discrepancies)
 
             messages.success(
                 self.request,

@@ -1,16 +1,17 @@
 """
 Management Dashboard API URLs for Step 09.
-
-Provides REST endpoints for real-time dashboard metrics.
+Notification API URLs for Step 21.
 """
 
-from django.urls import path
+from django.urls import include, path
 
 from pages import api_views
 
 app_name = "pages_api"
 
 urlpatterns = [
+    # Notifications (Step 21)
+    path("notifications/", include("protocols.notification_urls")),
     # Dashboard API endpoints
     path(
         "dashboard/wip/",

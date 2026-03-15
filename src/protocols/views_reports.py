@@ -436,6 +436,14 @@ class ReportSendView(StaffRequiredMixin, FormView):
         # Send email notification using service
         self.email_service.send_report_ready_notification(report)
 
+        # In-app notification (Step 21)
+        if report.protocol:
+            from protocols.services.notification_service import (
+                NotificationService,
+            )
+
+            NotificationService().create_for_report_ready(report.protocol)
+
         messages.success(self.request, _("Informe enviado exitosamente."))
         return redirect(self.get_success_url())
 

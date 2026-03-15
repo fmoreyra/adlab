@@ -108,6 +108,7 @@ class UserAdmin(BaseUserAdmin):
         "unlock_accounts",
         "mark_email_verified",
         "resend_verification_email",
+        "send_test_notification",
     ]
 
     def reset_failed_attempts(self, request, queryset):
@@ -149,6 +150,32 @@ class UserAdmin(BaseUserAdmin):
         )
 
     mark_email_verified.short_description = "Mark email as verified"
+
+    def send_test_notification(self, request, queryset):
+        """Send in-app test notification to selected users (Step 21)."""
+        from protocols.services.notification_service import NotificationService
+
+        service = NotificationService()
+        count = 0
+        for user in queryset:
+            try:
+                service.create_test_notification(
+                    recipient=user,
+                    message="Notificación de prueba enviada desde el admin.",
+                )
+                count += 1
+            except Exception as e:
+                self.message_user(
+                    request,
+                    f"Error enviando a {user.email}: {e}",
+                    level="error",
+                )
+        self.message_user(
+            request,
+            f"Se enviaron {count} notificación(es) de prueba.",
+        )
+
+    send_test_notification.short_description = "Enviar notificación de prueba"
 
     def resend_verification_email(self, request, queryset):
         """Resend verification email to selected veterinarians."""

@@ -127,6 +127,24 @@ services:
       - "${DOCKER_FLOWER_PORT_FORWARD:-127.0.0.1:5555}:5555"
     profiles: ["flower"]
 
+  sockudo:
+    image: sockudo/sockudo:latest
+    profiles: ["sockudo"]
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    stop_grace_period: "10s"
+    ports:
+      - "${DOCKER_SOCKUDO_PORT_FORWARD:-127.0.0.1:6001}:6001"
+      - "${DOCKER_SOCKUDO_METRICS_PORT:-127.0.0.1:9601}:9601"
+    environment:
+      SOCKUDO_DEFAULT_APP_ID: "${SOCKUDO_APP_ID:-adlab-app}"
+      SOCKUDO_DEFAULT_APP_KEY: "${SOCKUDO_APP_KEY:-adlab-key}"
+      SOCKUDO_DEFAULT_APP_SECRET: "${SOCKUDO_APP_SECRET:-change-me-in-production}"
+      SOCKUDO_ENABLE_CLIENT_MESSAGES: "false"
+    depends_on:
+      redis:
+        condition: "service_started"
+        required: false
+
   garage:
     image: "dxflrs/garage:v1.3.1"
     profiles: ["garage"]

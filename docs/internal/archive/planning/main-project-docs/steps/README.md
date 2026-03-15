@@ -24,8 +24,9 @@ Este directorio contiene la documentación detallada de cada paso de implementac
 | [12](#step-12-system-configuration--administration) | Configuración y Administración | 1 semana | Soporte |
 | [13](#step-13-production-email-configuration) | Configuración de Email (Producción) | 1-3 días | Pre-Producción |
 | [14](#step-14-object-storage--backuprestore-system) | Almacenamiento de Objetos & Backup/Restore | 1.5 semanas | Infraestructura |
+| [21](#step-21-in-app-notifications) | Notificaciones In-App (Bandeja + Realtime) | 1 semana | Soporte |
 
-**Tiempo Total Estimado: 20 semanas (~5 meses)**
+**Tiempo Total Estimado: 21 semanas (~5 meses)**
 
 ---
 
@@ -494,6 +495,31 @@ Sprint 14-16: Step 11
 **Timing**: Antes de producción (crítico para data safety)
 
 **Estado**: 📝 Completamente documentado, listo para implementación
+
+---
+
+### Step 21: In-App Notifications (Bandeja + Realtime)
+**Archivo**: [`step-21-in-app-notifications.md`](./step-21-in-app-notifications.md)
+
+**Propósito**: Sistema de notificaciones dentro del sitio con bandeja (leídas/no leídas) y entrega en tiempo real vía Sockudo (Pusher-compatible, self-hosted). Reduce dependencia del email como canal principal.
+
+**Componentes Clave**:
+- Modelo InAppNotification (persistencia en PostgreSQL)
+- Sockudo como servidor WebSocket (canales privados)
+- API de bandeja (lista, marcar leída, contador)
+- Campana y dropdown en navbar
+- Endpoint de auth para canales privados
+- Auditoría de suscripciones y publicaciones
+
+**Entregables**:
+- Bandeja de notificaciones en el sitio
+- Notificaciones en tiempo real sin recargar
+- Admin action para enviar notificación de prueba
+- Integración en los mismos puntos que Step 08 (email)
+
+**Dependencias**: Steps 01, 08, Redis (opcional para Sockudo)
+
+**Usado por**: Steps 04, 06, 07 (complementa notificaciones por email)
 
 ---
 

@@ -3,6 +3,8 @@ upstream django_app {
     server web:8000;
 }
 
+# Sockudo WebSocket (Pusher-compatible - Step 21)
+
 # HTTP server - redirect to HTTPS
 server {
     listen 80;
@@ -84,6 +86,9 @@ server {
         proxy_pass http://django_app/up;
         access_log off;
     }
+
+    # Sockudo WebSocket (Step 21) - snippet in git, included here
+    include /etc/nginx/conf.d/snippets/sockudo-websocket.conf;
 
     # Deny access to sensitive files
     location ~ /\.(?!well-known) {

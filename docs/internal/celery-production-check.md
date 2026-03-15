@@ -45,6 +45,8 @@ docker compose logs --tail=100 worker
 docker compose logs --tail=100 beat
 ```
 
+Beat may show only "beat: Starting..." for up to one minute (or up to `CELERY_BEAT_MAX_LOOP_INTERVAL` seconds) before the first "Sending due task" line; that is normal, not a hang.
+
 If the task is failing, the worker log will show the exception (e.g. missing `get_media_bucket_stats`, Docker socket permission, etc.).
 
 ## 4. Verify Redis and schedule
@@ -83,6 +85,8 @@ docker compose exec worker celery -A config call pages.tasks.refresh_server_stat
 | Task runs but snapshot still empty (503) | Task raises an exception (e.g. import error, Docker/psutil error). Check worker logs for `refresh_server_stats failed`. |
 | 503 after deploy | Migrations run after app start, or beat/worker start before `ServerStatsSnapshot` table exists. Deploy script should run migrations before starting app services; then run `make celery-refresh-stats` once if needed. |
 | Beat sends tasks but worker never runs them | Schedule had `"queue": "default"` while the worker consumes the default queue named `"celery"`. Use `"queue": "celery"` in `CELERY_BEAT_SCHEDULE` options (or omit so tasks go to the celery queue). |
+| Beat log shows only "beat: Starting..." for a long time | By default beat wakes at most every 60s. Wait ~1 minute for the first "Sending due task refresh-server-stats". If you need more frequent logs, set `CELERY_BEAT_MAX_LOOP_INTERVAL` (seconds) in the environment. |
+| Beat stalls at "Starting..." with no further logs (even after 5+ min) | The beat volume used to mount over the whole app dir (`celerybeat:/app/src`), which could hide app code or block the scheduler. It now mounts only at `celerybeat:/app/src/celerybeat_data` with schedule file `-s .../celerybeat-schedule`. Redeploy and restart beat. To start clean: `docker compose down beat && docker volume rm laboratory-system_celerybeat 2>/dev/null; docker compose up -d beat`. |
 
 ## 7. Quick checklist on the server
 

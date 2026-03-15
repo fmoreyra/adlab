@@ -299,6 +299,20 @@ SITE_URL = os.getenv(
     "SITE_URL", "http://localhost:8000" if DEBUG else "https://adlab.com"
 )
 
+# In-app notifications realtime (Sockudo - Step 21)
+SOCKUDO_ENABLED = bool(strtobool(os.getenv("SOCKUDO_ENABLED", "false")))
+if TESTING:
+    SOCKUDO_ENABLED = False
+SOCKUDO_APP_ID = os.getenv("SOCKUDO_APP_ID", "adlab-app")
+SOCKUDO_APP_KEY = os.getenv("SOCKUDO_APP_KEY", "adlab-key")
+SOCKUDO_APP_SECRET = os.getenv("SOCKUDO_APP_SECRET", "change-me-in-production")
+# HTTP API URL for publishing events (from web/worker: sockudo:6001 in Docker)
+SOCKUDO_HTTP_URL = os.getenv("SOCKUDO_HTTP_URL", "http://sockudo:6001")
+# WebSocket host for frontend (from browser: localhost or public host)
+SOCKUDO_WS_HOST = os.getenv("SOCKUDO_WS_HOST", "localhost")
+SOCKUDO_WS_PORT = int(os.getenv("SOCKUDO_WS_PORT", "6001"))
+SOCKUDO_WS_USE_TLS = bool(strtobool(os.getenv("SOCKUDO_WS_USE_TLS", "false")))
+
 # Email configuration
 # For development, use console backend. In production, configure SMTP.
 # Optional: set TESTING_EMAIL=true to send real emails via Gmail (Google account + app password).

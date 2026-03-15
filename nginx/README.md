@@ -18,6 +18,18 @@ Do not edit `laboratory.conf` directly. Instead, modify the template and regener
 sed "s/DOMAIN_PLACEHOLDER/your-domain.com/g" nginx/conf.d/laboratory.conf.template > nginx/conf.d/laboratory.conf
 ```
 
+## Sockudo (Step 21 - Realtime Notifications)
+
+The snippet `conf.d/snippets/sockudo-websocket.conf` proxies WebSocket to Sockudo.
+**laboratory.conf is not in git** — add this line manually inside your HTTPS server block:
+
+```nginx
+include /etc/nginx/conf.d/snippets/sockudo-websocket.conf;
+```
+
+Place it before the "Deny access to sensitive files" block. The snippet is in the repo;
+`conf.d` is mounted, so the snippet is available. Add `sockudo` to `COMPOSE_PROFILES`.
+
 ## Manual Configuration
 
 If you need to customize Nginx configuration:
