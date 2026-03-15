@@ -1866,6 +1866,7 @@ class InAppNotificationAdmin(admin.ModelAdmin):
         "notification_type",
         "title",
         "is_read",
+        "get_link_preview",
         "created_at",
     ]
     list_filter = [
@@ -1883,3 +1884,35 @@ class InAppNotificationAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "read_at"]
     date_hierarchy = "created_at"
     ordering = ["-created_at"]
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "recipient",
+                    "notification_type",
+                    "title",
+                    "body",
+                    "link_url",
+                    "is_read",
+                    "read_at",
+                ),
+            },
+        ),
+        (
+            _("Relaciones"),
+            {
+                "fields": ("protocol", "work_order"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+    def get_link_preview(self, obj):
+        """Show truncated link_url in list."""
+        if not obj.link_url:
+            return "-"
+        url = obj.link_url
+        return url[:50] + "…" if len(url) > 50 else url
+
+    get_link_preview.short_description = _("Enlace")

@@ -162,6 +162,58 @@ class NotificationAPITestCase(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 302)
 
+    def test_inbox_view_authenticated(self):
+        """Inbox page returns 200 for authenticated user."""
+        url = reverse("pages:notifications_inbox")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "protocols/notifications/inbox.html")
+
+    def test_inbox_view_requires_login(self):
+        """Inbox page redirects unauthenticated users."""
+        self.client.logout()
+        url = reverse("pages:notifications_inbox")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+
+    def test_inbox_view_filter_and_pagination(self):
+        """Inbox supports filter and shows paginated notifications."""
+        for i in range(25):
+            InAppNotification.objects.create(
+                recipient=self.user,
+                notification_type=InAppNotification.NotificationType.CUSTOM,
+                title=f"Notif {i}",
+                body="",
+                is_read=(i % 2 == 0),
+            )
+        url = reverse("pages:notifications_inbox")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["notifications"]), 20)
+        self.assertTrue(response.context["page_obj"].has_next)
+
+        response_unread = self.client.get(url + "?filter=unread")
+        self.assertEqual(response_unread.status_code, 200)
+        # Odd indices (i % 2 == 1) are unread: 12 notifications
+        self.assertEqual(len(response_unread.context["notifications"]), 12)
+
+    def test_mark_all_read_redirect(self):
+        """Mark all read redirect view marks and redirects."""
+        InAppNotification.objects.create(
+            recipient=self.user,
+            notification_type=InAppNotification.NotificationType.CUSTOM,
+            title="Test",
+            is_read=False,
+        )
+        url = reverse("pages:notifications_mark_all_read")
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/notifications/", response["Location"])
+        unread = InAppNotification.objects.filter(
+            recipient=self.user, is_read=False
+        ).count()
+        self.assertEqual(unread, 0)
+
 
 class NotificationServiceTestCase(TestCase):
     """Tests for NotificationService."""

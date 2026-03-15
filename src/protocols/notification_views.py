@@ -12,8 +12,10 @@ import logging
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.utils import timezone
 from django.views import View
+from django.views.generic import ListView
 
 from protocols.models import InAppNotification
 
@@ -172,3 +174,49 @@ class RealtimeAuthView(LoginRequiredMixin, View):
         )
 
         return JsonResponse({"auth": auth})
+
+
+class NotificationInboxView(LoginRequiredMixin, ListView):
+    """
+    Full-page inbox for all user notifications (paginated).
+
+    Accessible by any authenticated user. Supports filter: all, unread, read.
+    """
+
+    model = InAppNotification
+    template_name = "protocols/notifications/inbox.html"
+    context_object_name = "notifications"
+    paginate_by = 20
+
+    def get_queryset(self):
+        """Filter by recipient and optional read status."""
+        qs = InAppNotification.objects.filter(
+            recipient=self.request.user
+        ).order_by("-created_at")
+        filter_type = self.request.GET.get("filter", "all")
+        if filter_type == "unread":
+            qs = qs.filter(is_read=False)
+        elif filter_type == "read":
+            qs = qs.filter(is_read=True)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        """Add current filter to context."""
+        context = super().get_context_data(**kwargs)
+        context["filter"] = self.request.GET.get("filter", "all")
+        return context
+
+
+class NotificationMarkAllReadRedirectView(LoginRequiredMixin, View):
+    """
+    Mark all user notifications as read and redirect to inbox.
+
+    Used by the inbox page form (server-side, no JS required).
+    """
+
+    def post(self, request, *args, **kwargs):
+        """Mark all as read and redirect back to inbox."""
+        InAppNotification.objects.filter(
+            recipient=request.user, is_read=False
+        ).update(is_read=True, read_at=timezone.now())
+        return redirect("pages:notifications_inbox")
