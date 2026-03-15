@@ -267,13 +267,14 @@ class NotificationService:
     def create_test_notification(
         self, recipient, message: str = ""
     ) -> InAppNotification:
-        """Create a test notification (for admin action)."""
+        """Create a test notification (for admin action). Links to home page."""
+        home_url = f"{settings.SITE_URL}{reverse('home')}"
         return self.create_notification(
             recipient=recipient,
             notification_type=InAppNotification.NotificationType.CUSTOM,
             title="Notificación de prueba",
             body=message or "Esta es una notificación de prueba del sistema.",
-            link_url="",
+            link_url=home_url,
         )
 
 
