@@ -192,6 +192,7 @@ import Pusher from "pusher-js";
       const cfg = JSON.parse(sockudoEl.textContent);
       if (cfg && cfg.enabled && cfg.app_key && cfg.user_id) {
         const pusherOpts = {
+          cluster: "us1",
           forceTLS: cfg.ws_use_tls,
           enabledTransports: ["ws", "wss"],
           channelAuthorization: {
