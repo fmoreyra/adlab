@@ -10,6 +10,15 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - `setuptools` Python dependency since Docker recently removed this from the official Python image
+
+### Changed
+
+- Registro de slides de histopatología: interfaz en tabla (cassette superior/inferior por fila) en lugar de UI interactiva con Vue.js
+- Citología: portaobjetos creados automáticamente al confirmar recepción (`number_slides_received`); eliminado formulario manual en registro de slides
+
+### Fixed
+
+- Creación de `CassetteSlide` al registrar slides: campo `posicion` (antes se enviaba `position` y fallaba silenciosamente)
 - `./run pip3 [...]` to run any Pip command
 - `./run yarn [...]` to run any Yarn command
 - `./run lint:shell` for linting shell scripts with ShellCheck

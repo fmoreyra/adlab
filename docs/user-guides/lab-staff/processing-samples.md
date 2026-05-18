@@ -46,11 +46,27 @@ _[Espacio para captura de pantalla: Cassettes preparados]_
 
 ## 📊 Registro en el Sistema
 
-- Actualizar estado a PROCESSING
-- Registrar cassettes y slides creados
-- Documentar cualquier problema
+### Histopatología
 
-_[Espacio para captura de pantalla: Registro de procesamiento en el sistema]_
+1. **Crear cassettes**: En el estado del protocolo, use **Crear Cassettes**. Indique cantidad, material, tipo y color por cassette.
+2. **Registrar slides**: Tras crear cassettes, abra **Registrar Slides**. Complete la tabla:
+   - **Cassette superior** (obligatorio): cassette montado en la parte superior del portaobjetos.
+   - **Cassette inferior** (opcional): segundo cassette en el mismo slide, si aplica.
+   - **Coloración**: por defecto Hematoxilina-Eosina; puede ajustarse por fila.
+   - Use **+ Agregar slide** para más filas y **Registrar Slides** para guardar.
+3. Los slides ya registrados se muestran arriba de la tabla (solo lectura). Cada envío del formulario agrega slides nuevos.
+
+### Citología
+
+- Los portaobjetos se registran **automáticamente al confirmar la recepción** (cantidad recibida + Diff-Quick por defecto).
+- En **Estado de procesamiento** verá la lista de portaobjetos y podrá avanzar etapas (montaje, coloración, listo).
+
+### General
+
+- El protocolo pasa a estado de procesamiento según el flujo del laboratorio.
+- Documente incidencias en observaciones o en el estado del protocolo.
+
+_[Espacio para captura de pantalla: Registro de slides en tabla (histopatología)]_
 
 ---
 

@@ -62,7 +62,11 @@ _[Espacio para captura de pantalla: Lista de verificación de condición de mues
    - Fecha y hora de llegada
    - Condición de la muestra
    - Observaciones
-   - Número de contenedores recibidos
+   - Número de contenedores recibidos (histopatología) o **portaobjetos recibidos** (citología)
+
+#### Citología: portaobjetos automáticos
+
+Al confirmar la recepción de un protocolo de **citología**, el sistema crea automáticamente los registros de portaobjetos según la cantidad indicada en **portaobjetos recibidos**, con coloración por defecto **Diff-Quick**. No es necesario usar la pantalla de registro de slides por separado.
 
 _[Espacio para captura de pantalla: Formulario de registro de recepción]_
 

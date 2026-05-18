@@ -983,6 +983,10 @@ class ProcessingQueueView(StaffRequiredMixin, ListView):
                 "cytology_sample",
                 "histopathology_sample",
             )
+            .prefetch_related(
+                "slides",
+                "histopathology_sample__cassettes",
+            )
             .order_by("reception_date")
         )
 
@@ -994,33 +998,48 @@ class ProcessingQueueView(StaffRequiredMixin, ListView):
         if status_filter != "all":
             protocols = protocols.filter(status=status_filter)
 
-        # Calculate processing info
         for protocol in protocols:
-            days_in_process = (
-                (date.today() - protocol.reception_date.date()).days
-                if protocol.reception_date
-                else 0
-            )
-            protocol.days_in_process = days_in_process
-
-            # Check what's pending
-            if protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY:
-                cassettes = (
-                    protocol.histopathology_sample.cassettes.all()
-                    if hasattr(protocol, "histopathology_sample")
-                    else []
-                )
-                protocol.cassettes_count = len(cassettes)
-                protocol.cassettes_completed = sum(
-                    1
-                    for c in cassettes
-                    if c.estado == Cassette.Status.COMPLETADO
-                )
-            else:
-                protocol.cassettes_count = 0
-                protocol.cassettes_completed = 0
+            self._annotate_protocol_queue_flags(protocol)
 
         return protocols
+
+    def _annotate_protocol_queue_flags(self, protocol):
+        """Attach queue display flags for cassettes, slides, and quick actions."""
+        protocol.days_in_process = (
+            (date.today() - protocol.reception_date.date()).days
+            if protocol.reception_date
+            else 0
+        )
+
+        slides = list(protocol.slides.all())
+        protocol.slides_count = len(slides)
+        protocol.slides_ready = sum(
+            1 for slide in slides if slide.estado == Slide.Status.LISTO
+        )
+        protocol.missing_slides = protocol.slides_count == 0
+        protocol.needs_cassettes = False
+        protocol.needs_slides = False
+        protocol.cassettes_count = 0
+        protocol.cassettes_completed = 0
+
+        if protocol.analysis_type != Protocol.AnalysisType.HISTOPATHOLOGY:
+            return
+
+        cassettes = (
+            list(protocol.histopathology_sample.cassettes.all())
+            if hasattr(protocol, "histopathology_sample")
+            else []
+        )
+        protocol.cassettes_count = len(cassettes)
+        protocol.cassettes_completed = sum(
+            1
+            for cassette in cassettes
+            if cassette.estado == Cassette.Status.COMPLETADO
+        )
+        protocol.needs_cassettes = protocol.cassettes_count == 0
+        protocol.needs_slides = (
+            not protocol.needs_cassettes and protocol.missing_slides
+        )
 
     def get_context_data(self, **kwargs):
         """Add filter context."""
@@ -1504,17 +1523,27 @@ class ReceptionLabelPDFView(StaffRequiredMixin, View):
 
 class SlideRegisterView(StaffRequiredMixin, View):
     """
-    Register slides for a protocol with interactive cassette-slide relationship.
+    Register slides for a protocol (table UI for histopathology, simple form for cytology).
     """
 
     def get(self, request, *args, **kwargs):
-        """Show interactive slide registration interface."""
+        """Show slide registration form."""
         protocol = self.get_protocol()
 
         if protocol is None:
             return redirect(
                 "protocols:processing_status", pk=self.kwargs["protocol_pk"]
             )
+
+        if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
+            messages.info(
+                request,
+                _(
+                    "Los portaobjetos de citología se registran al confirmar "
+                    "la recepción de la muestra."
+                ),
+            )
+            return redirect("protocols:processing_status", pk=protocol.pk)
 
         # Get existing cassettes (for histopathology)
         cassettes = []
@@ -1533,25 +1562,10 @@ class SlideRegisterView(StaffRequiredMixin, View):
             protocol.slides.all().prefetch_related("cassette_slides__cassette")
         )
 
-        # Prepare existing relationships for the template
-        existing_relationships = {}
-        for slide in existing_slides:
-            for cs in slide.cassette_slides.all():
-                # Key format: "slide_number-position" (e.g., "1-1", "1-2")
-                # Determine position based on order (simplified)
-                position = (
-                    1 if not existing_relationships.get(f"{slide.id}-1") else 2
-                )
-                key = f"{slide.id}-{position}"
-                existing_relationships[key] = cs.cassette.id
-
         context = {
             "protocol": protocol,
             "cassettes": cassettes,
             "existing_slides": existing_slides,
-            "existing_relationships": existing_relationships,
-            "is_cytology": protocol.analysis_type
-            == Protocol.AnalysisType.CYTOLOGY,
         }
         return render(
             request, "protocols/processing/slide_register.html", context
@@ -1566,77 +1580,25 @@ class SlideRegisterView(StaffRequiredMixin, View):
                 "protocols:processing_status", pk=self.kwargs["protocol_pk"]
             )
 
+        if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
+            messages.info(
+                request,
+                _(
+                    "Los portaobjetos de citología se registran al confirmar "
+                    "la recepción de la muestra."
+                ),
+            )
+            return redirect("protocols:processing_status", pk=protocol.pk)
+
         try:
-            # Get form data
-            slide_count = int(request.POST.get("slide_count", 1))
-            if slide_count < 1 or slide_count > 50:
-                raise ValueError("Invalid slide count")
-
-            # Create slides
-            created_slides = []
-            for i in range(slide_count):
-                # Get slide-specific data
-                codigo_portaobjetos = request.POST.get(
-                    f"codigo_portaobjetos_{i}", ""
-                )
-                campo = request.POST.get(f"campo_{i}")
-                campo = int(campo) if campo else None
-                tecnica_coloracion = request.POST.get(
-                    f"tecnica_coloracion_{i}", ""
-                )
-                observaciones = request.POST.get(f"observaciones_{i}", "")
-
-                # Create slide
-                slide = Slide.objects.create(
-                    protocol=protocol,
-                    codigo_portaobjetos=codigo_portaobjetos,
-                    campo=campo,
-                    tecnica_coloracion=tecnica_coloracion,
-                    observaciones=observaciones,
-                    estado=Slide.Status.PENDIENTE,
-                )
-
-                # Handle cassette relationships for histopathology
-                if (
-                    protocol.analysis_type
-                    == Protocol.AnalysisType.HISTOPATHOLOGY
-                ):
-                    # Get cassette relationships for this slide
-                    for pos in [
-                        1,
-                        2,
-                    ]:  # Each slide can have up to 2 cassette positions
-                        cassette_id = request.POST.get(f"cassette_{i}_{pos}")
-                        if cassette_id:
-                            try:
-                                cassette = Cassette.objects.get(
-                                    id=cassette_id,
-                                    histopathology_sample=protocol.histopathology_sample,
-                                )
-                                CassetteSlide.objects.create(
-                                    cassette=cassette,
-                                    slide=slide,
-                                    position=pos,
-                                )
-                            except Cassette.DoesNotExist:
-                                pass
-
-                # Log action
-                ProcessingLog.log_action(
-                    protocol=protocol,
-                    etapa=ProcessingLog.Stage.MONTAJE,
-                    usuario=request.user,
-                    slide=slide,
-                    observaciones=f"Slide registrado: {codigo_portaobjetos}",
-                )
-
-                created_slides.append(slide)
+            created_count = self._create_histopathology_slides(
+                request, protocol
+            )
 
             messages.success(
                 request,
-                _(
-                    f"Se registraron {len(created_slides)} slides exitosamente."
-                ),
+                _("Se registraron %(count)s slides exitosamente.")
+                % {"count": created_count},
             )
 
         except (ValueError, TypeError) as e:
@@ -1646,6 +1608,80 @@ class SlideRegisterView(StaffRequiredMixin, View):
             )
 
         return redirect("protocols:processing_status", pk=protocol.pk)
+
+    def _create_histopathology_slides(self, request, protocol):
+        """Create histopathology slides and cassette relationships from table POST."""
+        slide_count = int(request.POST.get("slide_count", 0))
+        if slide_count < 1 or slide_count > 50:
+            raise ValueError(_("Debe registrar al menos un slide"))
+
+        if not hasattr(protocol, "histopathology_sample"):
+            raise ValueError(
+                _("El protocolo no tiene muestra de histopatología")
+            )
+
+        general_comments = request.POST.get("comments", "")
+        histopathology_sample = protocol.histopathology_sample
+
+        for i in range(slide_count):
+            cassette_superior_id = request.POST.get(
+                f"slide_{i}_cassette_superior"
+            )
+            if not cassette_superior_id:
+                raise ValueError(
+                    _("Cada slide debe tener un cassette superior asignado")
+                )
+
+            tecnica_coloracion = request.POST.get(
+                f"slide_{i}_coloracion", "Hematoxilina-Eosina"
+            )
+            row_observaciones = request.POST.get(
+                f"slide_{i}_observaciones", ""
+            )
+            observaciones = row_observaciones or general_comments
+
+            slide = Slide.objects.create(
+                protocol=protocol,
+                tecnica_coloracion=tecnica_coloracion,
+                observaciones=observaciones,
+                estado=Slide.Status.PENDIENTE,
+            )
+
+            cassette_links = [
+                (
+                    cassette_superior_id,
+                    CassetteSlide.Position.SUPERIOR,
+                ),
+                (
+                    request.POST.get(f"slide_{i}_cassette_inferior"),
+                    CassetteSlide.Position.INFERIOR,
+                ),
+            ]
+
+            for cassette_id, posicion in cassette_links:
+                if not cassette_id:
+                    continue
+                cassette = Cassette.objects.filter(
+                    id=cassette_id,
+                    histopathology_sample=histopathology_sample,
+                ).first()
+                if cassette is None:
+                    continue
+                CassetteSlide.objects.create(
+                    cassette=cassette,
+                    slide=slide,
+                    posicion=posicion,
+                )
+
+            ProcessingLog.log_action(
+                protocol=protocol,
+                etapa=ProcessingLog.Stage.MONTAJE,
+                usuario=request.user,
+                slide=slide,
+                observaciones=f"Slide registrado: {slide.codigo_portaobjetos}",
+            )
+
+        return slide_count
 
     def get_protocol(self):
         """Get and validate protocol."""

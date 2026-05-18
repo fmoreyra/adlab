@@ -138,6 +138,11 @@ class ProtocolReceptionService:
                 description=description,
             )
 
+            if not is_rejected:
+                self._create_cytology_slides_on_reception(
+                    protocol, form_data, user
+                )
+
             return True, ""
 
         except Exception as e:
@@ -181,6 +186,54 @@ class ProtocolReceptionService:
                 protocol.histopathology_sample.save(
                     update_fields=["number_jars_received"]
                 )
+
+    def _create_cytology_slides_on_reception(
+        self, protocol: Protocol, form_data: Dict, user
+    ) -> None:
+        """
+        Create cytology slides automatically when sample is received.
+
+        Uses number_slides_received from reception form data.
+        """
+        if protocol.analysis_type != Protocol.AnalysisType.CYTOLOGY:
+            return
+
+        if not hasattr(protocol, "cytology_sample"):
+            return
+
+        slides_count = form_data.get("number_slides_received")
+        if slides_count is None:
+            slides_count = protocol.cytology_sample.number_slides_received
+
+        if not slides_count or int(slides_count) < 1:
+            return
+
+        slides_count = int(slides_count)
+        existing_count = protocol.slides.count()
+        if existing_count >= slides_count:
+            return
+
+        slides_to_create = slides_count - existing_count
+        default_staining = "Diff-Quick"
+
+        for _slide_index in range(slides_to_create):
+            slide = Slide.objects.create(
+                protocol=protocol,
+                cytology_sample=protocol.cytology_sample,
+                tecnica_coloracion=default_staining,
+                observaciones=_("Registrado automáticamente en recepción"),
+                estado=Slide.Status.PENDIENTE,
+            )
+            ProcessingLog.log_action(
+                protocol=protocol,
+                etapa=ProcessingLog.Stage.MONTAJE,
+                usuario=user,
+                slide=slide,
+                observaciones=(
+                    _("Portaobjetos registrado en recepción: %(code)s")
+                    % {"code": slide.codigo_portaobjetos}
+                ),
+            )
 
 
 class ProtocolProcessingService:

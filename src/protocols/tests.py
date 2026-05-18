@@ -26,6 +26,7 @@ from protocols.models import (
     WorkOrder,
     WorkOrderService,
 )
+from protocols.services.protocol_service import ProtocolReceptionService
 
 User = get_user_model()
 
@@ -1667,6 +1668,22 @@ class ProcessingViewsTest(TestCase):
             self.assertTrue(hasattr(protocol, "days_in_process"))
             self.assertGreaterEqual(protocol.days_in_process, 0)
 
+    def test_processing_queue_annotates_processing_flags(self):
+        """Queue rows expose cassette/slide counts and action shortcuts."""
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.get(reverse("protocols:processing_queue"))
+        protocols = {p.pk: p for p in response.context["protocols"]}
+
+        histo = protocols[self.histopathology_protocol.pk]
+        self.assertTrue(histo.needs_cassettes)
+        self.assertFalse(histo.needs_slides)
+        self.assertEqual(histo.cassettes_count, 0)
+
+        cyto = protocols[self.cytology_protocol.pk]
+        self.assertFalse(cyto.needs_cassettes)
+        self.assertFalse(cyto.needs_slides)
+
     def test_processing_queue_view_filter_by_type(self):
         """Test processing queue view filtering by analysis type."""
         self.client.login(email="staff@example.com", password="testpass123")
@@ -1932,8 +1949,8 @@ class ProcessingViewsTest(TestCase):
         # Non-staff users are redirected to complete their profile
         self.assertRedirects(response, reverse("accounts:complete_profile"))
 
-    def test_slide_register_view_get(self):
-        """Test GET request to slide register view."""
+    def test_slide_register_view_get_cytology_redirects(self):
+        """Cytology slide registration happens at reception, not this view."""
         self.client.login(email="staff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -1943,17 +1960,13 @@ class ProcessingViewsTest(TestCase):
             )
         )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(
-            response, "protocols/processing/slide_register.html"
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.cytology_protocol.pk},
+            ),
         )
-
-        # Check context contains expected data
-        context = response.context
-        self.assertEqual(context["protocol"], self.cytology_protocol)
-        self.assertIn("existing_slides", context)
-        self.assertIn("is_cytology", context)
-        self.assertTrue(context["is_cytology"])
 
     def test_slide_register_view_get_histopathology(self):
         """Test GET request to slide register view for histopathology."""
@@ -1980,7 +1993,97 @@ class ProcessingViewsTest(TestCase):
         context = response.context
         self.assertIn("cassettes", context)
         self.assertEqual(len(context["cassettes"]), 1)
-        self.assertFalse(context["is_cytology"])
+
+    def test_slide_register_view_post_histopathology(self):
+        """Test POST creates slides and CassetteSlide links from table form."""
+        cassette = Cassette.objects.create(
+            histopathology_sample=self.histopathology_sample,
+            material_incluido="Tejido mamario",
+            tipo_cassette=Cassette.CassetteType.NORMAL,
+            color_cassette=Cassette.CassetteColor.BLANCO,
+        )
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.post(
+            reverse(
+                "protocols:slide_register",
+                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+            ),
+            data={
+                "slide_count": "1",
+                "slide_0_cassette_superior": str(cassette.pk),
+                "slide_0_cassette_inferior": "",
+                "slide_0_coloracion": "Hematoxilina-Eosina",
+                "slide_0_observaciones": "Montaje estándar",
+                "comments": "",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.histopathology_protocol.pk},
+            ),
+        )
+
+        slide = self.histopathology_protocol.slides.get()
+        self.assertEqual(slide.tecnica_coloracion, "Hematoxilina-Eosina")
+        link = slide.cassette_slides.get()
+        self.assertEqual(link.cassette_id, cassette.pk)
+        self.assertEqual(link.posicion, CassetteSlide.Position.SUPERIOR)
+
+    def test_create_cytology_slides_on_reception_helper(self):
+        """Helper creates slides for an already-received cytology protocol."""
+        self.cytology_protocol.slides.all().delete()
+        service = ProtocolReceptionService()
+        service._create_cytology_slides_on_reception(
+            self.cytology_protocol,
+            {"number_slides_received": 2},
+            self.staff_user,
+        )
+        self.assertEqual(self.cytology_protocol.slides.count(), 2)
+
+    def test_cytology_reception_creates_slides_automatically(self):
+        """Reception of cytology sample auto-creates slides from count received."""
+        protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            veterinarian=self.veterinarian,
+            species="Canino",
+            animal_identification="Rex",
+            presumptive_diagnosis="Citología",
+            submission_date=date.today(),
+            status=Protocol.Status.SUBMITTED,
+        )
+        CytologySample.objects.create(
+            protocol=protocol,
+            veterinarian=self.veterinarian,
+            technique_used="PAAF",
+            sampling_site="Piel",
+            number_of_slides=3,
+        )
+
+        service = ProtocolReceptionService()
+        success, error = service.process_reception(
+            protocol,
+            {
+                "sample_condition": Protocol.SampleCondition.OPTIMAL,
+                "reception_notes": "",
+                "discrepancies": "",
+                "number_slides_received": 3,
+            },
+            self.staff_user,
+        )
+
+        self.assertTrue(success)
+        self.assertEqual(error, "")
+        self.assertEqual(protocol.slides.count(), 3)
+        self.assertTrue(
+            all(
+                s.tecnica_coloracion == "Diff-Quick"
+                for s in protocol.slides.all()
+            )
+        )
 
     # TODO: Fix this test - only 1 slide is being created instead of 2
     # def test_slide_register_view_post(self):

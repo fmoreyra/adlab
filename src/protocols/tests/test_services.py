@@ -276,16 +276,19 @@ class ProtocolReceptionServiceTest(TestCase):
         self.assertIn("rechazada", status_call_args[1]["description"])
 
     def test_process_reception_with_cytology_sample(self):
-        """Test reception processing with cytology sample updates."""
-        from protocols.models import CytologySample
+        """Test reception creates cytology slides from slides received count."""
+        from protocols.models import CytologySample, Slide
 
         cytology_sample = CytologySample.objects.create(
             protocol=self.protocol,
-            number_slides_expected=5,
+            veterinarian=self.veterinarian,
+            technique_used="PAAF",
+            sampling_site="Masa abdominal",
+            number_of_slides=5,
         )
 
         form_data = {
-            "sample_condition": "GOOD",
+            "sample_condition": Protocol.SampleCondition.OPTIMAL,
             "reception_notes": "",
             "discrepancies": "",
             "number_slides_received": 4,
@@ -298,6 +301,11 @@ class ProtocolReceptionServiceTest(TestCase):
         self.assertTrue(success)
         cytology_sample.refresh_from_db()
         self.assertEqual(cytology_sample.number_slides_received, 4)
+        slides = Slide.objects.filter(protocol=self.protocol)
+        self.assertEqual(slides.count(), 4)
+        self.assertTrue(
+            all(s.tecnica_coloracion == "Diff-Quick" for s in slides)
+        )
 
 
 class ProtocolProcessingServiceTest(TestCase):

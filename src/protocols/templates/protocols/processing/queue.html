@@ -73,15 +73,15 @@
                 {% else %}
                   <div class="text-xs">
                     <div>Slides: {{ protocol.slides_ready }}/{{ protocol.slides_count }}</div>
-                    {% if protocol.needs_slides %}
-                      <span class="text-red-600">⚠️ Sin slides</span>
+                    {% if protocol.missing_slides %}
+                      <span class="text-red-600">⚠️ Sin slides (revisar recepción)</span>
                     {% endif %}
                   </div>
                 {% endif %}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
                 <div class="flex gap-2">
-                  <a href="{% url 'protocols:processing_status' protocol.pk %}" 
+                  <a href="{% url 'protocols:processing_status' protocol.pk %}"
                      class="text-purple-600 hover:text-purple-800">
                     Ver
                   </a>
