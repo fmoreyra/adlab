@@ -1178,16 +1178,6 @@ class Cassette(models.Model):
     Each cassette contains tissue material from a histopathology sample.
     """
 
-    class CassetteType(models.TextChoices):
-        NORMAL = "normal", _("Normal")
-        MULTICORTE = "multicorte", _("Multicorte")
-        COLORACION_ESPECIAL = "coloracion_especial", _("Coloración especial")
-
-    class CassetteColor(models.TextChoices):
-        BLANCO = "blanco", _("Blanco")
-        AMARILLO = "amarillo", _("Amarillo")
-        NARANJA = "naranja", _("Naranja")
-
     class Status(models.TextChoices):
         PENDIENTE = "pendiente", _("Pendiente")
         EN_PROCESO = "en_proceso", _("En proceso")
@@ -1209,18 +1199,6 @@ class Cassette(models.Model):
     material_incluido = models.TextField(
         _("material incluido"),
         help_text=_("Descripción del tejido incluido en el cassette"),
-    )
-    tipo_cassette = models.CharField(
-        _("tipo de cassette"),
-        max_length=50,
-        choices=CassetteType.choices,
-        default=CassetteType.NORMAL,
-    )
-    color_cassette = models.CharField(
-        _("color del cassette"),
-        max_length=20,
-        choices=CassetteColor.choices,
-        default=CassetteColor.BLANCO,
     )
 
     # Processing stages

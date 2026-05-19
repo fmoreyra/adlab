@@ -162,7 +162,7 @@
           <tr class="slide-row">
             <td class="px-3 py-3 text-sm font-medium text-gray-700 row-number">1</td>
             <td class="px-3 py-3">
-              <select name="slide___INDEX___cassette_superior" required
+              <select name="slide_ROW_cassette_superior" data-slide-field="cassette_superior" required
                       class="w-full p-2 border border-gray-300 rounded-md text-sm">
                 <option value="">— Seleccionar —</option>
                 {% for cassette in cassettes %}
@@ -171,7 +171,7 @@
               </select>
             </td>
             <td class="px-3 py-3">
-              <select name="slide___INDEX___cassette_inferior"
+              <select name="slide_ROW_cassette_inferior" data-slide-field="cassette_inferior"
                       class="w-full p-2 border border-gray-300 rounded-md text-sm">
                 <option value="">— Ninguno —</option>
                 {% for cassette in cassettes %}
@@ -180,12 +180,12 @@
               </select>
             </td>
             <td class="px-3 py-3">
-              <input type="text" name="slide___INDEX___coloracion"
+              <input type="text" name="slide_ROW_coloracion" data-slide-field="coloracion"
                      value="Hematoxilina-Eosina"
                      class="w-full p-2 border border-gray-300 rounded-md text-sm">
             </td>
             <td class="px-3 py-3">
-              <input type="text" name="slide___INDEX___observaciones"
+              <input type="text" name="slide_ROW_observaciones" data-slide-field="observaciones"
                      class="w-full p-2 border border-gray-300 rounded-md text-sm">
             </td>
             <td class="px-3 py-3 text-center">
@@ -204,7 +204,8 @@
           const template = document.getElementById('slide-row-template');
           const slideCountInput = document.getElementById('slide-count');
           const addBtn = document.getElementById('add-slide-row');
-          if (!tbody || !template || !slideCountInput || !addBtn) {
+          const form = document.getElementById('slide-register-form');
+          if (!tbody || !template || !slideCountInput || !addBtn || !form) {
             return;
           }
 
@@ -215,16 +216,30 @@
           function renumberRows() {
             tbody.querySelectorAll('.slide-row').forEach(function (row, index) {
               row.querySelector('.row-number').textContent = index + 1;
-              row.querySelectorAll('select, input').forEach(function (el) {
-                if (el.name) {
-                  el.name = el.name.replace(
-                    /slide_(?:\d+|___INDEX___)_/g,
-                    'slide_' + index + '_'
-                  );
-                }
+              row.querySelectorAll('[data-slide-field]').forEach(function (el) {
+                el.name = 'slide_' + index + '_' + el.dataset.slideField;
               });
             });
             updateSlideCount();
+          }
+
+          function validateRows() {
+            const rows = tbody.querySelectorAll('.slide-row');
+            for (let i = 0; i < rows.length; i++) {
+              const superior = rows[i].querySelector(
+                '[data-slide-field="cassette_superior"]'
+              );
+              if (!superior || !superior.value) {
+                return {
+                  valid: false,
+                  message:
+                    'Cada slide debe tener un cassette superior asignado (fila ' +
+                    (i + 1) +
+                    ').',
+                };
+              }
+            }
+            return { valid: true };
           }
 
           function addRow() {
@@ -243,6 +258,15 @@
             }
             e.target.closest('.slide-row').remove();
             renumberRows();
+          });
+
+          form.addEventListener('submit', function (e) {
+            renumberRows();
+            const validation = validateRows();
+            if (!validation.valid) {
+              e.preventDefault();
+              window.alert(validation.message);
+            }
           });
 
           addRow();

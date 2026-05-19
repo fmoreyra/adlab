@@ -57,16 +57,18 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for cassette in cassettes %}
         <div class="border rounded-lg p-4 {% if cassette.estado == 'completado' %}bg-green-50{% elif cassette.estado == 'en_proceso' %}bg-yellow-50{% else %}bg-gray-50{% endif %}">
-          <div class="flex justify-between items-start mb-2">
-            <div class="font-semibold text-lg">{{ cassette.codigo_cassette }}</div>
-            <span class="px-2 py-1 text-xs rounded-full {% if cassette.color_cassette == 'amarillo' %}bg-yellow-200 text-yellow-800{% elif cassette.color_cassette == 'naranja' %}bg-orange-200 text-orange-800{% else %}bg-gray-200 text-gray-800{% endif %}">
-              {{ cassette.get_color_cassette_display }}
-            </span>
-          </div>
+          <div class="font-semibold text-lg mb-2">{{ cassette.codigo_cassette }}</div>
           
-          <div class="text-sm text-gray-600 mb-3">
-            {{ cassette.material_incluido|truncatewords:10 }}
+          <div class="text-sm text-gray-600 mb-2">
+            <span class="font-medium text-gray-700">Material:</span>
+            <p class="mt-1 whitespace-pre-wrap">{{ cassette.material_incluido }}</p>
           </div>
+          {% if cassette.observaciones %}
+          <div class="text-sm text-gray-600 mb-3">
+            <span class="font-medium text-gray-700">Observaciones:</span>
+            <p class="mt-1 whitespace-pre-wrap">{{ cassette.observaciones }}</p>
+          </div>
+          {% endif %}
 
           <!-- Processing Timeline -->
           <div class="space-y-1 text-xs">

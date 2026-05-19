@@ -9,7 +9,6 @@ from django.test import TestCase
 
 from accounts.models import User, Veterinarian
 from protocols.models import (
-    Cassette,
     Protocol,
     Slide,
 )
@@ -370,8 +369,6 @@ class ProtocolProcessingServiceTest(TestCase):
         cassette_data = [
             {
                 "material": "Skin biopsy",
-                "tipo": Cassette.CassetteType.NORMAL,
-                "color": Cassette.CassetteColor.BLANCO,
                 "observaciones": "Good quality sample",
             }
         ]

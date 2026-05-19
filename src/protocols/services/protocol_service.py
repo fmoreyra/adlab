@@ -282,12 +282,6 @@ class ProtocolProcessingService:
                 cassette = Cassette.objects.create(
                     histopathology_sample=protocol.histopathology_sample,
                     material_incluido=data.get("material", ""),
-                    tipo_cassette=data.get(
-                        "tipo", Cassette.CassetteType.NORMAL
-                    ),
-                    color_cassette=data.get(
-                        "color", Cassette.CassetteColor.BLANCO
-                    ),
                     observaciones=data.get("observaciones", ""),
                 )
 

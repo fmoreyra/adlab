@@ -980,40 +980,14 @@ class CassetteModelTest(TestCase):
         self.assertEqual(cassette.estado, Cassette.Status.COMPLETADO)
         self.assertIsNotNone(cassette.fecha_entacado)
 
-    def test_cassette_color_types(self):
-        """Test cassette color differentiation."""
-        # Normal cassette (white)
-        cassette1 = Cassette.objects.create(
+    def test_cassette_observaciones(self):
+        """Test cassette observations are stored."""
+        cassette = Cassette.objects.create(
             histopathology_sample=self.sample,
-            material_incluido="Normal tissue",
-            tipo_cassette=Cassette.CassetteType.NORMAL,
-            color_cassette=Cassette.CassetteColor.BLANCO,
+            material_incluido="Fragmento de hígado",
+            observaciones="Requiere cortes adicionales",
         )
-        self.assertEqual(
-            cassette1.color_cassette, Cassette.CassetteColor.BLANCO
-        )
-
-        # Multicorte (yellow)
-        cassette2 = Cassette.objects.create(
-            histopathology_sample=self.sample,
-            material_incluido="Requires multiple cuts",
-            tipo_cassette=Cassette.CassetteType.MULTICORTE,
-            color_cassette=Cassette.CassetteColor.AMARILLO,
-        )
-        self.assertEqual(
-            cassette2.color_cassette, Cassette.CassetteColor.AMARILLO
-        )
-
-        # Special staining (orange)
-        cassette3 = Cassette.objects.create(
-            histopathology_sample=self.sample,
-            material_incluido="Special staining needed",
-            tipo_cassette=Cassette.CassetteType.COLORACION_ESPECIAL,
-            color_cassette=Cassette.CassetteColor.NARANJA,
-        )
-        self.assertEqual(
-            cassette3.color_cassette, Cassette.CassetteColor.NARANJA
-        )
+        self.assertEqual(cassette.observaciones, "Requiere cortes adicionales")
 
 
 class SlideModelTest(TestCase):
@@ -1880,12 +1854,8 @@ class ProcessingViewsTest(TestCase):
         form_data = {
             "cassette_count": "2",
             "material_0": "Tejido mamario",
-            "tipo_0": Cassette.CassetteType.NORMAL,
-            "color_0": Cassette.CassetteColor.BLANCO,
             "observaciones_0": "Muestra principal",
-            "material_1": "Tejido mamario",
-            "tipo_1": Cassette.CassetteType.NORMAL,
-            "color_1": Cassette.CassetteColor.BLANCO,
+            "material_1": "Tejido mamario secundario",
             "observaciones_1": "Muestra secundaria",
         }
 
@@ -1990,8 +1960,6 @@ class ProcessingViewsTest(TestCase):
         Cassette.objects.create(
             histopathology_sample=self.histopathology_sample,
             material_incluido="Tejido mamario",
-            tipo_cassette=Cassette.CassetteType.NORMAL,
-            color_cassette=Cassette.CassetteColor.BLANCO,
         )
 
         self.client.login(email="staff@example.com", password="testpass123")
@@ -2015,8 +1983,6 @@ class ProcessingViewsTest(TestCase):
         cassette = Cassette.objects.create(
             histopathology_sample=self.histopathology_sample,
             material_incluido="Tejido mamario",
-            tipo_cassette=Cassette.CassetteType.NORMAL,
-            color_cassette=Cassette.CassetteColor.BLANCO,
         )
         self.client.login(email="staff@example.com", password="testpass123")
 
@@ -3657,15 +3623,11 @@ class ReportViewsTest(TestCase):
             histopathology_sample=self.histopathology_sample,
             codigo_cassette=f"{self.protocol.protocol_number}-A1",
             material_incluido="Masa principal",
-            tipo_cassette=Cassette.CassetteType.NORMAL,
-            color_cassette=Cassette.CassetteColor.BLANCO,
         )
         self.cassette2 = Cassette.objects.create(
             histopathology_sample=self.histopathology_sample,
             codigo_cassette=f"{self.protocol.protocol_number}-A2",
             material_incluido="Masa secundaria",
-            tipo_cassette=Cassette.CassetteType.NORMAL,
-            color_cassette=Cassette.CassetteColor.BLANCO,
         )
 
         # Create slides

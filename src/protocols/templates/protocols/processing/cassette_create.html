@@ -46,8 +46,7 @@
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Color</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Observaciones</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
           </tr>
         </thead>
@@ -57,14 +56,11 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
               {{ cassette.codigo_cassette }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <td class="px-6 py-4 text-sm text-gray-500 whitespace-pre-wrap">
               {{ cassette.material_incluido }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ cassette.get_tipo_cassette_display }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ cassette.get_color_cassette_display }}
+            <td class="px-6 py-4 text-sm text-gray-500 whitespace-pre-wrap">
+              {{ cassette.observaciones|default:"—" }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ cassette.get_estado_display }}
@@ -123,29 +119,14 @@ document.getElementById('cassette_count').addEventListener('change', function() 
     const fieldHtml = `
       <div class="border border-gray-200 rounded-lg p-4">
         <h3 class="text-lg font-medium text-gray-800 mb-3">Cassette ${i + 1}</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Material Incluido</label>
-            <input type="text" name="material_${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500" required>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-            <select name="tipo_${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
-              <option value="normal">Normal</option>
-              <option value="biopsia">Biopsia</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
-            <select name="color_${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
-              <option value="blanco">Blanco</option>
-              <option value="azul">Azul</option>
-              <option value="verde">Verde</option>
-            </select>
+            <textarea name="material_${i}" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500" required></textarea>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-            <input type="text" name="observaciones_${i}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+            <textarea name="observaciones_${i}" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></textarea>
           </div>
         </div>
       </div>

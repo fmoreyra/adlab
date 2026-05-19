@@ -1023,34 +1023,22 @@ class CassetteForm(forms.ModelForm):
         model = Cassette
         fields = [
             "material_incluido",
-            "tipo_cassette",
-            "color_cassette",
             "observaciones",
         ]
         widgets = {
             "material_incluido": forms.Textarea(
                 attrs={
-                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
-                    "rows": 2,
+                    "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                    "rows": 4,
                     "placeholder": _(
                         "Ej: Fragmento de hígado con lesión nodular de 2cm"
                     ),
                 }
             ),
-            "tipo_cassette": forms.Select(
-                attrs={
-                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
-                }
-            ),
-            "color_cassette": forms.Select(
-                attrs={
-                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
-                }
-            ),
             "observaciones": forms.Textarea(
                 attrs={
-                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
-                    "rows": 2,
+                    "class": "block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                    "rows": 4,
                 }
             ),
         }

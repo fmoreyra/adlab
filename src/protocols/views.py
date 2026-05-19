@@ -1154,19 +1154,11 @@ class CassetteCreateView(StaffRequiredMixin, View):
             for i in range(cassette_count):
                 # Get cassette-specific data
                 material = request.POST.get(f"material_{i}", "")
-                tipo = request.POST.get(
-                    f"tipo_{i}", Cassette.CassetteType.NORMAL
-                )
-                color = request.POST.get(
-                    f"color_{i}", Cassette.CassetteColor.BLANCO
-                )
                 observaciones = request.POST.get(f"observaciones_{i}", "")
 
                 cassette = Cassette.objects.create(
                     histopathology_sample=protocol.histopathology_sample,
                     material_incluido=material,
-                    tipo_cassette=tipo,
-                    color_cassette=color,
                     observaciones=observaciones,
                 )
 
@@ -1565,11 +1557,31 @@ class SlideRegisterView(StaffRequiredMixin, View):
 
         return redirect("protocols:processing_status", pk=protocol.pk)
 
+    @staticmethod
+    def _slide_row_indices_from_post(post_data):
+        """
+        Extract slide row indices from POST field names (slide_0_cassette_superior, …).
+        """
+        indices = []
+        prefix = "slide_"
+        suffix = "_cassette_superior"
+        for key in post_data:
+            if not key.startswith(prefix) or not key.endswith(suffix):
+                continue
+            row_id = key[len(prefix) : -len(suffix)]
+            if row_id.isdigit():
+                indices.append(int(row_id))
+        return sorted(set(indices))
+
     def _create_histopathology_slides(self, request, protocol):
         """Create histopathology slides and cassette relationships from table POST."""
-        slide_count = int(request.POST.get("slide_count", 0))
-        if slide_count < 1 or slide_count > 50:
+        row_indices = self._slide_row_indices_from_post(request.POST)
+        if not row_indices:
             raise ValueError(_("Debe registrar al menos un slide"))
+        if len(row_indices) > 50:
+            raise ValueError(
+                _("No se pueden registrar más de 50 slides a la vez")
+            )
 
         if not hasattr(protocol, "histopathology_sample"):
             raise ValueError(
@@ -1579,7 +1591,7 @@ class SlideRegisterView(StaffRequiredMixin, View):
         general_comments = request.POST.get("comments", "")
         histopathology_sample = protocol.histopathology_sample
 
-        for i in range(slide_count):
+        for i in row_indices:
             cassette_superior_id = request.POST.get(
                 f"slide_{i}_cassette_superior"
             )
@@ -1637,7 +1649,7 @@ class SlideRegisterView(StaffRequiredMixin, View):
                 observaciones=f"Slide registrado: {slide.codigo_portaobjetos}",
             )
 
-        return slide_count
+        return len(row_indices)
 
     def get_protocol(self):
         """Get and validate protocol."""

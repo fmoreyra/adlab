@@ -1148,15 +1148,11 @@ class CassetteAdmin(admin.ModelAdmin):
         "codigo_cassette",
         "get_protocol_code",
         "material_preview",
-        "tipo_cassette",
-        "color_cassette",
         "estado",
         "created_at",
     ]
     list_filter = [
         "estado",
-        "tipo_cassette",
-        "color_cassette",
         "created_at",
     ]
     search_fields = [
@@ -1189,8 +1185,6 @@ class CassetteAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "material_incluido",
-                    "tipo_cassette",
-                    "color_cassette",
                     "estado",
                     "observaciones",
                 ),
