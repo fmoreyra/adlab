@@ -481,12 +481,17 @@ class SecurityTest(TestCase):
         # Login as vet_user
         self.client.login(email="vet@example.com", password="testpass123")
 
-        # Try to access reception views (staff only)
-        response = self.client.get(reverse("protocols:reception_pending"))
-        self.assertEqual(response.status_code, 403)  # Forbidden
+        # Legacy pending URL redirects; reception views remain staff-only
+        response = self.client.get(
+            reverse("protocols:reception_pending"), follow=False
+        )
+        self.assertEqual(response.status_code, 301)
+
+        response = self.client.get(reverse("protocols:reception"))
+        self.assertEqual(response.status_code, 403)
 
         response = self.client.get(reverse("protocols:reception_history"))
-        self.assertEqual(response.status_code, 403)  # Forbidden
+        self.assertEqual(response.status_code, 403)
 
     def test_staff_cannot_access_admin_only_views(self):
         """Test that staff cannot access admin-only views."""
@@ -621,8 +626,8 @@ class SecurityTest(TestCase):
 
     def test_directory_traversal_protection_in_file_uploads(self):
         """Test protection against directory traversal in file uploads."""
-        # Login as staff user
-        self.client.login(email="staff@example.com", password="testpass123")
+        # Login as admin (global protocol list; lab staff use /reception/)
+        self.client.login(email="admin@example.com", password="testpass123")
 
         # Try directory traversal in filename
         # malicious_filename = "../../../etc/passwd"  # Would be used in file upload tests
@@ -630,9 +635,7 @@ class SecurityTest(TestCase):
         # This would be tested in file upload views if they exist
         # For now, we'll test that the system doesn't crash with malicious input
         response = self.client.get(reverse("protocols:protocol_list"))
-        # Staff users can access protocol list (they have is_staff=True)
         self.assertEqual(response.status_code, 200)
-        # Staff users should see all protocols
         self.assertContains(response, "Protocolos")
 
     # ============================================================================

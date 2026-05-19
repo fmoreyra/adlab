@@ -4467,7 +4467,7 @@ class RejectedProtocolsTest(TestCase):
 
     def test_protocol_list_excludes_rejected_by_default(self):
         """Test that rejected protocols are excluded from default protocol list."""
-        self.client.login(email="staff@example.com", password="testpass123")
+        self.client.login(email="vet@example.com", password="testpass123")
 
         response = self.client.get(reverse("protocols:protocol_list"))
 
@@ -4481,7 +4481,7 @@ class RejectedProtocolsTest(TestCase):
 
     def test_protocol_list_shows_rejected_when_requested(self):
         """Test that rejected protocols are shown when show_rejected parameter is used."""
-        self.client.login(email="staff@example.com", password="testpass123")
+        self.client.login(email="vet@example.com", password="testpass123")
 
         response = self.client.get(
             reverse("protocols:protocol_list") + "?show_rejected=1"
