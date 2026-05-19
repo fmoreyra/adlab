@@ -734,33 +734,6 @@ class HistopathologySampleEditForm(forms.ModelForm):
 # ============================================================================
 
 
-class ReceptionSearchForm(forms.Form):
-    """Form to search for protocols by temporary code."""
-
-    temporary_code = forms.CharField(
-        label=_("Código temporal"),
-        max_length=50,
-        required=True,
-        widget=forms.TextInput(
-            attrs={
-                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200-lg",
-                "placeholder": _("Ej: TMP-HP-20241010-001"),
-                "autofocus": True,
-            }
-        ),
-        help_text=_(
-            "Ingrese el código temporal que aparece en el protocolo impreso"
-        ),
-    )
-
-    def clean_temporary_code(self):
-        """Validate and normalize temporary code."""
-        code = self.cleaned_data.get("temporary_code", "").strip().upper()
-        if not code:
-            raise ValidationError(_("El código temporal es requerido"))
-        return code
-
-
 class ReceptionForm(forms.Form):
     """Form to record sample reception details."""
 
@@ -1361,6 +1334,7 @@ class ReceptionPendingFilterForm(forms.Form):
             attrs={
                 "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
                 "placeholder": "Ej: TMP-HP-20251024-009",
+                "autofocus": True,
             }
         ),
     )
@@ -1383,7 +1357,7 @@ class ReceptionPendingFilterForm(forms.Form):
 
     # Filter by veterinarian license number
     veterinarian_license = forms.CharField(
-        label=_("Identificador (Matrícula/CUIL/DNI)"),
+        label=_("Matrícula / DNI"),
         required=False,
         help_text=_("Matrícula, CUIL/CUIT o DNI del veterinario"),
         widget=forms.TextInput(

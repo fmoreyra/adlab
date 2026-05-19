@@ -141,15 +141,15 @@ class AdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
 class ProtocolOwnerOrStaffMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
-    Mixin that allows access if user owns the protocol or is staff.
+    Mixin that allows access if user owns the protocol or is lab staff.
 
     Used for protocol detail, edit, and delete views where
-    veterinarians can access their own protocols and staff can access all.
+    veterinarians can access their own protocols and lab staff can access all.
     """
 
     def test_func(self):
-        """Test if user owns the protocol or is staff."""
-        if self.request.user.is_staff or self.request.user.is_admin_user:
+        """Test if user owns the protocol or is lab staff."""
+        if self.request.user.is_lab_staff or self.request.user.is_admin_user:
             return True
 
         if not self.request.user.is_veterinarian:

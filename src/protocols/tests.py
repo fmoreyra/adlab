@@ -549,6 +549,22 @@ class ProtocolViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/protocol_list.html")
 
+    def test_protocol_list_view_redirects_lab_staff_to_reception(self):
+        """Lab staff are sent to reception, not the veterinarian protocol list."""
+        User.objects.create_user(
+            email="labstaff@example.com",
+            username="labstaff",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+            email_verified=True,
+            is_staff=False,
+        )
+        self.client.login(email="labstaff@example.com", password="testpass123")
+
+        response = self.client.get(reverse("protocols:protocol_list"))
+
+        self.assertRedirects(response, reverse("protocols:reception"))
+
     def test_protocol_select_type_view(self):
         """Test protocol type selection view."""
         response = self.client.get(reverse("protocols:protocol_select_type"))
@@ -3111,51 +3127,34 @@ class ReceptionViewsTest(TestCase):
 
         self.client = Client()
 
-    def test_reception_search_view_get(self):
-        """Test GET request to reception search view."""
+    def test_reception_view_get(self):
+        """Test GET request to unified reception view."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_search"))
+        response = self.client.get(reverse("protocols:reception"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/reception_search.html")
-        self.assertIn("form", response.context)
-        self.assertIsNone(response.context["protocol"])
+        self.assertTemplateUsed(response, "protocols/reception_pending.html")
+        self.assertIn("filter_form", response.context)
+        self.assertIn("protocols", response.context)
 
-    def test_reception_search_view_post_valid_code(self):
-        """Test POST request with valid temporary code."""
+    def test_reception_pending_url_redirects_to_reception(self):
+        """Legacy /reception/pending/ redirects to /reception/ preserving query."""
         self.client.login(email="staff@example.com", password="testpass123")
-
-        response = self.client.post(
-            reverse("protocols:reception_search"),
-            data={"temporary_code": self.protocol.temporary_code},
+        response = self.client.get(
+            reverse("protocols:reception_pending"),
+            {"temporal_code": "TMP-HP"},
         )
 
-        # Should redirect to confirmation page for submitted protocols
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 301)
         self.assertRedirects(
             response,
-            reverse(
-                "protocols:reception_confirm", kwargs={"pk": self.protocol.pk}
-            ),
+            reverse("protocols:reception") + "?temporal_code=TMP-HP",
+            status_code=301,
+            fetch_redirect_response=False,
         )
 
-    def test_reception_search_view_post_invalid_code(self):
-        """Test POST request with invalid temporary code."""
-        self.client.login(email="staff@example.com", password="testpass123")
-
-        response = self.client.post(
-            reverse("protocols:reception_search"),
-            data={"temporary_code": "INVALID-CODE"},
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/reception_search.html")
-        self.assertIsNone(response.context["protocol"])
-        self.assertContains(response, "No se encontró ningún protocolo")
-
-    def test_reception_search_view_permission_staff_required(self):
-        """Test that only staff can access reception search."""
-        # Create a non-staff user for this test
+    def test_reception_view_permission_staff_required(self):
+        """Test that only staff can access reception."""
         User.objects.create_user(
             email="nonstaff@example.com",
             username="nonstaff",
@@ -3166,19 +3165,18 @@ class ReceptionViewsTest(TestCase):
         )
 
         self.client.login(email="nonstaff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_search"))
+        response = self.client.get(reverse("protocols:reception"))
 
         self.assertEqual(response.status_code, 302)
-        # Non-staff users are redirected to complete their profile
         self.assertRedirects(response, reverse("accounts:complete_profile"))
 
-    def test_reception_search_view_permission_admin_allowed(self):
-        """Test that admin can access reception search."""
+    def test_reception_view_permission_admin_allowed(self):
+        """Test that admin can access reception."""
         self.client.login(email="admin@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_search"))
+        response = self.client.get(reverse("protocols:reception"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "protocols/reception_search.html")
+        self.assertTemplateUsed(response, "protocols/reception_pending.html")
 
     def test_reception_confirm_view_get(self):
         """Test GET request to reception confirm view."""
@@ -3308,7 +3306,7 @@ class ReceptionViewsTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:reception_search"))
+        self.assertRedirects(response, reverse("protocols:reception"))
 
     def test_reception_detail_view(self):
         """Test reception detail view."""
@@ -3370,22 +3368,20 @@ class ReceptionViewsTest(TestCase):
 
         self.client.login(email="staff@example.com", password="testpass123")
 
-        response = self.client.get(reverse("protocols:reception_pending"))
+        response = self.client.get(reverse("protocols:reception"))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "protocols/reception_pending.html")
 
-        # Check both protocols are in the list
         protocols = response.context["protocols"]
         self.assertEqual(len(protocols), 2)
 
-        # Check days_pending is calculated
         for protocol in protocols:
             self.assertTrue(hasattr(protocol, "days_pending"))
             self.assertGreaterEqual(protocol.days_pending, 0)
 
     def test_reception_pending_view_permission_staff_required(self):
-        """Test that only staff can access reception pending."""
+        """Test that only staff can access reception."""
         # Create a non-staff user for this test
         User.objects.create_user(
             email="nonstaff@example.com",
@@ -3398,7 +3394,7 @@ class ReceptionViewsTest(TestCase):
 
         self.client.login(email="nonstaff@example.com", password="testpass123")
 
-        response = self.client.get(reverse("protocols:reception_pending"))
+        response = self.client.get(reverse("protocols:reception"))
 
         self.assertEqual(response.status_code, 302)
         # Non-staff users are redirected to complete their profile
@@ -5349,9 +5345,9 @@ class ReceptionPendingViewFilterTest(TestCase):
     def test_view_accessible_by_staff(self):
         """Test that view is accessible by staff users."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_pending"))
+        response = self.client.get(reverse("protocols:reception"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Protocolos Pendientes de Recepción")
+        self.assertContains(response, "Recepción de Muestras")
 
     def test_view_not_accessible_by_veterinarian(self):
         """Test that view is not accessible by veterinarians."""
@@ -5366,16 +5362,15 @@ class ReceptionPendingViewFilterTest(TestCase):
         )
 
         self.client.login(email="nonstaff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_pending"))
+        response = self.client.get(reverse("protocols:reception"))
         self.assertEqual(response.status_code, 302)
-        # Non-staff users are redirected to complete their profile
         self.assertRedirects(response, reverse("accounts:complete_profile"))
 
     def test_filter_by_temporal_code(self):
         """Test filtering by temporal code."""
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:reception_pending"), {"temporal_code": "TMP-HP"}
+            reverse("protocols:reception"), {"temporal_code": "TMP-HP"}
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "TMP-HP-20251024-001")
@@ -5385,7 +5380,7 @@ class ReceptionPendingViewFilterTest(TestCase):
         """Test filtering by analysis type."""
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:reception_pending"),
+            reverse("protocols:reception"),
             {"analysis_type": "histopathology"},
         )
         self.assertEqual(response.status_code, 200)
@@ -5396,7 +5391,7 @@ class ReceptionPendingViewFilterTest(TestCase):
         """Test filtering by veterinarian license."""
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:reception_pending"),
+            reverse("protocols:reception"),
             {"veterinarian_license": "MP-123"},
         )
         self.assertEqual(response.status_code, 200)
@@ -5407,7 +5402,7 @@ class ReceptionPendingViewFilterTest(TestCase):
         """Test filtering by animal name."""
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:reception_pending"), {"animal_name": "Bella"}
+            reverse("protocols:reception"), {"animal_name": "Bella"}
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "TMP-HP-20251024-001")
@@ -5417,7 +5412,7 @@ class ReceptionPendingViewFilterTest(TestCase):
         """Test multiple filters applied together."""
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(
-            reverse("protocols:reception_pending"),
+            reverse("protocols:reception"),
             {"analysis_type": "histopathology", "animal_name": "Bella"},
         )
         self.assertEqual(response.status_code, 200)
@@ -5427,7 +5422,7 @@ class ReceptionPendingViewFilterTest(TestCase):
     def test_context_contains_filter_form(self):
         """Test that context contains filter form."""
         self.client.login(email="staff@example.com", password="testpass123")
-        response = self.client.get(reverse("protocols:reception_pending"))
+        response = self.client.get(reverse("protocols:reception"))
         self.assertEqual(response.status_code, 200)
         self.assertIn("filter_form", response.context)
         self.assertIn("has_active_filters", response.context)
@@ -5437,12 +5432,12 @@ class ReceptionPendingViewFilterTest(TestCase):
         self.client.login(email="staff@example.com", password="testpass123")
 
         # No filters
-        response = self.client.get(reverse("protocols:reception_pending"))
+        response = self.client.get(reverse("protocols:reception"))
         self.assertFalse(response.context["has_active_filters"])
 
         # With filters
         response = self.client.get(
-            reverse("protocols:reception_pending"), {"temporal_code": "TMP-HP"}
+            reverse("protocols:reception"), {"temporal_code": "TMP-HP"}
         )
         self.assertTrue(response.context["has_active_filters"])
 

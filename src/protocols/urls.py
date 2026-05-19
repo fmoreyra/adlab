@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import RedirectView
 
 from protocols import views, views_reports, views_workorder
 
@@ -49,8 +50,25 @@ urlpatterns = [
     # Reception (laboratory staff only)
     path(
         "reception/",
-        views.ReceptionSearchView.as_view(),
-        name="reception_search",
+        views.ReceptionPendingView.as_view(),
+        name="reception",
+    ),
+    path(
+        "reception/pending/",
+        RedirectView.as_view(
+            pattern_name="protocols:reception",
+            permanent=True,
+            query_string=True,
+        ),
+        name="reception_pending",
+    ),
+    path(
+        "reception/<int:pk>/",
+        RedirectView.as_view(
+            pattern_name="protocols:reception_detail",
+            permanent=False,
+        ),
+        name="reception_protocol",
     ),
     path(
         "reception/<int:pk>/confirm/",
@@ -66,11 +84,6 @@ urlpatterns = [
         "reception/<int:pk>/label/",
         views.ReceptionLabelPDFView.as_view(),
         name="reception_label",
-    ),
-    path(
-        "reception/pending/",
-        views.ReceptionPendingView.as_view(),
-        name="reception_pending",
     ),
     path(
         "reception/history/",

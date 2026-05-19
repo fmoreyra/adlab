@@ -30,13 +30,14 @@ from accounts.mixins import (
     VeterinarianProfileRequiredMixin,
     VeterinarianRequiredMixin,
 )
+from accounts.models import Veterinarian
 from protocols.forms import (
     CytologyProtocolForm,
     HistopathologyProtocolForm,
     ProtocolEditForm,
     ProtocolResubmitForm,
     ReceptionForm,
-    ReceptionSearchForm,
+    ReceptionPendingFilterForm,
 )
 from protocols.models import (
     Cassette,
@@ -62,9 +63,10 @@ logger = logging.getLogger(__name__)
 
 class ProtocolListView(ListView):
     """
-    Display list of protocols for the current user.
-    Admin users see all protocols, veterinarians see only their own.
-    Supports filtering by status, type, and date range.
+    Display list of protocols for veterinarians (own protocols) or admins (all).
+
+    Laboratory staff should use /protocols/reception/ to search and receive
+    samples; they are redirected there if they open this URL.
     """
 
     model = Protocol
@@ -74,25 +76,21 @@ class ProtocolListView(ListView):
 
     def get_queryset(self):
         """Get protocols based on user permissions."""
-        # Check access permissions
-        if self.request.user.is_admin_user or self.request.user.is_staff:
-            # Admin and staff users can see all protocols
-            protocols = (
-                Protocol.objects.all()
-                .select_related("veterinarian")
-                .prefetch_related("cytology_sample", "histopathology_sample")
-            )
-        else:
-            # Non-admin users must be veterinarians and see only their own protocols
-            # Middleware ensures veterinarian profile exists
-            veterinarian = self.request.user.veterinarian_profile
+        base_qs = Protocol.objects.select_related(
+            "veterinarian"
+        ).prefetch_related("cytology_sample", "histopathology_sample")
 
-            # Get all protocols for this veterinarian
-            protocols = (
-                Protocol.objects.filter(veterinarian=veterinarian)
-                .select_related("veterinarian")
-                .prefetch_related("cytology_sample", "histopathology_sample")
-            )
+        if self.request.user.is_admin_user:
+            protocols = base_qs.all()
+        elif self.request.user.is_veterinarian:
+            try:
+                veterinarian = self.request.user.veterinarian_profile
+            except Veterinarian.DoesNotExist:
+                return base_qs.none()
+
+            protocols = base_qs.filter(veterinarian=veterinarian)
+        else:
+            return base_qs.none()
 
         # Check if user wants to see rejected protocols
         show_rejected = self.request.GET.get("show_rejected")
@@ -204,6 +202,9 @@ class ProtocolListView(ListView):
         if not request.user.is_authenticated:
             return redirect("accounts:login")
 
+        if request.user.is_lab_staff and not request.user.is_admin_user:
+            return redirect("protocols:reception")
+
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -247,10 +248,22 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
         elif hasattr(protocol, "histopathology_sample"):
             sample = protocol.histopathology_sample
 
+        if self.request.user.is_veterinarian:
+            back_url = reverse("protocols:protocol_list")
+            back_label = _("← Volver a la Lista")
+        elif self.request.user.is_lab_staff:
+            back_url = reverse("protocols:reception")
+            back_label = _("← Volver a recepción")
+        else:
+            back_url = reverse("home")
+            back_label = _("← Volver")
+
         context.update(
             {
                 "status_history": status_history,
                 "sample": sample,
+                "back_url": back_url,
+                "back_label": back_label,
             }
         )
 
@@ -286,38 +299,41 @@ class ProtocolPublicDetailView(DetailView):
             "histopathology_sample",
         )
 
-        # Filter based on user permissions
-        if self.request.user.is_admin_user or self.request.user.is_staff:
-            # Admin and staff can see all protocols
+        if self.request.user.is_lab_staff or self.request.user.is_admin_user:
             return queryset
-        else:
-            # Veterinarians can only see their own protocols
-            if hasattr(self.request.user, "veterinarian_profile"):
-                return queryset.filter(
-                    veterinarian=self.request.user.veterinarian_profile
-                )
-            else:
-                # User doesn't have veterinarian profile
+
+        if self.request.user.is_veterinarian:
+            try:
+                veterinarian = self.request.user.veterinarian_profile
+            except Veterinarian.DoesNotExist:
                 return queryset.none()
+            return queryset.filter(veterinarian=veterinarian)
+
+        return queryset.none()
 
     def get_object(self, queryset=None):
         """Get the protocol object and verify access permissions."""
         protocol = super().get_object(queryset)
 
-        # Additional security check: verify user can access this protocol
-        if (
-            not self.request.user.is_admin_user
-            and not self.request.user.is_staff
-        ):
-            if not hasattr(self.request.user, "veterinarian_profile"):
-                raise PermissionDenied(
-                    "No tiene permisos para ver este protocolo."
-                )
+        if self.request.user.is_lab_staff or self.request.user.is_admin_user:
+            return protocol
 
-            if protocol.veterinarian != self.request.user.veterinarian_profile:
-                raise PermissionDenied(
-                    "No tiene permisos para ver este protocolo."
-                )
+        if not self.request.user.is_veterinarian:
+            raise PermissionDenied(
+                "No tiene permisos para ver este protocolo."
+            )
+
+        try:
+            veterinarian = self.request.user.veterinarian_profile
+        except Veterinarian.DoesNotExist:
+            raise PermissionDenied(
+                "No tiene permisos para ver este protocolo."
+            ) from None
+
+        if protocol.veterinarian != veterinarian:
+            raise PermissionDenied(
+                "No tiene permisos para ver este protocolo."
+            )
 
         return protocol
 
@@ -530,64 +546,6 @@ class ProtocolDeleteView(ProtocolOwnerOrStaffMixin, DeleteView):
         return response
 
 
-class ReceptionSearchView(StaffRequiredMixin, FormView):
-    """
-    Search for a protocol by temporary code for reception.
-    """
-
-    form_class = ReceptionSearchForm
-    template_name = "protocols/reception_search.html"
-
-    def get_context_data(self, **kwargs):
-        """Add protocol to context if found."""
-        context = super().get_context_data(**kwargs)
-        context["protocol"] = getattr(self, "protocol", None)
-        return context
-
-    def form_valid(self, form):
-        """Handle form submission and search for protocol with early returns."""
-        temporary_code = form.cleaned_data["temporary_code"]
-
-        try:
-            protocol = Protocol.objects.select_related(
-                "veterinarian__user",
-                "cytology_sample",
-                "histopathology_sample",
-            ).get(temporary_code=temporary_code)
-        except Protocol.DoesNotExist:
-            messages.error(
-                self.request,
-                _("No se encontró ningún protocolo con el código %(code)s")
-                % {"code": temporary_code},
-            )
-            return self.form_invalid(form)
-
-        if protocol.status == Protocol.Status.DRAFT:
-            messages.warning(
-                self.request,
-                _("Este protocolo aún está en borrador y no ha sido enviado."),
-            )
-            self.protocol = protocol
-            return self.form_invalid(form)
-
-        if protocol.status == Protocol.Status.RECEIVED:
-            messages.info(
-                self.request,
-                _(
-                    "Este protocolo ya fue recibido el %(date)s. Número: %(number)s"
-                )
-                % {
-                    "date": protocol.reception_date.strftime("%d/%m/%Y"),
-                    "number": protocol.protocol_number,
-                },
-            )
-            self.protocol = protocol
-            return self.form_invalid(form)
-
-        # Protocol is ready for reception - redirect to confirmation
-        return redirect("protocols:reception_confirm", pk=protocol.pk)
-
-
 class ReceptionPendingView(StaffRequiredMixin, ListView):
     """
     Display list of protocols pending reception with filtering capabilities.
@@ -654,9 +612,7 @@ class ReceptionPendingView(StaffRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         """Add filter form to context."""
         context = super().get_context_data(**kwargs)
-        from protocols.forms import ReceptionPendingFilterForm
 
-        # Initialize form with current GET parameters
         filter_form = ReceptionPendingFilterForm(self.request.GET)
         context["filter_form"] = filter_form
 
@@ -1315,7 +1271,7 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
         """Handle GET request with protocol validation."""
         protocol = self.get_protocol()
         if protocol is None:
-            return redirect("protocols:reception_search")
+            return redirect("protocols:reception")
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -1349,7 +1305,7 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
         """Process reception confirmation with early returns and service integration."""
         protocol = self.get_protocol()
         if protocol is None:
-            return redirect("protocols:reception_search")
+            return redirect("protocols:reception")
 
         # Process reception using service
         form_data = form.cleaned_data
@@ -1361,7 +1317,7 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
             messages.error(
                 self.request, f"Error al procesar recepción: {error_message}"
             )
-            return redirect("protocols:reception_search")
+            return redirect("protocols:reception")
 
         # Check if protocol was rejected and send appropriate email
         if protocol.status == Protocol.Status.REJECTED:
@@ -1424,7 +1380,7 @@ class ReceptionLabelPDFView(StaffRequiredMixin, View):
         protocol = self.get_protocol()
 
         if protocol is None:
-            return redirect("protocols:reception_search")
+            return redirect("protocols:reception")
 
         # 39x20 mm ticket paper configuration
         page_width = 39 * mm

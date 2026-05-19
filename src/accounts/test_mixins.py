@@ -283,8 +283,8 @@ class ProtocolOwnerOrStaffMixinTest(TestCase):
 
         self.assertFalse(mixin.test_func())
 
-    def test_non_veterinarian_cannot_access_protocol(self):
-        """Test that non-veterinarian cannot access protocol."""
+    def test_lab_staff_can_access_without_django_is_staff_flag(self):
+        """Lab staff role grants access even when User.is_staff is False."""
         staff_user = User.objects.create_user(
             email="staff2@example.com",
             username="staff2",
@@ -300,7 +300,7 @@ class ProtocolOwnerOrStaffMixinTest(TestCase):
         mixin.request = request
         mixin.kwargs = {"pk": self.protocol.pk}
 
-        self.assertFalse(mixin.test_func())
+        self.assertTrue(mixin.test_func())
 
 
 class VeterinarianProfileRequiredMixinTest(TestCase):

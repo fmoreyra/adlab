@@ -368,9 +368,9 @@
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Acciones</h2>
                     <div class="space-y-2">
-                        <a href="{% url 'protocols:protocol_list' %}" 
+                        <a href="{{ back_url }}" 
                            class="block w-full px-4 py-2 text-center bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                            ← Volver a la Lista
+                            {{ back_label }}
                         </a>
                         {% if protocol.is_deletable %}
                             <form method="post" action="{% url 'protocols:protocol_delete' protocol.pk %}" 

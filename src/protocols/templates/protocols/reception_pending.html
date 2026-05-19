@@ -1,7 +1,7 @@
 {% extends "layouts/index.html" %}
 {% load static %}
 
-{% block title %}Protocolos Pendientes de Recepción{% endblock %}
+{% block title %}Recepción de Muestras{% endblock %}
 
 {% block body %}
 <div class="container mx-auto px-4 py-8">
@@ -9,13 +9,10 @@
     <div class="mb-6">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Protocolos Pendientes de Recepción</h1>
-                <p class="text-gray-600">Muestras que han sido enviadas pero aún no recibidas en el laboratorio</p>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Recepción de Muestras</h1>
+                <p class="text-gray-600">Muestras enviadas pendientes de recepción. Use los filtros para localizar un protocolo.</p>
             </div>
             <div class="flex space-x-3">
-                <a href="{% url 'protocols:reception_search' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
-                    Recepcionar Muestra
-                </a>
                 <a href="{% url 'protocols:reception_history' %}" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
                     Ver Historial
                 </a>
@@ -29,7 +26,7 @@
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-medium text-gray-900">Filtros</h3>
                 {% if has_active_filters %}
-                <a href="{% url 'protocols:reception_pending' %}" class="text-sm text-blue-600 hover:text-blue-800">
+                <a href="{% url 'protocols:reception' %}" class="text-sm text-blue-600 hover:text-blue-800">
                     Limpiar filtros
                 </a>
                 {% endif %}
@@ -47,7 +44,9 @@
                         {{ filter_form.analysis_type }}
                     </div>
                     <div>
-                        {{ filter_form.veterinarian_license.label_tag }}
+                        <label for="{{ filter_form.veterinarian_license.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ filter_form.veterinarian_license.label }}
+                        </label>
                         {{ filter_form.veterinarian_license }}
                     </div>
                     <div>
@@ -60,7 +59,7 @@
                         Filtrar
                     </button>
                     {% if has_active_filters %}
-                    <a href="{% url 'protocols:reception_pending' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                    <a href="{% url 'protocols:reception' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
                         Limpiar
                     </a>
                     {% endif %}
@@ -185,15 +184,22 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <h3 class="mt-4 text-lg font-medium text-gray-900">No hay protocolos pendientes</h3>
-            <p class="mt-2 text-sm text-gray-500">Todas las muestras enviadas han sido recibidas</p>
+            <p class="mt-2 text-sm text-gray-500">
+                {% if has_active_filters %}
+                No se encontraron protocolos con los filtros aplicados.
+                {% else %}
+                Todas las muestras enviadas han sido recibidas.
+                {% endif %}
+            </p>
+            {% if has_active_filters %}
             <div class="mt-6">
-                <a href="{% url 'protocols:reception_search' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                    Buscar Protocolo
+                <a href="{% url 'protocols:reception' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    Limpiar filtros
                 </a>
             </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}
 </div>
 {% endblock %}
-

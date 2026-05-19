@@ -12,12 +12,9 @@
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Historial de Recepciones</h1>
                 <p class="text-gray-600">Registro de todas las acciones de recepción realizadas</p>
             </div>
-            <div class="flex space-x-3">
-                <a href="{% url 'protocols:reception_search' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
-                    Recepcionar Muestra
-                </a>
-                <a href="{% url 'protocols:reception_pending' %}" class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
-                    Ver Pendientes
+            <div>
+                <a href="{% url 'protocols:reception' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                    Recepción de Muestras
                 </a>
             </div>
         </div>
@@ -178,7 +175,7 @@
 
                         <!-- Link -->
                         <div class="flex-shrink-0">
-                            <a href="{% url 'protocols:protocol_detail' log.protocol.pk %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            <a href="{% url 'protocols:reception_detail' log.protocol.pk %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                 Ver →
                             </a>
                         </div>
@@ -206,8 +203,8 @@
             <h3 class="mt-4 text-lg font-medium text-gray-900">No hay registros de recepción</h3>
             <p class="mt-2 text-sm text-gray-500">Aún no se han procesado recepciones</p>
             <div class="mt-6">
-                <a href="{% url 'protocols:reception_search' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                    Recepcionar Primera Muestra
+                <a href="{% url 'protocols:reception' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    Ir a Recepción de Muestras
                 </a>
             </div>
         </div>
