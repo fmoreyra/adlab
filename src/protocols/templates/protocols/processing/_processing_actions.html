@@ -1,0 +1,27 @@
+{# Advance / revert actions for cassette or slide. Requires: item, advance_url, revert_url, revert_label #}
+{% if protocol.status != 'rejected' %}
+<div class="flex flex-wrap items-center gap-2">
+  {% if item.get_next_stage_label %}
+  <form method="post" action="{{ advance_url }}" class="inline">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="advance">
+    <button type="submit"
+            class="text-sm font-medium text-blue-600 hover:text-blue-800">
+      {{ item.get_next_stage_label }}
+    </button>
+  </form>
+  {% else %}
+  <span class="text-sm text-green-600">✓ Completado</span>
+  {% endif %}
+  {% if item.can_revert %}
+  <button type="button"
+          class="revert-stage-open text-sm text-red-700 hover:text-red-900 border border-red-300 px-2 py-1 rounded hover:bg-red-50"
+          data-revert-url="{{ revert_url }}"
+          data-revert-label="{{ revert_label }}">
+    Revertir etapa
+  </button>
+  {% endif %}
+</div>
+{% else %}
+<span class="text-gray-400">—</span>
+{% endif %}

@@ -9,6 +9,7 @@ from django.test import TestCase
 
 from accounts.models import User, Veterinarian
 from protocols.models import (
+    Cassette,
     Protocol,
     Slide,
 )
@@ -407,7 +408,7 @@ class ProtocolProcessingServiceTest(TestCase):
         self.assertEqual(slides[0].codigo_portaobjetos, "SLIDE001")
 
     def test_update_slide_stage_success(self):
-        """Test successful slide stage update."""
+        """Test successful slide stage advance."""
         slide = Slide.objects.create(
             protocol=self.protocol,
             codigo_portaobjetos="SLIDE001",
@@ -415,7 +416,7 @@ class ProtocolProcessingServiceTest(TestCase):
         )
 
         success, error = self.service.update_slide_stage(
-            slide, "montaje", self.user, "Stage updated"
+            slide, "advance", self.user, "Stage updated"
         )
 
         self.assertTrue(success)
@@ -423,8 +424,53 @@ class ProtocolProcessingServiceTest(TestCase):
         slide.refresh_from_db()
         self.assertEqual(slide.estado, Slide.Status.MONTADO)
 
+    def test_update_slide_stage_revert_requires_observaciones(self):
+        """Test reverting slide stage requires observations."""
+        slide = Slide.objects.create(
+            protocol=self.protocol,
+            codigo_portaobjetos="SLIDE001",
+            estado=Slide.Status.PENDIENTE,
+        )
+        slide.update_stage("montaje")
+
+        success, error = self.service.update_slide_stage(
+            slide, "revert", self.user, ""
+        )
+        self.assertFalse(success)
+        self.assertIn("motivo", error)
+
+        success, error = self.service.update_slide_stage(
+            slide, "revert", self.user, "Corrección de montaje"
+        )
+        self.assertTrue(success)
+        slide.refresh_from_db()
+        self.assertEqual(slide.estado, Slide.Status.PENDIENTE)
+
+    def test_update_cassette_stage_advance(self):
+        """Test successful cassette stage advance."""
+        from protocols.models import HistopathologySample
+
+        sample = HistopathologySample.objects.create(
+            protocol=self.protocol,
+            number_jars_expected=1,
+        )
+        cassette = Cassette.objects.create(
+            histopathology_sample=sample,
+            material_incluido="Biopsy",
+        )
+        cassette.update_stage("encasetado")
+
+        success, error = self.service.update_cassette_stage(
+            cassette, "advance", self.user
+        )
+
+        self.assertTrue(success)
+        self.assertEqual(error, "")
+        cassette.refresh_from_db()
+        self.assertIsNotNone(cassette.fecha_fijacion)
+
     def test_update_slide_stage_invalid(self):
-        """Test slide stage update with invalid stage."""
+        """Test slide stage update with invalid action."""
         slide = Slide.objects.create(
             protocol=self.protocol,
             codigo_portaobjetos="SLIDE001",
@@ -432,7 +478,7 @@ class ProtocolProcessingServiceTest(TestCase):
         )
 
         success, error = self.service.update_slide_stage(
-            slide, "invalid_stage", self.user
+            slide, "invalid_action", self.user
         )
 
         self.assertFalse(success)

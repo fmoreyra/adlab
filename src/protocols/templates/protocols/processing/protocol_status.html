@@ -4,6 +4,11 @@
 {% block title %}Estado de Procesamiento - {{ protocol.protocol_number }}{% endblock %}
 
 {% block body %}
+<style>
+  .processing-accordion > summary::-webkit-details-marker { display: none; }
+  .processing-accordion > summary::marker { content: ""; }
+  .processing-accordion[open] .accordion-chevron { transform: rotate(90deg); }
+</style>
 <div class="container mx-auto px-4 py-8">
   <!-- Header -->
   <div class="flex justify-between items-center mb-8">
@@ -11,7 +16,7 @@
       Estado de Procesamiento
     </h1>
     <div class="flex gap-4">
-      <a href="{% url 'protocols:processing_queue' %}" 
+      <a href="{% url 'protocols:processing_queue' %}"
          class="text-purple-600 hover:text-purple-800">
         ← Volver a la Cola
       </a>
@@ -46,7 +51,7 @@
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold text-gray-800">Cassettes</h2>
       {% if not cassettes %}
-        <a href="{% url 'protocols:cassette_create' protocol.pk %}" 
+        <a href="{% url 'protocols:cassette_create' protocol.pk %}"
            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
           + Crear Cassettes
         </a>
@@ -54,69 +59,56 @@
     </div>
 
     {% if cassettes %}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {% for cassette in cassettes %}
-        <div class="border rounded-lg p-4 {% if cassette.estado == 'completado' %}bg-green-50{% elif cassette.estado == 'en_proceso' %}bg-yellow-50{% else %}bg-gray-50{% endif %}">
-          <div class="font-semibold text-lg mb-2">{{ cassette.codigo_cassette }}</div>
-          
-          <div class="text-sm text-gray-600 mb-2">
-            <span class="font-medium text-gray-700">Material:</span>
-            <p class="mt-1 whitespace-pre-wrap">{{ cassette.material_incluido }}</p>
-          </div>
-          {% if cassette.observaciones %}
-          <div class="text-sm text-gray-600 mb-3">
-            <span class="font-medium text-gray-700">Observaciones:</span>
-            <p class="mt-1 whitespace-pre-wrap">{{ cassette.observaciones }}</p>
-          </div>
-          {% endif %}
-
-          <!-- Processing Timeline -->
-          <div class="space-y-1 text-xs">
-            <div class="flex items-center gap-2">
-              {% if cassette.fecha_encasetado %}
-                <span class="text-green-600">✓</span>
-                <span>Encasetado: {{ cassette.fecha_encasetado|date:"d/m H:i" }}</span>
-              {% else %}
-                <span class="text-gray-400">○</span>
-                <span class="text-gray-400">Encasetado</span>
-              {% endif %}
-            </div>
-            <div class="flex items-center gap-2">
-              {% if cassette.fecha_fijacion %}
-                <span class="text-green-600">✓</span>
-                <span>Fijación: {{ cassette.fecha_fijacion|date:"d/m H:i" }}</span>
-              {% else %}
-                <span class="text-gray-400">○</span>
-                <span class="text-gray-400">Fijación</span>
-              {% endif %}
-            </div>
-            <div class="flex items-center gap-2">
-              {% if cassette.fecha_inclusion %}
-                <span class="text-green-600">✓</span>
-                <span>Inclusión: {{ cassette.fecha_inclusion|date:"d/m H:i" }}</span>
-              {% else %}
-                <span class="text-gray-400">○</span>
-                <span class="text-gray-400">Inclusión</span>
-              {% endif %}
-            </div>
-            <div class="flex items-center gap-2">
-              {% if cassette.fecha_entacado %}
-                <span class="text-green-600">✓</span>
-                <span>Entacado: {{ cassette.fecha_entacado|date:"d/m H:i" }}</span>
-              {% else %}
-                <span class="text-gray-400">○</span>
-                <span class="text-gray-400">Entacado</span>
-              {% endif %}
-            </div>
-          </div>
-
-          <div class="mt-3 pt-3 border-t">
-            <span class="text-xs font-medium {% if cassette.estado == 'completado' %}text-green-700{% elif cassette.estado == 'en_proceso' %}text-yellow-700{% else %}text-gray-600{% endif %}">
-              {{ cassette.get_estado_display }}
-            </span>
-          </div>
-        </div>
-        {% endfor %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 w-8"></th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            {% for cassette in cassettes %}
+            <tr class="hover:bg-gray-50 bg-white">
+              <td class="px-4 py-4 align-top"></td>
+              <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                {{ cassette.codigo_cassette }}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                <span class="line-clamp-2">{{ cassette.material_incluido }}</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                  {% if cassette.estado == 'completado' %}bg-green-100 text-green-800
+                  {% elif cassette.estado == 'en_proceso' %}bg-yellow-100 text-yellow-800
+                  {% else %}bg-gray-100 text-gray-800{% endif %}">
+                  {{ cassette.get_estado_display }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-sm">
+                {% url 'protocols:cassette_update_stage' cassette.pk as cassette_stage_url %}
+                {% include "protocols/processing/_processing_actions.html" with item=cassette advance_url=cassette_stage_url revert_url=cassette_stage_url revert_label=cassette.codigo_cassette %}
+              </td>
+            </tr>
+            <tr class="bg-gray-50">
+              <td colspan="5" class="px-0 py-0">
+                <details class="processing-accordion">
+                  <summary class="px-6 py-2 text-sm text-gray-600 cursor-pointer hover:bg-gray-100 list-none flex items-center gap-2">
+                    <span class="accordion-chevron text-gray-400 transition-transform inline-block">▶</span>
+                    Ver detalle y etapas de procesamiento
+                  </summary>
+                  <div class="px-6 py-4 border-t border-gray-200 bg-white">
+                    {% include "protocols/processing/_cassette_timeline.html" %}
+                  </div>
+                </details>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     {% else %}
       <p class="text-gray-500 text-center py-4">No hay cassettes creados aún.</p>
@@ -141,6 +133,7 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
+              <th class="px-4 py-3 w-8"></th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cassettes</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Coloración</th>
@@ -149,9 +142,10 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
+          <tbody class="divide-y divide-gray-200">
             {% for slide in slides %}
-            <tr class="hover:bg-gray-50">
+            <tr class="hover:bg-gray-50 bg-white">
+              <td class="px-4 py-4 align-top"></td>
               <td class="px-6 py-4 whitespace-nowrap font-medium">
                 {{ slide.codigo_portaobjetos }}
               </td>
@@ -170,9 +164,6 @@
               </td>
               <td class="px-6 py-4">
                 <div class="text-sm">{{ slide.tecnica_coloracion }}</div>
-                {% if slide.fecha_coloracion %}
-                  <div class="text-xs text-gray-500">{{ slide.fecha_coloracion|date:"d/m H:i" }}</div>
-                {% endif %}
               </td>
               <td class="px-6 py-4">
                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
@@ -196,31 +187,29 @@
                   <span class="text-gray-400">-</span>
                 {% endif %}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {% if slide.estado != 'listo' %}
-                  <form method="post" action="{% url 'protocols:slide_update_stage' slide.pk %}" class="inline">
-                    {% csrf_token %}
-                    {% if slide.estado == 'pendiente' %}
-                      <input type="hidden" name="stage" value="montaje">
-                      <button type="submit" class="text-blue-600 hover:text-blue-800">Montar</button>
-                    {% elif slide.estado == 'montado' %}
-                      <input type="hidden" name="stage" value="coloracion">
-                      <button type="submit" class="text-purple-600 hover:text-purple-800">Colorear</button>
-                    {% elif slide.estado == 'coloreado' %}
-                      <input type="hidden" name="stage" value="listo">
-                      <button type="submit" class="text-green-600 hover:text-green-800">Marcar Listo</button>
-                    {% endif %}
-                  </form>
-                {% else %}
-                  <span class="text-green-600">✓ Completado</span>
-                {% endif %}
+              <td class="px-6 py-4 text-sm">
+                {% url 'protocols:slide_update_stage' slide.pk as slide_stage_url %}
+                {% include "protocols/processing/_processing_actions.html" with item=slide advance_url=slide_stage_url revert_url=slide_stage_url revert_label=slide.codigo_portaobjetos %}
+              </td>
+            </tr>
+            <tr class="bg-gray-50">
+              <td colspan="7" class="px-0 py-0">
+                <details class="processing-accordion">
+                  <summary class="px-6 py-2 text-sm text-gray-600 cursor-pointer hover:bg-gray-100 list-none flex items-center gap-2">
+                    <span class="accordion-chevron text-gray-400 transition-transform inline-block">▶</span>
+                    Ver etapas de procesamiento
+                  </summary>
+                  <div class="px-6 py-4 border-t border-gray-200 bg-white">
+                    {% include "protocols/processing/_slide_timeline.html" %}
+                  </div>
+                </details>
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-      
+
       {% if protocol.analysis_type != 'cytology' %}
       <div class="mt-4 text-right">
         <a href="{% url 'protocols:slide_register' protocol.pk %}"
@@ -243,7 +232,7 @@
   <!-- Processing Log -->
   <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Registro de Procesamiento</h2>
-    
+
     {% if processing_logs %}
       <div class="space-y-2">
         {% for log in processing_logs %}
@@ -253,12 +242,23 @@
           </div>
           <div class="flex-1">
             <div class="flex justify-between items-start">
-              <div>
-                <span class="font-medium text-gray-900">{{ log.get_etapa_display }}</span>
+              <div class="flex flex-wrap items-center gap-2">
                 {% if log.cassette %}
-                  <span class="text-sm text-gray-600">- {{ log.cassette.codigo_cassette }}</span>
+                  <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                    Cassette
+                  </span>
+                  <span class="font-medium text-gray-900">{{ log.cassette.codigo_cassette }}</span>
+                  <span class="text-gray-400">·</span>
+                  <span class="text-gray-900">{{ log.get_etapa_display }}</span>
                 {% elif log.slide %}
-                  <span class="text-sm text-gray-600">- {{ log.slide.codigo_portaobjetos }}</span>
+                  <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                    Portaobjetos
+                  </span>
+                  <span class="font-medium text-gray-900">{{ log.slide.codigo_portaobjetos }}</span>
+                  <span class="text-gray-400">·</span>
+                  <span class="text-gray-900">{{ log.get_etapa_display }}</span>
+                {% else %}
+                  <span class="font-medium text-gray-900">{{ log.get_etapa_display }}</span>
                 {% endif %}
               </div>
               <div class="text-xs text-gray-500">
@@ -284,5 +284,89 @@
     {% endif %}
   </div>
 </div>
-{% endblock %}
 
+{# Modal: revertir etapa (cassettes y portaobjetos) #}
+<div id="revert-stage-modal"
+     class="hidden fixed inset-0 z-50 overflow-y-auto"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="revert-modal-title">
+  <div class="fixed inset-0 bg-gray-900/50" id="revert-stage-backdrop"></div>
+  <div class="flex min-h-full items-center justify-center p-4">
+    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+      <h3 id="revert-modal-title" class="text-lg font-semibold text-gray-900 mb-1">
+        Revertir etapa
+      </h3>
+      <p id="revert-modal-entity" class="text-sm text-gray-600 mb-4"></p>
+      <form id="revert-stage-form" method="post" action="">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="revert">
+        <label for="revert-modal-observaciones" class="block text-sm font-medium text-gray-700 mb-1">
+          Motivo de la corrección <span class="text-red-600">*</span>
+        </label>
+        <textarea id="revert-modal-observaciones"
+                  name="observaciones"
+                  rows="4"
+                  required
+                  class="w-full p-2 border border-gray-300 rounded-md text-sm mb-4"
+                  placeholder="Describa por qué debe revertirse esta etapa"></textarea>
+        <div class="flex justify-end gap-3">
+          <button type="button"
+                  id="revert-stage-cancel"
+                  class="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+            Cancelar
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700">
+            Confirmar reversión
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const modal = document.getElementById('revert-stage-modal');
+  const form = document.getElementById('revert-stage-form');
+  const entityLabel = document.getElementById('revert-modal-entity');
+  const observaciones = document.getElementById('revert-modal-observaciones');
+  const backdrop = document.getElementById('revert-stage-backdrop');
+  const cancelBtn = document.getElementById('revert-stage-cancel');
+
+  if (!modal || !form) {
+    return;
+  }
+
+  function openModal(url, label) {
+    form.action = url;
+    entityLabel.textContent = label;
+    observaciones.value = '';
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+    observaciones.focus();
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+
+  document.querySelectorAll('.revert-stage-open').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openModal(btn.dataset.revertUrl, btn.dataset.revertLabel);
+    });
+  });
+
+  cancelBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -989,6 +989,35 @@ class CassetteModelTest(TestCase):
         )
         self.assertEqual(cassette.observaciones, "Requiere cortes adicionales")
 
+    def test_cassette_advance_stage(self):
+        """Test advancing cassette through stages sequentially."""
+        cassette = Cassette.objects.create(
+            histopathology_sample=self.sample,
+            material_incluido="Test material",
+        )
+        cassette.update_stage("encasetado")
+        cassette.refresh_from_db()
+
+        self.assertEqual(cassette.advance_stage(), "fijacion")
+        cassette.refresh_from_db()
+        self.assertIsNotNone(cassette.fecha_fijacion)
+
+    def test_cassette_revert_last_stage(self):
+        """Test reverting the last completed cassette stage."""
+        cassette = Cassette.objects.create(
+            histopathology_sample=self.sample,
+            material_incluido="Test material",
+        )
+        cassette.update_stage("encasetado")
+        cassette.update_stage("fijacion")
+        cassette.refresh_from_db()
+
+        self.assertEqual(cassette.revert_last_stage(), "fijacion")
+        cassette.refresh_from_db()
+        self.assertIsNone(cassette.fecha_fijacion)
+        self.assertIsNotNone(cassette.fecha_encasetado)
+        self.assertEqual(cassette.estado, Cassette.Status.EN_PROCESO)
+
 
 class SlideModelTest(TestCase):
     """Test cases for Slide model (Step 05)."""
@@ -1103,6 +1132,45 @@ class SlideModelTest(TestCase):
         slide.mark_ready()
         slide.refresh_from_db()
         self.assertEqual(slide.estado, Slide.Status.LISTO)
+
+    def test_slide_advance_stage(self):
+        """Test advancing slide through stages sequentially."""
+        slide = Slide.objects.create(
+            protocol=self.cyto_protocol,
+            cytology_sample=self.cyto_sample,
+        )
+
+        self.assertEqual(slide.advance_stage(), "montaje")
+        slide.refresh_from_db()
+        self.assertEqual(slide.estado, Slide.Status.MONTADO)
+
+        self.assertEqual(slide.advance_stage(), "coloracion")
+        slide.refresh_from_db()
+        self.assertEqual(slide.estado, Slide.Status.COLOREADO)
+
+        self.assertEqual(slide.advance_stage(), "listo")
+        slide.refresh_from_db()
+        self.assertEqual(slide.estado, Slide.Status.LISTO)
+
+    def test_slide_revert_last_stage(self):
+        """Test reverting the last completed slide stage."""
+        slide = Slide.objects.create(
+            protocol=self.cyto_protocol,
+            cytology_sample=self.cyto_sample,
+        )
+        slide.update_stage("montaje")
+        slide.update_stage("coloracion")
+        slide.mark_ready()
+        slide.refresh_from_db()
+
+        self.assertEqual(slide.revert_last_stage(), "listo")
+        slide.refresh_from_db()
+        self.assertEqual(slide.estado, Slide.Status.COLOREADO)
+
+        self.assertEqual(slide.revert_last_stage(), "coloracion")
+        slide.refresh_from_db()
+        self.assertIsNone(slide.fecha_coloracion)
+        self.assertEqual(slide.estado, Slide.Status.MONTADO)
 
     def test_slide_quality_assessment(self):
         """Test slide quality assessment."""
@@ -2154,7 +2222,7 @@ class ProcessingViewsTest(TestCase):
         self.client.login(email="staff@example.com", password="testpass123")
 
         form_data = {
-            "stage": "montaje",
+            "action": "advance",
             "observaciones": "Slide montado correctamente",
         }
 
@@ -2181,36 +2249,118 @@ class ProcessingViewsTest(TestCase):
 
     def test_slide_update_stage_view_mark_ready(self):
         """Test slide update stage view marking slide as ready."""
-        # Create a slide first
         slide = Slide.objects.create(
             protocol=self.cytology_protocol,
             campo="1",
+            estado=Slide.Status.COLOREADO,
         )
+        slide.update_stage("montaje")
+        slide.update_stage("coloracion")
 
         self.client.login(email="staff@example.com", password="testpass123")
-
-        form_data = {
-            "stage": "listo",
-            "observaciones": "Slide listo para análisis",
-        }
 
         response = self.client.post(
             reverse(
                 "protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}
             ),
-            data=form_data,
+            data={"action": "advance"},
         )
 
-        # Should redirect to processing status
         self.assertEqual(response.status_code, 302)
-
-        # Check slide was marked as ready
         slide.refresh_from_db()
         self.assertEqual(slide.estado, Slide.Status.LISTO)
 
-    def test_slide_update_stage_view_invalid_stage(self):
-        """Test slide update stage view with invalid stage."""
-        # Create a slide first
+    def test_slide_update_stage_view_revert_requires_observaciones(self):
+        """Test reverting slide stage requires observations."""
+        slide = Slide.objects.create(
+            protocol=self.cytology_protocol,
+            campo="1",
+        )
+        slide.update_stage("montaje")
+
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.post(
+            reverse(
+                "protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}
+            ),
+            data={"action": "revert"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        slide.refresh_from_db()
+        self.assertEqual(slide.estado, Slide.Status.MONTADO)
+
+        self.client.post(
+            reverse(
+                "protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}
+            ),
+            data={
+                "action": "revert",
+                "observaciones": "Error en montaje, repetir",
+            },
+        )
+        slide.refresh_from_db()
+        self.assertEqual(slide.estado, Slide.Status.PENDIENTE)
+
+    def test_cassette_update_stage_view_advance(self):
+        """Test advancing cassette stage from processing status flow."""
+        cassette = Cassette.objects.create(
+            histopathology_sample=self.histopathology_sample,
+            material_incluido="Tejido",
+        )
+        cassette.update_stage("encasetado")
+
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.post(
+            reverse(
+                "protocols:cassette_update_stage",
+                kwargs={"cassette_pk": cassette.pk},
+            ),
+            data={"action": "advance"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        cassette.refresh_from_db()
+        self.assertIsNotNone(cassette.fecha_fijacion)
+
+    def test_cassette_update_stage_view_revert_requires_observaciones(self):
+        """Test reverting cassette stage requires observations."""
+        cassette = Cassette.objects.create(
+            histopathology_sample=self.histopathology_sample,
+            material_incluido="Tejido",
+        )
+        cassette.update_stage("encasetado")
+        cassette.update_stage("fijacion")
+
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        self.client.post(
+            reverse(
+                "protocols:cassette_update_stage",
+                kwargs={"cassette_pk": cassette.pk},
+            ),
+            data={"action": "revert"},
+        )
+        cassette.refresh_from_db()
+        self.assertIsNotNone(cassette.fecha_fijacion)
+
+        self.client.post(
+            reverse(
+                "protocols:cassette_update_stage",
+                kwargs={"cassette_pk": cassette.pk},
+            ),
+            data={
+                "action": "revert",
+                "observaciones": "Fijación incorrecta",
+            },
+        )
+        cassette.refresh_from_db()
+        self.assertIsNone(cassette.fecha_fijacion)
+
+    def test_slide_update_stage_view_invalid_action(self):
+        """Test slide update stage view with invalid action."""
         slide = Slide.objects.create(
             protocol=self.cytology_protocol,
             campo="1",
@@ -2218,19 +2368,13 @@ class ProcessingViewsTest(TestCase):
 
         self.client.login(email="staff@example.com", password="testpass123")
 
-        form_data = {
-            "stage": "invalid_stage",
-            "observaciones": "Invalid stage",
-        }
-
         response = self.client.post(
             reverse(
                 "protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}
             ),
-            data=form_data,
+            data={"action": "invalid_action"},
         )
 
-        # Should redirect to processing status
         self.assertEqual(response.status_code, 302)
 
     def test_slide_update_stage_view_permission_staff_required(self):
@@ -2257,7 +2401,7 @@ class ProcessingViewsTest(TestCase):
             reverse(
                 "protocols:slide_update_stage", kwargs={"slide_pk": slide.pk}
             ),
-            data={"stage": "montaje"},
+            data={"action": "advance"},
         )
 
         self.assertEqual(response.status_code, 302)

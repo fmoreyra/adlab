@@ -127,6 +127,11 @@ urlpatterns = [
         name="slide_register",
     ),
     path(
+        "processing/cassette/<int:cassette_pk>/stage/",
+        views.CassetteUpdateStageView.as_view(),
+        name="cassette_update_stage",
+    ),
+    path(
         "processing/slide/<int:slide_pk>/stage/",
         views.SlideUpdateStageView.as_view(),
         name="slide_update_stage",

@@ -1183,6 +1183,20 @@ class Cassette(models.Model):
         EN_PROCESO = "en_proceso", _("En proceso")
         COMPLETADO = "completado", _("Completado")
 
+    STAGE_ORDER = ("encasetado", "fijacion", "inclusion", "entacado")
+    STAGE_FIELDS = {
+        "encasetado": "fecha_encasetado",
+        "fijacion": "fecha_fijacion",
+        "inclusion": "fecha_inclusion",
+        "entacado": "fecha_entacado",
+    }
+    ADVANCE_LABELS = {
+        "encasetado": _("Encasetar"),
+        "fijacion": _("Fijar"),
+        "inclusion": _("Incluir"),
+        "entacado": _("Entacar"),
+    }
+
     histopathology_sample = models.ForeignKey(
         HistopathologySample,
         on_delete=models.CASCADE,
@@ -1281,6 +1295,45 @@ class Cassette(models.Model):
 
         return f"{protocol_number}-C{next_number}"
 
+    def get_last_completed_stage(self):
+        """Return the latest processing stage that has a timestamp."""
+        last_completed = None
+        for stage in self.STAGE_ORDER:
+            if getattr(self, self.STAGE_FIELDS[stage]):
+                last_completed = stage
+        return last_completed
+
+    def get_next_stage(self):
+        """Return the next stage key to complete, or None if finished."""
+        for stage in self.STAGE_ORDER:
+            if not getattr(self, self.STAGE_FIELDS[stage]):
+                return stage
+        return None
+
+    def get_next_stage_label(self):
+        """Human label for the advance action button."""
+        next_stage = self.get_next_stage()
+        if not next_stage:
+            return None
+        return self.ADVANCE_LABELS.get(next_stage, next_stage)
+
+    @property
+    def can_revert(self):
+        """Whether this cassette can move back one processing stage."""
+        return self.get_last_completed_stage() is not None
+
+    def _recalculate_estado(self):
+        """Set estado from completed stage timestamps."""
+        if self.fecha_entacado:
+            self.estado = self.Status.COMPLETADO
+        elif any(
+            getattr(self, self.STAGE_FIELDS[stage])
+            for stage in self.STAGE_ORDER
+        ):
+            self.estado = self.Status.EN_PROCESO
+        else:
+            self.estado = self.Status.PENDIENTE
+
     def update_stage(self, stage, timestamp=None):
         """
         Update a processing stage with timestamp.
@@ -1292,25 +1345,56 @@ class Cassette(models.Model):
         if timestamp is None:
             timestamp = timezone.now()
 
-        stage_fields = {
-            "encasetado": "fecha_encasetado",
-            "fijacion": "fecha_fijacion",
-            "inclusion": "fecha_inclusion",
-            "entacado": "fecha_entacado",
-        }
-
-        if stage not in stage_fields:
+        if stage not in self.STAGE_FIELDS:
             raise ValueError(f"Invalid stage: {stage}")
 
-        setattr(self, stage_fields[stage], timestamp)
+        setattr(self, self.STAGE_FIELDS[stage], timestamp)
 
-        # Update status
         if stage == "entacado":
             self.estado = self.Status.COMPLETADO
         else:
             self.estado = self.Status.EN_PROCESO
 
-        self.save(update_fields=[stage_fields[stage], "estado", "updated_at"])
+        self.save(
+            update_fields=[self.STAGE_FIELDS[stage], "estado", "updated_at"]
+        )
+
+    def advance_stage(self, timestamp=None):
+        """
+        Advance to the next processing stage.
+
+        Returns:
+            str: Stage key that was applied
+
+        Raises:
+            ValueError: If there is no next stage
+        """
+        next_stage = self.get_next_stage()
+        if not next_stage:
+            raise ValueError("No hay más etapas para avanzar.")
+        self.update_stage(next_stage, timestamp=timestamp)
+        return next_stage
+
+    def revert_last_stage(self):
+        """
+        Revert the last completed processing stage by one step.
+
+        Returns:
+            str: Stage key that was reverted
+
+        Raises:
+            ValueError: If no stage can be reverted
+        """
+        last_stage = self.get_last_completed_stage()
+        if not last_stage:
+            raise ValueError("No hay etapa para revertir.")
+
+        setattr(self, self.STAGE_FIELDS[last_stage], None)
+        self._recalculate_estado()
+        self.save(
+            update_fields=["estado", "updated_at", *self.STAGE_FIELDS.values()]
+        )
+        return last_stage
 
 
 class Slide(models.Model):
@@ -1438,6 +1522,34 @@ class Slide(models.Model):
 
         return f"{protocol_number}-S{next_number}"
 
+    ADVANCE_LABELS = {
+        "montaje": _("Montar"),
+        "coloracion": _("Colorear"),
+        "listo": _("Marcar listo"),
+    }
+
+    def get_next_stage(self):
+        """Return next stage key (montaje, coloracion, listo) or None."""
+        if self.estado == self.Status.PENDIENTE:
+            return "montaje"
+        if self.estado == self.Status.MONTADO:
+            return "coloracion"
+        if self.estado == self.Status.COLOREADO:
+            return "listo"
+        return None
+
+    def get_next_stage_label(self):
+        """Human label for the advance action button."""
+        next_stage = self.get_next_stage()
+        if not next_stage:
+            return None
+        return self.ADVANCE_LABELS.get(next_stage, next_stage)
+
+    @property
+    def can_revert(self):
+        """Whether this slide can move back one processing stage."""
+        return self.estado != self.Status.PENDIENTE
+
     def update_stage(self, stage, timestamp=None):
         """
         Update a processing stage with timestamp.
@@ -1459,7 +1571,6 @@ class Slide(models.Model):
 
         setattr(self, stage_fields[stage], timestamp)
 
-        # Update status
         if stage == "montaje":
             self.estado = self.Status.MONTADO
         elif stage == "coloracion":
@@ -1471,6 +1582,56 @@ class Slide(models.Model):
         """Mark slide as ready for analysis."""
         self.estado = self.Status.LISTO
         self.save(update_fields=["estado", "updated_at"])
+
+    def advance_stage(self, timestamp=None):
+        """
+        Advance to the next processing stage.
+
+        Returns:
+            str: Stage key that was applied
+
+        Raises:
+            ValueError: If there is no next stage
+        """
+        next_stage = self.get_next_stage()
+        if not next_stage:
+            raise ValueError("No hay más etapas para avanzar.")
+        if next_stage == "listo":
+            self.mark_ready()
+        else:
+            self.update_stage(next_stage, timestamp=timestamp)
+        return next_stage
+
+    def revert_last_stage(self):
+        """
+        Revert the last completed processing stage by one step.
+
+        Returns:
+            str: Stage key that was reverted
+
+        Raises:
+            ValueError: If no stage can be reverted
+        """
+        if self.estado == self.Status.LISTO:
+            self.estado = self.Status.COLOREADO
+            self.save(update_fields=["estado", "updated_at"])
+            return "listo"
+
+        if self.fecha_coloracion:
+            self.fecha_coloracion = None
+            self.estado = self.Status.MONTADO
+            self.save(
+                update_fields=["fecha_coloracion", "estado", "updated_at"]
+            )
+            return "coloracion"
+
+        if self.fecha_montaje:
+            self.fecha_montaje = None
+            self.estado = self.Status.PENDIENTE
+            self.save(update_fields=["fecha_montaje", "estado", "updated_at"])
+            return "montaje"
+
+        raise ValueError("No hay etapa para revertir.")
 
 
 class CassetteSlide(models.Model):

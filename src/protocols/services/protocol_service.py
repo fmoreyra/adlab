@@ -404,48 +404,139 @@ class ProtocolProcessingService:
                         f"Cassette {cassette_id} not found for slide {slide.id}"
                     )
 
-    def update_slide_stage(
-        self, slide: Slide, stage: str, user, observaciones: str = ""
+    @staticmethod
+    def _validate_revert_observaciones(action: str, observaciones: str) -> str:
+        """
+        Validate observations are present when reverting a stage.
+
+        Returns:
+            str: Error message if invalid, empty string if valid
+        """
+        if action != "revert":
+            return ""
+        if not observaciones or not observaciones.strip():
+            return _("Debe indicar el motivo al revertir una etapa.")
+        return ""
+
+    @staticmethod
+    def _format_log_observaciones(action: str, observaciones: str) -> str:
+        """Format observations for processing log entries."""
+        if action == "revert":
+            return _("Corrección: %(motivo)s") % {
+                "motivo": observaciones.strip()
+            }
+        return observaciones.strip()
+
+    CASSETTE_STAGE_LOG = {
+        "encasetado": ProcessingLog.Stage.ENCASETADO,
+        "fijacion": ProcessingLog.Stage.FIJACION,
+        "inclusion": ProcessingLog.Stage.INCLUSION,
+        "entacado": ProcessingLog.Stage.ENTACADO,
+    }
+
+    SLIDE_STAGE_LOG = {
+        "montaje": ProcessingLog.Stage.MONTAJE,
+        "coloracion": ProcessingLog.Stage.COLORACION,
+        "listo": ProcessingLog.Stage.COLORACION,
+    }
+
+    def update_cassette_stage(
+        self, cassette: Cassette, action: str, user, observaciones: str = ""
     ) -> Tuple[bool, str]:
         """
-        Update slide processing stage.
+        Advance or revert a cassette processing stage.
 
         Args:
-            slide: Slide instance
-            stage: New stage name
-            user: User updating the stage
-            observaciones: Additional observations
+            cassette: Cassette instance
+            action: ``advance`` or ``revert``
+            user: User performing the action
+            observaciones: Required when action is ``revert``
 
         Returns:
             Tuple[bool, str]: (success, error_message)
         """
+        if action not in ("advance", "revert"):
+            return False, _("Acción no válida.")
+
+        validation_error = self._validate_revert_observaciones(
+            action, observaciones
+        )
+        if validation_error:
+            return False, validation_error
+
         try:
-            if stage in ["montaje", "coloracion"]:
-                slide.update_stage(stage)
+            if action == "advance":
+                stage = cassette.advance_stage()
+            else:
+                stage = cassette.revert_last_stage()
 
-                # Log action
-                etapa_mapping = {
-                    "montaje": ProcessingLog.Stage.MONTAJE,
-                    "coloracion": ProcessingLog.Stage.COLORACION,
-                }
+            log_observaciones = self._format_log_observaciones(
+                action, observaciones
+            )
+            ProcessingLog.log_action(
+                protocol=cassette.histopathology_sample.protocol,
+                etapa=self.CASSETTE_STAGE_LOG[stage],
+                usuario=user,
+                cassette=cassette,
+                observaciones=log_observaciones,
+            )
+            return True, ""
 
-                ProcessingLog.log_action(
-                    protocol=slide.protocol,
-                    etapa=etapa_mapping[stage],
-                    usuario=user,
-                    slide=slide,
-                    observaciones=observaciones,
+        except ValueError as e:
+            return False, str(e)
+        except Exception as e:
+            logger.error(f"Error updating cassette {cassette.id} stage: {e}")
+            return False, str(e)
+
+    def update_slide_stage(
+        self, slide: Slide, action: str, user, observaciones: str = ""
+    ) -> Tuple[bool, str]:
+        """
+        Advance or revert a slide processing stage.
+
+        Args:
+            slide: Slide instance
+            action: ``advance`` or ``revert``
+            user: User performing the action
+            observaciones: Required when action is ``revert``
+
+        Returns:
+            Tuple[bool, str]: (success, error_message)
+        """
+        if action not in ("advance", "revert"):
+            return False, _("Acción no válida.")
+
+        validation_error = self._validate_revert_observaciones(
+            action, observaciones
+        )
+        if validation_error:
+            return False, validation_error
+
+        try:
+            if action == "advance":
+                stage = slide.advance_stage()
+            else:
+                stage = slide.revert_last_stage()
+
+            log_observaciones = self._format_log_observaciones(
+                action, observaciones
+            )
+            if stage == "listo" and action == "advance":
+                log_observaciones = log_observaciones or _(
+                    "Portaobjetos listo para análisis."
                 )
 
-                return True, ""
+            ProcessingLog.log_action(
+                protocol=slide.protocol,
+                etapa=self.SLIDE_STAGE_LOG[stage],
+                usuario=user,
+                slide=slide,
+                observaciones=log_observaciones,
+            )
+            return True, ""
 
-            elif stage == "listo":
-                slide.mark_ready()
-                return True, ""
-
-            else:
-                return False, _("Etapa no válida.")
-
+        except ValueError as e:
+            return False, str(e)
         except Exception as e:
             logger.error(f"Error updating slide {slide.id} stage: {e}")
             return False, str(e)

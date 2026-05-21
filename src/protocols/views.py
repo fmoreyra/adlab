@@ -1675,32 +1675,103 @@ class SlideRegisterView(StaffRequiredMixin, View):
         return protocol
 
 
-class SlideUpdateStageView(StaffRequiredMixin, View):
-    """
-    Update slide processing stage (montaje, coloración, listo) with service integration.
-    """
+class CassetteUpdateStageView(StaffRequiredMixin, View):
+    """Advance or revert a cassette processing stage."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.processing_service = ProtocolProcessingService()
 
     def post(self, request, *args, **kwargs):
-        """Update slide stage using service."""
-        slide = get_object_or_404(Slide, pk=self.kwargs["slide_pk"])
+        """Update cassette stage and redirect to protocol processing status."""
+        cassette = get_object_or_404(
+            Cassette.objects.select_related("histopathology_sample__protocol"),
+            pk=self.kwargs["cassette_pk"],
+        )
+        protocol = cassette.histopathology_sample.protocol
 
-        stage = request.POST.get("stage")
+        if protocol.status == Protocol.Status.REJECTED:
+            messages.error(
+                request,
+                _(
+                    "No se puede procesar un protocolo rechazado. "
+                    "Cambie el estado primero."
+                ),
+            )
+            return redirect("protocols:processing_status", pk=protocol.pk)
+
+        action = request.POST.get("action", "")
         observaciones = request.POST.get("observaciones", "")
 
-        # Use service to update slide stage
-        success, error_message = self.processing_service.update_slide_stage(
-            slide, stage, request.user, observaciones
+        success, error_message = self.processing_service.update_cassette_stage(
+            cassette, action, request.user, observaciones
         )
 
         if success:
-            messages.success(
+            if action == "revert":
+                messages.success(
+                    request,
+                    _("Cassette %(code)s: etapa revertida.")
+                    % {"code": cassette.codigo_cassette},
+                )
+            else:
+                messages.success(
+                    request,
+                    _("Cassette %(code)s: etapa actualizada.")
+                    % {"code": cassette.codigo_cassette},
+                )
+        else:
+            messages.error(request, error_message)
+
+        return redirect("protocols:processing_status", pk=protocol.pk)
+
+
+class SlideUpdateStageView(StaffRequiredMixin, View):
+    """Advance or revert a slide processing stage."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.processing_service = ProtocolProcessingService()
+
+    def post(self, request, *args, **kwargs):
+        """Update slide stage and redirect to protocol processing status."""
+        slide = get_object_or_404(
+            Slide.objects.select_related("protocol"),
+            pk=self.kwargs["slide_pk"],
+        )
+
+        if slide.protocol.status == Protocol.Status.REJECTED:
+            messages.error(
                 request,
-                _(f"Slide {slide.codigo_portaobjetos} actualizado a {stage}."),
+                _(
+                    "No se puede procesar un protocolo rechazado. "
+                    "Cambie el estado primero."
+                ),
             )
+            return redirect(
+                "protocols:processing_status", pk=slide.protocol.pk
+            )
+
+        action = request.POST.get("action", "")
+        observaciones = request.POST.get("observaciones", "")
+
+        success, error_message = self.processing_service.update_slide_stage(
+            slide, action, request.user, observaciones
+        )
+
+        if success:
+            if action == "revert":
+                messages.success(
+                    request,
+                    _("Portaobjetos %(code)s: etapa revertida.")
+                    % {"code": slide.codigo_portaobjetos},
+                )
+            else:
+                messages.success(
+                    request,
+                    _("Portaobjetos %(code)s: etapa actualizada.")
+                    % {"code": slide.codigo_portaobjetos},
+                )
         else:
             messages.error(request, error_message)
 

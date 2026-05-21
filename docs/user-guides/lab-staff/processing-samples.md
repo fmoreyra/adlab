@@ -46,27 +46,36 @@ _[Espacio para captura de pantalla: Cassettes preparados]_
 
 ## 📊 Registro en el Sistema
 
+Todo el seguimiento de etapas se hace desde **Estado del procesamiento** del protocolo (menú de procesamiento → abrir el protocolo). No hace falta cambiar de pantalla.
+
 ### Histopatología
 
-1. **Crear cassettes**: En el estado del protocolo, use **Crear Cassettes**. Indique cantidad, material, tipo y color por cassette.
-2. **Registrar slides**: Tras crear cassettes, abra **Registrar Slides**. Complete la tabla:
+1. **Crear cassettes**: En el estado del protocolo, use **Crear Cassettes**. Indique cantidad, material incluido y observaciones por cassette.
+2. **Avanzar etapas del cassette**: En la misma pantalla, en cada tarjeta de cassette use el botón de avance (**Fijar** → **Incluir** → **Entacar**). El encasetado se registra automáticamente al crear el cassette.
+3. **Registrar slides**: Use **Registrar Slides**. Complete la tabla:
    - **Cassette superior** (obligatorio): cassette montado en la parte superior del portaobjetos.
    - **Cassette inferior** (opcional): segundo cassette en el mismo slide, si aplica.
    - **Coloración**: por defecto Hematoxilina-Eosina; puede ajustarse por fila.
    - Use **+ Agregar slide** para más filas y **Registrar Slides** para guardar.
-3. Los slides ya registrados se muestran arriba de la tabla (solo lectura). Cada envío del formulario agrega slides nuevos.
+4. **Avanzar etapas del portaobjetos**: En la tabla de portaobjetos, use **Montar** → **Colorear** → **Marcar listo**.
 
 ### Citología
 
 - Los portaobjetos se registran **automáticamente al confirmar la recepción** (cantidad recibida + Diff-Quick por defecto).
-- En **Estado de procesamiento** verá la lista de portaobjetos y podrá avanzar etapas (montaje, coloración, listo).
+- En **Estado de procesamiento** avance las etapas del portaobjetos (**Montar** → **Colorear** → **Marcar listo**).
+
+### Revertir una etapa (cassettes y portaobjetos)
+
+Si hubo un error, use **Revertir etapa** en la columna Acciones. Se abrirá un cuadro de diálogo donde debe indicar el **motivo de la corrección** (obligatorio); queda registrado en el historial del protocolo.
+
+Use **Ver detalle y etapas** (o **Ver etapas de procesamiento**) en cada fila para desplegar el listado de etapas con fechas, material completo y observaciones.
 
 ### General
 
 - El protocolo pasa a estado de procesamiento según el flujo del laboratorio.
 - Documente incidencias en observaciones o en el estado del protocolo.
 
-_[Espacio para captura de pantalla: Registro de slides en tabla (histopatología)]_
+_[Espacio para captura de pantalla: Estado del procesamiento con cassettes y portaobjetos]_
 
 ---
 
