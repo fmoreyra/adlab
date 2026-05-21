@@ -173,8 +173,9 @@ class WorkOrderCreationService:
         Returns:
             WorkOrder: Created work order instance
         """
-        # Create work order
+        # Create work order (veterinarian comes from protocols, not the form)
         work_order = form.save(commit=False)
+        work_order.veterinarian = protocols.first().veterinarian
         work_order.total_amount = services_data["total"]
         work_order.created_by = created_by
         work_order.save()

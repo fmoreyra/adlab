@@ -108,12 +108,16 @@ class ProtocolSelectionForm(forms.Form):
 
 
 class WorkOrderCreateForm(forms.ModelForm):
-    """Form for creating a new work order."""
+    """
+    Form for creating a new work order.
+
+    Veterinarian is inferred from the selected protocols (see view/service),
+    not collected from the user.
+    """
 
     class Meta:
         model = WorkOrder
         fields = [
-            "veterinarian",
             "advance_payment",
             "billing_name",
             "cuit_cuil",
@@ -121,9 +125,6 @@ class WorkOrderCreateForm(forms.ModelForm):
             "observations",
         ]
         widgets = {
-            "veterinarian": forms.Select(
-                attrs={"class": "form-control", "readonly": "readonly"}
-            ),
             "advance_payment": forms.NumberInput(
                 attrs={
                     "class": "form-control",
@@ -156,7 +157,6 @@ class WorkOrderCreateForm(forms.ModelForm):
             ),
         }
         labels = {
-            "veterinarian": _("Veterinario"),
             "advance_payment": _("Pago Adelantado (USD)"),
             "billing_name": _("Nombre para Facturación"),
             "cuit_cuil": _("CUIT/CUIL"),
@@ -174,22 +174,27 @@ class WorkOrderCreateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.protocols = protocols or []
 
-        # Make veterinarian field disabled (it's determined by protocols)
-        if self.protocols:
-            veterinarian = self.protocols[0].veterinarian
-            self.fields["veterinarian"].initial = veterinarian
-            self.fields["veterinarian"].disabled = True
+        # Optional in the UI; empty input should default to zero.
+        self.fields["advance_payment"].required = False
 
-            # Pre-fill billing info from veterinarian if available
-            if not self.instance.pk:
-                vet_user = veterinarian.user
-                self.fields["billing_name"].initial = vet_user.get_full_name()
-                if hasattr(veterinarian, "cuit_cuil"):
-                    self.fields["cuit_cuil"].initial = veterinarian.cuit_cuil
+        if self.protocols and not self.instance.pk:
+            veterinarian = self.protocols[0].veterinarian
+            vet_user = veterinarian.user
+            self.fields["billing_name"].initial = vet_user.get_full_name()
+            if hasattr(veterinarian, "cuit_cuil"):
+                self.fields["cuit_cuil"].initial = veterinarian.cuit_cuil
+
+    def get_veterinarian(self):
+        """Return the veterinarian inferred from the selected protocols."""
+        if not self.protocols:
+            return None
+        return self.protocols[0].veterinarian
 
     def clean_advance_payment(self):
         """Validate advance payment amount."""
-        advance = self.cleaned_data.get("advance_payment", Decimal("0"))
+        advance = self.cleaned_data.get("advance_payment")
+        if advance is None:
+            advance = Decimal("0")
 
         if advance < 0:
             raise ValidationError(

@@ -2926,7 +2926,6 @@ class WorkOrderViewsTest(TestCase):
 
         protocol_ids = f"{self.protocol1.pk},{self.protocol2.pk}"
         form_data = {
-            "veterinarian": self.veterinarian.pk,
             "advance_payment": "0",
             "billing_name": "Test Billing Name",
             "cuit_cuil": "20-12345678-9",

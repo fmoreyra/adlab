@@ -251,6 +251,20 @@ class WorkOrderCreateView(WorkOrderStaffRequiredMixin, FormView):
 
         return super().get(request, *args, **kwargs)
 
+    def get_form_kwargs(self):
+        """Pass selected protocols for billing pre-fill and veterinarian inference."""
+        kwargs = super().get_form_kwargs()
+        kwargs["protocols"] = list(self.get_protocols())
+        return kwargs
+
+    def form_invalid(self, form):
+        """Surface validation errors; hidden fields alone are easy to miss."""
+        messages.error(
+            self.request,
+            _("Revise los datos del formulario. Hay campos con errores."),
+        )
+        return super().form_invalid(form)
+
     def get_context_data(self, **kwargs):
         """Add protocols, veterinarian, and services_data to context."""
         context = super().get_context_data(**kwargs)

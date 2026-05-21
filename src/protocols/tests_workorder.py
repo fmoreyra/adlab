@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from accounts.models import Veterinarian
+from protocols.forms_workorder import WorkOrderCreateForm
 from protocols.models import (
     PricingCatalog,
     Protocol,
@@ -352,6 +353,66 @@ class WorkOrderServiceModelTest(TestCase):
 
         expected = f"{self.work_order.order_number} - Test Service"
         self.assertEqual(str(service), expected)
+
+
+class WorkOrderCreateFormTest(TestCase):
+    """Tests for work order creation form validation."""
+
+    def setUp(self):
+        """Set up veterinarian and a READY protocol."""
+        vet_user = User.objects.create_user(
+            email="vet-create-ot@test.com",
+            username="vetcreateot",
+            password="testpass123",
+            first_name="Ana",
+            last_name="García",
+            role="veterinarian",
+        )
+        self.veterinarian = Veterinarian.objects.create(
+            user=vet_user,
+            license_number="MP-CREATE-OT-001",
+        )
+        self.protocol = Protocol.objects.create(
+            veterinarian=self.veterinarian,
+            analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
+            species="Canino",
+            animal_identification="WO-FORM-001",
+            presumptive_diagnosis="Test",
+            submission_date=date.today(),
+            status=Protocol.Status.READY,
+        )
+
+    def test_empty_optional_fields_valid_with_protocols(self):
+        """Empty billing fields and advance payment should be accepted."""
+        form = WorkOrderCreateForm(
+            data={
+                "advance_payment": "",
+                "billing_name": "",
+                "cuit_cuil": "",
+                "iva_condition": "",
+            },
+            protocols=[self.protocol],
+        )
+
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data["advance_payment"], Decimal("0"))
+        self.assertEqual(form.get_veterinarian(), self.veterinarian)
+
+    def test_invalid_cuit_shows_field_error(self):
+        """Invalid CUIT format must fail validation with a field error."""
+        form = WorkOrderCreateForm(
+            data={
+                "advance_payment": "",
+                "billing_name": "",
+                "cuit_cuil": "123",
+                "iva_condition": "",
+            },
+            protocols=[self.protocol],
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("cuit_cuil", form.errors)
+        self.assertNotIn("veterinarian", form.errors)
 
 
 class WorkOrderIntegrationTest(TestCase):
