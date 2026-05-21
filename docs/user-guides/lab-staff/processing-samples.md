@@ -76,6 +76,10 @@ Cuando **todos** los cassettes (histopatología) y portaobjetos estén en su úl
 
 Si faltan pasos, el sistema muestra una lista de pendientes (cassettes o portaobjetos incompletos).
 
+### Órdenes de trabajo
+
+Desde el estado **Listo** puede enlazarse a órdenes de trabajo solo si su usuario tiene **`is_staff` habilitado** («Staff status» en Administración → Usuarios). El rol de personal de laboratorio no alcanza por sí solo; un administrador debe activar ese flag para quien factura o arma OTs.
+
 ### General
 
 - El protocolo pasa a estado de procesamiento según el flujo del laboratorio.

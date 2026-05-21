@@ -86,7 +86,8 @@ make manage ARGS="shell" < simple_test_data.py
 This creates:
 - Veterinarian: `vet@example.com` / `testpass123`
 - Histopathologist: `histo@example.com` / `testpass123`
-- Lab Staff: `staff@example.com` / `testpass123`
+- Lab Staff: `staff@example.com` / `testpass123` (`is_staff=True`, órdenes de trabajo)
+- Lab Tech: `lab_tech1@adlab.local` / `lab123` (`is_staff=True` si se creó con `simple_test_data.py`)
 
 See [Test Credentials](./test-credentials.md) for complete list.
 

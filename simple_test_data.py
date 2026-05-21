@@ -40,14 +40,41 @@ def create_simple_test_data():
             'last_name': 'González',
             'role': User.Role.PERSONAL_LAB,
             'is_active': True,
+            'is_staff': True,
             'email_verified': True,
             'failed_login_attempts': 0,
-        }
+        },
     )
     if created:
         lab_tech1.set_password('lab123')
         lab_tech1.save()
         print(f"  ✅ Created lab technician: {lab_tech1.email}")
+    elif not lab_tech1.is_staff:
+        lab_tech1.is_staff = True
+        lab_tech1.save(update_fields=['is_staff'])
+        print(f"  ✅ Enabled is_staff for: {lab_tech1.email}")
+
+    staff_user, staff_created = User.objects.get_or_create(
+        username='staff',
+        defaults={
+            'email': 'staff@example.com',
+            'first_name': 'Lab',
+            'last_name': 'Staff',
+            'role': User.Role.PERSONAL_LAB,
+            'is_active': True,
+            'is_staff': True,
+            'email_verified': True,
+            'failed_login_attempts': 0,
+        },
+    )
+    if staff_created:
+        staff_user.set_password('testpass123')
+        staff_user.save()
+        print(f"  ✅ Created lab staff (quickstart): {staff_user.email}")
+    elif not staff_user.is_staff:
+        staff_user.is_staff = True
+        staff_user.save(update_fields=['is_staff'])
+        print(f"  ✅ Enabled is_staff for: {staff_user.email}")
     
     # Veterinarian users
     vet1, created = User.objects.get_or_create(
@@ -281,7 +308,8 @@ def create_simple_test_data():
     
     print("\n🔑 Test User Credentials:")
     print("  Admin: admin / admin123")
-    print("  Lab Tech 1: lab_tech1@adlab.local / lab123")
+    print("  Lab Tech 1: lab_tech1@adlab.local / lab123 (is_staff=True, OT habilitadas)")
+    print("  Lab Staff: staff@example.com / testpass123 (is_staff=True)")
     print("  Veterinarian 1: dr.garcia@veterinaria.com / vet123")
     print("  Veterinarian 2: dra.lopez@clinica.com / vet123")
     

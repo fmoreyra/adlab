@@ -31,10 +31,11 @@
 
 ### 2. PERSONAL_LAB (Laboratory Staff)
 
-| Email                  | Username    | Name              | Status | Email Verified | Password      |
-|------------------------|-------------|-------------------|--------|----------------|---------------|
-| lab_tech1@adlab.local  | lab_tech1   | María González    | Active | ✅ Yes         | Password123!  |
-| lab_tech2@adlab.local  | lab_tech2   | Carlos Rodríguez  | Active | ✅ Yes         | Password123!  |
+| Email                  | Username    | Name              | Status | Staff (`is_staff`) | Email Verified | Password      |
+|------------------------|-------------|-------------------|--------|--------------------|----------------|---------------|
+| lab_tech1@adlab.local  | lab_tech1   | María González    | Active | ✅ Yes             | ✅ Yes         | Password123!  |
+| lab_tech2@adlab.local  | lab_tech2   | Carlos Rodríguez  | Active | —                  | ✅ Yes         | Password123!  |
+| staff@example.com      | staff       | Lab Staff         | Active | ✅ Yes             | ✅ Yes         | testpass123   |
 
 **Dashboard**: `/dashboard/lab-staff/`
 
@@ -42,7 +43,7 @@
 - Sample reception and confirmation
 - Processing management
 - Register cassettes and slides
-- Create work orders
+- Create work orders (`lab_tech1` and `staff@example.com` have **`is_staff=True`**; otros usuarios PERSONAL_LAB deben activarlo en el admin)
 - Generate labels
 - Search protocols
 

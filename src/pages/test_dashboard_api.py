@@ -36,6 +36,7 @@ class DashboardAPITestCase(TestCase):
             first_name="Lab",
             last_name="Staff",
             role=User.Role.PERSONAL_LAB,
+            is_staff=True,
         )
 
         self.histopathologist = User.objects.create_user(

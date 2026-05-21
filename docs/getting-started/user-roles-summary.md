@@ -82,6 +82,8 @@ Esta página proporciona un resumen completo de las capacidades y característic
 - Crear documentos de facturación
 - Gestionar el estado de las órdenes de trabajo
 
+**Permiso adicional:** las pantallas de órdenes de trabajo exigen que el usuario tenga **`is_staff=True`** («Staff status» en el admin de Django), además del rol PERSONAL_LAB. La recepción y el procesamiento de muestras no usan ese flag; un técnico sin `is_staff` verá el acceso deshabilitado o un aviso en el panel.
+
 #### 📊 **Seguimiento de Inventario**
 - Gestionar inventario de procesamiento de muestras
 - Seguir el uso de cassettes y portaobjetos

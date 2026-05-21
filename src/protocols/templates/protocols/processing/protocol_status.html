@@ -75,10 +75,17 @@
         Un miembro del personal con permiso de informes puede crear el diagnóstico desde el panel de laboratorio.
       </p>
       {% endif %}
+      {% if user.is_staff %}
       <a href="{% url 'protocols:workorder_pending_protocols' %}"
          class="inline-flex items-center px-4 py-2 border border-green-700 text-green-800 text-sm font-medium rounded-md hover:bg-green-100">
         Órdenes de trabajo
       </a>
+      {% else %}
+      <p class="text-sm text-green-800 w-full">
+        Las órdenes de trabajo requieren «Staff status» (<span class="font-mono text-xs">is_staff</span>)
+        habilitado en su usuario; solicítelo al administrador.
+      </p>
+      {% endif %}
     </div>
   </div>
   {% elif protocol.status != 'rejected' and protocol.status != 'report_sent' %}

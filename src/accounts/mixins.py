@@ -84,11 +84,20 @@ class VeterinarianRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
 class WorkOrderStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
-    Mixin that requires the user to be staff, redirects to protocols list.
+    Restrict work order views to users with Django ``is_staff=True``.
+
+    This is intentionally separate from ``StaffRequiredMixin`` (lab reception
+    and processing), which checks ``User.is_lab_staff`` by role.
+
+    A PERSONAL_LAB user without ``is_staff`` can receive and process samples but
+    cannot open work order URLs until an administrator enables "Staff status"
+    on their user in Django admin (Users → Staff status / is_staff).
+
+    Veterinarians never have access to work orders.
     """
 
     def test_func(self):
-        """Test if user is staff."""
+        """Allow only Django staff users (``User.is_staff``)."""
         return self.request.user.is_staff
 
     def get_permission_denied_message(self):

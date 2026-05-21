@@ -511,7 +511,8 @@ vet = User.objects.create_user(
 lab_staff = User.objects.create_user(
     email='lab@example.com',
     password='TestPass123!',
-    role=User.Role.PERSONAL_LAB
+    role=User.Role.PERSONAL_LAB,
+    is_staff=True,
 )
 
 # Create veterinarian profile

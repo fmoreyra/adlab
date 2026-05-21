@@ -1,5 +1,9 @@
 """
 Views for work order generation and management.
+
+Access control: all views use ``WorkOrderStaffRequiredMixin``, which requires
+``User.is_staff=True`` (Django "Staff status"), not merely the PERSONAL_LAB
+role. Enable is_staff in admin for users who should create or manage OTs.
 """
 
 import logging
