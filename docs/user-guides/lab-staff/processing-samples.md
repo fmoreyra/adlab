@@ -68,7 +68,13 @@ Todo el seguimiento de etapas se hace desde **Estado del procesamiento** del pro
 
 Si hubo un error, use **Revertir etapa** en la columna Acciones. Se abrirá un cuadro de diálogo donde debe indicar el **motivo de la corrección** (obligatorio); queda registrado en el historial del protocolo.
 
-Use **Ver detalle y etapas** (o **Ver etapas de procesamiento**) en cada fila para desplegar el listado de etapas con fechas, material completo y observaciones.
+Use **Ver historial** en cada fila de cassette o portaobjetos para abrir el detalle de etapas, material y el registro de auditoría de ese elemento.
+
+### Finalizar procesamiento de laboratorio
+
+Cuando **todos** los cassettes (histopatología) y portaobjetos estén en su última etapa, use **Marcar listo para diagnóstico** en la misma pantalla. El protocolo pasa a estado **Listo** y el caso queda disponible para informe u orden de trabajo.
+
+Si faltan pasos, el sistema muestra una lista de pendientes (cassettes o portaobjetos incompletos).
 
 ### General
 

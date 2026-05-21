@@ -4,11 +4,6 @@
 {% block title %}Estado de Procesamiento - {{ protocol.protocol_number }}{% endblock %}
 
 {% block body %}
-<style>
-  .processing-accordion > summary::-webkit-details-marker { display: none; }
-  .processing-accordion > summary::marker { content: ""; }
-  .processing-accordion[open] .accordion-chevron { transform: rotate(90deg); }
-</style>
 <div class="container mx-auto px-4 py-8">
   <!-- Header -->
   <div class="flex justify-between items-center mb-8">
@@ -43,7 +38,79 @@
         <div class="text-lg">{{ protocol.veterinarian.get_full_name }}</div>
       </div>
     </div>
+    <div class="mt-4 pt-4 border-t border-gray-100">
+      <label class="block text-sm font-medium text-gray-500">Estado del protocolo</label>
+      <span class="mt-1 px-3 py-1 inline-flex text-sm font-semibold rounded-full
+        {% if protocol.status == 'ready' %}bg-green-100 text-green-800
+        {% elif protocol.status == 'processing' %}bg-purple-100 text-purple-800
+        {% elif protocol.status == 'received' %}bg-blue-100 text-blue-800
+        {% elif protocol.status == 'report_sent' %}bg-gray-100 text-gray-800
+        {% else %}bg-gray-100 text-gray-800{% endif %}">
+        {{ protocol.get_status_display }}
+      </span>
+    </div>
   </div>
+
+  {# Cierre de procesamiento técnico / siguientes pasos #}
+  {% if protocol.status == 'ready' %}
+  <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+    <h2 class="text-lg font-semibold text-green-900 mb-2">
+      Procesamiento técnico finalizado
+    </h2>
+    <p class="text-sm text-green-800 mb-4">
+      La muestra está lista para diagnóstico. El caso puede pasar a informe u orden de trabajo.
+    </p>
+    <div class="flex flex-wrap gap-3">
+      {% if user_can_create_reports %}
+      <a href="{% url 'protocols:report_create' protocol.pk %}"
+         class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+        Crear informe
+      </a>
+      <a href="{% url 'protocols:report_pending_list' %}"
+         class="inline-flex items-center px-4 py-2 border border-indigo-600 text-indigo-700 text-sm font-medium rounded-md hover:bg-indigo-50">
+        Ver pendientes de informe
+      </a>
+      {% else %}
+      <p class="text-sm text-green-800 w-full">
+        Un miembro del personal con permiso de informes puede crear el diagnóstico desde el panel de laboratorio.
+      </p>
+      {% endif %}
+      <a href="{% url 'protocols:workorder_pending_protocols' %}"
+         class="inline-flex items-center px-4 py-2 border border-green-700 text-green-800 text-sm font-medium rounded-md hover:bg-green-100">
+        Órdenes de trabajo
+      </a>
+    </div>
+  </div>
+  {% elif protocol.status != 'rejected' and protocol.status != 'report_sent' %}
+  <div class="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-2">
+      Finalizar procesamiento de laboratorio
+    </h2>
+    {% if processing_readiness.can_mark_ready %}
+    <p class="text-sm text-gray-600 mb-4">
+      Todos los cassettes y portaobjetos están completos. Confirme para indicar que la muestra está lista para diagnóstico.
+    </p>
+    <form method="post" action="{% url 'protocols:protocol_mark_ready' protocol.pk %}">
+      {% csrf_token %}
+      <button type="submit"
+              class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700">
+        Marcar listo para diagnóstico
+      </button>
+    </form>
+    {% else %}
+    <p class="text-sm text-gray-600 mb-3">
+      Cuando termine todas las etapas de cassettes y portaobjetos, podrá cerrar el procesamiento técnico aquí.
+    </p>
+    {% if processing_readiness.blockers %}
+    <ul class="list-disc list-inside text-sm text-amber-800 bg-amber-50 rounded-md p-4 space-y-1">
+      {% for blocker in processing_readiness.blockers %}
+      <li>{{ blocker }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% endif %}
+  </div>
+  {% endif %}
 
   <!-- Cassettes Section (Histopathology only) -->
   {% if protocol.analysis_type == 'histopathology' %}
@@ -63,17 +130,16 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-4 py-3 w-8"></th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Historial</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
             {% for cassette in cassettes %}
             <tr class="hover:bg-gray-50 bg-white">
-              <td class="px-4 py-4 align-top"></td>
               <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                 {{ cassette.codigo_cassette }}
               </td>
@@ -88,22 +154,15 @@
                   {{ cassette.get_estado_display }}
                 </span>
               </td>
+              <td class="px-6 py-4 text-sm whitespace-nowrap">
+                <a href="{% url 'protocols:cassette_processing_history' cassette.pk %}"
+                   class="text-indigo-600 hover:text-indigo-800 font-medium">
+                  Ver historial
+                </a>
+              </td>
               <td class="px-6 py-4 text-sm">
                 {% url 'protocols:cassette_update_stage' cassette.pk as cassette_stage_url %}
                 {% include "protocols/processing/_processing_actions.html" with item=cassette advance_url=cassette_stage_url revert_url=cassette_stage_url revert_label=cassette.codigo_cassette %}
-              </td>
-            </tr>
-            <tr class="bg-gray-50">
-              <td colspan="5" class="px-0 py-0">
-                <details class="processing-accordion">
-                  <summary class="px-6 py-2 text-sm text-gray-600 cursor-pointer hover:bg-gray-100 list-none flex items-center gap-2">
-                    <span class="accordion-chevron text-gray-400 transition-transform inline-block">▶</span>
-                    Ver detalle y etapas de procesamiento
-                  </summary>
-                  <div class="px-6 py-4 border-t border-gray-200 bg-white">
-                    {% include "protocols/processing/_cassette_timeline.html" %}
-                  </div>
-                </details>
               </td>
             </tr>
             {% endfor %}
@@ -133,19 +192,18 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-4 py-3 w-8"></th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cassettes</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Coloración</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Calidad</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Historial</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
             {% for slide in slides %}
             <tr class="hover:bg-gray-50 bg-white">
-              <td class="px-4 py-4 align-top"></td>
               <td class="px-6 py-4 whitespace-nowrap font-medium">
                 {{ slide.codigo_portaobjetos }}
               </td>
@@ -187,22 +245,15 @@
                   <span class="text-gray-400">-</span>
                 {% endif %}
               </td>
+              <td class="px-6 py-4 text-sm whitespace-nowrap">
+                <a href="{% url 'protocols:slide_processing_history' slide.pk %}"
+                   class="text-purple-600 hover:text-purple-800 font-medium">
+                  Ver historial
+                </a>
+              </td>
               <td class="px-6 py-4 text-sm">
                 {% url 'protocols:slide_update_stage' slide.pk as slide_stage_url %}
                 {% include "protocols/processing/_processing_actions.html" with item=slide advance_url=slide_stage_url revert_url=slide_stage_url revert_label=slide.codigo_portaobjetos %}
-              </td>
-            </tr>
-            <tr class="bg-gray-50">
-              <td colspan="7" class="px-0 py-0">
-                <details class="processing-accordion">
-                  <summary class="px-6 py-2 text-sm text-gray-600 cursor-pointer hover:bg-gray-100 list-none flex items-center gap-2">
-                    <span class="accordion-chevron text-gray-400 transition-transform inline-block">▶</span>
-                    Ver etapas de procesamiento
-                  </summary>
-                  <div class="px-6 py-4 border-t border-gray-200 bg-white">
-                    {% include "protocols/processing/_slide_timeline.html" %}
-                  </div>
-                </details>
               </td>
             </tr>
             {% endfor %}
@@ -226,61 +277,6 @@
       {% else %}
       <p class="text-gray-500 text-center py-4">No hay slides registrados aún.</p>
       {% endif %}
-    {% endif %}
-  </div>
-
-  <!-- Processing Log -->
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Registro de Procesamiento</h2>
-
-    {% if processing_logs %}
-      <div class="space-y-2">
-        {% for log in processing_logs %}
-        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-md">
-          <div class="flex-shrink-0 mt-1">
-            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-          </div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start">
-              <div class="flex flex-wrap items-center gap-2">
-                {% if log.cassette %}
-                  <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                    Cassette
-                  </span>
-                  <span class="font-medium text-gray-900">{{ log.cassette.codigo_cassette }}</span>
-                  <span class="text-gray-400">·</span>
-                  <span class="text-gray-900">{{ log.get_etapa_display }}</span>
-                {% elif log.slide %}
-                  <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                    Portaobjetos
-                  </span>
-                  <span class="font-medium text-gray-900">{{ log.slide.codigo_portaobjetos }}</span>
-                  <span class="text-gray-400">·</span>
-                  <span class="text-gray-900">{{ log.get_etapa_display }}</span>
-                {% else %}
-                  <span class="font-medium text-gray-900">{{ log.get_etapa_display }}</span>
-                {% endif %}
-              </div>
-              <div class="text-xs text-gray-500">
-                {{ log.created_at|date:"d/m/Y H:i" }}
-              </div>
-            </div>
-            {% if log.usuario %}
-              <div class="text-xs text-gray-500 mt-1">
-                Por: {{ log.usuario.get_full_name|default:log.usuario.email }}
-              </div>
-            {% endif %}
-            {% if log.observaciones %}
-              <div class="text-sm text-gray-600 mt-1">
-                {{ log.observaciones }}
-              </div>
-            {% endif %}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="text-gray-500 text-center py-4">No hay registros de procesamiento aún.</p>
     {% endif %}
   </div>
 </div>

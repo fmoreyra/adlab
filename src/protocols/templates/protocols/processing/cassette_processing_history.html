@@ -1,0 +1,39 @@
+{% extends "layouts/index.html" %}
+
+{% block title %}Historial — {{ cassette.codigo_cassette }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <p class="text-sm text-gray-500 mb-1">
+        <a href="{% url 'protocols:processing_status' protocol.pk %}"
+           class="text-purple-600 hover:text-purple-800">
+          ← Estado de procesamiento
+        </a>
+        <span class="text-gray-400 mx-2">·</span>
+        {{ protocol.protocol_number }}
+      </p>
+      <h1 class="text-2xl font-bold text-gray-800">
+        Cassette {{ cassette.codigo_cassette }}
+      </h1>
+    </div>
+    <span class="px-3 py-1 text-sm font-semibold rounded-full
+      {% if cassette.estado == 'completado' %}bg-green-100 text-green-800
+      {% elif cassette.estado == 'en_proceso' %}bg-yellow-100 text-yellow-800
+      {% else %}bg-gray-100 text-gray-800{% endif %}">
+      {{ cassette.get_estado_display }}
+    </span>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Detalle y etapas</h2>
+    {% include "protocols/processing/_cassette_timeline.html" %}
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Registro de procesamiento</h2>
+    {% include "protocols/processing/_processing_log_entries.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -1083,27 +1083,128 @@ class ProtocolProcessingStatusView(StaffRequiredMixin, DetailView):
             "cassette_slides__cassette"
         )
 
-        # Get processing logs
-        processing_logs = (
-            ProcessingLog.objects.filter(protocol=protocol)
-            .select_related("usuario", "cassette", "slide")
-            .order_by("created_at")
-        )
+        processing_service = ProtocolProcessingService()
+        readiness = processing_service.get_processing_readiness(protocol)
 
-        # Get status history
-        status_history = protocol.status_history.all().select_related(
-            "changed_by"
-        )
+        user_can_create_reports = False
+        if self.request.user.is_authenticated:
+            profile = getattr(self.request.user, "lab_staff_profile", None)
+            if profile:
+                user_can_create_reports = (
+                    profile.is_active and profile.can_create_reports
+                )
 
         context.update(
             {
                 "cassettes": cassettes,
                 "slides": slides,
-                "processing_logs": processing_logs,
-                "status_history": status_history,
+                "processing_readiness": readiness,
+                "user_can_create_reports": user_can_create_reports,
             }
         )
 
+        return context
+
+
+class ProtocolMarkReadyView(StaffRequiredMixin, View):
+    """Mark protocol technical processing complete (READY for diagnosis)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.processing_service = ProtocolProcessingService()
+
+    def post(self, request, *args, **kwargs):
+        """Transition protocol to READY and redirect to processing status."""
+        protocol = get_object_or_404(Protocol, pk=self.kwargs["pk"])
+
+        if protocol.status == Protocol.Status.REJECTED:
+            messages.error(
+                request,
+                _(
+                    "No se puede procesar un protocolo rechazado. "
+                    "Cambie el estado primero."
+                ),
+            )
+            return redirect("protocols:processing_status", pk=protocol.pk)
+
+        success, error_message = (
+            self.processing_service.mark_ready_for_diagnosis(
+                protocol, request.user
+            )
+        )
+
+        if success:
+            messages.success(
+                request,
+                _("Protocolo %(number)s marcado como listo para diagnóstico.")
+                % {"number": protocol.protocol_number},
+            )
+        else:
+            messages.error(request, error_message)
+
+        return redirect("protocols:processing_status", pk=protocol.pk)
+
+
+class CassetteProcessingHistoryView(StaffRequiredMixin, DetailView):
+    """Processing timeline and audit log for a single cassette."""
+
+    model = Cassette
+    template_name = "protocols/processing/cassette_processing_history.html"
+    context_object_name = "cassette"
+    pk_url_kwarg = "cassette_pk"
+
+    def get_queryset(self):
+        """Load cassette with protocol for navigation."""
+        return Cassette.objects.select_related(
+            "histopathology_sample__protocol__veterinarian__user"
+        )
+
+    def get_context_data(self, **kwargs):
+        """Add protocol and processing logs for this cassette."""
+        context = super().get_context_data(**kwargs)
+        protocol = self.object.histopathology_sample.protocol
+        processing_logs = (
+            ProcessingLog.objects.filter(cassette=self.object)
+            .select_related("usuario")
+            .order_by("created_at")
+        )
+        context.update(
+            {
+                "protocol": protocol,
+                "processing_logs": processing_logs,
+            }
+        )
+        return context
+
+
+class SlideProcessingHistoryView(StaffRequiredMixin, DetailView):
+    """Processing timeline and audit log for a single slide."""
+
+    model = Slide
+    template_name = "protocols/processing/slide_processing_history.html"
+    context_object_name = "slide"
+    pk_url_kwarg = "slide_pk"
+
+    def get_queryset(self):
+        """Load slide with protocol and cassette links."""
+        return Slide.objects.select_related(
+            "protocol__veterinarian__user"
+        ).prefetch_related("cassette_slides__cassette")
+
+    def get_context_data(self, **kwargs):
+        """Add protocol and processing logs for this slide."""
+        context = super().get_context_data(**kwargs)
+        processing_logs = (
+            ProcessingLog.objects.filter(slide=self.object)
+            .select_related("usuario")
+            .order_by("created_at")
+        )
+        context.update(
+            {
+                "protocol": self.object.protocol,
+                "processing_logs": processing_logs,
+            }
+        )
         return context
 
 

@@ -1848,8 +1848,7 @@ class ProcessingViewsTest(TestCase):
         context = response.context
         self.assertEqual(context["protocol"], self.cytology_protocol)
         self.assertIn("slides", context)
-        self.assertIn("processing_logs", context)
-        self.assertIn("status_history", context)
+        self.assertIn("processing_readiness", context)
 
     def test_protocol_processing_status_view_histopathology(self):
         """Test protocol processing status view for histopathology protocol."""
@@ -2376,6 +2375,122 @@ class ProcessingViewsTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+
+    def test_protocol_mark_ready_view_success_cytology(self):
+        """Test POST mark-ready transitions cytology protocol to READY."""
+        slide = Slide.objects.create(
+            protocol=self.cytology_protocol,
+            campo="1",
+        )
+        slide.advance_stage()
+        slide.advance_stage()
+        slide.advance_stage()
+
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        with patch(
+            "protocols.services.protocol_service.ProtocolProcessingService._notify_protocol_ready"
+        ):
+            response = self.client.post(
+                reverse(
+                    "protocols:protocol_mark_ready",
+                    kwargs={"pk": self.cytology_protocol.pk},
+                )
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.cytology_protocol.pk},
+            ),
+        )
+        self.cytology_protocol.refresh_from_db()
+        self.assertEqual(self.cytology_protocol.status, Protocol.Status.READY)
+
+    def test_cassette_processing_history_view(self):
+        """Test cassette processing history page."""
+        cassette = Cassette.objects.create(
+            histopathology_sample=self.histopathology_sample,
+            material_incluido="Tejido",
+        )
+        cassette.update_stage("encasetado")
+        ProcessingLog.log_action(
+            protocol=self.histopathology_protocol,
+            etapa=ProcessingLog.Stage.ENCASETADO,
+            usuario=self.staff_user,
+            cassette=cassette,
+            observaciones="Prueba historial",
+        )
+
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:cassette_processing_history",
+                kwargs={"cassette_pk": cassette.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "protocols/processing/cassette_processing_history.html"
+        )
+        self.assertContains(response, cassette.codigo_cassette)
+        self.assertContains(response, "Prueba historial")
+
+    def test_slide_processing_history_view(self):
+        """Test slide processing history page."""
+        slide = Slide.objects.create(
+            protocol=self.cytology_protocol,
+            campo="1",
+        )
+        slide.advance_stage()
+        ProcessingLog.log_action(
+            protocol=self.cytology_protocol,
+            etapa=ProcessingLog.Stage.MONTAJE,
+            usuario=self.staff_user,
+            slide=slide,
+            observaciones="Montaje registrado",
+        )
+
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:slide_processing_history",
+                kwargs={"slide_pk": slide.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "protocols/processing/slide_processing_history.html"
+        )
+        self.assertContains(response, slide.codigo_portaobjetos)
+        self.assertContains(response, "Montaje registrado")
+
+    def test_protocol_mark_ready_view_blocked_incomplete_slides(self):
+        """Test mark-ready fails when slides are not all LISTO."""
+        Slide.objects.create(
+            protocol=self.cytology_protocol,
+            campo="1",
+            estado=Slide.Status.PENDIENTE,
+        )
+
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.post(
+            reverse(
+                "protocols:protocol_mark_ready",
+                kwargs={"pk": self.cytology_protocol.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.cytology_protocol.refresh_from_db()
+        self.assertEqual(
+            self.cytology_protocol.status, Protocol.Status.RECEIVED
+        )
 
     def test_slide_update_stage_view_permission_staff_required(self):
         """Test that only staff can access slide update stage view."""

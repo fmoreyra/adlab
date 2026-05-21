@@ -469,6 +469,82 @@ class ProtocolProcessingServiceTest(TestCase):
         cassette.refresh_from_db()
         self.assertIsNotNone(cassette.fecha_fijacion)
 
+    def _complete_cassette(self, cassette):
+        """Advance cassette through all processing stages."""
+        cassette.update_stage("encasetado")
+        cassette.advance_stage()
+        cassette.advance_stage()
+        cassette.advance_stage()
+
+    def _complete_slide(self, slide):
+        """Advance slide through all processing stages."""
+        slide.advance_stage()
+        slide.advance_stage()
+        slide.advance_stage()
+
+    def test_get_processing_readiness_histopathology_blockers(self):
+        """Test readiness lists missing cassettes and incomplete slides."""
+        from protocols.models import HistopathologySample
+
+        HistopathologySample.objects.create(
+            protocol=self.protocol,
+            number_jars_expected=1,
+        )
+        readiness = self.service.get_processing_readiness(self.protocol)
+
+        self.assertFalse(readiness["can_mark_ready"])
+        self.assertTrue(
+            any("cassette" in b.lower() for b in readiness["blockers"])
+        )
+
+    def test_mark_ready_for_diagnosis_success(self):
+        """Test marking protocol READY when processing is complete."""
+        from protocols.models import HistopathologySample
+
+        sample = HistopathologySample.objects.create(
+            protocol=self.protocol,
+            number_jars_expected=1,
+        )
+        self.protocol.status = Protocol.Status.PROCESSING
+        self.protocol.save(update_fields=["status"])
+
+        cassette = Cassette.objects.create(
+            histopathology_sample=sample,
+            material_incluido="Biopsy",
+        )
+        self._complete_cassette(cassette)
+
+        slide = Slide.objects.create(
+            protocol=self.protocol,
+            codigo_portaobjetos="SLIDE001",
+        )
+        self._complete_slide(slide)
+
+        with patch.object(
+            self.service, "_notify_protocol_ready"
+        ) as mock_notify:
+            success, error = self.service.mark_ready_for_diagnosis(
+                self.protocol, self.user
+            )
+
+        self.assertTrue(success)
+        self.assertEqual(error, "")
+        self.protocol.refresh_from_db()
+        self.assertEqual(self.protocol.status, Protocol.Status.READY)
+        mock_notify.assert_called_once()
+
+    def test_mark_ready_for_diagnosis_already_ready(self):
+        """Test cannot mark READY twice."""
+        self.protocol.status = Protocol.Status.READY
+        self.protocol.save(update_fields=["status"])
+
+        success, error = self.service.mark_ready_for_diagnosis(
+            self.protocol, self.user
+        )
+
+        self.assertFalse(success)
+        self.assertIn("ya está listo", error.lower())
+
     def test_update_slide_stage_invalid(self):
         """Test slide stage update with invalid action."""
         slide = Slide.objects.create(

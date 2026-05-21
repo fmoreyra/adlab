@@ -570,3 +570,183 @@ class ProtocolProcessingService:
         except Exception as e:
             logger.error(f"Error updating slide {slide.id} quality: {e}")
             return False, str(e)
+
+    MARK_READY_ALLOWED_STATUSES = (
+        Protocol.Status.RECEIVED,
+        Protocol.Status.PROCESSING,
+    )
+
+    def get_processing_readiness(self, protocol: Protocol) -> dict:
+        """
+        Assess whether technical processing is complete and protocol can go to READY.
+
+        Returns:
+            dict with keys: can_mark_ready, blockers, is_complete
+        """
+        blockers = []
+
+        if protocol.status == Protocol.Status.READY:
+            return {
+                "can_mark_ready": False,
+                "blockers": [],
+                "is_complete": True,
+                "already_ready": True,
+            }
+
+        if protocol.status == Protocol.Status.REJECTED:
+            blockers.append(
+                _("El protocolo está rechazado; no puede marcarse como listo.")
+            )
+            return {
+                "can_mark_ready": False,
+                "blockers": blockers,
+                "is_complete": False,
+                "already_ready": False,
+            }
+
+        if protocol.status not in self.MARK_READY_ALLOWED_STATUSES:
+            blockers.append(
+                _(
+                    "El protocolo debe estar recibido o en procesamiento "
+                    "para cerrar el trabajo de laboratorio."
+                )
+            )
+            return {
+                "can_mark_ready": False,
+                "blockers": blockers,
+                "is_complete": False,
+                "already_ready": False,
+            }
+
+        slides = list(protocol.slides.all())
+        if not slides:
+            blockers.append(_("Debe registrar al menos un portaobjetos."))
+        else:
+            pending_slides = [
+                s.codigo_portaobjetos
+                for s in slides
+                if s.estado != Slide.Status.LISTO
+            ]
+            if pending_slides:
+                blockers.append(
+                    _(
+                        "Complete todas las etapas de los portaobjetos "
+                        "(pendientes: %(codes)s)."
+                    )
+                    % {"codes": ", ".join(pending_slides)}
+                )
+
+        if protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY:
+            if not hasattr(protocol, "histopathology_sample"):
+                blockers.append(
+                    _("Este protocolo no tiene muestra de histopatología.")
+                )
+            else:
+                cassettes = list(
+                    protocol.histopathology_sample.cassettes.all()
+                )
+                if not cassettes:
+                    blockers.append(_("Debe crear al menos un cassette."))
+                else:
+                    pending_cassettes = [
+                        c.codigo_cassette
+                        for c in cassettes
+                        if c.estado != Cassette.Status.COMPLETADO
+                    ]
+                    if pending_cassettes:
+                        blockers.append(
+                            _(
+                                "Complete todas las etapas de los cassettes "
+                                "(pendientes: %(codes)s)."
+                            )
+                            % {"codes": ", ".join(pending_cassettes)}
+                        )
+
+        is_complete = len(blockers) == 0
+        return {
+            "can_mark_ready": is_complete,
+            "blockers": blockers,
+            "is_complete": is_complete,
+            "already_ready": False,
+        }
+
+    def mark_ready_for_diagnosis(
+        self, protocol: Protocol, user
+    ) -> Tuple[bool, str]:
+        """
+        Mark protocol as ready for histopathological diagnosis (READY status).
+
+        Args:
+            protocol: Protocol instance
+            user: Lab staff performing the action
+
+        Returns:
+            Tuple[bool, str]: (success, error_message)
+        """
+        readiness = self.get_processing_readiness(protocol)
+
+        if readiness.get("already_ready"):
+            return False, _("El protocolo ya está listo para diagnóstico.")
+
+        if not readiness["can_mark_ready"]:
+            if readiness["blockers"]:
+                return False, readiness["blockers"][0]
+            return False, _("No se puede marcar el protocolo como listo.")
+
+        try:
+            protocol.status = Protocol.Status.READY
+            protocol.save(update_fields=["status"])
+
+            ProtocolStatusHistory.log_status_change(
+                protocol=protocol,
+                new_status=Protocol.Status.READY,
+                changed_by=user,
+                description=_(
+                    "Procesamiento técnico finalizado; muestra lista para diagnóstico"
+                ),
+            )
+
+            self._notify_protocol_ready(protocol)
+            return True, ""
+
+        except Exception as e:
+            logger.error(
+                f"Error marking protocol {protocol.pk} ready for diagnosis: {e}"
+            )
+            return False, str(e)
+
+    def _notify_protocol_ready(self, protocol: Protocol) -> None:
+        """Queue email and in-app notification when protocol becomes READY."""
+        from protocols.emails import queue_email
+        from protocols.models import EmailLog
+        from protocols.services.notification_service import (
+            NotificationService,
+        )
+
+        try:
+            queue_email(
+                email_type=EmailLog.EmailType.CUSTOM,
+                recipient_email=protocol.veterinarian.email,
+                subject=(
+                    "Muestra lista para diagnóstico - Protocolo "
+                    f"{protocol.protocol_number}"
+                ),
+                context={
+                    "protocol": protocol,
+                    "veterinarian": protocol.veterinarian,
+                },
+                template_name="emails/protocol_ready.html",
+                protocol=protocol,
+                veterinarian=protocol.veterinarian,
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to queue ready email for protocol {protocol.pk}: {e}"
+            )
+
+        try:
+            NotificationService().create_for_ready(protocol)
+        except Exception as e:
+            logger.error(
+                f"Failed to create in-app notification for protocol {protocol.pk}: {e}"
+            )

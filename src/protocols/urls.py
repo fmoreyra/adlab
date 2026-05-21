@@ -117,6 +117,11 @@ urlpatterns = [
         name="processing_status",
     ),
     path(
+        "processing/protocol/<int:pk>/mark-ready/",
+        views.ProtocolMarkReadyView.as_view(),
+        name="protocol_mark_ready",
+    ),
+    path(
         "processing/cassette/create/<int:protocol_pk>/",
         views.CassetteCreateView.as_view(),
         name="cassette_create",
@@ -132,9 +137,19 @@ urlpatterns = [
         name="cassette_update_stage",
     ),
     path(
+        "processing/cassette/<int:cassette_pk>/history/",
+        views.CassetteProcessingHistoryView.as_view(),
+        name="cassette_processing_history",
+    ),
+    path(
         "processing/slide/<int:slide_pk>/stage/",
         views.SlideUpdateStageView.as_view(),
         name="slide_update_stage",
+    ),
+    path(
+        "processing/slide/<int:slide_pk>/history/",
+        views.SlideProcessingHistoryView.as_view(),
+        name="slide_processing_history",
     ),
     path(
         "processing/slide/<int:slide_pk>/quality/",
