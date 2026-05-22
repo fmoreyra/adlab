@@ -18,6 +18,46 @@ from protocols.models import EmailLog, Protocol, WorkOrder
 logger = logging.getLogger(__name__)
 
 
+def _reconstruct_model_from_serialized(data):
+    """
+    Reconstruct a Django model from a serialized Celery payload item.
+
+    Args:
+        data: Dict with id, model, and optional extra fields (e.g. protocol_url)
+
+    Returns:
+        Model instance or fallback string representation
+    """
+    if not isinstance(data, dict) or "id" not in data or "model" not in data:
+        return data
+
+    model_name = data["model"]
+    model_id = data["id"]
+
+    try:
+        if model_name == "Protocol":
+            instance = Protocol.objects.get(id=model_id)
+            protocol_url = data.get("protocol_url")
+            if protocol_url:
+                instance.protocol_url = protocol_url
+            return instance
+        if model_name == "WorkOrder":
+            return WorkOrder.objects.get(id=model_id)
+        if model_name == "Veterinarian":
+            from accounts.models import Veterinarian
+
+            return Veterinarian.objects.select_related("user").get(id=model_id)
+        return data.get("str", data)
+    except Exception as exc:
+        logger.warning(
+            "Could not reconstruct %s with id %s: %s",
+            model_name,
+            model_id,
+            exc,
+        )
+        return data.get("str", data)
+
+
 def _deserialize_context_for_templates(context):
     """
     Deserialize context for templates by reconstructing Django model instances.
@@ -38,51 +78,13 @@ def _deserialize_context_for_templates(context):
             and "id" in value[0]
             and "model" in value[0]
         ):
-            # Reconstruct QuerySet from list of serialized objects
-            model_instances = []
-            for item in value:
-                model_name = item["model"]
-                model_id = item["id"]
-
-                try:
-                    if model_name == "Protocol":
-                        model_instance = Protocol.objects.get(id=model_id)
-                    elif model_name == "WorkOrder":
-                        model_instance = WorkOrder.objects.get(id=model_id)
-                    else:
-                        # For other models, just use the string representation
-                        model_instance = item["str"]
-
-                    model_instances.append(model_instance)
-                except Exception as e:
-                    logger.warning(
-                        f"Could not reconstruct {model_name} with id {model_id}: {e}"
-                    )
-                    # Fallback to string representation
-                    model_instances.append(item["str"])
-
-            deserialized_context[key] = model_instances
+            deserialized_context[key] = [
+                _reconstruct_model_from_serialized(item) for item in value
+            ]
         elif isinstance(value, dict) and "id" in value and "model" in value:
-            # Reconstruct model instance
-            model_name = value["model"]
-            model_id = value["id"]
-
-            try:
-                if model_name == "Protocol":
-                    model_instance = Protocol.objects.get(id=model_id)
-                elif model_name == "WorkOrder":
-                    model_instance = WorkOrder.objects.get(id=model_id)
-                else:
-                    # For other models, just use the string representation
-                    model_instance = value["str"]
-
-                deserialized_context[key] = model_instance
-            except Exception as e:
-                logger.warning(
-                    f"Could not reconstruct {model_name} with id {model_id}: {e}"
-                )
-                # Fallback to string representation
-                deserialized_context[key] = value["str"]
+            deserialized_context[key] = _reconstruct_model_from_serialized(
+                value
+            )
         elif isinstance(value, dict):
             # Recursively deserialize nested dicts
             deserialized_context[key] = _deserialize_context_for_templates(

@@ -190,6 +190,63 @@ class EmailNotificationTest(TestCase):
         call_args = mock_send_email.call_args
         self.assertEqual(call_args[1]["attachment_path"], attachment_path)
 
+    def test_serialize_work_order_context_with_protocol_list(self):
+        """Work order emails pass protocols as a list; must be JSON-serializable."""
+        import json
+
+        protocol = self.protocol
+        protocol.protocol_url = "https://example.com/protocols/abc/"
+
+        context = {
+            "work_order": self.work_order,
+            "veterinarian": self.veterinarian,
+            "protocols": [protocol],
+            "has_attachment": True,
+        }
+
+        serialized = emails._serialize_context_for_celery(context)
+        json.dumps(serialized)
+
+        self.assertEqual(serialized["work_order"]["model"], "WorkOrder")
+        self.assertEqual(serialized["veterinarian"]["model"], "Veterinarian")
+        self.assertEqual(len(serialized["protocols"]), 1)
+        self.assertEqual(serialized["protocols"][0]["model"], "Protocol")
+        self.assertEqual(
+            serialized["protocols"][0]["protocol_url"],
+            protocol.protocol_url,
+        )
+        self.assertTrue(serialized["has_attachment"])
+
+    @patch("protocols.emails.send_email.delay")
+    def test_queue_email_multiple_calls_use_unique_task_ids(
+        self, mock_send_email
+    ):
+        """Each queued email must get a distinct celery_task_id before dispatch."""
+        mock_send_email.side_effect = [
+            MagicMock(id="celery-task-1"),
+            MagicMock(id="celery-task-2"),
+        ]
+
+        log1 = emails.queue_email(
+            email_type=EmailLog.EmailType.WORK_ORDER,
+            recipient_email="vet1@example.com",
+            subject="OT 1",
+            context={},
+            work_order=self.work_order,
+        )
+        log2 = emails.queue_email(
+            email_type=EmailLog.EmailType.WORK_ORDER,
+            recipient_email="vet2@example.com",
+            subject="OT 2",
+            context={},
+            work_order=self.work_order,
+        )
+
+        self.assertEqual(log1.celery_task_id, "celery-task-1")
+        self.assertEqual(log2.celery_task_id, "celery-task-2")
+        self.assertNotEqual(log1.celery_task_id, log2.celery_task_id)
+        self.assertFalse(EmailLog.objects.filter(celery_task_id="").exists())
+
     @patch("protocols.emails.queue_email")
     def test_send_verification_email(self, mock_queue_email):
         """Test email verification email sending."""

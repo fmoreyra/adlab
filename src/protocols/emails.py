@@ -4,6 +4,7 @@ Provides high-level functions to queue emails via Celery.
 """
 
 import logging
+import secrets
 
 from django.conf import settings
 from django.urls import reverse
@@ -31,6 +32,36 @@ def build_protocol_url(protocol):
     return f"{settings.SITE_URL}{path}"
 
 
+def _serialize_model_for_celery(instance):
+    """Serialize a single model instance for Celery JSON transport."""
+    payload = {
+        "id": instance.pk,
+        "model": instance.__class__.__name__,
+        "str": str(instance),
+    }
+    protocol_url = getattr(instance, "protocol_url", None)
+    if protocol_url:
+        payload["protocol_url"] = protocol_url
+    return payload
+
+
+def _serialize_value_for_celery(value):
+    """Serialize a context value (model, queryset, list, dict, or primitive)."""
+    if hasattr(value, "pk"):
+        return _serialize_model_for_celery(value)
+
+    if hasattr(value, "model"):  # QuerySet
+        return [_serialize_model_for_celery(obj) for obj in value]
+
+    if isinstance(value, (list, tuple)):
+        return [_serialize_value_for_celery(item) for item in value]
+
+    if isinstance(value, dict):
+        return _serialize_context_for_celery(value)
+
+    return value
+
+
 def _serialize_context_for_celery(context):
     """
     Serialize context for Celery by converting Django model instances to IDs.
@@ -41,34 +72,10 @@ def _serialize_context_for_celery(context):
     Returns:
         dict: Serialized context safe for Celery JSON serialization
     """
-    serialized_context = {}
-
-    for key, value in context.items():
-        if hasattr(value, "pk"):  # Django model instance
-            # Convert model instance to a dict with basic info
-            serialized_context[key] = {
-                "id": value.pk,
-                "model": value.__class__.__name__,
-                "str": str(value),
-            }
-        elif hasattr(value, "model"):  # Django QuerySet
-            # Convert QuerySet to list of serialized objects
-            serialized_context[key] = [
-                {
-                    "id": obj.pk,
-                    "model": obj.__class__.__name__,
-                    "str": str(obj),
-                }
-                for obj in value
-            ]
-        elif isinstance(value, dict):
-            # Recursively serialize nested dicts
-            serialized_context[key] = _serialize_context_for_celery(value)
-        else:
-            # Keep primitive types as-is
-            serialized_context[key] = value
-
-    return serialized_context
+    return {
+        key: _serialize_value_for_celery(value)
+        for key, value in context.items()
+    }
 
 
 def queue_email(
@@ -99,7 +106,9 @@ def queue_email(
     Returns:
         EmailLog: Created email log instance
     """
-    # Create EmailLog
+    # Placeholder must be unique (celery_task_id is unique); replaced after dispatch.
+    pending_task_id = f"pending-{secrets.token_urlsafe(32)}"
+
     email_log = EmailLog.objects.create(
         email_type=email_type,
         recipient_email=recipient_email,
@@ -107,7 +116,7 @@ def queue_email(
         subject=subject,
         protocol=protocol,
         work_order=work_order,
-        celery_task_id="",  # Will be set after task dispatch
+        celery_task_id=pending_task_id,
         status=EmailLog.Status.QUEUED,
         has_attachment=bool(attachment_path),
     )
@@ -126,7 +135,6 @@ def queue_email(
         email_log_id=email_log.id,
     )
 
-    # Update EmailLog with task ID
     email_log.celery_task_id = task.id
     email_log.save(update_fields=["celery_task_id"])
 

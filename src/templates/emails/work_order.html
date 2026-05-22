@@ -17,15 +17,15 @@
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                     <td style="padding: 8px 0; font-weight: bold; width: 50%;">Número de Orden:</td>
-                    <td style="padding: 8px 0;">{{ work_order.work_order_number }}</td>
+                    <td style="padding: 8px 0;">{{ work_order.order_number }}</td>
                 </tr>
                 <tr>
                     <td style="padding: 8px 0; font-weight: bold;">Fecha de Emisión:</td>
-                    <td style="padding: 8px 0;">{{ work_order.created_at|date:"d/m/Y" }}</td>
+                    <td style="padding: 8px 0;">{{ work_order.issue_date|date:"d/m/Y" }}</td>
                 </tr>
                 <tr>
                     <td style="padding: 8px 0; font-weight: bold;">Cantidad de Protocolos:</td>
-                    <td style="padding: 8px 0;">{{ protocols.count }}</td>
+                    <td style="padding: 8px 0;">{{ protocols|length }}</td>
                 </tr>
             </table>
         </div>
