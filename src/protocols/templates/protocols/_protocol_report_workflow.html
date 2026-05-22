@@ -1,0 +1,84 @@
+{# Report workflow card for lab staff. Requires report action context from build_protocol_report_action_context. #}
+{% if show_report_workflow %}
+<div class="rounded-lg border-2 border-indigo-200 bg-indigo-50 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-indigo-900 mb-2">
+        Informe patológico
+    </h2>
+    {% if protocol.status == 'ready' and not latest_report %}
+    <p class="text-sm text-indigo-800 mb-4">
+        El procesamiento técnico está completo. Puede iniciar el diagnóstico y elaborar el informe.
+    </p>
+    {% elif latest_report and latest_report.status == 'draft' %}
+    <p class="text-sm text-indigo-800 mb-4">
+        Hay un informe en borrador. Continúe la elaboración, finalícelo y envíelo al veterinario.
+    </p>
+    {% elif latest_report and latest_report.status == 'finalized' %}
+    <p class="text-sm text-indigo-800 mb-4">
+        El informe está finalizado. Revise el PDF y envíelo al veterinario.
+    </p>
+    {% elif protocol.status == 'report_sent' %}
+    <p class="text-sm text-indigo-800 mb-4">
+        El informe fue enviado al veterinario. Puede consultarlo o descargar el PDF.
+    </p>
+    {% else %}
+    <p class="text-sm text-indigo-800 mb-4">
+        Gestión del informe para este protocolo.
+    </p>
+    {% endif %}
+
+    <div class="flex flex-wrap gap-3">
+        {% if report_primary_url %}
+        <a href="{{ report_primary_url }}"
+           class="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-md hover:bg-indigo-700 shadow-sm">
+            {{ report_primary_label }}
+        </a>
+        {% endif %}
+
+        {% if can_create_report %}
+        <a href="{% url 'protocols:report_create' protocol.pk %}"
+           class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+            Crear informe
+        </a>
+        {% endif %}
+
+        {% if can_edit_report and latest_report %}
+        <a href="{% url 'protocols:report_edit' latest_report.pk %}"
+           class="inline-flex items-center px-4 py-2 border border-indigo-600 text-indigo-800 text-sm font-medium rounded-md hover:bg-indigo-100">
+            Editar borrador
+        </a>
+        {% endif %}
+
+        {% if can_view_report_detail and latest_report %}
+        <a href="{% url 'protocols:report_detail' latest_report.pk %}"
+           class="inline-flex items-center px-4 py-2 border border-indigo-600 text-indigo-800 text-sm font-medium rounded-md hover:bg-indigo-100">
+            Ver informe
+        </a>
+        {% endif %}
+
+        {% if can_send_report and latest_report %}
+        <a href="{% url 'protocols:report_send' latest_report.pk %}"
+           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
+            Enviar por email
+        </a>
+        {% endif %}
+
+        {% if can_download_report_pdf and latest_report %}
+        <a href="{% url 'protocols:report_pdf' latest_report.pk %}"
+           target="_blank"
+           class="inline-flex items-center px-4 py-2 border border-gray-400 text-gray-700 text-sm font-medium rounded-md hover:bg-white">
+            Ver PDF
+        </a>
+        {% endif %}
+
+        <a href="{% url 'protocols:report_pending_list' %}"
+           class="inline-flex items-center px-4 py-2 text-sm text-indigo-700 hover:text-indigo-900 font-medium">
+            Cola de informes pendientes →
+        </a>
+    </div>
+</div>
+{% elif show_lab_actions and not user_can_create_reports %}
+<div class="rounded-lg border border-gray-200 bg-gray-50 p-4 mb-6 text-sm text-gray-600">
+    La elaboración de informes requiere el permiso
+    <span class="font-medium">«Puede crear informes»</span> en su perfil de personal de laboratorio.
+</div>
+{% endif %}

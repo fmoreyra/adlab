@@ -1602,6 +1602,17 @@ class ProcessingViewsTest(TestCase):
             is_staff=True,
         )
 
+        from accounts.models import LaboratoryStaff
+
+        LaboratoryStaff.objects.create(
+            user=self.staff_user,
+            first_name="Staff",
+            last_name="Processing",
+            license_number="LAB-PROC-001",
+            can_create_reports=True,
+            is_active=True,
+        )
+
         # Create veterinarian
         self.veterinarian = Veterinarian.objects.create(
             user=self.vet_user,
@@ -1849,6 +1860,46 @@ class ProcessingViewsTest(TestCase):
         self.assertEqual(context["protocol"], self.cytology_protocol)
         self.assertIn("slides", context)
         self.assertIn("processing_readiness", context)
+
+    def test_processing_status_shows_report_workflow_when_ready(self):
+        """Processing status shows report workflow when protocol is ready."""
+        self.cytology_protocol.status = Protocol.Status.READY
+        self.cytology_protocol.protocol_number = "CY 26/001"
+        self.cytology_protocol.save(
+            update_fields=["status", "protocol_number"]
+        )
+
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.cytology_protocol.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Informe patológico")
+        self.assertContains(response, "Elaborar informe")
+
+    def test_protocol_detail_shows_report_workflow_when_ready(self):
+        """Protocol detail shows report workflow banner when ready."""
+        self.cytology_protocol.status = Protocol.Status.READY
+        self.cytology_protocol.protocol_number = "CY 26/002"
+        self.cytology_protocol.save(
+            update_fields=["status", "protocol_number"]
+        )
+
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail",
+                kwargs={"pk": self.cytology_protocol.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Informe patológico")
+        self.assertContains(response, "Elaborar informe")
 
     def test_protocol_processing_status_view_histopathology(self):
         """Test protocol processing status view for histopathology protocol."""

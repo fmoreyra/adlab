@@ -37,6 +37,100 @@ def _user_can_create_reports(user):
     return bool(getattr(user, "can_create_reports", False))
 
 
+def _get_latest_report(protocol):
+    """Return the most recent report for a protocol, if any."""
+    if not hasattr(protocol, "reports"):
+        return None
+
+    return protocol.reports.order_by("-created_at").first()
+
+
+def build_protocol_report_action_context(user, protocol):
+    """
+    Build report workflow flags for laboratory staff with report permission.
+
+    Used on protocol detail and processing status when the case is ready
+    for diagnosis or report follow-up.
+    """
+    is_lab_staff = user.is_authenticated and user.is_lab_staff
+    user_can_create_reports = _user_can_create_reports(user)
+    latest_report = _get_latest_report(protocol)
+
+    can_create_report = (
+        is_lab_staff
+        and user_can_create_reports
+        and protocol.status == Protocol.Status.READY
+        and latest_report is None
+    )
+    can_edit_report = (
+        is_lab_staff
+        and user_can_create_reports
+        and latest_report is not None
+        and latest_report.can_edit()
+    )
+    can_send_report = (
+        is_lab_staff
+        and user_can_create_reports
+        and latest_report is not None
+        and latest_report.status == Report.Status.FINALIZED
+    )
+    can_view_report_detail = bool(
+        is_lab_staff and user_can_create_reports and latest_report is not None
+    )
+    can_download_report_pdf = bool(
+        latest_report
+        and latest_report.status != Report.Status.DRAFT
+        and is_lab_staff
+        and user_can_create_reports
+    )
+
+    show_report_workflow = (
+        is_lab_staff
+        and user_can_create_reports
+        and (
+            protocol.status
+            in (Protocol.Status.READY, Protocol.Status.REPORT_SENT)
+            or latest_report is not None
+        )
+    )
+
+    report_primary_label = ""
+    report_primary_url = ""
+    if can_edit_report and latest_report:
+        report_primary_label = _("Continuar elaboración del informe")
+        report_primary_url = reverse(
+            "protocols:report_edit", kwargs={"pk": latest_report.pk}
+        )
+    elif can_create_report:
+        report_primary_label = _("Elaborar informe")
+        report_primary_url = reverse(
+            "protocols:report_create", kwargs={"protocol_id": protocol.pk}
+        )
+    elif can_send_report and latest_report:
+        report_primary_label = _("Enviar informe al veterinario")
+        report_primary_url = reverse(
+            "protocols:report_send", kwargs={"pk": latest_report.pk}
+        )
+    elif can_view_report_detail and latest_report:
+        report_primary_label = _("Ver informe")
+        report_primary_url = reverse(
+            "protocols:report_detail", kwargs={"pk": latest_report.pk}
+        )
+
+    return {
+        "latest_report": latest_report,
+        "user_can_create_reports": user_can_create_reports,
+        "can_create_report": can_create_report,
+        "can_edit_report": can_edit_report,
+        "can_send_report": can_send_report,
+        "can_view_report_detail": can_view_report_detail,
+        "can_download_report_pdf": can_download_report_pdf,
+        "show_report_workflow": show_report_workflow,
+        "report_primary_label": report_primary_label,
+        "report_primary_url": report_primary_url,
+    }
+
+
 def build_protocol_detail_action_context(user, protocol, request=None):
     """
     Build action flags and related objects for protocol detail UI.
@@ -82,31 +176,28 @@ def build_protocol_detail_action_context(user, protocol, request=None):
         user, protocol
     )
 
-    latest_report = (
-        protocol.reports.order_by("-created_at").first()
-        if hasattr(protocol, "reports")
-        else None
-    )
+    report_context = build_protocol_report_action_context(user, protocol)
+    latest_report = report_context["latest_report"]
+    user_can_create_reports = report_context["user_can_create_reports"]
+    can_create_report = report_context["can_create_report"]
+    can_edit_report = report_context["can_edit_report"]
+    can_send_report = report_context["can_send_report"]
+    can_view_report_detail = report_context["can_view_report_detail"]
+    can_download_report_pdf = report_context["can_download_report_pdf"]
+    show_report_workflow = report_context["show_report_workflow"]
+    report_primary_label = report_context["report_primary_label"]
+    report_primary_url = report_context["report_primary_url"]
 
-    can_view_report_detail = False
-    can_download_report_pdf = False
-    if latest_report and user.is_authenticated:
-        if is_lab_staff:
-            can_view_report_detail = True
-            can_download_report_pdf = (
-                latest_report.status != Report.Status.DRAFT
-                and bool(latest_report.pdf_path)
-            )
-        elif owns_protocol:
-            can_view_report_detail = latest_report.status in (
-                Report.Status.FINALIZED,
-                Report.Status.SENT,
-            )
-            can_download_report_pdf = can_view_report_detail and bool(
-                latest_report.pdf_path
-            )
+    if latest_report and owns_protocol:
+        can_view_report_detail = latest_report.status in (
+            Report.Status.FINALIZED,
+            Report.Status.SENT,
+        )
+        can_download_report_pdf = can_view_report_detail and bool(
+            latest_report.pdf_path
+        )
+        show_report_workflow = False
 
-    user_can_create_reports = _user_can_create_reports(user)
     processing_readiness = None
     can_mark_ready = False
 
@@ -118,25 +209,6 @@ def build_protocol_detail_action_context(user, protocol, request=None):
             protocol.status == Protocol.Status.PROCESSING
             and processing_readiness.get("can_mark_ready", False)
         )
-
-    has_reports = bool(latest_report)
-    can_create_report = (
-        is_lab_staff
-        and user_can_create_reports
-        and protocol.status == Protocol.Status.READY
-        and not has_reports
-    )
-    can_edit_report = (
-        is_lab_staff
-        and user_can_create_reports
-        and latest_report is not None
-        and latest_report.can_edit()
-    )
-    can_send_report = (
-        is_lab_staff
-        and latest_report is not None
-        and latest_report.status == Report.Status.FINALIZED
-    )
 
     can_receive_protocol = (
         is_lab_staff and protocol.status == Protocol.Status.SUBMITTED
@@ -190,4 +262,7 @@ def build_protocol_detail_action_context(user, protocol, request=None):
         "is_protocol_owner": owns_protocol,
         "show_lab_actions": is_lab_staff,
         "show_vet_actions": is_veterinarian and owns_protocol,
+        "show_report_workflow": show_report_workflow,
+        "report_primary_label": report_primary_label,
+        "report_primary_url": report_primary_url,
     }

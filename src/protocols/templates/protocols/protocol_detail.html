@@ -49,6 +49,10 @@
                     </div>
                 </div>
 
+                {% if show_lab_actions %}
+                    {% include "protocols/_protocol_report_workflow.html" %}
+                {% endif %}
+
                 <!-- Animal Information Card -->
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información del Animal</h2>

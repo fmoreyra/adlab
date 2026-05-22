@@ -51,6 +51,7 @@ from protocols.models import (
 )
 from protocols.protocol_detail_context import (
     build_protocol_detail_action_context,
+    build_protocol_report_action_context,
 )
 from protocols.services.email_service import EmailNotificationService
 from protocols.services.protocol_service import (
@@ -1067,7 +1068,7 @@ class ProtocolProcessingStatusView(StaffRequiredMixin, DetailView):
             "veterinarian__user",
             "cytology_sample",
             "histopathology_sample",
-        )
+        ).prefetch_related("reports")
 
     def get_context_data(self, **kwargs):
         """Add processing-related context data."""
@@ -1092,20 +1093,15 @@ class ProtocolProcessingStatusView(StaffRequiredMixin, DetailView):
         processing_service = ProtocolProcessingService()
         readiness = processing_service.get_processing_readiness(protocol)
 
-        user_can_create_reports = False
-        if self.request.user.is_authenticated:
-            profile = getattr(self.request.user, "lab_staff_profile", None)
-            if profile:
-                user_can_create_reports = (
-                    profile.is_active and profile.can_create_reports
-                )
-
         context.update(
             {
                 "cassettes": cassettes,
                 "slides": slides,
                 "processing_readiness": readiness,
-                "user_can_create_reports": user_can_create_reports,
+                "show_lab_actions": self.request.user.is_lab_staff,
+                **build_protocol_report_action_context(
+                    self.request.user, protocol
+                ),
             }
         )
 

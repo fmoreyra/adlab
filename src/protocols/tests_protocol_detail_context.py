@@ -5,10 +5,11 @@ from datetime import date
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from accounts.models import Veterinarian
+from accounts.models import LaboratoryStaff, Veterinarian
 from protocols.models import Protocol, Report
 from protocols.protocol_detail_context import (
     build_protocol_detail_action_context,
+    build_protocol_report_action_context,
 )
 
 User = get_user_model()
@@ -26,6 +27,14 @@ class BuildProtocolDetailActionContextTest(TestCase):
             role=User.Role.PERSONAL_LAB,
             email_verified=True,
             is_staff=True,
+        )
+        LaboratoryStaff.objects.create(
+            user=self.staff_user,
+            first_name="Staff",
+            last_name="Test",
+            license_number="LAB-CTX-001",
+            can_create_reports=True,
+            is_active=True,
         )
         self.vet_user = User.objects.create_user(
             email="vet@example.com",
@@ -81,6 +90,39 @@ class BuildProtocolDetailActionContextTest(TestCase):
 
         self.assertTrue(context["hide_veterinarian_card"])
         self.assertTrue(context["show_vet_actions"])
+
+    def test_report_workflow_primary_create_when_ready(self):
+        """Ready protocol shows primary action to create report."""
+        self.protocol.status = Protocol.Status.READY
+        self.protocol.save(update_fields=["status"])
+
+        context = build_protocol_report_action_context(
+            self.staff_user, self.protocol
+        )
+
+        self.assertTrue(context["show_report_workflow"])
+        self.assertTrue(context["can_create_report"])
+        self.assertIn("/reports/create/", context["report_primary_url"])
+
+    def test_report_workflow_primary_edit_when_draft(self):
+        """Draft report shows continue editing as primary action."""
+        self.protocol.status = Protocol.Status.READY
+        self.protocol.save(update_fields=["status"])
+        report = Report.objects.create(
+            protocol=self.protocol,
+            veterinarian=self.veterinarian,
+            diagnosis="En curso",
+            status=Report.Status.DRAFT,
+        )
+
+        context = build_protocol_report_action_context(
+            self.staff_user, self.protocol
+        )
+
+        self.assertTrue(context["can_edit_report"])
+        self.assertIn("/reports/", context["report_primary_url"])
+        self.assertIn("/edit/", context["report_primary_url"])
+        self.assertEqual(context["latest_report"].pk, report.pk)
 
     def test_veterinarian_can_view_finalized_report_flags(self):
         """Owner sees report actions when a finalized report exists."""
