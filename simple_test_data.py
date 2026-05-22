@@ -21,6 +21,39 @@ from protocols.models import Protocol, WorkOrder
 
 User = get_user_model()
 
+
+def _get_or_create_verifier_user(fallback_user):
+    """
+    User who can mark veterinarians as verified (verified_by).
+
+    Prefer admin; create demo admin if missing; else first superuser or lab staff.
+    """
+    admin_user, created = User.objects.get_or_create(
+        username="admin",
+        defaults={
+            "email": "admin@adlab.local",
+            "first_name": "Admin",
+            "last_name": "AdLab",
+            "role": User.Role.ADMIN,
+            "is_active": True,
+            "is_staff": True,
+            "email_verified": True,
+            "failed_login_attempts": 0,
+        },
+    )
+    if created:
+        admin_user.set_password("admin123")
+        admin_user.save()
+        print(f"  ✅ Created admin user: {admin_user.email}")
+        return admin_user
+
+    superuser = User.objects.filter(is_superuser=True).order_by("pk").first()
+    if superuser:
+        return superuser
+
+    return fallback_user
+
+
 def create_simple_test_data():
     """Create basic test data for the laboratory system."""
     
@@ -115,8 +148,8 @@ def create_simple_test_data():
     # 2. CREATE VETERINARIAN PROFILES
     # ==============================================
     print("👨‍⚕️ Creating veterinarian profiles...")
-    
-    admin_user = User.objects.get(username='admin')
+
+    verifier_user = _get_or_create_verifier_user(fallback_user=staff_user)
     
     vet_profile1, created = Veterinarian.objects.get_or_create(
         user=vet1,
@@ -127,7 +160,7 @@ def create_simple_test_data():
             'phone': '+54 11 1234-5678',
             'email': 'dr.garcia@veterinaria.com',
             'is_verified': True,
-            'verified_by': admin_user,
+            'verified_by': verifier_user,
             'verified_at': timezone.now(),
         }
     )
@@ -143,7 +176,7 @@ def create_simple_test_data():
             'phone': '+54 11 2345-6789',
             'email': 'dra.lopez@clinica.com',
             'is_verified': True,
-            'verified_by': admin_user,
+            'verified_by': verifier_user,
             'verified_at': timezone.now(),
         }
     )
@@ -307,7 +340,7 @@ def create_simple_test_data():
     print(f"  📄 Protocols: {Protocol.objects.count()}")
     
     print("\n🔑 Test User Credentials:")
-    print("  Admin: admin / admin123")
+    print("  Admin: admin@adlab.local / admin123 (username: admin)")
     print("  Lab Tech 1: lab_tech1@adlab.local / lab123 (is_staff=True, OT habilitadas)")
     print("  Lab Staff: staff@example.com / testpass123 (is_staff=True)")
     print("  Veterinarian 1: dr.garcia@veterinaria.com / vet123")

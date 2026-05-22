@@ -79,9 +79,15 @@ You should see the laboratory system home page!
 ### Load Test Data
 
 ```bash
-# Create test users for all roles
-make manage ARGS="shell" < simple_test_data.py
+# Create test users for all roles (script is standalone Python, not shell input)
+docker compose exec -T web python3 /app/simple_test_data.py
+# Or from host if Python/Django env matches the container:
+# python simple_test_data.py
 ```
+
+Do not use `make manage ARGS="shell" < simple_test_data.py`: `shell` opens an
+interactive REPL inside Docker and expects a TTY; piping a file triggers
+``the input device is not a TTY``.
 
 This creates:
 - Veterinarian: `vet@example.com` / `testpass123`
