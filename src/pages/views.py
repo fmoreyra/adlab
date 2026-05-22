@@ -426,7 +426,9 @@ class ManagementDashboardView(LoginRequiredMixin, TemplateView):
         user = request.user
 
         # Early return if not management user
-        if not (user.is_lab_staff or user.is_admin_user):
+        if not (
+            user.is_lab_staff or user.is_histopathologist or user.is_admin_user
+        ):
             return redirect("pages:dashboard")
 
         return super().get(request, *args, **kwargs)

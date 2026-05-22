@@ -410,9 +410,16 @@ useEffect(() => {
 }, []);
 ```
 
+### Pendiente (integración base completada, 2026-05)
+
+- **Gráficos de volumen y tendencias históricas** (RF09.3): el dashboard
+  muestra métricas en tarjetas vía HTMX; falta implementar charts en
+  `.chart-container` (p. ej. Recharts, ApexCharts o Chart.js). Ver
+  `src/pages/templates/pages/management_dashboard.html`.
+
 ### Testing Checklist
 - [ ] WIP widget displays correct counts
-- [ ] Volume charts show historical trends
+- [ ] Volume charts show historical trends *(pendiente — ver sección anterior)*
 - [ ] TAT metrics calculate correctly
 - [ ] Productivity per pathologist accurate
 - [ ] Aging alerts show overdue samples

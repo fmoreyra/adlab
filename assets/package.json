@@ -2,12 +2,13 @@
   "name": "adlab",
   "private": true,
   "dependencies": {
-    "pusher-js": "^8.4.0",
-    "esbuild": "0.25.10",
-    "esbuild-copy-static-files": "0.1.0",
-    "tailwindcss": "4.1.14",
     "@tailwindcss/cli": "4.1.14",
     "@tailwindcss/postcss": "4.1.14",
-    "imagemin": "8.0.1"
+    "esbuild": "0.25.10",
+    "esbuild-copy-static-files": "0.1.0",
+    "htmx.org": "2.0.4",
+    "imagemin": "8.0.1",
+    "pusher-js": "^8.4.0",
+    "tailwindcss": "4.1.14"
   }
 }

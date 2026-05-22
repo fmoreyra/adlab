@@ -497,6 +497,8 @@ class ManagementDashboardViewTest(DashboardAPITestCase):
         self.assertContains(response, "Productividad por Histopatólogo")
         self.assertContains(response, "Envejecimiento de Muestras")
         self.assertContains(response, "Alertas del Sistema")
+        self.assertContains(response, ".dashboard-widget")
+        self.assertContains(response, "justify-content: space-between")
 
     def test_management_dashboard_has_htmx_attributes(self):
         """Test that management dashboard has HTMX attributes for auto-refresh."""

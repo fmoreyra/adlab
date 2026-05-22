@@ -1,8 +1,10 @@
 /**
  * AdLab - Main application JavaScript
+ * Step 09: HTMX (management dashboard widgets)
  * Step 21: In-app notifications (bell + dropdown + realtime via Sockudo)
  */
 
+import "htmx.org";
 import Pusher from "pusher-js";
 
 (function () {

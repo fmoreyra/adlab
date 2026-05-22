@@ -15,7 +15,7 @@
     
     .widget-header {
         display: flex;
-        justify-content: between;
+        justify-content: space-between;
         align-items: center;
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
@@ -180,7 +180,8 @@
 {% endblock %}
 
 {% block body %}
-<div class="container mx-auto px-4 py-8">
+<div class="min-h-screen bg-gray-50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">
@@ -210,6 +211,7 @@
         </div>
     </div>
 
+    {# Pendiente Step 09: gráficos de volumen/tendencias (hoy solo tarjetas HTMX) #}
     <!-- Volume Metrics Section -->
     <div class="dashboard-widget">
         <div class="widget-header">
@@ -325,6 +327,7 @@
         </div>
     </div>
 </div>
+</div>
 
 <!-- HTMX Templates for Dynamic Content -->
 <template id="wip-template">
@@ -404,55 +407,67 @@
 
 {% block extra_js %}
 <script>
-// Update last updated timestamps
-function updateTimestamp(elementId) {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('es-ES', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
-    document.getElementById(elementId).textContent = `Última actualización: ${timeString}`;
-}
-
-// Handle volume period change
-document.getElementById('volume-period').addEventListener('change', function() {
-    const period = this.value;
-    const volumeContent = document.getElementById('volume-content');
-    volumeContent.setAttribute('hx-get', `/api/dashboard/volume/?periodo=${period}`);
-    volumeContent.click();
-    updateTimestamp('volume-last-updated');
-});
-
-// Handle productivity period change
-document.getElementById('productivity-period').addEventListener('change', function() {
-    const period = this.value;
-    const productivityContent = document.getElementById('productivity-content');
-    productivityContent.setAttribute('hx-get', `/api/dashboard/productivity/?periodo=${period}`);
-    productivityContent.click();
-    updateTimestamp('productivity-last-updated');
-});
-
-// Update timestamps when HTMX requests complete
-document.body.addEventListener('htmx:afterRequest', function(event) {
-    const targetId = event.target.id;
-    if (targetId && targetId.includes('content')) {
-        const widgetType = targetId.replace('-content', '');
-        updateTimestamp(`${widgetType}-last-updated`);
-    }
-});
-
-// Initial timestamp update
 document.addEventListener('DOMContentLoaded', function() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('es-ES', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+    const volumeUrl = "{% url 'pages_api:dashboard_volume' %}";
+    const productivityUrl = "{% url 'pages_api:dashboard_productivity' %}";
+
+    function updateTimestamp(elementId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const timeString = new Date().toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+        el.textContent = `Última actualización: ${timeString}`;
+    }
+
+    function refreshHtmxWidget(element, url) {
+        if (!window.htmx || !element) return;
+        element.setAttribute('hx-get', url);
+        htmx.process(element);
+        htmx.trigger(element, 'load');
+    }
+
+    const volumePeriod = document.getElementById('volume-period');
+    if (volumePeriod) {
+        volumePeriod.addEventListener('change', function() {
+            const volumeContent = document.getElementById('volume-content');
+            refreshHtmxWidget(
+                volumeContent,
+                `${volumeUrl}?periodo=${this.value}`,
+            );
+            updateTimestamp('volume-last-updated');
+        });
+    }
+
+    const productivityPeriod = document.getElementById('productivity-period');
+    if (productivityPeriod) {
+        productivityPeriod.addEventListener('change', function() {
+            const productivityContent = document.getElementById(
+                'productivity-content',
+            );
+            refreshHtmxWidget(
+                productivityContent,
+                `${productivityUrl}?periodo=${this.value}`,
+            );
+            updateTimestamp('productivity-last-updated');
+        });
+    }
+
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+        const targetId = event.detail?.requestConfig?.target?.id
+            || event.target?.id;
+        if (targetId && targetId.includes('content')) {
+            const widgetType = targetId.replace('-content', '');
+            updateTimestamp(`${widgetType}-last-updated`);
+        }
     });
-    
-    // Update all timestamps
-    ['wip', 'volume', 'tat', 'productivity', 'aging', 'alerts'].forEach(widget => {
-        updateTimestamp(`${widget}-last-updated`);
-    });
+
+    ['wip', 'volume', 'tat', 'productivity', 'aging', 'alerts'].forEach(
+        function(widget) {
+            updateTimestamp(`${widget}-last-updated`);
+        },
+    );
 });
 </script>
 {% endblock %}
