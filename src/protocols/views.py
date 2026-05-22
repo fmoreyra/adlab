@@ -29,6 +29,7 @@ from accounts.mixins import (
     StaffRequiredMixin,
     VeterinarianProfileRequiredMixin,
     VeterinarianRequiredMixin,
+    user_can_view_protocol_processing,
     user_can_view_work_order_detail,
 )
 from accounts.models import Veterinarian
@@ -266,6 +267,9 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
             related_work_order is not None
             and user_can_view_work_order_detail(user)
         )
+        can_view_protocol_processing = user_can_view_protocol_processing(
+            user, protocol
+        )
 
         context.update(
             {
@@ -275,6 +279,7 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
                 "back_label": back_label,
                 "related_work_order": related_work_order,
                 "can_view_related_work_order": can_view_related_work_order,
+                "can_view_protocol_processing": can_view_protocol_processing,
             }
         )
 
@@ -373,6 +378,9 @@ class ProtocolPublicDetailView(DetailView):
             related_work_order is not None
             and user_can_view_work_order_detail(self.request.user)
         )
+        can_view_protocol_processing = user_can_view_protocol_processing(
+            self.request.user, protocol
+        )
 
         context.update(
             {
@@ -380,6 +388,7 @@ class ProtocolPublicDetailView(DetailView):
                 "sample": sample,
                 "related_work_order": related_work_order,
                 "can_view_related_work_order": can_view_related_work_order,
+                "can_view_protocol_processing": can_view_protocol_processing,
             }
         )
 
@@ -840,6 +849,15 @@ class ReceptionDetailView(StaffRequiredMixin, DetailView):
             "cytology_sample",
             "histopathology_sample",
         )
+
+    def get_context_data(self, **kwargs):
+        """Add processing link when the sample is ready for lab processing."""
+        context = super().get_context_data(**kwargs)
+        protocol = self.object
+        context["can_view_protocol_processing"] = (
+            user_can_view_protocol_processing(self.request.user, protocol)
+        )
+        return context
 
 
 class ProcessingDashboardView(StaffRequiredMixin, TemplateView):

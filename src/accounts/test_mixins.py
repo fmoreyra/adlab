@@ -17,6 +17,7 @@ from accounts.mixins import (
     VeterinarianProfileRequiredMixin,
     VeterinarianRequiredMixin,
     WorkOrderAccessMixin,
+    user_can_view_protocol_processing,
 )
 from accounts.models import Histopathologist, Veterinarian
 from protocols.models import Protocol, Report, WorkOrder
@@ -98,6 +99,77 @@ class StaffRequiredMixinTest(TestCase):
         mixin = StaffRequiredMixin()
         message = mixin.get_permission_denied_message()
         self.assertIn("permisos", str(message))
+
+
+class UserCanViewProtocolProcessingTest(TestCase):
+    """Tests for user_can_view_protocol_processing helper."""
+
+    def setUp(self):
+        """Set up users and protocols in different statuses."""
+        self.lab_user = User.objects.create_user(
+            email="lab@example.com",
+            username="lab",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+            is_staff=True,
+        )
+        self.vet_user = User.objects.create_user(
+            email="vet@example.com",
+            username="vet",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+        )
+        vet_profile = Veterinarian.objects.create(
+            user=self.vet_user,
+            first_name="Test",
+            last_name="Vet",
+            license_number="MP-1",
+            email="vet@example.com",
+        )
+        self.received_protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            veterinarian=vet_profile,
+            species="Canino",
+            animal_identification="Max",
+            presumptive_diagnosis="Test",
+            submission_date=timezone.now().date(),
+            status=Protocol.Status.RECEIVED,
+            protocol_number="CT 24/001",
+        )
+        self.submitted_protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            veterinarian=vet_profile,
+            species="Canino",
+            animal_identification="Rex",
+            presumptive_diagnosis="Test",
+            submission_date=timezone.now().date(),
+            status=Protocol.Status.SUBMITTED,
+            temporary_code="TMP-CT-001",
+        )
+
+    def test_lab_staff_can_view_received_protocol_processing(self):
+        """Lab staff may open processing for received protocols."""
+        self.assertTrue(
+            user_can_view_protocol_processing(
+                self.lab_user, self.received_protocol
+            )
+        )
+
+    def test_veterinarian_cannot_view_processing(self):
+        """Veterinarians cannot access processing views."""
+        self.assertFalse(
+            user_can_view_protocol_processing(
+                self.vet_user, self.received_protocol
+            )
+        )
+
+    def test_submitted_protocol_not_processable(self):
+        """Protocols awaiting reception have no processing link."""
+        self.assertFalse(
+            user_can_view_protocol_processing(
+                self.lab_user, self.submitted_protocol
+            )
+        )
 
 
 class VeterinarianRequiredMixinTest(TestCase):

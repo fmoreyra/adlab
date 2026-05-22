@@ -91,6 +91,24 @@ def user_can_view_work_order_detail(user):
     return user.is_authenticated and user.is_staff
 
 
+def user_can_view_protocol_processing(user, protocol):
+    """
+    Return whether the user may open protocol processing status.
+
+    Matches ``StaffRequiredMixin`` (``User.is_lab_staff``). Veterinarians
+    and protocols still awaiting reception cannot access processing views.
+    """
+    if not user.is_authenticated or not user.is_lab_staff:
+        return False
+
+    return protocol.status in {
+        Protocol.Status.RECEIVED,
+        Protocol.Status.PROCESSING,
+        Protocol.Status.READY,
+        Protocol.Status.REPORT_SENT,
+    }
+
+
 class WorkOrderStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
     Restrict work order views to users with Django ``is_staff=True``.

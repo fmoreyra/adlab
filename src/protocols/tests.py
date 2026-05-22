@@ -5980,6 +5980,58 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Protocolo:")
 
+    def test_protocol_detail_processing_link_for_received_staff(self):
+        """Staff see processing action when protocol is in lab workflow."""
+        self.protocol.status = Protocol.Status.RECEIVED
+        self.protocol.protocol_number = "HP 24/099"
+        self.protocol.save(update_fields=["status", "protocol_number"])
+
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ir a procesamiento")
+        self.assertContains(
+            response,
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.protocol.pk},
+            ),
+        )
+
+    def test_protocol_detail_no_processing_link_when_submitted(self):
+        """Submitted protocols do not show processing for staff."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Ir a procesamiento")
+        self.assertNotContains(response, "Ver procesamiento")
+
+    def test_protocol_detail_no_processing_link_for_veterinarian(self):
+        """Veterinarians never see the processing action on protocol detail."""
+        self.protocol.status = Protocol.Status.RECEIVED
+        self.protocol.protocol_number = "HP 24/100"
+        self.protocol.save(update_fields=["status", "protocol_number"])
+
+        self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Ir a procesamiento")
+
     def test_veterinarian_name_displayed(self):
         """Test that veterinarian name is displayed in the detail view."""
         self.client.login(email="staff@example.com", password="testpass123")
