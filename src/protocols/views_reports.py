@@ -5,8 +5,9 @@ Views for report generation and management.
 import logging
 
 from django.contrib import messages
-from django.http import FileResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.db import transaction
+from django.http import FileResponse, Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import (
@@ -19,6 +20,7 @@ from django.views.generic import (
 )
 
 from accounts.mixins import (
+    ProtocolOwnerOrStaffMixin,
     ReportSignatureRequiredMixin,
     StaffRequiredMixin,
     VeterinarianRequiredMixin,
@@ -28,13 +30,17 @@ from accounts.report_access import (
     report_signature_required_message,
     report_signer_missing_message,
     report_signer_signature_missing_message,
+    user_can_view_report_images,
     user_requires_report_signature,
 )
 from protocols.forms_reports import (
+    CassetteObservationFormSet,
     ReportCreateForm,
+    ReportImageFormSet,
     ReportSendForm,
 )
-from protocols.models import Protocol, Report
+from protocols.models import Protocol, Report, ReportImage
+from protocols.protocol_detail_context import _get_latest_report
 from protocols.services.email_service import EmailNotificationService
 from protocols.services.pdf_service import (
     PDFGenerationError,
@@ -237,7 +243,7 @@ class ReportEditView(
     ReportSignatureRequiredMixin, StaffRequiredMixin, UpdateView
 ):
     """
-    Edit an existing report with service integration.
+    Edit an existing report, cassette observations, and microscopy images.
     """
 
     model = Report
@@ -252,7 +258,6 @@ class ReportEditView(
         """Check if report can be edited before processing the request."""
         self.object = self.get_object()
 
-        # Check if report is finalized - finalized reports cannot be edited
         if self.object.status == Report.Status.FINALIZED:
             messages.warning(
                 request, _("No se puede editar un informe finalizado.")
@@ -261,22 +266,84 @@ class ReportEditView(
 
         return super().dispatch(request, *args, **kwargs)
 
+    def get_form_kwargs(self):
+        """Pass protocol into the report form."""
+        kwargs = super().get_form_kwargs()
+        kwargs["protocol"] = self.object.protocol
+        return kwargs
+
     def get_success_url(self):
         """Redirect to report detail after editing."""
         return reverse(
             "protocols:report_detail", kwargs={"pk": self.object.pk}
         )
 
+    def get_cassette_formset(self):
+        """Build cassette observation formset for the report."""
+        kwargs = {"form_kwargs": {"report": self.object}}
+        if self.request.method == "POST":
+            return CassetteObservationFormSet(
+                self.request.POST,
+                instance=self.object,
+                prefix="form",
+                **kwargs,
+            )
+        return CassetteObservationFormSet(
+            instance=self.object, prefix="form", **kwargs
+        )
+
+    def get_image_formset(self):
+        """Build microscopy image formset for the report."""
+        kwargs = {"form_kwargs": {"report": self.object}}
+        if self.request.method == "POST":
+            return ReportImageFormSet(
+                self.request.POST,
+                self.request.FILES,
+                instance=self.object,
+                prefix="images",
+                **kwargs,
+            )
+        return ReportImageFormSet(
+            instance=self.object, prefix="images", **kwargs
+        )
+
     def get_context_data(self, **kwargs):
-        """Add protocol to context."""
+        """Add protocol, formsets, and page title."""
         context = super().get_context_data(**kwargs)
         context["protocol"] = self.object.protocol
+        context["report"] = self.object
+        context["title"] = _("Editar Informe")
+        context.setdefault("formset", self.get_cassette_formset())
+        context.setdefault("image_formset", self.get_image_formset())
         return context
 
-    def form_valid(self, form):
-        """Update report using service with early returns."""
-        # Validate report content
+    def post(self, request, *args, **kwargs):
+        """Validate and save report, observations, and images together."""
+        self.object = self.get_object()
+        form = self.get_form()
+        formset = self.get_cassette_formset()
+        image_formset = self.get_image_formset()
+
+        form_valid = form.is_valid()
+        formset_valid = formset.is_valid()
+        image_formset_valid = image_formset.is_valid()
+
+        if not form_valid or not formset_valid or not image_formset_valid:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "form": form,
+                    "formset": formset,
+                    "image_formset": image_formset,
+                    "protocol": self.object.protocol,
+                    "report": self.object,
+                    "title": _("Editar Informe"),
+                },
+            )
+
         content_data = {
+            "laboratory_staff": form.cleaned_data.get("laboratory_staff"),
             "macroscopic_observations": form.cleaned_data.get(
                 "macroscopic_observations", ""
             ),
@@ -293,22 +360,49 @@ class ReportEditView(
         )
         if not is_valid:
             for error in errors:
-                messages.error(self.request, error)
-            return self.form_invalid(form)
-
-        # Update report using service
-        success, error_message = self.report_service.update_report_content(
-            self.object, content_data, self.request.user
-        )
-
-        if not success:
-            messages.error(
-                self.request, f"Error al actualizar informe: {error_message}"
+                messages.error(request, error)
+            return render(
+                request,
+                self.template_name,
+                {
+                    "form": form,
+                    "formset": formset,
+                    "image_formset": image_formset,
+                    "protocol": self.object.protocol,
+                    "report": self.object,
+                    "title": _("Editar Informe"),
+                },
             )
-            return self.form_invalid(form)
 
-        messages.success(self.request, _("Informe actualizado exitosamente."))
+        with transaction.atomic():
+            success, error_message = self.report_service.update_report_content(
+                self.object,
+                content_data,
+                request.user,
+            )
+            if not success:
+                messages.error(
+                    request,
+                    _("Error al actualizar informe: %(error)s")
+                    % {"error": error_message},
+                )
+                return render(
+                    request,
+                    self.template_name,
+                    {
+                        "form": form,
+                        "formset": formset,
+                        "image_formset": image_formset,
+                        "protocol": self.object.protocol,
+                        "report": self.object,
+                        "title": _("Editar Informe"),
+                    },
+                )
 
+            formset.save()
+            image_formset.save()
+
+        messages.success(request, _("Informe actualizado exitosamente."))
         return redirect(self.get_success_url())
 
 
@@ -353,6 +447,9 @@ class ReportDetailView(DetailView):
         ).prefetch_related(
             "protocol__histopathology_sample__cassettes",
             "protocol__slides",
+            "images__cassette",
+            "images__slide",
+            "cassette_observations__cassette",
         )
 
     def get_context_data(self, **kwargs):
@@ -411,10 +508,19 @@ class ReportFinalizeView(
             messages.error(request, report_signer_signature_missing_message())
             return redirect("protocols:report_detail", pk=report.pk)
 
-        # Finalize the report
+        pdf_service = PDFGenerationService()
+        try:
+            pdf_service.persist_report_pdf(report)
+        except PDFGenerationError as exc:
+            messages.error(request, str(exc))
+            return redirect("protocols:report_edit", pk=report.pk)
+
         report.finalize()
 
-        messages.success(request, _("Informe finalizado exitosamente."))
+        messages.success(
+            request,
+            _("Informe finalizado y PDF generado exitosamente."),
+        )
 
         return redirect("protocols:report_detail", pk=report.pk)
 
@@ -568,6 +674,181 @@ class ReportSendView(
 
         messages.success(self.request, _("Informe enviado exitosamente."))
         return redirect(self.get_success_url())
+
+
+def _get_protocol_report_for_images(protocol):
+    """
+    Return the latest report for a protocol that has microscopy images.
+
+    Raises:
+        Http404: If there is no report or no images
+    """
+    latest_report = _get_latest_report(protocol)
+    if not latest_report or not latest_report.images.exists():
+        raise Http404(_("No hay imágenes microscópicas para este protocolo."))
+    return latest_report
+
+
+class ProtocolReportImagesGalleryView(ProtocolOwnerOrStaffMixin, DetailView):
+    """
+    Gallery of microscopy images from the protocol's latest report.
+    """
+
+    model = Protocol
+    template_name = "protocols/reports/protocol_images_gallery.html"
+    context_object_name = "protocol"
+
+    def get_queryset(self):
+        """Prefetch report images for the protocol."""
+        return Protocol.objects.select_related(
+            "veterinarian__user",
+        ).prefetch_related(
+            "reports__images__cassette",
+            "reports__images__slide",
+        )
+
+    def dispatch(self, request, *args, **kwargs):
+        """Verify the protocol has viewable report images."""
+        protocol = get_object_or_404(self.get_queryset(), pk=kwargs["pk"])
+
+        if not (
+            request.user.is_lab_staff
+            or request.user.is_admin_user
+            or (
+                request.user.is_veterinarian
+                and protocol.veterinarian.user_id == request.user.pk
+            )
+        ):
+            messages.error(
+                request, _("No tiene permisos para ver este protocolo.")
+            )
+            return redirect("protocols:protocol_list")
+
+        try:
+            self.report = _get_protocol_report_for_images(protocol)
+        except Http404:
+            messages.info(
+                request,
+                _("Este protocolo aún no tiene imágenes microscópicas."),
+            )
+            return redirect("protocols:protocol_detail", pk=protocol.pk)
+
+        if not user_can_view_report_images(
+            request.user, protocol, self.report
+        ):
+            messages.error(
+                request,
+                _("No tiene permisos para ver las imágenes de este informe."),
+            )
+            return redirect("protocols:protocol_detail", pk=protocol.pk)
+
+        self.protocol = protocol
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        """Return the protocol loaded in dispatch."""
+        return self.protocol
+
+    def get_context_data(self, **kwargs):
+        """Add report images and navigation context."""
+        context = super().get_context_data(**kwargs)
+        protocol = self.object
+        images = self.report.images.select_related(
+            "cassette", "slide"
+        ).order_by("order", "created_at")
+
+        context.update(
+            {
+                "title": _("Imágenes microscópicas"),
+                "report": self.report,
+                "report_images": images,
+                "back_url": reverse(
+                    "protocols:protocol_detail", kwargs={"pk": protocol.pk}
+                ),
+                "back_label": _("← Volver al protocolo"),
+            }
+        )
+        return context
+
+
+class ProtocolReportImageDetailView(ProtocolOwnerOrStaffMixin, DetailView):
+    """
+    Full-size view of a single microscopy image with metadata.
+    """
+
+    model = Protocol
+    template_name = "protocols/reports/protocol_image_detail.html"
+    context_object_name = "protocol"
+    pk_url_kwarg = "pk"
+
+    def get_queryset(self):
+        """Prefetch related report data."""
+        return Protocol.objects.select_related("veterinarian__user")
+
+    def dispatch(self, request, *args, **kwargs):
+        """Resolve protocol, report, and image before the view runs."""
+        self.protocol = get_object_or_404(self.get_queryset(), pk=kwargs["pk"])
+        self.report = _get_protocol_report_for_images(self.protocol)
+
+        if not user_can_view_report_images(
+            request.user, self.protocol, self.report
+        ):
+            messages.error(
+                request,
+                _("No tiene permisos para ver las imágenes de este informe."),
+            )
+            return redirect("protocols:protocol_detail", pk=self.protocol.pk)
+
+        self.report_image = get_object_or_404(
+            ReportImage,
+            pk=kwargs["image_pk"],
+            report=self.report,
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        """Return the protocol (image is on self.report_image)."""
+        return self.protocol
+
+    def get_context_data(self, **kwargs):
+        """Add image, siblings, and navigation."""
+        context = super().get_context_data(**kwargs)
+        ordered_images = list(
+            self.report.images.order_by("order", "created_at").values_list(
+                "pk", flat=True
+            )
+        )
+        current_index = ordered_images.index(self.report_image.pk)
+        prev_image_pk = (
+            ordered_images[current_index - 1] if current_index > 0 else None
+        )
+        next_image_pk = (
+            ordered_images[current_index + 1]
+            if current_index < len(ordered_images) - 1
+            else None
+        )
+
+        context.update(
+            {
+                "title": _("Detalle de imagen microscópica"),
+                "report": self.report,
+                "report_image": self.report_image,
+                "image_index": current_index + 1,
+                "image_total": len(ordered_images),
+                "prev_image_pk": prev_image_pk,
+                "next_image_pk": next_image_pk,
+                "gallery_url": reverse(
+                    "protocols:protocol_report_images",
+                    kwargs={"pk": self.protocol.pk},
+                ),
+                "back_url": reverse(
+                    "protocols:protocol_detail",
+                    kwargs={"pk": self.protocol.pk},
+                ),
+                "back_label": _("← Volver al protocolo"),
+            }
+        )
+        return context
 
 
 def generate_report_pdf(report):

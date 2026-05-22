@@ -33,11 +33,11 @@ TESTING_EMAIL = False
 # Use simple email backend for tests (no real email)
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-# Override database to use SQLite for faster tests
+# SQLite in-memory: no PostgreSQL test DB, no "database already exists" errors
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": ":memory:",
     }
 }
 

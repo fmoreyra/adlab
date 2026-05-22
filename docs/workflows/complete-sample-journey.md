@@ -151,7 +151,8 @@ _[Espacio para captura de pantalla: Personal procesando la muestra en el laborat
    - Observaciones microscópicas
    - Diagnóstico
    - Comentarios y recomendaciones
-9. **Firma digitalmente** el informe
+9. **Carga su firma digital** en el sistema (obligatorio la primera vez: `/accounts/lab-staff/signature/`)
+10. **Firma el informe** mediante el PDF (imagen de firma del profesional asignado)
 
 ### ¿Qué pasa en el sistema?
 - **Se actualiza el estado** según progreso:
@@ -159,7 +160,8 @@ _[Espacio para captura de pantalla: Personal procesando la muestra en el laborat
   - En análisis (mientras trabaja)
   - Informe en borrador
 - **Se registran observaciones**: Para cada cassette
-- **Se genera PDF** del informe
+- **Bloque «Informe patológico»** en detalle de protocolo y procesamiento (si tiene permiso y firma)
+- **Se genera PDF** del informe (solo si hay responsable asignado y firma cargada)
 - **Se calcula hash SHA-256**: Para integridad del documento
 
 ### ¿Cuánto tiempo toma?

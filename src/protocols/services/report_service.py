@@ -3,9 +3,11 @@ Report generation and management service.
 """
 
 import logging
+import os
 from typing import Dict, List, Optional, Tuple
 
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -16,6 +18,7 @@ from protocols.models import (
     Protocol,
     ProtocolStatusHistory,
     Report,
+    ReportImage,
 )
 
 logger = logging.getLogger(__name__)
@@ -168,6 +171,9 @@ class ReportGenerationService:
                 )
 
             with transaction.atomic():
+                if content_data.get("laboratory_staff"):
+                    report.laboratory_staff = content_data["laboratory_staff"]
+
                 # Update report fields
                 if "macroscopic_observations" in content_data:
                     report.macroscopic_observations = content_data[
@@ -568,6 +574,26 @@ class ReportGenerationService:
                         partial_diagnosis=obs.partial_diagnosis,
                         order=obs.order,
                     )
+
+                for img in report.images.all():
+                    new_image = ReportImage(
+                        report=new_report,
+                        cassette=img.cassette,
+                        slide=img.slide,
+                        description=img.description,
+                        magnification=img.magnification,
+                        technique=img.technique,
+                        order=img.order,
+                    )
+                    if img.image:
+                        with img.image.open("rb") as image_file:
+                            new_image.image.save(
+                                os.path.basename(img.image.name),
+                                ContentFile(image_file.read()),
+                                save=True,
+                            )
+                    else:
+                        new_image.save()
 
                 # Log version creation
                 ProtocolStatusHistory.log_status_change(

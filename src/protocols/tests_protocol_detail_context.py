@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from accounts.models import LaboratoryStaff, Veterinarian
-from protocols.models import Protocol, Report
+from protocols.models import Protocol, Report, ReportImage
 from protocols.protocol_detail_context import (
     build_protocol_detail_action_context,
     build_protocol_report_action_context,
@@ -29,7 +29,7 @@ class BuildProtocolDetailActionContextTest(TestCase):
             email_verified=True,
             is_staff=True,
         )
-        LaboratoryStaff.objects.create(
+        self.laboratory_staff = LaboratoryStaff.objects.create(
             user=self.staff_user,
             first_name="Staff",
             last_name="Test",
@@ -147,3 +147,60 @@ class BuildProtocolDetailActionContextTest(TestCase):
         self.assertEqual(context["latest_report"].pk, report.pk)
         self.assertTrue(context["can_view_report_detail"])
         self.assertTrue(context["can_download_report_pdf"])
+
+    def test_protocol_detail_includes_report_images_context(self):
+        """Staff with images on draft report can preview and open gallery."""
+        from io import BytesIO
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image as PILImage
+
+        report = Report.objects.create(
+            protocol=self.protocol,
+            laboratory_staff=self.laboratory_staff,
+            veterinarian=self.veterinarian,
+            diagnosis="OK",
+            status=Report.Status.DRAFT,
+        )
+        buffer = BytesIO()
+        PILImage.new("RGB", (40, 40), "red").save(buffer, format="JPEG")
+        buffer.seek(0)
+        image_file = SimpleUploadedFile(
+            "micro.jpg", buffer.read(), content_type="image/jpeg"
+        )
+        ReportImage.objects.create(report=report, image=image_file)
+
+        context = build_protocol_detail_action_context(
+            self.staff_user, self.protocol
+        )
+
+        self.assertTrue(context["can_view_report_images"])
+        self.assertEqual(context["report_image_count"], 1)
+        self.assertEqual(len(context["report_images_preview"]), 1)
+        self.assertIn(
+            "/informe/imagenes/", context["report_images_gallery_url"]
+        )
+
+    def test_veterinarian_cannot_preview_draft_report_images(self):
+        """Veterinarian does not see draft report images on protocol detail."""
+        report = Report.objects.create(
+            protocol=self.protocol,
+            veterinarian=self.veterinarian,
+            diagnosis="OK",
+            status=Report.Status.DRAFT,
+        )
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        ReportImage.objects.create(
+            report=report,
+            image=SimpleUploadedFile(
+                "x.jpg", b"fake", content_type="image/jpeg"
+            ),
+        )
+
+        context = build_protocol_detail_action_context(
+            self.vet_user, self.protocol
+        )
+
+        self.assertFalse(context["can_view_report_images"])
+        self.assertEqual(len(context["report_images_preview"]), 0)

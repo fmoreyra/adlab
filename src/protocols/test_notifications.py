@@ -13,6 +13,10 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import Histopathologist, LaboratoryStaff, Veterinarian
+from accounts.test_helpers import (
+    create_test_signature_file,
+    ensure_veterinarian_profile_complete,
+)
 from protocols.models import (
     CytologySample,
     HistopathologySample,
@@ -39,7 +43,7 @@ class NotificationAPITestCase(TestCase):
             role=User.Role.VETERINARIO,
             email_verified=True,
         )
-        Veterinarian.objects.create(
+        vet = Veterinarian.objects.create(
             user=self.user,
             first_name="John",
             last_name="Doe",
@@ -47,6 +51,7 @@ class NotificationAPITestCase(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(vet)
         self.client = Client()
         self.client.force_login(self.user)
 
@@ -235,6 +240,7 @@ class NotificationServiceTestCase(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
     def test_create_test_notification(self):
         """Create test notification."""
@@ -302,6 +308,8 @@ class NotificationViewIntegrationTestCase(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
+
         LaboratoryStaff.objects.create(
             user=self.staff_user,
             first_name="Staff",
@@ -309,6 +317,7 @@ class NotificationViewIntegrationTestCase(TestCase):
             license_number="LAB-001",
             can_create_reports=True,
             is_active=True,
+            signature_image=create_test_signature_file(),
         )
         Histopathologist.objects.create(
             user=self.histo_user,

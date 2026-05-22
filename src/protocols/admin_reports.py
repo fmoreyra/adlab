@@ -26,7 +26,7 @@ class ReportImageInline(admin.TabularInline):
     fields = [
         "cassette",
         "slide",
-        "image_path",
+        "image",
         "description",
         "magnification",
         "technique",
@@ -263,7 +263,7 @@ class ReportImageAdmin(admin.ModelAdmin):
             _("Image Information"),
             {
                 "fields": (
-                    "image_path",
+                    "image",
                     "description",
                     "magnification",
                     "technique",

@@ -9,6 +9,10 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import Histopathologist, Veterinarian
+from accounts.test_helpers import (
+    create_test_signature_file,
+    ensure_veterinarian_profile_complete,
+)
 from protocols.models import (
     Cassette,
     CassetteObservation,
@@ -31,6 +35,7 @@ class ReportModelTest(TestCase):
             email="vet@test.com",
             password="testpass123",
             role=User.Role.VETERINARIO,
+            email_verified=True,
         )
         self.veterinarian = Veterinarian.objects.create(
             user=vet_user,
@@ -40,6 +45,7 @@ class ReportModelTest(TestCase):
             email="vet@test.com",
             phone="+54 342 1234567",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create histopathologist user and profile
         histo_user = User.objects.create_user(
@@ -236,6 +242,7 @@ class ReportViewsTest(TestCase):
             email="vet@test.com",
             password="testpass123",
             role=User.Role.VETERINARIO,
+            email_verified=True,
         )
         self.veterinarian = Veterinarian.objects.create(
             user=vet_user,
@@ -243,7 +250,9 @@ class ReportViewsTest(TestCase):
             last_name="Rodríguez",
             license_number="MP-12345-REPORTS",
             email="vet@test.com",
+            phone="+54 341 1234567",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create staff user with histopathologist profile
         staff_user = User.objects.create_user(
@@ -252,6 +261,7 @@ class ReportViewsTest(TestCase):
             password="testpass123",
             role=User.Role.PERSONAL_LAB,
             is_staff=True,
+            email_verified=True,
         )
         self.staff_histopathologist = Histopathologist.objects.create(
             user=staff_user,
@@ -259,6 +269,7 @@ class ReportViewsTest(TestCase):
             last_name="López",
             license_number="MV-54321",
             is_active=True,
+            signature_image=create_test_signature_file("histo_sig.png"),
         )
 
         # Also create LaboratoryStaff profile for unified report creation
@@ -271,6 +282,7 @@ class ReportViewsTest(TestCase):
             license_number="LAB-MV-99999",
             can_create_reports=True,
             is_active=True,
+            signature_image=create_test_signature_file("lab_sig.png"),
         )
 
         # Create protocol
@@ -295,7 +307,7 @@ class ReportViewsTest(TestCase):
         # Logged in as veterinarian (not staff)
         self.client.login(username="vet@test.com", password="testpass123")
         response = self.client.get(reverse("protocols:report_pending_list"))
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
 
         # Logged in as staff
         self.client.login(username="staff@test.com", password="testpass123")
@@ -367,6 +379,7 @@ class ReportPDFGenerationTest(TestCase):
             password="testpass123",
             role=User.Role.PERSONAL_LAB,
             is_staff=True,
+            email_verified=True,
         )
         self.histopathologist = Histopathologist.objects.create(
             user=histo_user,
@@ -374,6 +387,7 @@ class ReportPDFGenerationTest(TestCase):
             last_name="López",
             license_number="MV-54321",
             is_active=True,
+            signature_image=create_test_signature_file("pdf_histo_sig.png"),
         )
 
         # Create protocol

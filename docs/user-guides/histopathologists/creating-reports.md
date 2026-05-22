@@ -8,6 +8,21 @@ Esta guía explica cómo los histopatólogos crean y gestionan informes de patol
 
 Los histopatólogos son responsables de analizar muestras y crear informes detallados de patología. Esta guía cubre el flujo de trabajo completo de creación de informes.
 
+## ✅ Requisitos previos (obligatorios)
+
+Antes de elaborar informes, verificá que tu cuenta cumpla lo siguiente:
+
+| Requisito | Dónde se configura | Cómo comprobarlo |
+|-----------|-------------------|------------------|
+| Rol histopatólogo o personal de lab | Admin → Usuario | Podés acceder a recepción/procesamiento |
+| Perfil **Personal de laboratorio** | Admin → Personal de laboratorio | Existe un registro vinculado a tu usuario |
+| **Puede crear informes** | Mismo perfil | Sin esto verás un aviso gris en el protocolo |
+| **Firma digital** cargada | [Cargar firma](../lab-staff/digital-signature.md) o Admin | Sin esto el sistema te redirige a `/accounts/lab-staff/signature/` |
+
+> **Nota:** El rol de histopatólogo **no** alcanza por sí solo; hace falta el perfil unificado con permiso y firma.
+
+---
+
 ## 🚀 Comenzando
 
 ### Acceder al Sistema
@@ -47,13 +62,26 @@ _[Espacio para captura de pantalla: Vista de detalles del protocolo para histopa
 
 ## 📝 Crear Informes
 
+### Dónde iniciar el informe (interfaz actual)
+
+Podés empezar desde cualquiera de estos puntos cuando el protocolo está en estado **Listo**:
+
+1. **Detalle del protocolo** — bloque azul/índigo **«Informe patológico»** → *Elaborar informe*
+2. **Estado de procesamiento** — mismo bloque al final de la página
+3. **Cola de informes pendientes** — menú de informes / `protocols:report_pending_list`
+
+Si no tenés firma cargada, verás un aviso ámbar con enlace **Cargar firma ahora** en lugar de los botones de elaboración.
+
+_[Espacio para captura de pantalla: Bloque Informe patológico en detalle de protocolo]_
+
 ### Paso 1: Iniciar Creación de Informe
 
-1. **Seleccionar Protocolo**: Elegir un protocolo de tu lista asignada
-2. **Hacer clic en "Crear Informe"**: Iniciar el proceso de creación de informe
-3. **Plantilla de Informe**: El sistema carga la plantilla apropiada
+1. **Seleccionar Protocolo**: Protocolo en estado *Listo* (procesamiento técnico completo)
+2. **Hacer clic en «Elaborar informe»** (o *Crear informe* en la cola pendiente)
+3. **Responsable del informe**: En el formulario, elegir el personal que firmará el PDF (debe tener firma digital)
+4. **Plantilla de Informe**: El sistema carga los datos del protocolo
 
-_[Espacio para captura de pantalla: Botón Crear Informe en la página de detalles del protocolo]_
+_[Espacio para captura de pantalla: Formulario de creación con campo Personal de laboratorio]_
 
 ### Paso 2: Información del Informe
 
@@ -217,17 +245,21 @@ _[Espacio para captura de pantalla: Lista de verificación de control de calidad
 
 _[Espacio para captura de pantalla: Interfaz de finalización de informe]_
 
-### Firma Digital
-- **Agregar firma**: El sistema incluye tu firma digital
-- **Información profesional**: Matrícula y credenciales
-- **Fecha y hora**: Se registra automáticamente
+### Firma Digital (obligatoria)
+
+1. **Cargar firma antes del primer informe**: Ver [Firma digital para informes](../lab-staff/digital-signature.md)
+2. **Al finalizar**: El PDF incluye la imagen de firma del **profesional asignado** al informe
+3. **Datos en el PDF**: Nombre formal, matrícula y cargo del responsable seleccionado
+
+Sin firma cargada, el botón **Finalizar** y **Ver PDF** no estarán disponibles.
 
 ### Generación de PDF
 
-Al finalizar:
-1. **Generar PDF**: El sistema crea un informe PDF profesional
-2. **Revisar PDF**: Verificar formato y contenido del PDF
-3. **Entrega por Email**: El informe se envía automáticamente al veterinario
+Al finalizar (con firma y responsable asignados):
+
+1. **Generar PDF**: El sistema crea el informe con ReportLab (firma embebida)
+2. **Revisar PDF**: Usar *Ver PDF* en el detalle del informe
+3. **Enviar por email**: Paso separado desde *Enviar por email* cuando el informe está *Finalizado*
 
 _[Espacio para captura de pantalla: Vista previa del informe PDF generado]_
 
@@ -326,6 +358,9 @@ R: Los informes estándar deberían completarse dentro de 2-3 días hábiles de 
 
 ### P: ¿Puedo incluir imágenes microscópicas en el informe?
 R: Sí, puedes adjuntar imágenes microscópicas que serán incluidas en el PDF final.
+
+### P: Me sale error al ver el PDF o la página falla
+R: Casi siempre falta la **firma digital** del responsable asignado al informe o el informe no tiene personal asignado. Cargá tu firma en `/accounts/lab-staff/signature/` o pedí al admin que revise el perfil. Ver también [Problemas comunes — PDF](../../troubleshooting/common-issues.md).
 
 ## 🆘 Obtener Ayuda
 

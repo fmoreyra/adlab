@@ -69,6 +69,7 @@ Day-to-day operations and maintenance:
 
 If you're contributing to the codebase:
 - Read [CLAUDE.md](../CLAUDE.md) for architecture overview and development patterns
+- [Python dependencies (uv)](./PYTHON_DEPENDENCIES.md) — add/update packages, lock file, Docker rebuild
 - Check [Development History](./archive/development-steps/) for feature implementation details
 - Review [Planning Docs](./archive/planning/) for design decisions and future roadmap
 

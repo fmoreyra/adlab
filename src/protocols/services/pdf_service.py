@@ -7,10 +7,13 @@ import io
 import logging
 from typing import Tuple
 
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
 from reportlab.platypus import (
     Image,
     Paragraph,
@@ -348,6 +351,62 @@ class PDFGenerationService:
                     )
                 elements.append(Spacer(1, 0.15 * inch))
 
+        report_images = report.images.order_by("order", "created_at")
+        if report_images.exists():
+            elements.append(Paragraph("IMÁGENES MICROSCÓPICAS", heading_style))
+            for report_image in report_images:
+                if not report_image.image:
+                    continue
+                try:
+                    with report_image.image.open("rb") as img_file:
+                        img_buffer = io.BytesIO(img_file.read())
+                    reader = ImageReader(img_buffer)
+                    img_w, img_h = reader.getSize()
+                    max_w, max_h = 4.5 * inch, 3.5 * inch
+                    scale = min(max_w / img_w, max_h / img_h, 1.0)
+                    img_buffer.seek(0)
+                    elements.append(
+                        Image(
+                            img_buffer,
+                            width=img_w * scale,
+                            height=img_h * scale,
+                        )
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        "Could not load report image %s: %s",
+                        report_image.pk,
+                        exc,
+                    )
+                    continue
+
+                caption_parts = []
+                if report_image.cassette:
+                    caption_parts.append(
+                        f"Cassette {report_image.cassette.codigo_cassette}"
+                    )
+                if report_image.magnification:
+                    caption_parts.append(report_image.magnification)
+                if report_image.technique:
+                    caption_parts.append(report_image.technique)
+                if report_image.description:
+                    caption_parts.append(report_image.description)
+
+                if caption_parts:
+                    elements.append(
+                        Paragraph(
+                            " — ".join(caption_parts),
+                            ParagraphStyle(
+                                "ImageCaption",
+                                parent=normal_style,
+                                fontSize=9,
+                                textColor=colors.HexColor("#555555"),
+                                spaceAfter=12,
+                            ),
+                        )
+                    )
+                elements.append(Spacer(1, 0.2 * inch))
+
         # Diagnosis
         elements.append(Paragraph("DIAGNÓSTICO", heading_style))
         elements.append(
@@ -431,3 +490,35 @@ class PDFGenerationService:
 
         buffer.seek(0)
         return buffer, pdf_hash
+
+    def persist_report_pdf(self, report) -> Tuple[str, str]:
+        """
+        Generate a report PDF and save it to default storage (Garage/S3 or media).
+
+        Args:
+            report: Report instance
+
+        Returns:
+            Tuple of (storage_path, sha256_hash)
+
+        Raises:
+            PDFGenerationError: If PDF generation fails
+        """
+        buffer, pdf_hash = self.generate_report_pdf(report)
+        protocol_number = (
+            report.protocol.protocol_number or f"report-{report.pk}"
+        )
+        safe_name = protocol_number.replace(" ", "_").replace("/", "-")
+        storage_name = f"reports/{report.pk}/{safe_name}.pdf"
+
+        if default_storage.exists(storage_name):
+            default_storage.delete(storage_name)
+
+        saved_path = default_storage.save(
+            storage_name,
+            ContentFile(buffer.getvalue()),
+        )
+        report.pdf_path = saved_path
+        report.pdf_hash = pdf_hash
+        report.save(update_fields=["pdf_path", "pdf_hash"])
+        return saved_path, pdf_hash

@@ -56,7 +56,7 @@ docs/
 ├── user-guides/                      # Role-specific guides
 │   ├── veterinarians/               # 4 guides
 │   ├── histopathologists/           # 3 guides
-│   ├── lab-staff/                   # 3 guides
+│   ├── lab-staff/                   # 4 guides (incl. firma digital)
 │   └── administrators/              # 3 guides
 ├── workflows/                        # Complete process flows
 ├── common-tasks/                     # Common operations

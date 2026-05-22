@@ -57,6 +57,10 @@
 
   {% include "protocols/_protocol_report_workflow.html" %}
 
+  {% if can_view_report_images and report_image_count %}
+    {% include "protocols/_protocol_report_images_preview.html" %}
+  {% endif %}
+
   {# Cierre de procesamiento técnico #}
   {% if protocol.status == 'ready' %}
   <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">

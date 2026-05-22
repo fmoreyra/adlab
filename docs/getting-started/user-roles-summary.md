@@ -61,16 +61,17 @@ Esta página proporciona un resumen completo de las capacidades y característic
 - Seguir las etapas de procesamiento
 - Actualizar el estado del procesamiento
 
-#### 📝 **Generación de Informes**
-- Crear informes diagnósticos completos (si tiene permiso)
-- Acceder a información de caso precargada
-- Generar informes PDF profesionales
-- Finalizar y enviar informes automáticamente
+#### 📝 **Generación de Informes** (requiere permiso explícito)
+- Crear informes solo si el perfil **Personal de laboratorio** tiene **«Puede crear informes»**
+- Bloque **Informe patológico** en detalle de protocolo y en estado de procesamiento (protocolo *Listo*)
+- Cola de informes pendientes, edición, finalización y envío por email
+- El rol PERSONAL_LAB **no** habilita informes por sí solo
 
-#### ✍️ **Firmas Digitales**
-- Firmar informes digitalmente
-- Gestionar configuraciones de firma
-- Autenticación profesional de documentos
+#### ✍️ **Firmas Digitales** (obligatorias para informes)
+- Cargar firma en `/accounts/lab-staff/signature/` antes de elaborar o descargar PDF
+- Sin firma: redirección automática y avisos en pantalla
+- El PDF usa la firma del **responsable asignado** al informe en el formulario
+- Ver guía: [Firma digital](../user-guides/lab-staff/digital-signature.md)
 
 #### 📋 **Actualizaciones de Estado**
 - Actualizar el estado del procesamiento del protocolo
@@ -166,6 +167,7 @@ Esta página proporciona un resumen completo de las capacidades y característic
 ### Para Personal de Laboratorio
 - [Recibir muestras](user-guides/lab-staff/receiving-samples.md)
 - [Procesar muestras](user-guides/lab-staff/processing-samples.md)
+- [Firma digital (informes)](user-guides/lab-staff/digital-signature.md)
 - [Gestionar inventario](user-guides/lab-staff/managing-inventory.md)
 - [Analizar muestras](user-guides/histopathologists/analyzing-samples.md) (si tiene permiso)
 - [Crear informes](user-guides/histopathologists/creating-reports.md) (si tiene permiso)

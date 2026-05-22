@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Histopathologist, Veterinarian
+from accounts.test_helpers import ensure_veterinarian_profile_complete
 from protocols.models import (
     Cassette,
     HistopathologySample,
@@ -37,6 +38,7 @@ class DashboardAPITestCase(TestCase):
             last_name="Staff",
             role=User.Role.PERSONAL_LAB,
             is_staff=True,
+            email_verified=True,
         )
 
         self.histopathologist = User.objects.create_user(
@@ -46,6 +48,7 @@ class DashboardAPITestCase(TestCase):
             first_name="Dr. Ana",
             last_name="López",
             role=User.Role.HISTOPATOLOGO,
+            email_verified=True,
         )
 
         self.admin = User.objects.create_user(
@@ -55,6 +58,7 @@ class DashboardAPITestCase(TestCase):
             first_name="Admin",
             last_name="User",
             role=User.Role.ADMIN,
+            email_verified=True,
         )
 
         self.veterinarian = User.objects.create_user(
@@ -64,6 +68,7 @@ class DashboardAPITestCase(TestCase):
             first_name="Dr. Juan",
             last_name="Pérez",
             role=User.Role.VETERINARIO,
+            email_verified=True,
         )
 
         # Create veterinarian profile
@@ -75,6 +80,7 @@ class DashboardAPITestCase(TestCase):
             phone="+54 11 1234-5678",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.vet_profile)
 
         # Create histopathologist profile
         self.histo_profile = Histopathologist.objects.create(

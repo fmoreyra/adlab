@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import Histopathologist, Veterinarian
+from accounts.test_helpers import ensure_veterinarian_profile_complete
 from protocols.models import Protocol, Report, WorkOrder
 
 User = get_user_model()
@@ -65,6 +66,7 @@ class DashboardViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create histopathologist
         self.histopathologist = Histopathologist.objects.create(

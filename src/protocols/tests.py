@@ -9,6 +9,10 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import Address, Histopathologist, Veterinarian
+from accounts.test_helpers import (
+    create_test_signature_file,
+    ensure_veterinarian_profile_complete,
+)
 from protocols.forms import (
     CytologyProtocolForm,
     HistopathologyProtocolForm,
@@ -52,6 +56,7 @@ class ProtocolModelTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
     def test_protocol_creation(self):
         """Test creating a protocol."""
@@ -230,6 +235,7 @@ class CytologySampleModelTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
         self.protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             veterinarian=self.veterinarian,
@@ -286,6 +292,7 @@ class HistopathologySampleModelTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
         self.protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
             veterinarian=self.veterinarian,
@@ -342,6 +349,7 @@ class ProtocolStatusHistoryModelTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
         self.protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             veterinarian=self.veterinarian,
@@ -386,6 +394,7 @@ class CytologyProtocolFormTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
     def test_valid_cytology_form(self):
         """Test valid cytology form."""
@@ -470,6 +479,7 @@ class HistopathologyProtocolFormTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
     def test_valid_histopathology_form(self):
         """Test valid histopathology form."""
@@ -541,6 +551,7 @@ class ProtocolViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
         self.client.login(email="vet@example.com", password="testpass123")
 
     def test_protocol_list_view(self):
@@ -784,6 +795,7 @@ class ProtocolViewsTest(TestCase):
             phone="+54 341 7654321",
             email="other@example.com",
         )
+        ensure_veterinarian_profile_complete(other_vet)
 
         # Create protocol for other veterinarian
         Protocol.objects.create(
@@ -888,6 +900,7 @@ class CassetteModelTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create lab staff user
         self.lab_staff = User.objects.create_user(
@@ -1041,6 +1054,7 @@ class SlideModelTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         self.lab_staff = User.objects.create_user(
             email="lab@example.com",
@@ -1209,6 +1223,7 @@ class CassetteSlideTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         self.lab_staff = User.objects.create_user(
             email="lab@example.com",
@@ -1341,6 +1356,7 @@ class ProcessingLogTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         self.lab_staff = User.objects.create_user(
             email="lab@example.com",
@@ -1448,6 +1464,7 @@ class ProcessingWorkflowTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         self.lab_staff = User.objects.create_user(
             email="lab@example.com",
@@ -1611,6 +1628,7 @@ class ProcessingViewsTest(TestCase):
             license_number="LAB-PROC-001",
             can_create_reports=True,
             is_active=True,
+            signature_image=create_test_signature_file(),
         )
 
         # Create veterinarian
@@ -1622,6 +1640,7 @@ class ProcessingViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create test protocols
         self.cytology_protocol = Protocol.objects.create(
@@ -2713,6 +2732,7 @@ class WorkOrderViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create test protocols ready for work orders
         self.protocol1 = Protocol.objects.create(
@@ -3040,6 +3060,7 @@ class WorkOrderViewsTest(TestCase):
             phone="+54 341 7654321",
             email="vet2@example.com",
         )
+        ensure_veterinarian_profile_complete(veterinarian2)
 
         protocol3 = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
@@ -3378,6 +3399,7 @@ class ReceptionViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create test protocol
         self.protocol = Protocol.objects.create(
@@ -3917,13 +3939,7 @@ class ReportViewsTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
-        Address.objects.create(
-            veterinarian=self.veterinarian,
-            province="Santa Fe",
-            locality="Rosario",
-            street="San Martín",
-            number="123",
-        )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create histopathologist
         self.histopathologist = Histopathologist.objects.create(
@@ -4769,6 +4785,7 @@ class RejectedProtocolsTest(TestCase):
             license_number="VET123",
             phone="+54 341 1234567",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create protocols
         self.submitted_protocol = Protocol.objects.create(
@@ -5025,6 +5042,7 @@ class ProtocolResubmitTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create submitted protocol
         self.submitted_protocol = Protocol.objects.create(
@@ -5247,6 +5265,7 @@ class ProtocolPublicAccessTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create test protocol
         self.protocol = Protocol.objects.create(
@@ -5352,7 +5371,7 @@ class ProtocolPublicAccessTest(TestCase):
             email_verified=True,
             is_staff=False,
         )
-        Veterinarian.objects.create(
+        other_vet = Veterinarian.objects.create(
             user=other_user,
             first_name="Dr. Jane",
             last_name="Smith",
@@ -5360,6 +5379,7 @@ class ProtocolPublicAccessTest(TestCase):
             phone="+54 341 7654321",
             email="other@example.com",
         )
+        ensure_veterinarian_profile_complete(other_vet)
 
         # Login as other veterinarian
         self.client.login(email="other@example.com", password="testpass123")
@@ -5656,6 +5676,7 @@ class ReceptionPendingViewFilterTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create protocols with different characteristics
         self.protocol1 = Protocol.objects.create(
@@ -5812,6 +5833,7 @@ class ReceptionHistoryViewFilterTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
 
         # Create protocols
         self.protocol1 = Protocol.objects.create(
@@ -6015,7 +6037,6 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
         )
 
         # Create address for the veterinarian
-        from accounts.models import Address
 
         self.address = Address.objects.create(
             veterinarian=self.veterinarian,
@@ -6391,6 +6412,7 @@ class ProtocolDetailWorkOrderLinkTest(TestCase):
             phone="+54 341 1234567",
             email="vet@example.com",
         )
+        ensure_veterinarian_profile_complete(self.veterinarian)
         self.protocol = Protocol.objects.create(
             temporary_code="TMP-HP-20251024-OT",
             analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
@@ -6419,7 +6441,7 @@ class ProtocolDetailWorkOrderLinkTest(TestCase):
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(self._detail_url())
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Ver Orden de Trabajo")
+        self.assertContains(response, "orden de trabajo")
         self.assertContains(response, self.work_order.order_number)
         self.assertContains(
             response,
@@ -6433,14 +6455,25 @@ class ProtocolDetailWorkOrderLinkTest(TestCase):
         self.client.login(email="lab@example.com", password="testpass123")
         response = self.client.get(self._detail_url())
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Ver Orden de Trabajo")
+        self.assertNotContains(
+            response,
+            reverse(
+                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
+            ),
+        )
 
-    def test_veterinarian_owner_does_not_see_work_order_link(self):
-        """Veterinarians cannot open work order detail; link is hidden."""
+    def test_veterinarian_owner_sees_own_work_order_link(self):
+        """Owning veterinarian can open their related work order."""
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(self._detail_url())
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Ver Orden de Trabajo")
+        self.assertContains(response, "Ver orden de trabajo")
+        self.assertContains(
+            response,
+            reverse(
+                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
+            ),
+        )
 
     def test_no_link_when_protocol_has_no_work_order(self):
         """No work order link when protocol is not linked to an OT."""
@@ -6449,7 +6482,7 @@ class ProtocolDetailWorkOrderLinkTest(TestCase):
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(self._detail_url())
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Ver Orden de Trabajo")
+        self.assertNotContains(response, "Ver orden de trabajo")
 
 
 class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
@@ -6457,6 +6490,14 @@ class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
 
     def setUp(self):
         """Set up test data."""
+        self.staff_user = User.objects.create_user(
+            email="staff_public@example.com",
+            username="staff_public",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+            email_verified=True,
+            is_staff=True,
+        )
         # Create veterinarian
         self.vet_user = User.objects.create_user(
             email="vet@example.com",
@@ -6472,11 +6513,11 @@ class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
             last_name="Rodríguez",
             license_number="MP-456789",
             phone="+54 351 9876543",
+            cuil_cuit="20-12345678-9",
             email="carlos.rodriguez@vet.com",
         )
 
         # Create address for the veterinarian
-        from accounts.models import Address
 
         self.address = Address.objects.create(
             veterinarian=self.veterinarian,
@@ -6500,8 +6541,10 @@ class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
         )
 
     def test_public_protocol_detail_veterinarian_info(self):
-        """Test that veterinarian info is displayed in public protocol detail view."""
-        self.client.login(email="vet@example.com", password="testpass123")
+        """Staff see veterinarian info; owners hide the redundant vet card."""
+        self.client.login(
+            email="staff_public@example.com", password="testpass123"
+        )
         response = self.client.get(
             reverse(
                 "protocols:protocol_public_detail",
@@ -6521,7 +6564,9 @@ class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
 
     def test_public_protocol_detail_email_link(self):
         """Test that email link is properly formatted in public view."""
-        self.client.login(email="vet@example.com", password="testpass123")
+        self.client.login(
+            email="staff_public@example.com", password="testpass123"
+        )
         response = self.client.get(
             reverse(
                 "protocols:protocol_public_detail",

@@ -28,6 +28,16 @@ urlpatterns = [
         "<int:pk>/", views.ProtocolDetailView.as_view(), name="protocol_detail"
     ),
     path(
+        "<int:pk>/informe/imagenes/",
+        views_reports.ProtocolReportImagesGalleryView.as_view(),
+        name="protocol_report_images",
+    ),
+    path(
+        "<int:pk>/informe/imagenes/<int:image_pk>/",
+        views_reports.ProtocolReportImageDetailView.as_view(),
+        name="protocol_report_image_detail",
+    ),
+    path(
         "public/<uuid:external_id>/",
         views.ProtocolPublicDetailView.as_view(),
         name="protocol_public_detail",

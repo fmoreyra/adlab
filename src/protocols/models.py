@@ -6,6 +6,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from protocols.report_media import report_image_upload_to
+
 
 class Protocol(models.Model):
     """
@@ -2081,6 +2083,7 @@ class ReportImage(models.Model):
     """
     Microscopy images attached to a report.
     Can be associated with specific cassettes or slides.
+    Files are stored via Django default storage (Garage/S3 or local media).
     """
 
     report = models.ForeignKey(
@@ -2105,10 +2108,10 @@ class ReportImage(models.Model):
         related_name="report_images",
         verbose_name=_("portaobjetos"),
     )
-    image_path = models.CharField(
-        _("ruta de imagen"),
-        max_length=500,
-        help_text=_("Ruta del archivo de imagen"),
+    image = models.ImageField(
+        _("imagen"),
+        upload_to=report_image_upload_to,
+        help_text=_("Fotografía microscópica (JPG, PNG o WebP, máx. 10 MB)"),
     )
     description = models.TextField(
         _("descripción"),
@@ -2151,6 +2154,14 @@ class ReportImage(models.Model):
         elif self.slide:
             return f"{self.report} - {self.slide.codigo_portaobjetos} - Imagen"
         return f"{self.report} - Imagen"
+
+    def delete(self, *args, **kwargs):
+        """Remove stored file when the database row is deleted."""
+        from protocols.services.report_image_service import ReportImageService
+
+        storage_name = self.image.name if self.image else None
+        super().delete(*args, **kwargs)
+        ReportImageService.delete_storage_file(storage_name)
 
 
 class EmailLog(models.Model):

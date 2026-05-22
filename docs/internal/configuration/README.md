@@ -19,6 +19,11 @@ Security checklist and hardening guide for production deployments.
 
 **When to use**: Before production launch, security reviews
 
+### [Python Dependencies (uv)](../PYTHON_DEPENDENCIES.md)
+How to add Python packages (`pyproject.toml` + `uv.lock`), rebuild Docker, and audit runtime deps.
+
+**When to use**: Adding libraries (e.g. `bleach`), fixing `ModuleNotFoundError` after pull, before deploy
+
 ## 🎯 Configuration Workflow
 
 ### Initial Setup

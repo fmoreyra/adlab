@@ -197,6 +197,7 @@ nav:
       - Personal de Laboratorio:
           - user-guides/lab-staff/receiving-samples.md
           - user-guides/lab-staff/processing-samples.md
+          - user-guides/lab-staff/digital-signature.md
           - user-guides/lab-staff/managing-inventory.md
 
       - Administradores:
@@ -224,6 +225,7 @@ nav:
   - Documentación Técnica:
       - Inicio: internal/index.md
       - Proyecto: internal/README.md
+      - Informes y firma digital: internal/REPORT_WORKFLOW_AND_SIGNATURE.md
       - Configuración IDE: internal/IDE_SETUP.md
 
 # Validation

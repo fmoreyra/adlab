@@ -50,8 +50,10 @@ from protocols.models import (
     Slide,
 )
 from protocols.protocol_detail_context import (
+    _get_latest_report,
     build_protocol_detail_action_context,
     build_protocol_report_action_context,
+    build_protocol_report_images_context,
 )
 from protocols.services.email_service import EmailNotificationService
 from protocols.services.protocol_service import (
@@ -233,7 +235,8 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
             "status_history",
             "reception_logs",
             "processing_logs",
-            "reports",
+            "reports__images__cassette",
+            "reports__images__slide",
         )
 
     def get_context_data(self, **kwargs):
@@ -1068,12 +1071,16 @@ class ProtocolProcessingStatusView(StaffRequiredMixin, DetailView):
             "veterinarian__user",
             "cytology_sample",
             "histopathology_sample",
-        ).prefetch_related("reports")
+        ).prefetch_related(
+            "reports__images__cassette",
+            "reports__images__slide",
+        )
 
     def get_context_data(self, **kwargs):
         """Add processing-related context data."""
         context = super().get_context_data(**kwargs)
         protocol = self.object
+        latest_report = _get_latest_report(protocol)
 
         # Get cassettes for histopathology
         cassettes = []
@@ -1099,8 +1106,12 @@ class ProtocolProcessingStatusView(StaffRequiredMixin, DetailView):
                 "slides": slides,
                 "processing_readiness": readiness,
                 "show_lab_actions": self.request.user.is_lab_staff,
+                "latest_report": latest_report,
                 **build_protocol_report_action_context(
                     self.request.user, protocol
+                ),
+                **build_protocol_report_images_context(
+                    self.request.user, protocol, latest_report
                 ),
             }
         )

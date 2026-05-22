@@ -4,7 +4,7 @@ Forms for report generation and management.
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms import inlineformset_factory
+from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import LaboratoryStaff
@@ -12,7 +12,17 @@ from protocols.form_widgets import (
     TAILWIND_INPUT_CLASS,
     TAILWIND_TEXTAREA_CLASS,
 )
-from protocols.models import Cassette, CassetteObservation, Protocol, Report
+from protocols.models import (
+    Cassette,
+    CassetteObservation,
+    Protocol,
+    Report,
+    ReportImage,
+)
+from protocols.services.report_image_service import (
+    MAX_IMAGES_PER_REPORT,
+    ReportImageService,
+)
 
 
 class ReportSearchForm(forms.Form):
@@ -222,6 +232,149 @@ CassetteObservationFormSet = inlineformset_factory(
     extra=1,
     can_delete=True,
     fields=["cassette", "observations", "partial_diagnosis", "order"],
+)
+
+
+class ReportImageForm(forms.ModelForm):
+    """Form for uploading a microscopy image on a report."""
+
+    class Meta:
+        model = ReportImage
+        fields = [
+            "cassette",
+            "slide",
+            "image",
+            "description",
+            "magnification",
+            "technique",
+            "order",
+        ]
+        widgets = {
+            "cassette": forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
+            "slide": forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
+            "image": forms.ClearableFileInput(
+                attrs={
+                    "class": TAILWIND_INPUT_CLASS,
+                    "accept": "image/jpeg,image/png,image/webp",
+                }
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": TAILWIND_TEXTAREA_CLASS,
+                    "rows": 2,
+                    "placeholder": _("Descripción de la imagen..."),
+                }
+            ),
+            "magnification": forms.TextInput(
+                attrs={
+                    "class": TAILWIND_INPUT_CLASS,
+                    "placeholder": _("Ej: 400x"),
+                }
+            ),
+            "technique": forms.TextInput(
+                attrs={
+                    "class": TAILWIND_INPUT_CLASS,
+                    "placeholder": _("Ej: H&E"),
+                }
+            ),
+            "order": forms.NumberInput(attrs={"class": TAILWIND_INPUT_CLASS}),
+        }
+        labels = {
+            "cassette": _("Cassette (opcional)"),
+            "slide": _("Portaobjetos (opcional)"),
+            "image": _("Imagen"),
+            "description": _("Descripción"),
+            "magnification": _("Magnificación"),
+            "technique": _("Técnica"),
+            "order": _("Orden"),
+        }
+
+    def __init__(self, *args, report=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.report = report
+        self.fields["image"].required = False
+
+        if report and report.protocol:
+            protocol = report.protocol
+            if (
+                protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY
+                and hasattr(protocol, "histopathology_sample")
+            ):
+                self.fields[
+                    "cassette"
+                ].queryset = protocol.histopathology_sample.cassettes.all()
+            else:
+                self.fields["cassette"].queryset = Cassette.objects.none()
+            self.fields["slide"].queryset = protocol.slides.all()
+
+        if report and not self.instance.pk:
+            self.instance.report = report
+
+    def clean_image(self):
+        """Validate new uploads; keep existing file when not replaced."""
+        image = self.cleaned_data.get("image")
+        if image:
+            ReportImageService.validate_upload(image)
+        return image
+
+    def clean(self):
+        """Skip empty extra forms; require image when the row has data."""
+        cleaned = super().clean()
+        if cleaned.get("DELETE"):
+            return cleaned
+
+        if not self.has_changed() and not self.instance.pk:
+            return cleaned
+
+        has_file = cleaned.get("image") or (
+            self.instance.pk and self.instance.image
+        )
+        if not has_file:
+            raise ValidationError(_("Debe adjuntar un archivo de imagen."))
+        return cleaned
+
+
+class BaseReportImageFormSet(BaseInlineFormSet):
+    """Limit total images per report."""
+
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+
+        active_count = 0
+        for form in self.forms:
+            if not hasattr(form, "cleaned_data"):
+                continue
+            if form.cleaned_data.get("DELETE"):
+                continue
+            if form.instance.pk or form.cleaned_data.get("image"):
+                active_count += 1
+
+        if active_count > MAX_IMAGES_PER_REPORT:
+            raise ValidationError(
+                _("No puede adjuntar más de %(max)s imágenes por informe.")
+                % {"max": MAX_IMAGES_PER_REPORT}
+            )
+
+
+ReportImageFormSet = inlineformset_factory(
+    Report,
+    ReportImage,
+    form=ReportImageForm,
+    formset=BaseReportImageFormSet,
+    extra=2,
+    can_delete=True,
+    max_num=MAX_IMAGES_PER_REPORT,
+    fields=[
+        "cassette",
+        "slide",
+        "image",
+        "description",
+        "magnification",
+        "technique",
+        "order",
+    ],
 )
 
 

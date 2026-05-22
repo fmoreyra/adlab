@@ -47,6 +47,7 @@ This directory contains technical documentation for developers, DevOps engineers
 
 ### 📢 Features (implementadas)
 
+- [**REPORT_WORKFLOW_AND_SIGNATURE.md**](REPORT_WORKFLOW_AND_SIGNATURE.md) - Bloque de informe en protocolo/procesamiento, permiso `can_create_reports` y firma digital obligatoria para PDF
 - [**DASHBOARD_ANNOUNCEMENT.md**](DASHBOARD_ANNOUNCEMENT.md) - Banner de comunicación en dashboards (admin, Markdown, caché Redis, notificaciones in-app)
 - [**STEP_21_PRODUCTION_DEPLOYMENT.md**](STEP_21_PRODUCTION_DEPLOYMENT.md) - Notificaciones in-app y Sockudo en producción
 

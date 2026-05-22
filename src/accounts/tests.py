@@ -1281,6 +1281,7 @@ class VeterinarianProfileDetailViewTest(TestCase):
             first_name="Juan",
             last_name="Pérez",
             license_number="MP-12345-ACCOUNTS-TESTS",
+            cuil_cuit="20-12345678-9",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -1341,6 +1342,7 @@ class VeterinarianProfileEditViewTest(TestCase):
             first_name="Juan",
             last_name="Pérez",
             license_number="MP-77777",
+            cuil_cuit="20-12345678-9",
             phone="+54 342 1234567",
             email="vet@example.com",
         )
@@ -1434,8 +1436,17 @@ class VeterinarianProfileHistoryViewTest(TestCase):
             first_name="Juan",
             last_name="Pérez",
             license_number="MP-12345-ACCOUNTS-TESTS",
+            cuil_cuit="20-12345678-9",
             phone="+54 342 1234567",
             email="vet@example.com",
+        )
+
+        Address.objects.create(
+            veterinarian=self.veterinarian,
+            province="Santa Fe",
+            locality="Esperanza",
+            street="San Martín",
+            number="1234",
         )
 
         # Create some change logs

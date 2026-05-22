@@ -57,6 +57,38 @@ def report_signer_missing_message():
     )
 
 
+def user_can_view_report_images(user, protocol, report):
+    """
+    Return whether the user may view microscopy images for a report.
+
+    Lab staff and admins may view images on any report that has them.
+    Veterinarians may view images only on their own finalized or sent reports.
+    """
+    if not user.is_authenticated or not report:
+        return False
+
+    if not report.images.exists():
+        return False
+
+    if user.is_admin_user or user.is_lab_staff:
+        return True
+
+    if not user.is_veterinarian:
+        return False
+
+    try:
+        veterinarian = user.veterinarian_profile
+    except Exception:
+        return False
+
+    if protocol.veterinarian_id != veterinarian.pk:
+        return False
+
+    from protocols.models import Report
+
+    return report.status in (Report.Status.FINALIZED, Report.Status.SENT)
+
+
 def report_signer_signature_missing_message():
     """User-facing message when the assigned signer lacks a signature."""
     return _(

@@ -41,7 +41,14 @@ make manage ARGS="shell" # Django shell
 # Check outdated dependencies
 make uv-outdated         # Python packages
 make yarn-outdated       # Node packages
+
+# Add Python dependency (commit pyproject.toml + uv.lock, then rebuild)
+make uv ARGS="add package-name"
+docker compose build web
 ```
+
+**Python deps:** `pyproject.toml` + `uv.lock` via uv — never `pip install` in containers.
+See [docs/internal/PYTHON_DEPENDENCIES.md](docs/internal/PYTHON_DEPENDENCIES.md).
 
 ### Important Notes
 - Use `make <target>` or `make <target> ARGS="..."` to run commands

@@ -1,0 +1,72 @@
+{% extends "layouts/index.html" %}
+
+{% block title %}{{ title }} — {{ protocol.protocol_number|default:protocol.temporary_code }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="mb-6">
+        <a href="{{ back_url }}" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+            {{ back_label }}
+        </a>
+        <h1 class="text-3xl font-bold text-gray-900 mt-3">{{ title }}</h1>
+        <p class="text-gray-600 mt-1">
+            Protocolo {{ protocol.protocol_number|default:protocol.temporary_code }}
+            · Informe v{{ report.version }}
+            · {{ report_images|length }} imagen{% if report_images|length != 1 %}es{% endif %}
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for img in report_images %}
+        <article class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:border-indigo-300 transition">
+            <a href="{% url 'protocols:protocol_report_image_detail' protocol.pk img.pk %}">
+                <img src="{{ img.image.url }}"
+                     alt="{% if img.description %}{{ img.description }}{% else %}Imagen microscópica{% endif %}"
+                     class="w-full h-48 object-contain bg-gray-50">
+            </a>
+            <div class="p-4 space-y-2 text-sm">
+                {% if img.cassette %}
+                <p class="text-gray-700">
+                    <span class="font-medium text-gray-900">Cassette:</span>
+                    {{ img.cassette.codigo_cassette }}
+                </p>
+                {% endif %}
+                {% if img.slide %}
+                <p class="text-gray-700">
+                    <span class="font-medium text-gray-900">Portaobjetos:</span>
+                    {{ img.slide.codigo_portaobjetos }}
+                </p>
+                {% endif %}
+                {% if img.magnification or img.technique %}
+                <p class="text-gray-600 text-xs">
+                    {% if img.magnification %}{{ img.magnification }}{% endif %}
+                    {% if img.magnification and img.technique %} · {% endif %}
+                    {% if img.technique %}{{ img.technique }}{% endif %}
+                </p>
+                {% endif %}
+                {% if img.description %}
+                <p class="text-gray-700 line-clamp-3">{{ img.description }}</p>
+                {% endif %}
+                <a href="{% url 'protocols:protocol_report_image_detail' protocol.pk img.pk %}"
+                   class="inline-block text-indigo-600 hover:text-indigo-800 font-medium text-sm">
+                    Ver detalle →
+                </a>
+            </div>
+        </article>
+        {% empty %}
+        <p class="text-gray-600 col-span-full">No hay imágenes para mostrar.</p>
+        {% endfor %}
+    </div>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+        <a href="{% url 'protocols:report_detail' report.pk %}"
+           class="px-4 py-2 border border-indigo-600 text-indigo-800 text-sm font-medium rounded-md hover:bg-indigo-50">
+            Ver informe completo
+        </a>
+        <a href="{{ back_url }}"
+           class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50">
+            {{ back_label }}
+        </a>
+    </div>
+</div>
+{% endblock %}

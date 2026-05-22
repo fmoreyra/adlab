@@ -159,6 +159,28 @@ _[Espacio para captura de pantalla: Cómo se ve el sistema en el teléfono]_
 3. **Intentar más tarde**: Si hay muchos usuarios
 4. **Contactar soporte**: Si el problema persiste
 
+## 📄 No puedo ver o descargar el PDF del informe
+
+### Problema: Error al abrir el PDF o página en blanco / error del servidor
+
+**¿Qué puede estar pasando?**
+- El profesional asignado al informe **no tiene firma digital** cargada
+- El informe no tiene **personal de laboratorio** asignado (datos antiguos)
+- El informe sigue en estado **borrador** (el PDF solo se genera tras finalizar)
+
+**Soluciones:**
+1. **Si elaborás informes:** cargar firma en `/accounts/lab-staff/signature/` (ver [guía de firma digital](../user-guides/lab-staff/digital-signature.md))
+2. **Si sos administrador:** en Django Admin → Personal de laboratorio, subir firma y verificar «Puede crear informes»
+3. **Editar el informe:** asignar un responsable con firma en el campo *Personal de laboratorio*
+4. **Finalizar primero:** el PDF no se genera para borradores
+
+### Problema: Me redirige al cargar firma al intentar crear un informe
+
+**¿Qué significa?**
+Es el comportamiento esperado: el sistema exige firma antes de elaborar informes.
+
+**Solución:** Completar el formulario de firma y volver al protocolo en estado *Listo*.
+
 ## 🆘 Cuándo contactar soporte
 
 ### Contactar inmediatamente si:

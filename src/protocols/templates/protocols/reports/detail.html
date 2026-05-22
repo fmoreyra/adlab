@@ -105,6 +105,16 @@
                 <span class="text-sm text-gray-600">Veterinario:</span>
                 <span class="text-sm font-medium">{{ report.veterinarian.get_full_name }}</span>
             </div>
+            {% if report.laboratory_staff %}
+            <div>
+                <span class="text-sm text-gray-600">Profesional:</span>
+                <span class="text-sm font-medium">{{ report.laboratory_staff.get_formal_name }}</span>
+            </div>
+            <div>
+                <span class="text-sm text-gray-600">Mat.:</span>
+                <span class="text-sm font-medium">{{ report.laboratory_staff.license_number }}</span>
+            </div>
+            {% elif report.histopathologist %}
             <div>
                 <span class="text-sm text-gray-600">Histopatólogo:</span>
                 <span class="text-sm font-medium">{{ report.histopathologist.get_full_name }}</span>
@@ -113,6 +123,7 @@
                 <span class="text-sm text-gray-600">Mat.:</span>
                 <span class="text-sm font-medium">{{ report.histopathologist.license_number }}</span>
             </div>
+            {% endif %}
         </div>
     </div>
 
@@ -168,6 +179,46 @@
         </div>
         {% endif %}
     </div>
+
+    {% if report.images.exists %}
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-xl font-semibold">Imágenes Microscópicas</h2>
+            <a href="{% url 'protocols:protocol_report_images' protocol.pk %}"
+               class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                Ver en galería →
+            </a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {% for img in report.images.all %}
+            <div class="border border-gray-200 rounded-lg p-3">
+                <a href="{{ img.image.url }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ img.image.url }}"
+                         alt="{% if img.description %}{{ img.description }}{% else %}Imagen microscópica{% endif %}"
+                         class="w-full max-h-64 object-contain rounded mb-2">
+                </a>
+                <div class="text-xs text-gray-600 space-y-1">
+                    {% if img.cassette %}
+                    <p><span class="font-medium">Cassette:</span> {{ img.cassette.codigo_cassette }}</p>
+                    {% endif %}
+                    {% if img.slide %}
+                    <p><span class="font-medium">Portaobjetos:</span> {{ img.slide.codigo_portaobjetos }}</p>
+                    {% endif %}
+                    {% if img.magnification %}
+                    <p><span class="font-medium">Magnificación:</span> {{ img.magnification }}</p>
+                    {% endif %}
+                    {% if img.technique %}
+                    <p><span class="font-medium">Técnica:</span> {{ img.technique }}</p>
+                    {% endif %}
+                    {% if img.description %}
+                    <p class="text-gray-700">{{ img.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Email Status -->
     {% if report.status == 'sent' %}

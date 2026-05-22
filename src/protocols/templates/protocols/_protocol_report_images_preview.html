@@ -1,0 +1,43 @@
+{# Microscopy images preview on protocol detail. Requires report images context. #}
+<div class="bg-white shadow-md rounded-lg p-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+            <h2 class="text-lg font-semibold text-gray-900">
+                Imágenes microscópicas
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">
+                {{ report_image_count }} imagen{% if report_image_count != 1 %}es{% endif %}
+                {% if latest_report %}del informe (v{{ latest_report.version }}){% endif %}
+            </p>
+        </div>
+        {% if report_images_gallery_url %}
+        <a href="{{ report_images_gallery_url }}"
+           class="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 border border-indigo-300 rounded-md hover:bg-indigo-50">
+            Ver galería completa →
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {% for img in report_images_preview %}
+        <a href="{% url 'protocols:protocol_report_image_detail' protocol.pk img.pk %}"
+           class="group block rounded-lg border border-gray-200 overflow-hidden hover:border-indigo-400 hover:shadow-md transition">
+            <img src="{{ img.image.url }}"
+                 alt="{% if img.description %}{{ img.description }}{% else %}Imagen microscópica{% endif %}"
+                 class="w-full h-32 object-cover bg-gray-100 group-hover:opacity-95">
+            <div class="p-2 text-xs text-gray-600 truncate">
+                {% if img.cassette %}{{ img.cassette.codigo_cassette }}{% endif %}
+                {% if img.magnification %} · {{ img.magnification }}{% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if report_image_count > report_images_preview|length and report_images_gallery_url %}
+    <p class="mt-4 text-sm text-gray-500 text-center">
+        <a href="{{ report_images_gallery_url }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+            Ver las {{ report_image_count }} imágenes →
+        </a>
+    </p>
+    {% endif %}
+</div>

@@ -438,46 +438,49 @@ much appreciated!
 
 ## 🛠 Updating dependencies
 
-You can run `make uv-outdated` or `make yarn-outdated` to get a list of
-outdated dependencies based on what you currently have installed. Once you've
-figured out what you want to update, go make those updates in your
-`pyproject.toml` and / or `package.json` file.
+Python dependencies are managed with **[uv](https://docs.astral.sh/uv/)** via
+`pyproject.toml` and `uv.lock` (there is no runtime `requirements.txt`).
+**Do not** `pip install` packages inside containers for app dependencies—that
+won't update the lock file or survive the next image build.
 
-Or, let's say you've customized your app and it's time to add a new dependency,
-either for Python or Node.
+**Full guide (Spanish):** [docs/internal/PYTHON_DEPENDENCIES.md](./docs/internal/PYTHON_DEPENDENCIES.md)
 
-### In development
+### Python (recommended)
 
-#### Option 1
+```bash
+# Add a package (updates pyproject.toml + uv.lock)
+make uv ARGS="add bleach>=6.2.0"
 
-1. Directly edit `pyproject.toml` or `assets/package.json` to add your package
-2. `make deps-install` or `make deps-install NO_BUILD=true`
-   - The `NO_BUILD=true` option will only write out a new lock file without re-building your image
+# Rebuild image so the container has the new packages
+docker compose build web
+# or: make deps-install
+```
 
-#### Option 2
+Commit both `pyproject.toml` and `uv.lock` together.
 
-1. Run `make uv ARGS="add mypackage --no-sync"` or `make yarn ARGS="add mypackage --no-lockfile"` which will update your `pyproject.toml` or `assets/package.json` with the latest version of that package but not install it
-2. The same step as step 2 from option 1
+### Python (manual)
 
-Either option is fine, it's up to you based on what's more convenient at the
-time. You can modify the above workflows for updating an existing package or
-removing one as well.
+1. Edit `pyproject.toml`
+2. `make uv ARGS="lock"` then `docker compose build web`
+3. Verify: `docker compose run --rm --entrypoint uv -w /app web lock --check`
 
-You can also access `uv` and `yarn` in Docker with `make uv` and `make yarn`
-after you've upped the project.
+### JavaScript
 
-### In CI
+Use `make yarn ARGS="add package"` or edit `assets/package.json`, then
+`make deps-install`.
 
-You'll want to run `docker compose build` since it will use any existing lock
-files if they exist. You can also check out the complete CI test pipeline in
-the `scripts/ci-test.sh` file or run `make ci-test`.
+### Outdated packages
 
-### In production
+```bash
+make uv-outdated
+make yarn-outdated
+```
 
-This is usually a non-issue since you'll be pulling down pre-built images from
-a Docker registry but if you decide to build your Docker images directly on
-your server you could run `docker compose build` as part of your deploy
-pipeline which is similar to how it would work in CI.
+### CI and production
+
+`docker compose build` uses the committed `uv.lock` via `bin/uv-install`
+(`uv sync --frozen`). Same flow on the server if you build images there.
+See `scripts/ci-test.sh` or `make ci-test`.
 
 ## 🤝 See a way to improve something?
 

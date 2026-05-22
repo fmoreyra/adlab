@@ -1,0 +1,95 @@
+{% extends "layouts/index.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8 max-w-5xl">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <a href="{{ gallery_url }}" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                ← Volver a la galería
+            </a>
+            <h1 class="text-2xl font-bold text-gray-900 mt-2">{{ title }}</h1>
+            <p class="text-sm text-gray-600 mt-1">
+                Imagen {{ image_index }} de {{ image_total }}
+                · Protocolo {{ protocol.protocol_number|default:protocol.temporary_code }}
+            </p>
+        </div>
+        <div class="flex gap-2">
+            {% if prev_image_pk %}
+            <a href="{% url 'protocols:protocol_report_image_detail' protocol.pk prev_image_pk %}"
+               class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                ← Anterior
+            </a>
+            {% endif %}
+            {% if next_image_pk %}
+            <a href="{% url 'protocols:protocol_report_image_detail' protocol.pk next_image_pk %}"
+               class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                Siguiente →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+        <div class="bg-gray-50 p-4 flex justify-center">
+            <a href="{{ report_image.image.url }}" target="_blank" rel="noopener noreferrer">
+                <img src="{{ report_image.image.url }}"
+                     alt="{% if report_image.description %}{{ report_image.description }}{% else %}Imagen microscópica{% endif %}"
+                     class="max-w-full max-h-[70vh] object-contain rounded">
+            </a>
+        </div>
+        <div class="p-6 border-t border-gray-200">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                {% if report_image.cassette %}
+                <div>
+                    <dt class="font-medium text-gray-500">Cassette</dt>
+                    <dd class="mt-1 text-gray-900">{{ report_image.cassette.codigo_cassette }}</dd>
+                </div>
+                {% endif %}
+                {% if report_image.slide %}
+                <div>
+                    <dt class="font-medium text-gray-500">Portaobjetos</dt>
+                    <dd class="mt-1 text-gray-900">{{ report_image.slide.codigo_portaobjetos }}</dd>
+                </div>
+                {% endif %}
+                {% if report_image.magnification %}
+                <div>
+                    <dt class="font-medium text-gray-500">Magnificación</dt>
+                    <dd class="mt-1 text-gray-900">{{ report_image.magnification }}</dd>
+                </div>
+                {% endif %}
+                {% if report_image.technique %}
+                <div>
+                    <dt class="font-medium text-gray-500">Técnica</dt>
+                    <dd class="mt-1 text-gray-900">{{ report_image.technique }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+            {% if report_image.description %}
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <h3 class="text-sm font-medium text-gray-500 mb-2">Descripción</h3>
+                <p class="text-gray-800 whitespace-pre-wrap">{{ report_image.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-3">
+        <a href="{{ report_image.image.url }}"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+            Abrir imagen original
+        </a>
+        <a href="{{ gallery_url }}"
+           class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50">
+            Galería ({{ image_total }})
+        </a>
+        <a href="{{ back_url }}"
+           class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50">
+            {{ back_label }}
+        </a>
+    </div>
+</div>
+{% endblock %}

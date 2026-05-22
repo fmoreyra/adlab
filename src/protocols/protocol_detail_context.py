@@ -12,6 +12,7 @@ from accounts.mixins import (
 from accounts.models import Veterinarian
 from accounts.report_access import (
     get_report_signature_redirect_url,
+    user_can_view_report_images,
     user_requires_report_signature,
 )
 from protocols.models import Protocol, Report
@@ -47,6 +48,67 @@ def _get_latest_report(protocol):
         return None
 
     return protocol.reports.order_by("-created_at").first()
+
+
+def _get_report_images_preview(latest_report, limit=4):
+    """
+    Return ordered report images for protocol detail preview.
+
+    Args:
+        latest_report: Report instance or None
+        limit: Maximum thumbnails to include
+
+    Returns:
+        list: ReportImage instances
+    """
+    if not latest_report:
+        return []
+
+    return list(
+        latest_report.images.select_related("cassette", "slide").order_by(
+            "order", "created_at"
+        )[:limit]
+    )
+
+
+def build_protocol_report_images_context(user, protocol, latest_report=None):
+    """
+    Build context for report microscopy images on protocol detail.
+
+    Args:
+        user: Authenticated user
+        protocol: Protocol instance
+        latest_report: Optional pre-fetched latest report
+
+    Returns:
+        dict: Image preview flags and URLs
+    """
+    if latest_report is None:
+        latest_report = _get_latest_report(protocol)
+
+    can_view_report_images = user_can_view_report_images(
+        user, protocol, latest_report
+    )
+    report_image_count = latest_report.images.count() if latest_report else 0
+    report_images_preview = (
+        _get_report_images_preview(latest_report)
+        if can_view_report_images
+        else []
+    )
+
+    report_images_gallery_url = ""
+    if can_view_report_images and report_image_count:
+        report_images_gallery_url = reverse(
+            "protocols:protocol_report_images",
+            kwargs={"pk": protocol.pk},
+        )
+
+    return {
+        "can_view_report_images": can_view_report_images,
+        "report_image_count": report_image_count,
+        "report_images_preview": report_images_preview,
+        "report_images_gallery_url": report_images_gallery_url,
+    }
 
 
 def build_protocol_report_action_context(user, protocol):
@@ -189,6 +251,9 @@ def build_protocol_detail_action_context(user, protocol, request=None):
 
     report_context = build_protocol_report_action_context(user, protocol)
     latest_report = report_context["latest_report"]
+    images_context = build_protocol_report_images_context(
+        user, protocol, latest_report
+    )
     user_can_create_reports = report_context["user_can_create_reports"]
     needs_report_signature = report_context["needs_report_signature"]
     lab_staff_signature_url = report_context["lab_staff_signature_url"]
@@ -280,4 +345,5 @@ def build_protocol_detail_action_context(user, protocol, request=None):
         "show_report_workflow": show_report_workflow,
         "report_primary_label": report_primary_label,
         "report_primary_url": report_primary_url,
+        **images_context,
     }
