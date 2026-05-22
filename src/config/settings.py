@@ -130,6 +130,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "config.context_processors.sockudo_config",
+                "config.context_processors.dashboard_announcement",
             ],
             "loaders": default_loaders if DEBUG else cached_loaders,
         },

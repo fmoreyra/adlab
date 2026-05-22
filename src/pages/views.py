@@ -3,14 +3,24 @@ from datetime import timedelta
 
 from django import get_version
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.db.models import Avg, Case, Count, F, IntegerField, Q, When
 from django.db.models.functions import Extract
 from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import TemplateView, View
+from django.views.generic import FormView, TemplateView, View
 
+from accounts.mixins import AdminRequiredMixin
+from pages.forms import DashboardAnnouncementForm
+from pages.models import DashboardAnnouncement
+from pages.services.dashboard_announcement_service import (
+    render_message_safe,
+    warm_banner_cache,
+)
 from protocols.models import Protocol, Report
 
 User = get_user_model()
@@ -447,6 +457,92 @@ class ManagementDashboardView(LoginRequiredMixin, TemplateView):
         )
 
         return context
+
+
+class DashboardAnnouncementEditView(AdminRequiredMixin, FormView):
+    """
+    Admin-only view to edit the site-wide dashboard communication banner.
+    """
+
+    form_class = DashboardAnnouncementForm
+    template_name = "pages/dashboard_announcement_edit.html"
+    success_url = reverse_lazy("pages:dashboard_admin")
+
+    def get_initial(self):
+        """Load current singleton values into the form."""
+        announcement = DashboardAnnouncement.get_singleton()
+        return {
+            "message": announcement.message,
+            "is_active": announcement.is_active,
+        }
+
+    def get_context_data(self, **kwargs):
+        """Add preview HTML and formatting help to context."""
+        context = super().get_context_data(**kwargs)
+        announcement = DashboardAnnouncement.get_singleton()
+        preview_html = ""
+        if self.request.method == "POST":
+            action = self.request.POST.get("action", "save")
+            if action == "preview":
+                form = self.get_form()
+                if form.is_valid():
+                    preview_html = render_message_safe(
+                        form.cleaned_data.get("message", "")
+                    )
+        elif announcement.message.strip():
+            preview_html = render_message_safe(announcement.message)
+        context["preview_html"] = preview_html
+        context["announcement"] = announcement
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """Handle preview without saving."""
+        if request.POST.get("action") == "preview":
+            form = self.get_form()
+            if form.is_valid():
+                return self.render_to_response(
+                    self.get_context_data(form=form)
+                )
+            return self.form_invalid(form)
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        """Save announcement, invalidate cache, and queue notifications."""
+        message = form.cleaned_data.get("message", "")
+        is_active = form.cleaned_data.get("is_active", False)
+
+        announcement, hash_changed, _previous_hash = (
+            DashboardAnnouncement.update_announcement(
+                message=message,
+                is_active=is_active,
+                user=self.request.user,
+            )
+        )
+
+        def _after_commit():
+            warm_banner_cache()
+            should_notify = is_active and message.strip() and hash_changed
+            if should_notify:
+                from pages.tasks import notify_dashboard_announcement_update
+
+                notify_dashboard_announcement_update.delay(announcement.pk)
+
+        transaction.on_commit(_after_commit)
+
+        if is_active and message.strip():
+            messages.success(
+                self.request,
+                "Aviso guardado. Los usuarios verán el banner en sus "
+                "dashboards y recibirán una notificación.",
+            )
+        else:
+            messages.success(
+                self.request,
+                "Aviso guardado. El banner no se muestra mientras esté "
+                "inactivo o vacío.",
+            )
+
+        return super().form_valid(form)
 
 
 def permission_denied_view(request, exception=None):

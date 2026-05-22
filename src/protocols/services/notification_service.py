@@ -264,6 +264,35 @@ class NotificationService:
             work_order=work_order,
         )
 
+    def create_for_dashboard_announcement(
+        self,
+        recipient,
+        title: str,
+        body: str,
+        link_url: str,
+    ) -> InAppNotification:
+        """
+        Create in-app notification for a new dashboard announcement.
+
+        Does not send email.
+
+        Args:
+            recipient: User to notify
+            title: Notification title
+            body: Plain-text preview body
+            link_url: Absolute URL to the user's dashboard
+
+        Returns:
+            InAppNotification: Created notification
+        """
+        return self.create_notification(
+            recipient=recipient,
+            notification_type=InAppNotification.NotificationType.ANNOUNCEMENT,
+            title=title,
+            body=body,
+            link_url=link_url,
+        )
+
     def create_test_notification(
         self, recipient, message: str = ""
     ) -> InAppNotification:

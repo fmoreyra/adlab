@@ -5,6 +5,18 @@ Context processors for templates.
 from django.conf import settings
 from django.urls import reverse
 
+from pages.services.dashboard_announcement_service import get_cached_banner
+
+DASHBOARD_URL_NAMES = frozenset(
+    {
+        "dashboard",
+        "dashboard_veterinarian",
+        "dashboard_lab_staff",
+        "dashboard_admin",
+        "dashboard_management",
+    }
+)
+
 
 def sockudo_config(request):
     """
@@ -29,3 +41,23 @@ def sockudo_config(request):
             "user_id": request.user.id,
         },
     }
+
+
+def dashboard_announcement(request):
+    """
+    Inject cached dashboard banner on pages dashboard views only.
+
+    Args:
+        request: HTTP request
+
+    Returns:
+        dict: dashboard_announcement context key or empty
+    """
+    if not request.user.is_authenticated:
+        return {"dashboard_announcement": None}
+
+    match = getattr(request, "resolver_match", None)
+    if match is None or match.url_name not in DASHBOARD_URL_NAMES:
+        return {"dashboard_announcement": None}
+
+    return {"dashboard_announcement": get_cached_banner()}

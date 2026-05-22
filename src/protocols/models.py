@@ -2340,6 +2340,7 @@ class InAppNotification(models.Model):
         REPORT_READY = "report_ready", _("Informe disponible")
         WORK_ORDER = "work_order", _("Orden de trabajo")
         CUSTOM = "custom", _("Notificación personalizada")
+        ANNOUNCEMENT = "announcement", _("Aviso general")
 
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,

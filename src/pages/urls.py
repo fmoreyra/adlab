@@ -38,4 +38,9 @@ urlpatterns = [
         views.ManagementDashboardView.as_view(),
         name="dashboard_management",
     ),
+    path(
+        "dashboard/admin/announcement/",
+        views.DashboardAnnouncementEditView.as_view(),
+        name="dashboard_announcement_edit",
+    ),
 ]
