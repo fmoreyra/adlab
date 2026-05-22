@@ -16,7 +16,6 @@
 | dr.torres@hospital.com       | vet3                         | Dr. Miguel Torres  | Active | ✅ Yes         | Password123!  |
 | dra.lopez@clinica.com        | vet2                         | Dra. Patricia López| Active | ✅ Yes         | Password123!  |
 | dr.garcia@veterinaria.com    | vet1                         | Dr. Roberto García | Active | ✅ Yes         | Password123!  |
-| admin@adlab.local            | admin                        | -                  | Active | ❌ No          | Password123!  |
 
 **Dashboard**: `/dashboard/veterinarian/`
 
@@ -71,9 +70,9 @@
 
 | Email | Username | Name | Status | Email Verified | Password |
 |-------|----------|------|--------|----------------|----------|
-| -     | -        | -    | -      | -              | -        |
+| admin@adlab.local | admin | Admin AdLab | Active | ✅ Yes | `admin123` (seed) o `Password123!` (reset global) |
 
-**Note**: No dedicated admin role users found. Users with superuser status can access admin features.
+**Note**: Rol `ADMIN` implica `is_superuser`. Creado por `simple_test_data.py` si no existe.
 
 **Dashboard**: `/dashboard/admin/`
 
@@ -84,6 +83,7 @@
 - Monitor system health
 - Configure system settings
 - Access security logs
+- **Aviso general en dashboards**: `/dashboard/admin/announcement/` (ver [DASHBOARD_ANNOUNCEMENT.md](../DASHBOARD_ANNOUNCEMENT.md))
 
 ---
 
@@ -97,6 +97,7 @@
 - **Lab Staff**: http://localhost:8000/dashboard/lab-staff/
 - **Histopathologist**: http://localhost:8000/dashboard/histopathologist/
 - **Admin**: http://localhost:8000/dashboard/admin/
+- **Aviso general (banner)**: http://localhost:8000/dashboard/admin/announcement/
 
 ### Other Important URLs
 - **Login**: http://localhost:8000/accounts/login/

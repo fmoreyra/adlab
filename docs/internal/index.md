@@ -45,6 +45,11 @@ This directory contains technical documentation for developers, DevOps engineers
   - Database maintenance
   - Performance tuning
 
+### 📢 Features (implementadas)
+
+- [**DASHBOARD_ANNOUNCEMENT.md**](DASHBOARD_ANNOUNCEMENT.md) - Banner de comunicación en dashboards (admin, Markdown, caché Redis, notificaciones in-app)
+- [**STEP_21_PRODUCTION_DEPLOYMENT.md**](STEP_21_PRODUCTION_DEPLOYMENT.md) - Notificaciones in-app y Sockudo en producción
+
 ### 📁 Archive
 
 - [**archive/**](archive/) - Historical documentation and planning materials
