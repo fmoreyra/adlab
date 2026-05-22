@@ -105,8 +105,7 @@ class VeterinarianDashboardView(LoginRequiredMixin, TemplateView):
         try:
             self.veterinarian = user.veterinarian_profile
         except user.veterinarian_profile.RelatedObjectDoesNotExist:
-            # User is marked as veterinarian but has no profile - redirect to dashboard
-            return redirect("pages:dashboard")
+            return redirect("accounts:complete_profile")
 
         return super().get(request, *args, **kwargs)
 
