@@ -796,7 +796,10 @@ class ReceptionForm(forms.Form):
                             "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                         }
                     ),
-                    help_text=_("Cantidad de portaobjetos recibidos"),
+                    help_text=_(
+                        "Cantidad de portaobjetos recibidos "
+                        "(mínimo 1 para recepcionar la muestra)"
+                    ),
                 )
                 # Set initial value from protocol
                 if hasattr(protocol, "cytology_sample"):
@@ -845,6 +848,19 @@ class ReceptionForm(forms.Form):
         # Check for quantity discrepancies
         if self.protocol:
             if self.protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
+                received = cleaned_data.get("number_slides_received")
+                is_rejected = condition == Protocol.SampleCondition.REJECTED
+
+                if not is_rejected and (received is None or int(received) < 1):
+                    self.add_error(
+                        "number_slides_received",
+                        _(
+                            "Debe indicar al menos un portaobjeto "
+                            "recibido para recepcionar la muestra."
+                        ),
+                    )
+                    return cleaned_data
+
                 expected = (
                     getattr(
                         self.protocol.cytology_sample, "number_of_slides", 0
@@ -852,9 +868,11 @@ class ReceptionForm(forms.Form):
                     if hasattr(self.protocol, "cytology_sample")
                     else 0
                 )
-                received = cleaned_data.get("number_slides_received", 0)
-                if expected != received and not cleaned_data.get(
-                    "discrepancies"
+                received = received if received is not None else 0
+                if (
+                    not is_rejected
+                    and expected != received
+                    and not cleaned_data.get("discrepancies")
                 ):
                     self.add_error(
                         "discrepancies",

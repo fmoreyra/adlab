@@ -3455,6 +3455,45 @@ class ReceptionViewsTest(TestCase):
             self.protocol.sample_condition, Protocol.SampleCondition.OPTIMAL
         )
         self.assertEqual(self.protocol.received_by, self.staff_user)
+        self.assertEqual(self.protocol.slides.count(), 2)
+
+    def test_reception_form_cytology_requires_slides_when_received(self):
+        """ReceptionForm blocks cytology reception without portaobjetos."""
+        from protocols.forms import ReceptionForm
+
+        form = ReceptionForm(
+            data={
+                "sample_condition": Protocol.SampleCondition.OPTIMAL,
+                "reception_notes": "Sin portaobjetos",
+                "discrepancies": "",
+                "number_slides_received": 0,
+            },
+            protocol=self.protocol,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("number_slides_received", form.errors)
+
+    def test_reception_confirm_view_rejects_cytology_without_slides(self):
+        """Cytology reception requires at least one slide when not rejected."""
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.post(
+            reverse(
+                "protocols:reception_confirm", kwargs={"pk": self.protocol.pk}
+            ),
+            data={
+                "sample_condition": Protocol.SampleCondition.OPTIMAL,
+                "reception_notes": "Sin portaobjetos",
+                "discrepancies": "",
+                "number_slides_received": 0,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.protocol.refresh_from_db()
+        self.assertEqual(self.protocol.status, Protocol.Status.SUBMITTED)
+        self.assertEqual(self.protocol.slides.count(), 0)
 
     @patch("protocols.emails.queue_email")
     def test_reception_confirm_view_post_with_discrepancies(

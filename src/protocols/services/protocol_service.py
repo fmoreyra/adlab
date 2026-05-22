@@ -74,6 +74,12 @@ class ProtocolReceptionService:
             # Check if sample is rejected
             is_rejected = sample_condition == Protocol.SampleCondition.REJECTED
 
+            slides_error = self._validate_cytology_slides_on_reception(
+                protocol, form_data, is_rejected
+            )
+            if slides_error:
+                return False, slides_error
+
             if is_rejected:
                 # Handle rejected samples differently - don't assign protocol number
                 protocol.reception_date = timezone.now()
@@ -150,6 +156,32 @@ class ProtocolReceptionService:
                 f"Error processing reception for protocol {protocol.pk}: {e}"
             )
             return False, str(e)
+
+    def _validate_cytology_slides_on_reception(
+        self, protocol: Protocol, form_data: Dict, is_rejected: bool
+    ) -> str:
+        """
+        Require at least one slide when receiving a cytology protocol.
+
+        Rejected samples may be logged without slides.
+        """
+        if is_rejected:
+            return ""
+        if protocol.analysis_type != Protocol.AnalysisType.CYTOLOGY:
+            return ""
+
+        slides_received = form_data.get("number_slides_received")
+        if slides_received is None and hasattr(protocol, "cytology_sample"):
+            slides_received = protocol.cytology_sample.number_slides_received
+
+        if not slides_received or int(slides_received) < 1:
+            return str(
+                _(
+                    "Debe indicar al menos un portaobjeto recibido para "
+                    "recepcionar una muestra de citología."
+                )
+            )
+        return ""
 
     def _update_sample_specific_fields(
         self, protocol: Protocol, form_data: Dict

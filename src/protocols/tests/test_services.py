@@ -307,6 +307,36 @@ class ProtocolReceptionServiceTest(TestCase):
             all(s.tecnica_coloracion == "Diff-Quick" for s in slides)
         )
 
+    def test_process_reception_cytology_requires_slides(self):
+        """Received cytology protocols must include at least one slide."""
+        from protocols.models import CytologySample
+
+        CytologySample.objects.create(
+            protocol=self.protocol,
+            veterinarian=self.veterinarian,
+            technique_used="PAAF",
+            sampling_site="Masa abdominal",
+            number_of_slides=2,
+        )
+        self.protocol.analysis_type = Protocol.AnalysisType.CYTOLOGY
+        self.protocol.save(update_fields=["analysis_type"])
+
+        form_data = {
+            "sample_condition": Protocol.SampleCondition.OPTIMAL,
+            "reception_notes": "",
+            "discrepancies": "",
+            "number_slides_received": 0,
+        }
+
+        success, error = self.service.process_reception(
+            self.protocol, form_data, self.user
+        )
+
+        self.assertFalse(success)
+        self.assertIn("portaobjeto", error.lower())
+        self.protocol.refresh_from_db()
+        self.assertNotEqual(self.protocol.status, Protocol.Status.RECEIVED)
+
 
 class ProtocolProcessingServiceTest(TestCase):
     """Test cases for ProtocolProcessingService."""

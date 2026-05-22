@@ -66,7 +66,7 @@ _[Espacio para captura de pantalla: Lista de verificación de condición de mues
 
 #### Citología: portaobjetos automáticos
 
-Al confirmar la recepción de un protocolo de **citología**, el sistema crea automáticamente los registros de portaobjetos según la cantidad indicada en **portaobjetos recibidos**, con coloración por defecto **Diff-Quick**. No es necesario usar la pantalla de registro de slides por separado.
+Al confirmar la recepción de un protocolo de **citología**, debe indicar al menos **1 portaobjeto recibido** (salvo que la muestra se rechace). El sistema crea automáticamente los registros según esa cantidad, con coloración por defecto **Diff-Quick**. No es necesario usar la pantalla de registro de slides por separado.
 
 _[Espacio para captura de pantalla: Formulario de registro de recepción]_
 

@@ -1393,6 +1393,12 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
         context["protocol"] = self.get_protocol()
         return context
 
+    def get_form_kwargs(self):
+        """Pass protocol so analysis-specific fields and validation apply."""
+        kwargs = super().get_form_kwargs()
+        kwargs["protocol"] = self.get_protocol()
+        return kwargs
+
     def get_protocol(self):
         """Get and validate protocol."""
         protocol = get_object_or_404(
