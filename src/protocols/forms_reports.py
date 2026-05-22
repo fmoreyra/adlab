@@ -8,6 +8,10 @@ from django.forms import inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import LaboratoryStaff
+from protocols.form_widgets import (
+    TAILWIND_INPUT_CLASS,
+    TAILWIND_TEXTAREA_CLASS,
+)
 from protocols.models import Cassette, CassetteObservation, Protocol, Report
 
 
@@ -19,7 +23,7 @@ class ReportSearchForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": "form-control",
+                "class": TAILWIND_INPUT_CLASS,
                 "placeholder": _("Ej: HP 24/001"),
             }
         ),
@@ -41,10 +45,12 @@ class ReportCreateForm(forms.ModelForm):
             "recommendations",
         ]
         widgets = {
-            "laboratory_staff": forms.Select(attrs={"class": "form-control"}),
+            "laboratory_staff": forms.Select(
+                attrs={"class": TAILWIND_INPUT_CLASS}
+            ),
             "macroscopic_observations": forms.Textarea(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_TEXTAREA_CLASS,
                     "rows": 4,
                     "placeholder": _(
                         "Describa las observaciones macroscópicas del material recibido..."
@@ -53,7 +59,7 @@ class ReportCreateForm(forms.ModelForm):
             ),
             "microscopic_observations": forms.Textarea(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_TEXTAREA_CLASS,
                     "rows": 6,
                     "placeholder": _(
                         "Describa las observaciones microscópicas generales..."
@@ -62,7 +68,7 @@ class ReportCreateForm(forms.ModelForm):
             ),
             "diagnosis": forms.Textarea(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_TEXTAREA_CLASS,
                     "rows": 3,
                     "placeholder": _(
                         "Ingrese el diagnóstico patológico final..."
@@ -71,7 +77,7 @@ class ReportCreateForm(forms.ModelForm):
             ),
             "comments": forms.Textarea(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_TEXTAREA_CLASS,
                     "rows": 3,
                     "placeholder": _(
                         "Comentarios adicionales sobre el caso..."
@@ -80,7 +86,7 @@ class ReportCreateForm(forms.ModelForm):
             ),
             "recommendations": forms.Textarea(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_TEXTAREA_CLASS,
                     "rows": 3,
                     "placeholder": _(
                         "Recomendaciones clínicas para el veterinario..."
@@ -130,10 +136,10 @@ class CassetteObservationForm(forms.ModelForm):
         model = CassetteObservation
         fields = ["cassette", "observations", "partial_diagnosis", "order"]
         widgets = {
-            "cassette": forms.Select(attrs={"class": "form-control"}),
+            "cassette": forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
             "observations": forms.Textarea(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_TEXTAREA_CLASS,
                     "rows": 5,
                     "placeholder": _(
                         "Describa las observaciones microscópicas para este cassette..."
@@ -142,14 +148,14 @@ class CassetteObservationForm(forms.ModelForm):
             ),
             "partial_diagnosis": forms.Textarea(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_TEXTAREA_CLASS,
                     "rows": 2,
                     "placeholder": _(
                         "Diagnóstico específico para este cassette (opcional)..."
                     ),
                 }
             ),
-            "order": forms.NumberInput(attrs={"class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": TAILWIND_INPUT_CLASS}),
         }
         labels = {
             "cassette": _("Cassette"),
@@ -211,7 +217,7 @@ class ReportSendForm(forms.Form):
         required=False,
         widget=forms.EmailInput(
             attrs={
-                "class": "form-control",
+                "class": TAILWIND_INPUT_CLASS,
                 "placeholder": _("email@ejemplo.com"),
             }
         ),
@@ -223,7 +229,7 @@ class ReportSendForm(forms.Form):
         required=False,
         widget=forms.Textarea(
             attrs={
-                "class": "form-control",
+                "class": TAILWIND_INPUT_CLASS,
                 "rows": 3,
                 "placeholder": _(
                     "Mensaje adicional para incluir en el email..."

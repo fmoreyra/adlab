@@ -18,27 +18,7 @@
 
     {% include "protocols/workorder/_workflow_help.html" with variant="compact" %}
 
-    <!-- Filter Form -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <form method="get" action="{% url 'protocols:workorder_list' %}">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {% for field in filter_form %}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
-                    {{ field }}
-                </div>
-                {% endfor %}
-            </div>
-            <div class="mt-4">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                    Filtrar
-                </button>
-                <button type="button" onclick="clearWorkOrderFilters()" class="ml-2 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                    Limpiar
-                </button>
-            </div>
-        </form>
-    </div>
+    {% include 'components/ui/filter_form.html' with filters=filter_fields results_count=page_obj.paginator.count %}
 
     {% if work_orders %}
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
@@ -148,28 +128,5 @@
         </a>
     </div>
 </div>
-
-<script>
-function clearWorkOrderFilters() {
-    // Get the form element
-    const form = document.querySelector('form[method="get"]');
-    if (!form) return;
-    
-    // Clear all form fields
-    const inputs = form.querySelectorAll('input, select');
-    inputs.forEach(input => {
-        if (input.type === 'date') {
-            input.value = '';
-        } else if (input.type === 'text') {
-            input.value = '';
-        } else if (input.tagName === 'SELECT') {
-            input.selectedIndex = 0; // Select the first option (usually empty)
-        }
-    });
-    
-    // Submit the form to apply the cleared filters
-    form.submit();
-}
-</script>
 {% endblock %}
 

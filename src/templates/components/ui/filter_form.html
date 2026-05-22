@@ -26,7 +26,7 @@ Usage: {% include 'components/ui/filter_form.html' with filters=filter_fields %}
                         <select 
                             name="{{ filter.name }}" 
                             id="{{ filter.name }}"
-                            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                            class="block w-full h-10 px-3 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white text-gray-900"
                         >
                             <option value="">{{ filter.placeholder|default:"Seleccionar..." }}</option>
                             {% for choice in filter.choices %}
@@ -41,7 +41,7 @@ Usage: {% include 'components/ui/filter_form.html' with filters=filter_fields %}
                             name="{{ filter.name }}" 
                             id="{{ filter.name }}"
                             value="{{ filter.value|default:'' }}"
-                            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                            class="block w-full h-10 px-3 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white text-gray-900"
                         >
                     {% elif filter.type == "text" %}
                         <input 
@@ -50,7 +50,7 @@ Usage: {% include 'components/ui/filter_form.html' with filters=filter_fields %}
                             id="{{ filter.name }}"
                             value="{{ filter.value|default:'' }}"
                             placeholder="{{ filter.placeholder|default:'' }}"
-                            class="block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                            class="block w-full h-10 px-3 py-2 border-2 border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white text-gray-900"
                         >
                     {% endif %}
                 </div>

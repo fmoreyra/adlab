@@ -17,6 +17,7 @@ from django.views.generic import DetailView, ListView, View
 from django.views.generic.edit import FormView
 
 from accounts.mixins import WorkOrderStaffRequiredMixin
+from accounts.models import Veterinarian
 from protocols.emails import send_work_order_notification
 from protocols.forms_workorder import (
     ProtocolSelectionForm,
@@ -64,8 +65,17 @@ class WorkOrderListView(WorkOrderStaffRequiredMixin, ListView):
         # Apply filters
         form = WorkOrderFilterForm(self.request.GET)
         if form.is_valid():
+            order_number = form.cleaned_data.get("order_number")
+            if order_number:
+                queryset = queryset.filter(
+                    order_number__icontains=order_number
+                )
             if form.cleaned_data.get("status"):
                 queryset = queryset.filter(status=form.cleaned_data["status"])
+            if form.cleaned_data.get("payment_status"):
+                queryset = queryset.filter(
+                    payment_status=form.cleaned_data["payment_status"]
+                )
             if form.cleaned_data.get("veterinarian"):
                 queryset = queryset.filter(
                     veterinarian=form.cleaned_data["veterinarian"]
@@ -81,10 +91,78 @@ class WorkOrderListView(WorkOrderStaffRequiredMixin, ListView):
 
         return queryset
 
+    @staticmethod
+    def _build_filter_fields(request_get):
+        """Build filter field dicts for the shared UI filter component."""
+        vet_choices = [
+            (str(vet.pk), vet.get_full_name())
+            for vet in Veterinarian.objects.select_related("user").order_by(
+                "last_name", "first_name"
+            )
+        ]
+
+        return [
+            {
+                "name": "order_number",
+                "label": str(_("Número de Orden")),
+                "type": "text",
+                "placeholder": str(_("Ej: OT-2024-001")),
+                "value": request_get.get("order_number", ""),
+            },
+            {
+                "name": "veterinarian",
+                "label": str(_("Veterinario")),
+                "type": "select",
+                "placeholder": str(_("Todos")),
+                "choices": vet_choices,
+                "value": request_get.get("veterinarian", ""),
+            },
+            {
+                "name": "status",
+                "label": str(_("Estado")),
+                "type": "select",
+                "placeholder": str(_("Todos")),
+                "choices": WorkOrder.Status.choices,
+                "value": request_get.get("status", ""),
+            },
+            {
+                "name": "payment_status",
+                "label": str(_("Estado de Pago")),
+                "type": "select",
+                "placeholder": str(_("Todos")),
+                "choices": WorkOrder.PaymentStatus.choices,
+                "value": request_get.get("payment_status", ""),
+            },
+            {
+                "name": "date_from",
+                "label": str(_("Desde")),
+                "type": "date",
+                "value": request_get.get("date_from", ""),
+            },
+            {
+                "name": "date_to",
+                "label": str(_("Hasta")),
+                "type": "date",
+                "value": request_get.get("date_to", ""),
+            },
+        ]
+
     def get_context_data(self, **kwargs):
         """Add filter form and work_orders to context."""
         context = super().get_context_data(**kwargs)
         context["filter_form"] = WorkOrderFilterForm(self.request.GET)
+        context["filter_fields"] = self._build_filter_fields(self.request.GET)
+        context["has_active_filters"] = any(
+            self.request.GET.get(param)
+            for param in (
+                "order_number",
+                "veterinarian",
+                "status",
+                "payment_status",
+                "date_from",
+                "date_to",
+            )
+        )
         context["title"] = _("Órdenes de Trabajo")
         context["work_orders"] = context[
             "object_list"

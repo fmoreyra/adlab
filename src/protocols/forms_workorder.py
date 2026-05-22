@@ -10,6 +10,10 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import Veterinarian
+from protocols.form_widgets import (
+    TAILWIND_INPUT_CLASS,
+    TAILWIND_TEXTAREA_CLASS,
+)
 from protocols.models import (
     PricingCatalog,
     Protocol,
@@ -26,7 +30,7 @@ class WorkOrderSearchForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": "form-control",
+                "class": TAILWIND_INPUT_CLASS,
                 "placeholder": _("Ej: HP 24/001 o CT 24/001"),
             }
         ),
@@ -37,7 +41,7 @@ class WorkOrderSearchForm(forms.Form):
         label=_("Veterinario"),
         queryset=Veterinarian.objects.all(),
         required=False,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
         help_text=_("Filtrar por veterinario"),
     )
 
@@ -45,7 +49,7 @@ class WorkOrderSearchForm(forms.Form):
         label=_("Estado"),
         choices=[("", _("Todos"))] + list(Protocol.Status.choices),
         required=False,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
         help_text=_("Filtrar por estado del protocolo"),
     )
 
@@ -127,7 +131,7 @@ class WorkOrderCreateForm(forms.ModelForm):
         widgets = {
             "advance_payment": forms.NumberInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "min": "0",
                     "step": "0.01",
                     "placeholder": "0.00",
@@ -135,7 +139,7 @@ class WorkOrderCreateForm(forms.ModelForm):
             ),
             "billing_name": forms.TextInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "placeholder": _(
                         "Dejar vacío para usar nombre del veterinario"
                     ),
@@ -143,14 +147,16 @@ class WorkOrderCreateForm(forms.ModelForm):
             ),
             "cuit_cuil": forms.TextInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "placeholder": "XX-XXXXXXXX-X",
                 }
             ),
-            "iva_condition": forms.Select(attrs={"class": "form-control"}),
+            "iva_condition": forms.Select(
+                attrs={"class": TAILWIND_INPUT_CLASS}
+            ),
             "observations": forms.Textarea(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_TEXTAREA_CLASS,
                     "rows": 3,
                     "placeholder": _("Observaciones adicionales..."),
                 }
@@ -234,30 +240,32 @@ class WorkOrderServiceForm(forms.ModelForm):
             "discount",
         ]
         widgets = {
-            "protocol": forms.Select(attrs={"class": "form-control"}),
+            "protocol": forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
             "description": forms.TextInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "placeholder": _("Descripción del servicio"),
                 }
             ),
-            "service_type": forms.Select(attrs={"class": "form-control"}),
+            "service_type": forms.Select(
+                attrs={"class": TAILWIND_INPUT_CLASS}
+            ),
             "quantity": forms.NumberInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "min": "1",
                 }
             ),
             "unit_price": forms.NumberInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "min": "0",
                     "step": "0.01",
                 }
             ),
             "discount": forms.NumberInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "min": "0",
                     "step": "0.01",
                     "placeholder": "0.00",
@@ -303,13 +311,13 @@ class PricingCatalogForm(forms.ModelForm):
         widgets = {
             "service_type": forms.TextInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "placeholder": _("Ej: histopatologia_2a5_piezas"),
                 }
             ),
             "description": forms.TextInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "placeholder": _(
                         "Ej: Análisis histopatológico (2-5 piezas)"
                     ),
@@ -317,7 +325,7 @@ class PricingCatalogForm(forms.ModelForm):
             ),
             "price": forms.NumberInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "min": "0",
                     "step": "0.01",
                     "placeholder": "0.00",
@@ -325,21 +333,21 @@ class PricingCatalogForm(forms.ModelForm):
             ),
             "valid_from": forms.DateInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "type": "date",
                 },
                 format="%Y-%m-%d",
             ),
             "valid_until": forms.DateInput(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_INPUT_CLASS,
                     "type": "date",
                 },
                 format="%Y-%m-%d",
             ),
             "observations": forms.Textarea(
                 attrs={
-                    "class": "form-control",
+                    "class": TAILWIND_TEXTAREA_CLASS,
                     "rows": 3,
                 }
             ),
@@ -413,7 +421,7 @@ class WorkOrderFilterForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "class": "form-control",
+                "class": TAILWIND_INPUT_CLASS,
                 "placeholder": _("Ej: OT-2024-001"),
             }
         ),
@@ -423,21 +431,21 @@ class WorkOrderFilterForm(forms.Form):
         label=_("Veterinario"),
         queryset=Veterinarian.objects.all(),
         required=False,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
     )
 
     status = forms.ChoiceField(
         label=_("Estado"),
         choices=[("", _("Todos"))] + list(WorkOrder.Status.choices),
         required=False,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
     )
 
     payment_status = forms.ChoiceField(
         label=_("Estado de Pago"),
         choices=[("", _("Todos"))] + list(WorkOrder.PaymentStatus.choices),
         required=False,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
     )
 
     date_from = forms.DateField(
@@ -445,7 +453,7 @@ class WorkOrderFilterForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": "form-control",
+                "class": TAILWIND_INPUT_CLASS,
                 "type": "date",
             }
         ),
@@ -456,7 +464,7 @@ class WorkOrderFilterForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": "form-control",
+                "class": TAILWIND_INPUT_CLASS,
                 "type": "date",
             }
         ),
