@@ -3,6 +3,7 @@
 from datetime import date
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from accounts.models import LaboratoryStaff, Veterinarian
@@ -35,6 +36,9 @@ class BuildProtocolDetailActionContextTest(TestCase):
             license_number="LAB-CTX-001",
             can_create_reports=True,
             is_active=True,
+            signature_image=SimpleUploadedFile(
+                "sig.png", b"fake-image", content_type="image/png"
+            ),
         )
         self.vet_user = User.objects.create_user(
             email="vet@example.com",

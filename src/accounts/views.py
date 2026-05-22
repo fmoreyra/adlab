@@ -23,6 +23,7 @@ from django.views.generic import (
 
 from .forms import (
     HistopathologistCreationForm,
+    LaboratoryStaffSignatureForm,
     PasswordResetConfirmForm,
     PasswordResetRequestForm,
     ResendVerificationEmailForm,
@@ -40,6 +41,10 @@ from .models import (
     User,
     Veterinarian,
     VeterinarianChangeLog,
+)
+from .report_access import (
+    get_laboratory_staff_for_reports,
+    user_requires_report_signature,
 )
 from .services.auth_service import AuthenticationService
 
@@ -324,6 +329,79 @@ class PasswordResetConfirmView(FormView):
                 _("El enlace de restablecimiento es inválido o ha expirado."),
             )
             return redirect("accounts:password_reset_request")
+
+
+class LabStaffSignatureView(LoginRequiredMixin, FormView):
+    """
+    Upload digital signature for laboratory staff who create reports.
+    """
+
+    form_class = LaboratoryStaffSignatureForm
+    template_name = "accounts/lab_staff_signature.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        """Only lab staff with report permission may access this form."""
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+
+        if not request.user.is_lab_staff:
+            messages.error(
+                request,
+                _("Solo el personal de laboratorio puede cargar una firma."),
+            )
+            return redirect("pages:dashboard")
+
+        self.lab_staff_profile = get_laboratory_staff_for_reports(request.user)
+        if (
+            not self.lab_staff_profile
+            or not self.lab_staff_profile.can_create_reports
+        ):
+            messages.error(
+                request,
+                _("No tiene permiso para elaborar informes patológicos."),
+            )
+            return redirect("pages:dashboard")
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        """Return to dashboard or the page the user came from."""
+        next_url = self.request.GET.get("next")
+        if next_url:
+            return next_url
+
+        return reverse_lazy("pages:dashboard")
+
+    def get(self, request, *args, **kwargs):
+        """Skip form when signature already exists unless user opens it."""
+        if not user_requires_report_signature(
+            request.user
+        ) and not request.GET.get("force"):
+            messages.info(request, _("Su firma digital ya está cargada."))
+            return redirect(self.get_success_url())
+
+        return super().get(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        """Bind the form to the current user's laboratory staff profile."""
+        kwargs = super().get_form_kwargs()
+        kwargs["instance"] = self.lab_staff_profile
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        """Expose profile in template for optional preview text."""
+        context = super().get_context_data(**kwargs)
+        context["object"] = self.lab_staff_profile
+        return context
+
+    def form_valid(self, form):
+        """Save signature and confirm success."""
+        form.save()
+        messages.success(
+            self.request,
+            _("Firma digital guardada. Ya puede elaborar y firmar informes."),
+        )
+        return super().form_valid(form)
 
 
 class ProfileView(LoginRequiredMixin, UpdateView):

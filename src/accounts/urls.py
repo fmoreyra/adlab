@@ -39,6 +39,11 @@ urlpatterns = [
     ),
     # User Profile (Generic)
     path("profile/", views.ProfileView.as_view(), name="profile"),
+    path(
+        "lab-staff/signature/",
+        views.LabStaffSignatureView.as_view(),
+        name="lab_staff_signature",
+    ),
     # Veterinarian Profile
     path(
         "veterinarian/complete-profile/",

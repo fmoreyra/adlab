@@ -1956,6 +1956,28 @@ class Report(models.Model):
         )
         return f"Informe_{protocol_num}_v{self.version}.pdf"
 
+    def get_signer(self):
+        """
+        Return the professional profile used to sign the report PDF.
+
+        Prefers unified LaboratoryStaff; falls back to legacy Histopathologist.
+        """
+        if self.laboratory_staff_id:
+            return self.laboratory_staff
+
+        if self.histopathologist_id:
+            return self.histopathologist
+
+        return None
+
+    def signer_has_signature(self):
+        """Return whether the assigned signer can sign PDFs."""
+        signer = self.get_signer()
+        if not signer:
+            return False
+
+        return bool(getattr(signer, "has_signature", lambda: False)())
+
     def can_edit(self):
         """Check if report can be edited."""
         return self.status == self.Status.DRAFT

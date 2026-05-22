@@ -119,6 +119,22 @@ class ReportCreateForm(forms.ModelForm):
             self.instance.protocol = protocol
             self.instance.veterinarian = protocol.veterinarian
 
+    def clean_laboratory_staff(self):
+        """Ensure the selected staff member can sign reports."""
+        laboratory_staff = self.cleaned_data.get("laboratory_staff")
+        if not laboratory_staff:
+            return laboratory_staff
+
+        if not laboratory_staff.has_signature():
+            raise ValidationError(
+                _(
+                    "El personal seleccionado debe tener firma digital "
+                    "cargada en su perfil."
+                )
+            )
+
+        return laboratory_staff
+
     def clean_diagnosis(self):
         """Ensure diagnosis is not empty."""
         diagnosis = self.cleaned_data.get("diagnosis", "").strip()

@@ -20,6 +20,21 @@
         </div>
     </div>
 
+    {% if can_manage_report and needs_report_signature %}
+    <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        Debe cargar su firma digital para finalizar o descargar informes.
+        <a href="{{ lab_staff_signature_url }}"
+           class="ml-2 font-semibold underline hover:text-amber-800">
+            Cargar firma →
+        </a>
+    </div>
+    {% elif can_manage_report and not report_signer_ready %}
+    <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        El profesional asignado al informe no tiene firma digital cargada.
+        Asigne otro responsable al editar el informe o solicite que cargue su firma.
+    </div>
+    {% endif %}
+
     <!-- Action Buttons -->
     {% if can_manage_report %}
     <div class="mb-6 flex space-x-3">
@@ -30,7 +45,7 @@
         </a>
         {% endif %}
         
-        {% if report.status == 'draft' %}
+        {% if report.status == 'draft' and not needs_report_signature and report_signer_ready %}
         <form method="post" action="{% url 'protocols:report_finalize' report.pk %}" class="inline">
             {% csrf_token %}
             <button type="submit" 
@@ -48,7 +63,7 @@
         </a>
         {% endif %}
         
-        {% if report.pdf_path %}
+        {% if report.status != 'draft' and report_signer_ready and not needs_report_signature %}
         <a href="{% url 'protocols:report_pdf' report.pk %}" 
            target="_blank"
            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">

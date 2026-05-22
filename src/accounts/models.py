@@ -129,15 +129,14 @@ class User(AbstractUser):
     def laboratory_staff_profile(self):
         """
         Get laboratory staff profile for backward compatibility.
-        Returns LaboratoryStaff if exists, falls back to Histopathologist for legacy support.
-        """
-        # First try LaboratoryStaff
-        try:
-            return self.laboratory_staff
-        except LaboratoryStaff.DoesNotExist:
-            pass
 
-        # Fall back to Histopathologist for legacy compatibility
+        Returns LaboratoryStaff if it exists, otherwise Histopathologist
+        for legacy accounts without a unified profile.
+        """
+        staff = LaboratoryStaff.objects.filter(user=self).first()
+        if staff:
+            return staff
+
         try:
             return self.histopathologist_profile
         except Histopathologist.DoesNotExist:

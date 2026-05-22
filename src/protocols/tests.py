@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from accounts.models import Histopathologist, Veterinarian
+from accounts.models import Address, Histopathologist, Veterinarian
 from protocols.forms import (
     CytologyProtocolForm,
     HistopathologyProtocolForm,
@@ -3913,8 +3913,16 @@ class ReportViewsTest(TestCase):
             first_name="John",
             last_name="Doe",
             license_number="MP-12345-PROTOCOLS",
+            cuil_cuit="20-12345678-9",
             phone="+54 341 1234567",
             email="vet@example.com",
+        )
+        Address.objects.create(
+            veterinarian=self.veterinarian,
+            province="Santa Fe",
+            locality="Rosario",
+            street="San Martín",
+            number="123",
         )
 
         # Create histopathologist
@@ -3928,6 +3936,8 @@ class ReportViewsTest(TestCase):
         )
 
         # Also create LaboratoryStaff profile for report creation (new unified model)
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
         from accounts.models import LaboratoryStaff
 
         self.laboratory_staff = LaboratoryStaff.objects.create(
@@ -3939,6 +3949,16 @@ class ReportViewsTest(TestCase):
             specialty="Patología Veterinaria",
             can_create_reports=True,
             is_active=True,
+            signature_image=SimpleUploadedFile(
+                "sig.png",
+                (
+                    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
+                    b"\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde"
+                    b"\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00"
+                    b"\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+                ),
+                content_type="image/png",
+            ),
         )
 
         # Create test protocol ready for report generation
@@ -4016,7 +4036,7 @@ class ReportViewsTest(TestCase):
         # Create a draft report
         self.draft_report = Report.objects.create(
             protocol=self.protocol,
-            histopathologist=self.histopathologist,
+            laboratory_staff=self.laboratory_staff,
             veterinarian=self.veterinarian,
             macroscopic_observations="Masa firme, bien delimitada",
             microscopic_observations="Células epiteliales atípicas",
@@ -4029,7 +4049,7 @@ class ReportViewsTest(TestCase):
         # Create a finalized report
         self.finalized_report = Report.objects.create(
             protocol=self.protocol,
-            histopathologist=self.histopathologist,
+            laboratory_staff=self.laboratory_staff,
             veterinarian=self.veterinarian,
             macroscopic_observations="Masa firme, bien delimitada",
             microscopic_observations="Células epiteliales atípicas",

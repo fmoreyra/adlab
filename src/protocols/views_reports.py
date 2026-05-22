@@ -18,14 +18,28 @@ from django.views.generic import (
     View,
 )
 
-from accounts.mixins import StaffRequiredMixin, VeterinarianRequiredMixin
+from accounts.mixins import (
+    ReportSignatureRequiredMixin,
+    StaffRequiredMixin,
+    VeterinarianRequiredMixin,
+)
+from accounts.report_access import (
+    get_report_signature_redirect_url,
+    report_signature_required_message,
+    report_signer_missing_message,
+    report_signer_signature_missing_message,
+    user_requires_report_signature,
+)
 from protocols.forms_reports import (
     ReportCreateForm,
     ReportSendForm,
 )
 from protocols.models import Protocol, Report
 from protocols.services.email_service import EmailNotificationService
-from protocols.services.pdf_service import PDFGenerationService
+from protocols.services.pdf_service import (
+    PDFGenerationError,
+    PDFGenerationService,
+)
 from protocols.services.report_service import ReportGenerationService
 
 logger = logging.getLogger(__name__)
@@ -37,7 +51,9 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class ReportPendingListView(StaffRequiredMixin, ListView):
+class ReportPendingListView(
+    ReportSignatureRequiredMixin, StaffRequiredMixin, ListView
+):
     """
     List protocols that are ready for report generation.
     """
@@ -111,7 +127,9 @@ class VeterinarianReportListView(VeterinarianRequiredMixin, ListView):
         return context
 
 
-class ReportHistoryView(StaffRequiredMixin, ListView):
+class ReportHistoryView(
+    ReportSignatureRequiredMixin, StaffRequiredMixin, ListView
+):
     """
     View history of generated reports.
     """
@@ -130,7 +148,9 @@ class ReportHistoryView(StaffRequiredMixin, ListView):
         ).order_by("-created_at")
 
 
-class ReportCreateView(StaffRequiredMixin, CreateView):
+class ReportCreateView(
+    ReportSignatureRequiredMixin, StaffRequiredMixin, CreateView
+):
     """
     Create a new report for a protocol with service integration.
     """
@@ -184,9 +204,17 @@ class ReportCreateView(StaffRequiredMixin, CreateView):
             return redirect("protocols:report_pending_list")
 
         # Create report using service with form data
+        laboratory_staff = form.cleaned_data.get("laboratory_staff")
+        if not laboratory_staff:
+            messages.error(
+                self.request,
+                _("Debe seleccionar el personal responsable del informe."),
+            )
+            return redirect("protocols:report_pending_list")
+
         success, report, error_message = self.report_service.create_report(
             protocol,
-            self.request.user.lab_staff_profile,
+            laboratory_staff,
             form.cleaned_data,
         )
 
@@ -205,7 +233,9 @@ class ReportCreateView(StaffRequiredMixin, CreateView):
         return redirect(self.get_success_url())
 
 
-class ReportEditView(StaffRequiredMixin, UpdateView):
+class ReportEditView(
+    ReportSignatureRequiredMixin, StaffRequiredMixin, UpdateView
+):
     """
     Edit an existing report with service integration.
     """
@@ -339,16 +369,26 @@ class ReportDetailView(DetailView):
 
         context["is_report_owner"] = is_report_owner
         context["can_manage_report"] = user.is_lab_staff
+        context["needs_report_signature"] = user_requires_report_signature(
+            user
+        )
+        context["lab_staff_signature_url"] = (
+            get_report_signature_redirect_url()
+        )
+        context["report_signer_ready"] = report.signer_has_signature()
         context["can_download_report_pdf"] = (
             report.status != Report.Status.DRAFT
             and bool(report.pdf_path)
             and (user.is_lab_staff or is_report_owner)
+            and report.signer_has_signature()
         )
         context["protocol"] = report.protocol
         return context
 
 
-class ReportFinalizeView(StaffRequiredMixin, View):
+class ReportFinalizeView(
+    ReportSignatureRequiredMixin, StaffRequiredMixin, View
+):
     """
     Finalize a report (mark as ready for sending).
     """
@@ -361,6 +401,14 @@ class ReportFinalizeView(StaffRequiredMixin, View):
             messages.error(
                 request, _("Solo se pueden finalizar informes en borrador.")
             )
+            return redirect("protocols:report_detail", pk=report.pk)
+
+        if not report.get_signer():
+            messages.error(request, report_signer_missing_message())
+            return redirect("protocols:report_edit", pk=report.pk)
+
+        if not report.signer_has_signature():
+            messages.error(request, report_signer_signature_missing_message())
             return redirect("protocols:report_detail", pk=report.pk)
 
         # Finalize the report
@@ -399,6 +447,12 @@ class ReportPDFView(View):
             )
             return redirect("protocols:protocol_list")
 
+        if request.user.is_lab_staff and user_requires_report_signature(
+            request.user
+        ):
+            messages.error(request, report_signature_required_message())
+            return redirect(get_report_signature_redirect_url())
+
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -412,8 +466,19 @@ class ReportPDFView(View):
             )
             return redirect("protocols:report_detail", pk=report.pk)
 
-        # Generate PDF using service
-        pdf_buffer, pdf_hash = self.pdf_service.generate_report_pdf(report)
+        if not report.get_signer():
+            messages.error(request, report_signer_missing_message())
+            return redirect("protocols:report_detail", pk=report.pk)
+
+        if not report.signer_has_signature():
+            messages.error(request, report_signer_signature_missing_message())
+            return redirect("protocols:report_detail", pk=report.pk)
+
+        try:
+            pdf_buffer, pdf_hash = self.pdf_service.generate_report_pdf(report)
+        except PDFGenerationError as exc:
+            messages.error(request, str(exc))
+            return redirect("protocols:report_detail", pk=report.pk)
 
         filename = f"informe_{report.protocol.protocol_number}.pdf"
         return FileResponse(
@@ -424,7 +489,9 @@ class ReportPDFView(View):
         )
 
 
-class ReportSendView(StaffRequiredMixin, FormView):
+class ReportSendView(
+    ReportSignatureRequiredMixin, StaffRequiredMixin, FormView
+):
     """
     Send a finalized report to the veterinarian with service integration.
     """

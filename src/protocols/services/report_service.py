@@ -10,6 +10,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from accounts.models import LaboratoryStaff
 from protocols.models import (
     CassetteObservation,
     Protocol,
@@ -32,7 +33,7 @@ class ReportGenerationService:
     def create_report(
         self,
         protocol: Protocol,
-        laboratory_staff: User,
+        laboratory_staff: LaboratoryStaff,
         form_data: Optional[Dict] = None,
     ) -> Tuple[bool, Optional[Report], str]:
         """
@@ -40,13 +41,26 @@ class ReportGenerationService:
 
         Args:
             protocol: Protocol instance
-            laboratory_staff: User creating the report
+            laboratory_staff: Staff member responsible for the report
             form_data: Optional form data to populate report fields
 
         Returns:
             Tuple of (success, report_instance, error_message)
         """
         try:
+            if not laboratory_staff:
+                return False, None, _("Debe asignar personal de laboratorio.")
+
+            if not laboratory_staff.has_signature():
+                return (
+                    False,
+                    None,
+                    _(
+                        "El personal seleccionado debe tener firma digital "
+                        "cargada."
+                    ),
+                )
+
             # Validate protocol for report creation
             is_valid, error_message = self.validate_protocol_for_report(
                 protocol
@@ -55,18 +69,10 @@ class ReportGenerationService:
                 return False, None, error_message
 
             with transaction.atomic():
-                # Create basic report first
-                # Use laboratory_staff ID if it's an object, otherwise use as-is
-                laboratory_staff_id = (
-                    laboratory_staff.id
-                    if hasattr(laboratory_staff, "id")
-                    else laboratory_staff
-                )
-
                 report = Report.objects.create(
                     protocol=protocol,
                     veterinarian=protocol.veterinarian,
-                    laboratory_staff_id=laboratory_staff_id,
+                    laboratory_staff=laboratory_staff,
                     status=Report.Status.DRAFT,
                     version=1,
                 )

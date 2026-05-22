@@ -76,6 +76,14 @@
         </a>
     </div>
 </div>
+{% elif show_lab_actions and user_can_create_reports and needs_report_signature %}
+<div class="rounded-lg border border-amber-200 bg-amber-50 p-4 mb-6 text-sm text-amber-900">
+    Debe cargar su <span class="font-medium">firma digital</span> antes de elaborar o descargar informes.
+    <a href="{{ lab_staff_signature_url }}"
+       class="ml-2 font-semibold text-amber-950 underline hover:text-amber-800">
+        Cargar firma ahora →
+    </a>
+</div>
 {% elif show_lab_actions and not user_can_create_reports %}
 <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 mb-6 text-sm text-gray-600">
     La elaboración de informes requiere el permiso

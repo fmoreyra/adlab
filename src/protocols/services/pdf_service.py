@@ -23,6 +23,10 @@ from reportlab.platypus import (
 logger = logging.getLogger(__name__)
 
 
+class PDFGenerationError(Exception):
+    """Raised when a report PDF cannot be generated."""
+
+
 class PDFGenerationService:
     """
     Service class for generating PDF documents.
@@ -374,13 +378,18 @@ class PDFGenerationService:
 
         # Signature
         elements.append(Spacer(1, 0.5 * inch))
-        signer = (
-            report.laboratory_staff
-            if report.laboratory_staff
-            else report.histopathologist
-        )
+        signer = report.get_signer()
+        if not signer:
+            raise PDFGenerationError(
+                "El informe no tiene un profesional asignado para firmar."
+            )
 
-        # Add signature image if available (storage-agnostic)
+        if not report.signer_has_signature():
+            raise PDFGenerationError(
+                "El profesional asignado no tiene firma digital cargada."
+            )
+
+        # Add signature image (required for finalized PDFs)
         if signer.signature_image:
             try:
                 with signer.signature_image.open("rb") as img_file:

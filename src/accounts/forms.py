@@ -5,7 +5,13 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .models import Address, Histopathologist, User, Veterinarian
+from .models import (
+    Address,
+    Histopathologist,
+    LaboratoryStaff,
+    User,
+    Veterinarian,
+)
 
 
 class ResendVerificationEmailForm(forms.Form):
@@ -1309,3 +1315,51 @@ class VeterinarianProfileEditForm(forms.ModelForm):
                 )
 
         return veterinarian
+
+
+class LaboratoryStaffSignatureForm(forms.ModelForm):
+    """Upload or update the digital signature required for pathology reports."""
+
+    class Meta:
+        model = LaboratoryStaff
+        fields = ["signature_image"]
+        labels = {
+            "signature_image": _("Firma digital"),
+        }
+        help_texts = {
+            "signature_image": _(
+                "Imagen de su firma (PNG o JPG). Es obligatoria para "
+                "elaborar y firmar informes patológicos."
+            ),
+        }
+        widgets = {
+            "signature_image": forms.FileInput(
+                attrs={
+                    "class": (
+                        "block w-full text-sm text-gray-500 file:mr-4 "
+                        "file:py-2 file:px-4 file:rounded-lg file:border-0 "
+                        "file:text-sm file:font-semibold file:bg-blue-50 "
+                        "file:text-blue-700 hover:file:bg-blue-100"
+                    ),
+                    "accept": "image/*",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.signature_image:
+            self.fields["signature_image"].required = True
+
+    def clean_signature_image(self):
+        """Require a signature when none is stored yet."""
+        signature = self.cleaned_data.get("signature_image")
+        if signature:
+            return signature
+
+        if self.instance.signature_image:
+            return signature
+
+        raise ValidationError(
+            _("Debe cargar una imagen de firma para continuar.")
+        )

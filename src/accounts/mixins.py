@@ -5,11 +5,38 @@ These mixins provide role-based access control for different user types
 in the laboratory system.
 """
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext_lazy as _
 
+from accounts.report_access import (
+    get_report_signature_redirect_url,
+    report_signature_required_message,
+    user_requires_report_signature,
+)
 from protocols.models import Protocol
+
+
+class ReportSignatureRequiredMixin:
+    """
+    Require a digital signature for lab staff who create pathology reports.
+
+    Veterinarians and other roles are not checked.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        """Redirect lab staff without signature to the upload form."""
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+
+        if request.user.is_lab_staff and user_requires_report_signature(
+            request.user
+        ):
+            messages.error(request, report_signature_required_message())
+            return redirect(get_report_signature_redirect_url())
+
+        return super().dispatch(request, *args, **kwargs)
 
 
 class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):

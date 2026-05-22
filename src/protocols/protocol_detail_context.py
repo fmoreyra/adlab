@@ -10,6 +10,10 @@ from accounts.mixins import (
     user_can_view_protocol_processing,
 )
 from accounts.models import Veterinarian
+from accounts.report_access import (
+    get_report_signature_redirect_url,
+    user_requires_report_signature,
+)
 from protocols.models import Protocol, Report
 from protocols.services.protocol_service import ProtocolProcessingService
 
@@ -54,34 +58,39 @@ def build_protocol_report_action_context(user, protocol):
     """
     is_lab_staff = user.is_authenticated and user.is_lab_staff
     user_can_create_reports = _user_can_create_reports(user)
+    needs_report_signature = user_requires_report_signature(user)
     latest_report = _get_latest_report(protocol)
+    report_actions_enabled = (
+        user_can_create_reports and not needs_report_signature
+    )
 
     can_create_report = (
         is_lab_staff
-        and user_can_create_reports
+        and report_actions_enabled
         and protocol.status == Protocol.Status.READY
         and latest_report is None
     )
     can_edit_report = (
         is_lab_staff
-        and user_can_create_reports
+        and report_actions_enabled
         and latest_report is not None
         and latest_report.can_edit()
     )
     can_send_report = (
         is_lab_staff
-        and user_can_create_reports
+        and report_actions_enabled
         and latest_report is not None
         and latest_report.status == Report.Status.FINALIZED
     )
     can_view_report_detail = bool(
-        is_lab_staff and user_can_create_reports and latest_report is not None
+        is_lab_staff and report_actions_enabled and latest_report is not None
     )
     can_download_report_pdf = bool(
         latest_report
         and latest_report.status != Report.Status.DRAFT
         and is_lab_staff
-        and user_can_create_reports
+        and report_actions_enabled
+        and latest_report.signer_has_signature()
     )
 
     show_report_workflow = (
@@ -120,6 +129,8 @@ def build_protocol_report_action_context(user, protocol):
     return {
         "latest_report": latest_report,
         "user_can_create_reports": user_can_create_reports,
+        "needs_report_signature": needs_report_signature,
+        "lab_staff_signature_url": get_report_signature_redirect_url(),
         "can_create_report": can_create_report,
         "can_edit_report": can_edit_report,
         "can_send_report": can_send_report,
@@ -179,6 +190,8 @@ def build_protocol_detail_action_context(user, protocol, request=None):
     report_context = build_protocol_report_action_context(user, protocol)
     latest_report = report_context["latest_report"]
     user_can_create_reports = report_context["user_can_create_reports"]
+    needs_report_signature = report_context["needs_report_signature"]
+    lab_staff_signature_url = report_context["lab_staff_signature_url"]
     can_create_report = report_context["can_create_report"]
     can_edit_report = report_context["can_edit_report"]
     can_send_report = report_context["can_send_report"]
@@ -247,6 +260,8 @@ def build_protocol_detail_action_context(user, protocol, request=None):
         "can_view_report_detail": can_view_report_detail,
         "can_download_report_pdf": can_download_report_pdf,
         "user_can_create_reports": user_can_create_reports,
+        "needs_report_signature": needs_report_signature,
+        "lab_staff_signature_url": lab_staff_signature_url,
         "processing_readiness": processing_readiness,
         "can_mark_ready": can_mark_ready,
         "can_create_report": can_create_report,

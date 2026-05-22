@@ -1,0 +1,58 @@
+{% extends "layouts/index.html" %}
+
+{% block title %}Firma digital{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50">
+    <div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Firma digital</h1>
+            <p class="text-lg text-gray-600">
+                Es obligatoria para elaborar, finalizar y descargar informes patológicos.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="space-y-4">
+                    <label for="{{ form.signature_image.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.signature_image.label }}
+                    </label>
+                    {{ form.signature_image }}
+                    {% if form.signature_image.help_text %}
+                    <p class="text-sm text-gray-500">{{ form.signature_image.help_text }}</p>
+                    {% endif %}
+                    {% if form.signature_image.errors %}
+                    <p class="text-sm text-red-600">{{ form.signature_image.errors.0 }}</p>
+                    {% endif %}
+
+                    {% if object.signature_image %}
+                    <p class="text-sm text-gray-600">
+                        Ya tiene una firma cargada. Suba un archivo nuevo solo si desea reemplazarla.
+                    </p>
+                    {% endif %}
+                </div>
+
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <button type="submit"
+                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                        Guardar firma
+                    </button>
+                    <a href="{% url 'pages:dashboard' %}"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Volver al panel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
