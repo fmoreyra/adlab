@@ -30,7 +30,6 @@ from accounts.mixins import (
     VeterinarianProfileRequiredMixin,
     VeterinarianRequiredMixin,
     user_can_view_protocol_processing,
-    user_can_view_work_order_detail,
 )
 from accounts.models import Veterinarian
 from protocols.forms import (
@@ -49,6 +48,9 @@ from protocols.models import (
     ProtocolStatusHistory,
     ReceptionLog,
     Slide,
+)
+from protocols.protocol_detail_context import (
+    build_protocol_detail_action_context,
 )
 from protocols.services.email_service import EmailNotificationService
 from protocols.services.protocol_service import (
@@ -230,56 +232,33 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
             "status_history",
             "reception_logs",
             "processing_logs",
+            "reports",
         )
 
     def get_context_data(self, **kwargs):
         """Add additional context data."""
         context = super().get_context_data(**kwargs)
         protocol = self.object
-        user = self.request.user
 
-        # Get status history with user information
         status_history = (
             protocol.status_history.all()
             .select_related("changed_by")
             .order_by("-changed_at")
         )
 
-        # Get sample information
         sample = None
         if hasattr(protocol, "cytology_sample"):
             sample = protocol.cytology_sample
         elif hasattr(protocol, "histopathology_sample"):
             sample = protocol.histopathology_sample
 
-        if user.is_veterinarian:
-            back_url = reverse("protocols:protocol_list")
-            back_label = _("← Volver a la Lista")
-        elif user.is_lab_staff:
-            back_url = reverse("protocols:reception")
-            back_label = _("← Volver a recepción")
-        else:
-            back_url = reverse("home")
-            back_label = _("← Volver")
-
-        related_work_order = protocol.work_order
-        can_view_related_work_order = (
-            related_work_order is not None
-            and user_can_view_work_order_detail(user)
-        )
-        can_view_protocol_processing = user_can_view_protocol_processing(
-            user, protocol
-        )
-
         context.update(
             {
                 "status_history": status_history,
                 "sample": sample,
-                "back_url": back_url,
-                "back_label": back_label,
-                "related_work_order": related_work_order,
-                "can_view_related_work_order": can_view_related_work_order,
-                "can_view_protocol_processing": can_view_protocol_processing,
+                **build_protocol_detail_action_context(
+                    self.request.user, protocol, self.request
+                ),
             }
         )
 
@@ -314,7 +293,7 @@ class ProtocolPublicDetailView(DetailView):
             "cytology_sample",
             "histopathology_sample",
             "work_order",
-        )
+        ).prefetch_related("reports")
 
         if self.request.user.is_lab_staff or self.request.user.is_admin_user:
             return queryset
@@ -359,36 +338,25 @@ class ProtocolPublicDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         protocol = self.object
 
-        # Get status history with user information
         status_history = (
             protocol.status_history.all()
             .select_related("changed_by")
             .order_by("-changed_at")
         )
 
-        # Get sample information
         sample = None
         if hasattr(protocol, "cytology_sample"):
             sample = protocol.cytology_sample
         elif hasattr(protocol, "histopathology_sample"):
             sample = protocol.histopathology_sample
 
-        related_work_order = protocol.work_order
-        can_view_related_work_order = (
-            related_work_order is not None
-            and user_can_view_work_order_detail(self.request.user)
-        )
-        can_view_protocol_processing = user_can_view_protocol_processing(
-            self.request.user, protocol
-        )
-
         context.update(
             {
                 "status_history": status_history,
                 "sample": sample,
-                "related_work_order": related_work_order,
-                "can_view_related_work_order": can_view_related_work_order,
-                "can_view_protocol_processing": can_view_protocol_processing,
+                **build_protocol_detail_action_context(
+                    self.request.user, protocol, self.request
+                ),
             }
         )
 

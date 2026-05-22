@@ -47,7 +47,8 @@
             </div>
         </div>
 
-        <!-- Actions -->
+        <!-- Actions (laboratory staff only) -->
+        {% if not is_veterinarian_view %}
         <div class="mt-6">
             <div class="flex flex-wrap gap-2">
                 {% if work_order.can_edit %}
@@ -77,6 +78,7 @@
                 <strong>Enviar</strong> notifica al veterinario; puede hacerse desde borrador si no necesitás revisión previa.
             </p>
         </div>
+        {% endif %}
     </div>
 
     <!-- Client Information -->
@@ -183,10 +185,17 @@
     </div>
 
     <div class="mt-6">
-        <a href="{% url 'protocols:workorder_list' %}" 
+        {% if is_veterinarian_view %}
+        <a href="{% url 'protocols:my_workorders' %}"
            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-            ← Volver a Órdenes de Trabajo
+            ← Volver a mis órdenes
         </a>
+        {% else %}
+        <a href="{% url 'protocols:workorder_list' %}"
+           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            ← Volver a órdenes de trabajo
+        </a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

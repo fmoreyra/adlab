@@ -16,7 +16,11 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.edit import FormView
 
-from accounts.mixins import WorkOrderStaffRequiredMixin
+from accounts.mixins import (
+    VeterinarianRequiredMixin,
+    WorkOrderAccessMixin,
+    WorkOrderStaffRequiredMixin,
+)
 from accounts.models import Veterinarian
 from protocols.emails import send_work_order_notification
 from protocols.forms_workorder import (
@@ -398,7 +402,36 @@ class WorkOrderCreateView(WorkOrderStaffRequiredMixin, FormView):
         return super().form_valid(form)
 
 
-class WorkOrderDetailView(WorkOrderStaffRequiredMixin, DetailView):
+class VeterinarianWorkOrderListView(VeterinarianRequiredMixin, ListView):
+    """
+    List work orders for the logged-in veterinarian (read-only billing view).
+    """
+
+    model = WorkOrder
+    template_name = "protocols/workorder/list.html"
+    context_object_name = "workorders"
+    paginate_by = 20
+
+    def get_queryset(self):
+        """Return work orders belonging to the veterinarian."""
+        return (
+            WorkOrder.objects.filter(
+                veterinarian=self.request.user.veterinarian_profile
+            )
+            .select_related("veterinarian__user", "created_by")
+            .order_by("-created_at")
+        )
+
+    def get_context_data(self, **kwargs):
+        """Add veterinarian-specific list context."""
+        context = super().get_context_data(**kwargs)
+        context["title"] = _("Mis Órdenes de Trabajo")
+        context["hide_staff_actions"] = True
+        context["filter_fields"] = []
+        return context
+
+
+class WorkOrderDetailView(WorkOrderAccessMixin, DetailView):
     """
     View work order details.
     """
@@ -423,6 +456,10 @@ class WorkOrderDetailView(WorkOrderStaffRequiredMixin, DetailView):
         """Add title to context."""
         context = super().get_context_data(**kwargs)
         context["title"] = _("Detalle de Orden de Trabajo")
+        context["is_veterinarian_view"] = (
+            self.request.user.is_veterinarian
+            and not self.request.user.is_staff
+        )
         return context
 
 
@@ -504,7 +541,7 @@ class WorkOrderSendView(WorkOrderStaffRequiredMixin, View):
         return redirect("protocols:workorder_detail", pk=workorder.pk)
 
 
-class WorkOrderPDFView(WorkOrderStaffRequiredMixin, View):
+class WorkOrderPDFView(WorkOrderAccessMixin, View):
     """
     Generate PDF version of a work order with service integration.
     """

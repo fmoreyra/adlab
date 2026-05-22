@@ -18,7 +18,7 @@ from django.views.generic import (
     View,
 )
 
-from accounts.mixins import StaffRequiredMixin
+from accounts.mixins import StaffRequiredMixin, VeterinarianRequiredMixin
 from protocols.forms_reports import (
     ReportCreateForm,
     ReportSendForm,
@@ -75,6 +75,39 @@ class ReportPendingListView(StaffRequiredMixin, ListView):
         """Add title to context."""
         context = super().get_context_data(**kwargs)
         context["title"] = _("Protocolos Pendientes de Informe")
+        return context
+
+
+class VeterinarianReportListView(VeterinarianRequiredMixin, ListView):
+    """
+    List finalized/sent reports for the logged-in veterinarian.
+    """
+
+    model = Report
+    template_name = "protocols/reports/vet_history.html"
+    context_object_name = "reports"
+    paginate_by = 20
+
+    def get_queryset(self):
+        """Return reports for protocols owned by the veterinarian."""
+        veterinarian = self.request.user.veterinarian_profile
+        return (
+            Report.objects.filter(
+                veterinarian=veterinarian,
+                status__in=[Report.Status.FINALIZED, Report.Status.SENT],
+            )
+            .select_related(
+                "protocol",
+                "laboratory_staff__user",
+                "histopathologist",
+            )
+            .order_by("-report_date", "-created_at")
+        )
+
+    def get_context_data(self, **kwargs):
+        """Add page title."""
+        context = super().get_context_data(**kwargs)
+        context["title"] = _("Mis Informes")
         return context
 
 
@@ -291,6 +324,28 @@ class ReportDetailView(DetailView):
             "protocol__histopathology_sample__cassettes",
             "protocol__slides",
         )
+
+    def get_context_data(self, **kwargs):
+        """Add permission flags for report actions in the template."""
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        report = self.object
+
+        is_report_owner = False
+        if hasattr(user, "veterinarian_profile"):
+            is_report_owner = (
+                user.veterinarian_profile.pk == report.veterinarian_id
+            )
+
+        context["is_report_owner"] = is_report_owner
+        context["can_manage_report"] = user.is_lab_staff
+        context["can_download_report_pdf"] = (
+            report.status != Report.Status.DRAFT
+            and bool(report.pdf_path)
+            and (user.is_lab_staff or is_report_owner)
+        )
+        context["protocol"] = report.protocol
+        return context
 
 
 class ReportFinalizeView(StaffRequiredMixin, View):

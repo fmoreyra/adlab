@@ -91,6 +91,30 @@ def user_can_view_work_order_detail(user):
     return user.is_authenticated and user.is_staff
 
 
+def user_can_access_work_order(user, work_order):
+    """
+    Return whether the user may view a work order (detail/PDF).
+
+    Laboratory billing staff (``is_staff``) and the owning veterinarian
+    may access their orders.
+    """
+    if not user.is_authenticated:
+        return False
+
+    if user.is_staff:
+        return True
+
+    if not user.is_veterinarian:
+        return False
+
+    try:
+        from accounts.models import Veterinarian
+
+        return user.veterinarian_profile.pk == work_order.veterinarian_id
+    except Veterinarian.DoesNotExist:
+        return False
+
+
 def user_can_view_protocol_processing(user, protocol):
     """
     Return whether the user may open protocol processing status.
@@ -120,7 +144,7 @@ class WorkOrderStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     cannot open work order URLs until an administrator enables "Staff status"
     on their user in Django admin (Users → Staff status / is_staff).
 
-    Veterinarians never have access to work orders.
+    Veterinarians use ``WorkOrderAccessMixin`` for read-only access to their OTs.
     """
 
     def test_func(self):
@@ -350,51 +374,30 @@ class ReportAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
 
 class WorkOrderAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
-    Mixin that allows access to work orders based on user role.
-
-    - Staff can access all work orders
-    - Veterinarians can access work orders for their protocols
+    Allow Django staff or the veterinarian who owns the work order.
     """
 
     def test_func(self):
-        """Test if user has access to the work order."""
-        if self.request.user.is_staff:
-            return True
+        """Test work order access for staff or owning veterinarian."""
+        from protocols.models import WorkOrder
 
-        if not self.request.user.is_veterinarian:
+        work_order = WorkOrder.objects.filter(pk=self.kwargs.get("pk")).first()
+        if work_order is None:
             return False
 
-        # Get work order from URL kwargs
-        workorder_pk = self.kwargs.get("pk")
-        if not workorder_pk:
-            return False
-
-        try:
-            from protocols.models import WorkOrder
-
-            work_order = get_object_or_404(WorkOrder, pk=workorder_pk)
-            return work_order.veterinarian.user == self.request.user
-        except Exception:
-            return False
+        return user_can_access_work_order(self.request.user, work_order)
 
     def get_permission_denied_message(self):
         """Return custom permission denied message."""
         return _("No tiene permisos para acceder a esta orden de trabajo.")
 
     def handle_no_permission(self):
-        """Handle permission denied by showing 403 error page with message."""
+        """Redirect with an error message."""
         from django.contrib import messages
-        from django.http import HttpResponseForbidden
-        from django.template.loader import render_to_string
+        from django.shortcuts import redirect
 
-        # If user is not authenticated, let LoginRequiredMixin handle it
         if not self.request.user.is_authenticated:
             return super().handle_no_permission()
 
-        # If user is authenticated but doesn't have access, show 403
         messages.error(self.request, self.get_permission_denied_message())
-        return HttpResponseForbidden(
-            render_to_string(
-                "403.html", {"user": self.request.user}, request=self.request
-            )
-        )
+        return redirect("protocols:protocol_list")

@@ -21,7 +21,7 @@
     </div>
 
     <!-- Action Buttons -->
-    {% if user.is_staff %}
+    {% if can_manage_report %}
     <div class="mb-6 flex space-x-3">
         {% if report.can_edit %}
         <a href="{% url 'protocols:report_edit' report.pk %}" 
@@ -55,6 +55,18 @@
             Ver PDF
         </a>
         {% endif %}
+    </div>
+    {% elif can_download_report_pdf %}
+    <div class="mb-6 flex flex-wrap gap-3">
+        <a href="{% url 'protocols:report_pdf' report.pk %}"
+           target="_blank"
+           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            Descargar PDF
+        </a>
+        <a href="{% url 'protocols:protocol_detail' protocol.pk %}"
+           class="inline-flex items-center px-4 py-2 border border-purple-300 rounded-md shadow-sm text-sm font-medium text-purple-800 bg-white hover:bg-purple-50">
+            Ver protocolo
+        </a>
     </div>
     {% endif %}
 
@@ -153,10 +165,17 @@
     {% endif %}
 
     <div class="mt-6">
-        <a href="{% url 'protocols:report_history' %}" 
+        {% if is_report_owner %}
+        <a href="{% url 'protocols:my_reports' %}"
            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-            ← Volver al Historial
+            ← Volver a mis informes
         </a>
+        {% else %}
+        <a href="{% url 'protocols:report_history' %}"
+           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            ← Volver al historial
+        </a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

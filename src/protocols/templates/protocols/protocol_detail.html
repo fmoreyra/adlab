@@ -17,22 +17,11 @@
                         {{ protocol.get_analysis_type_display }} - Creado el {{ protocol.created_at|date:"d" }} de {{ protocol.created_at|date:"F" }} de {{ protocol.created_at|date:"Y" }}
                     </p>
                 </div>
-                <div class="flex gap-2">
-                    {% if protocol.is_editable %}
-                        <a href="{% url 'protocols:protocol_edit' protocol.pk %}" 
-                           class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-                            Editar
-                        </a>
-                    {% endif %}
-                    {% if protocol.status == 'draft' %}
-                        <form method="post" action="{% url 'protocols:protocol_submit' protocol.pk %}" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                                Enviar Protocolo
-                            </button>
-                        </form>
-                    {% endif %}
-                </div>
+                {% if show_vet_actions and protocol.status == 'draft' %}
+                <p class="text-sm text-gray-500">
+                    Use las acciones del panel lateral para editar o enviar.
+                </p>
+                {% endif %}
             </div>
         </div>
 
@@ -238,7 +227,8 @@
                     </dl>
                 </div>
 
-                <!-- Veterinarian Information Card -->
+                <!-- Veterinarian Information Card (hidden for owner veterinarians) -->
+                {% if not hide_veterinarian_card %}
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Información del Veterinario</h2>
                     <dl class="space-y-3">
@@ -274,6 +264,7 @@
                         {% endif %}
                     </dl>
                 </div>
+                {% endif %}
 
                 <!-- Status Timeline Card -->
                 <div class="bg-white shadow-md rounded-lg p-6">
@@ -367,37 +358,7 @@
                 <!-- Actions Card -->
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Acciones</h2>
-                    <div class="space-y-2">
-                        <a href="{{ back_url }}" 
-                           class="block w-full px-4 py-2 text-center bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                            {{ back_label }}
-                        </a>
-                        {% if can_view_protocol_processing %}
-                            <a href="{% url 'protocols:processing_status' protocol.pk %}"
-                               class="block w-full px-4 py-2 text-center bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                                {% if protocol.status == 'received' or protocol.status == 'processing' %}
-                                    Ir a procesamiento
-                                {% else %}
-                                    Ver procesamiento
-                                {% endif %}
-                            </a>
-                        {% endif %}
-                        {% if can_view_related_work_order %}
-                            <a href="{% url 'protocols:workorder_detail' related_work_order.pk %}"
-                               class="block w-full px-4 py-2 text-center bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                                Ver Orden de Trabajo ({{ related_work_order.order_number }})
-                            </a>
-                        {% endif %}
-                        {% if protocol.is_deletable %}
-                            <form method="post" action="{% url 'protocols:protocol_delete' protocol.pk %}" 
-                                  onsubmit="return confirm('¿Está seguro que desea eliminar este protocolo?');">
-                                {% csrf_token %}
-                                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                                    Eliminar Protocolo
-                                </button>
-                            </form>
-                        {% endif %}
-                    </div>
+                    {% include "protocols/_protocol_detail_actions.html" %}
                 </div>
             </div>
         </div>

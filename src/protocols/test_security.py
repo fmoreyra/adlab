@@ -16,7 +16,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from accounts.models import Histopathologist, Veterinarian
+from accounts.models import Address, Histopathologist, Veterinarian
 from protocols.models import (
     CytologySample,
     HistopathologySample,
@@ -85,6 +85,7 @@ class SecurityTest(TestCase):
             first_name="John",
             last_name="Doe",
             license_number="MP-12345-SECURITY",
+            cuil_cuit="20-11111111-1",
             phone="+54 341 1234567",
             email="vet@example.com",
         )
@@ -93,9 +94,18 @@ class SecurityTest(TestCase):
             first_name="Jane",
             last_name="Smith",
             license_number="MP-67890",
+            cuil_cuit="20-22222222-2",
             phone="+54 341 7654321",
             email="vet2@example.com",
         )
+        for vet in (self.veterinarian, self.veterinarian2):
+            Address.objects.create(
+                veterinarian=vet,
+                province="Santa Fe",
+                locality="Rosario",
+                street="Calle Test",
+                number="1",
+            )
 
         # Create histopathologist profile
         self.histopathologist = Histopathologist.objects.create(
@@ -253,9 +263,23 @@ class SecurityTest(TestCase):
             )
         )
 
-        # Should be forbidden (redirects to protocol_list)
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("protocols:protocol_list"))
+        self.assertIn(response.status_code, (302, 403))
+        if response.status_code == 302:
+            self.assertRedirects(response, reverse("protocols:protocol_list"))
+
+    def test_veterinarian_can_access_own_work_order(self):
+        """Test that veterinarians can open their own work order detail."""
+        self.client.login(email="vet@example.com", password="testpass123")
+
+        response = self.client.get(
+            reverse(
+                "protocols:workorder_detail",
+                kwargs={"pk": self.work_order1.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.work_order1.order_number)
 
     def test_staff_can_access_all_protocols(self):
         """Test that staff users can access all protocols."""

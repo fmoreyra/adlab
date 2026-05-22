@@ -5938,6 +5938,7 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
             first_name="Dr. Juan",
             last_name="Pérez",
             license_number="MP-123456",
+            cuil_cuit="20-12345678-9",
             phone="+54 341 1234567",
             email="juan.perez@vet.com",
         )
@@ -6039,6 +6040,75 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Ir a procesamiento")
+
+    def test_protocol_detail_staff_shows_receive_action(self):
+        """Staff see reception action for submitted protocols."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Recepcionar muestra")
+        self.assertContains(
+            response,
+            reverse(
+                "protocols:reception_confirm",
+                kwargs={"pk": self.protocol.pk},
+            ),
+        )
+
+    def test_protocol_detail_vet_shows_submit_in_actions(self):
+        """Veterinarian sees submit action in the sidebar for drafts."""
+        self.protocol.status = Protocol.Status.DRAFT
+        self.protocol.save(update_fields=["status"])
+
+        self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Enviar protocolo")
+        self.assertNotContains(response, "Información del Veterinario")
+
+    def test_protocol_detail_vet_submitted_shows_temp_code(self):
+        """Veterinarian sees temporary code guidance when submitted."""
+        self.protocol.status = Protocol.Status.SUBMITTED
+        self.protocol.temporary_code = "TMP-HP-20251024-099"
+        self.protocol.save(update_fields=["status", "temporary_code"])
+
+        self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+            )
+        )
+
+        self.assertContains(response, "TMP-HP-20251024-099")
+        self.assertContains(response, "Código temporal")
+
+    def test_veterinarian_my_reports_list(self):
+        """Veterinarian can list their finalized reports."""
+        from protocols.models import Report
+
+        Report.objects.create(
+            protocol=self.protocol,
+            veterinarian=self.veterinarian,
+            diagnosis="Diagnóstico test",
+            status=Report.Status.FINALIZED,
+            pdf_path="/tmp/test.pdf",
+        )
+
+        self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(reverse("protocols:my_reports"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Mis Informes")
 
     def test_veterinarian_name_displayed(self):
         """Test that veterinarian name is displayed in the detail view."""

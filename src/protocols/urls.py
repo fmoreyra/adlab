@@ -168,6 +168,11 @@ urlpatterns = [
         name="report_history",
     ),
     path(
+        "reports/mine/",
+        views_reports.VeterinarianReportListView.as_view(),
+        name="my_reports",
+    ),
+    path(
         "reports/create/<int:protocol_id>/",
         views_reports.ReportCreateView.as_view(),
         name="report_create",
@@ -202,6 +207,11 @@ urlpatterns = [
         "workorders/",
         views_workorder.WorkOrderListView.as_view(),
         name="workorder_list",
+    ),
+    path(
+        "workorders/mine/",
+        views_workorder.VeterinarianWorkOrderListView.as_view(),
+        name="my_workorders",
     ),
     path(
         "workorders/pending/",
