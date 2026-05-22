@@ -4709,6 +4709,13 @@ class RejectedProtocolsTest(TestCase):
             submission_date=timezone.now().date(),
             temporary_code="TMP-CY-20250101-001",
         )
+        CytologySample.objects.create(
+            protocol=self.submitted_protocol,
+            veterinarian=self.veterinarian,
+            technique_used="PAAF",
+            sampling_site="Test site",
+            number_of_slides=2,
+        )
 
         self.rejected_protocol = Protocol.objects.create(
             veterinarian=self.veterinarian,
@@ -4866,6 +4873,7 @@ class RejectedProtocolsTest(TestCase):
             "sample_condition": Protocol.SampleCondition.REJECTED,
             "reception_notes": "Sample quality too poor",
             "discrepancies": "",
+            "number_slides_received": 0,
         }
 
         with patch(
