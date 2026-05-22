@@ -1212,18 +1212,53 @@ class CompleteProfileViewTest(TestCase):
 
     def test_complete_profile_already_complete(self):
         """Test redirect if profile already complete."""
-        Veterinarian.objects.create(
+        veterinarian = Veterinarian.objects.create(
             user=self.user,
             first_name="Juan",
             last_name="Pérez",
             license_number="MP-12345-ACCOUNTS-TESTS",
+            cuil_cuit="20-12345678-9",
             phone="+54 342 1234567",
             email="vet@example.com",
+        )
+        Address.objects.create(
+            veterinarian=veterinarian,
+            province="Santa Fe",
+            locality="Esperanza",
+            street="San Martín",
+            number="1234",
         )
 
         self.client.login(username="vet@example.com", password="testpass123")
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)  # Redirect
+        self.assertRedirects(response, reverse("pages:dashboard"))
+
+    def test_complete_profile_without_license_reaches_dashboard(self):
+        """Profile without license must not cause a redirect loop."""
+        self.client.login(username="vet@example.com", password="testpass123")
+
+        data = {
+            "first_name": "Juan",
+            "last_name": "Pérez",
+            "license_number": "",
+            "dni": "12345678",
+            "cuil_cuit": "20-12345678-9",
+            "phone": "+54 342 1234567",
+            "province": "Santa Fe",
+            "locality": "Esperanza",
+            "street": "San Martín",
+            "number": "1234",
+        }
+
+        response = self.client.post(self.url, data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.request["PATH_INFO"],
+            reverse("pages:dashboard"),
+        )
+        self.assertTrue(
+            self.user.veterinarian_profile.is_profile_complete_for_access()
+        )
 
 
 class VeterinarianProfileDetailViewTest(TestCase):

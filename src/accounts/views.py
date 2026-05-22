@@ -484,10 +484,11 @@ class CompleteProfileView(LoginRequiredMixin, FormView):
                 )
             )
 
-        # Check if profile is already complete
-        if hasattr(request.user, "veterinarian_profile"):
+        # Redirect only when profile meets the same rules as middleware
+        veterinarian = Veterinarian.objects.filter(user=request.user).first()
+        if veterinarian and veterinarian.is_profile_complete_for_access():
             messages.info(request, _("Su perfil ya está completo."))
-            return redirect("accounts:veterinarian_profile_detail")
+            return redirect("pages:dashboard")
 
         return super().get(request, *args, **kwargs)
 

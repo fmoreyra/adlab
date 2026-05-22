@@ -8,6 +8,8 @@ their professional profile before accessing any protected pages.
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 
+from accounts.models import Veterinarian
+
 
 class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
     """
@@ -79,16 +81,7 @@ class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
         Returns:
             bool: True if profile is complete, False otherwise
         """
-        try:
-            veterinarian = user.veterinarian_profile
-            # Check if profile has all required fields
-            return (
-                veterinarian.first_name
-                and veterinarian.last_name
-                and veterinarian.license_number
-                and veterinarian.phone
-                and veterinarian.email
-            )
-        except Exception:
-            # No veterinarian profile exists
+        if not Veterinarian.objects.filter(user=user).exists():
             return False
+
+        return user.veterinarian_profile.is_profile_complete_for_access()

@@ -19,7 +19,7 @@ from accounts.mixins import (
     WorkOrderAccessMixin,
     user_can_view_protocol_processing,
 )
-from accounts.models import Histopathologist, Veterinarian
+from accounts.models import Address, Histopathologist, Veterinarian
 from protocols.models import Protocol, Report, WorkOrder
 
 User = get_user_model()
@@ -402,8 +402,16 @@ class VeterinarianProfileRequiredMixinTest(TestCase):
             first_name="John",
             last_name="Doe",
             license_number="MP-12345",
+            cuil_cuit="20-12345678-9",
             phone="+54 341 1234567",
             email="vet@example.com",
+        )
+        Address.objects.create(
+            veterinarian=self.veterinarian,
+            province="Santa Fe",
+            locality="Esperanza",
+            street="San Martín",
+            number="1234",
         )
 
         # Create incomplete veterinarian profile

@@ -487,6 +487,37 @@ class Veterinarian(models.Model):
             ]
         )
 
+    def is_profile_complete_for_access(self):
+        """
+        Return True when the profile has minimum data to use the application.
+
+        Aligned with profile_completeness (license_number is optional).
+        """
+        if not all(
+            [
+                self.first_name,
+                self.last_name,
+                self.cuil_cuit,
+                self.phone,
+                self.email,
+            ]
+        ):
+            return False
+
+        try:
+            address = self.address
+        except Address.DoesNotExist:
+            return False
+
+        return all(
+            [
+                address.province,
+                address.locality,
+                address.street,
+                address.number,
+            ]
+        )
+
     @property
     def profile_completeness(self):
         """

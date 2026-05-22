@@ -55,6 +55,7 @@ class VeterinarianProfileRequiredMiddlewareTest(TestCase):
             first_name="Test",
             last_name="Vet",
             license_number="MP-12345",
+            cuil_cuit="20-12345678-9",
             phone="+54 11 1234-5678",
             email="vet@example.com",
         )

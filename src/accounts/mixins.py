@@ -242,14 +242,7 @@ class VeterinarianProfileRequiredMixin(
 
         try:
             veterinarian = self.request.user.veterinarian_profile
-            # Check if profile is complete (has required fields)
-            return (
-                veterinarian.first_name
-                and veterinarian.last_name
-                and veterinarian.license_number
-                and veterinarian.phone
-                and veterinarian.email
-            )
+            return veterinarian.is_profile_complete_for_access()
         except Exception:
             return False
 

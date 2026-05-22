@@ -18,6 +18,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import (
+    Address,
     AuthAuditLog,
     Histopathologist,
     PasswordResetToken,
@@ -63,8 +64,16 @@ class AccountsViewsTest(TestCase):
             first_name="John",
             last_name="Doe",
             license_number="MP-12345-ACCOUNTS",
+            cuil_cuit="20-12345678-9",
             phone="+54 341 1234567",
             email="vet@example.com",
+        )
+        Address.objects.create(
+            veterinarian=self.veterinarian,
+            province="Santa Fe",
+            locality="Esperanza",
+            street="San Martín",
+            number="1234",
         )
 
     # ============================================================================
@@ -458,9 +467,7 @@ class AccountsViewsTest(TestCase):
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(reverse("accounts:complete_profile"))
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response, reverse("accounts:veterinarian_profile_detail")
-        )
+        self.assertRedirects(response, reverse("pages:dashboard"))
 
     def test_complete_profile_view_non_veterinarian(self):
         """Test complete profile view for non-veterinarian user."""
