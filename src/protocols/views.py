@@ -29,6 +29,7 @@ from accounts.mixins import (
     StaffRequiredMixin,
     VeterinarianProfileRequiredMixin,
     VeterinarianRequiredMixin,
+    user_can_view_work_order_detail,
 )
 from accounts.models import Veterinarian
 from protocols.forms import (
@@ -223,6 +224,7 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
             "veterinarian__user",
             "cytology_sample",
             "histopathology_sample",
+            "work_order",
         ).prefetch_related(
             "status_history",
             "reception_logs",
@@ -233,6 +235,7 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
         """Add additional context data."""
         context = super().get_context_data(**kwargs)
         protocol = self.object
+        user = self.request.user
 
         # Get status history with user information
         status_history = (
@@ -248,15 +251,21 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
         elif hasattr(protocol, "histopathology_sample"):
             sample = protocol.histopathology_sample
 
-        if self.request.user.is_veterinarian:
+        if user.is_veterinarian:
             back_url = reverse("protocols:protocol_list")
             back_label = _("← Volver a la Lista")
-        elif self.request.user.is_lab_staff:
+        elif user.is_lab_staff:
             back_url = reverse("protocols:reception")
             back_label = _("← Volver a recepción")
         else:
             back_url = reverse("home")
             back_label = _("← Volver")
+
+        related_work_order = protocol.work_order
+        can_view_related_work_order = (
+            related_work_order is not None
+            and user_can_view_work_order_detail(user)
+        )
 
         context.update(
             {
@@ -264,6 +273,8 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
                 "sample": sample,
                 "back_url": back_url,
                 "back_label": back_label,
+                "related_work_order": related_work_order,
+                "can_view_related_work_order": can_view_related_work_order,
             }
         )
 
@@ -297,6 +308,7 @@ class ProtocolPublicDetailView(DetailView):
             "veterinarian__user",
             "cytology_sample",
             "histopathology_sample",
+            "work_order",
         )
 
         if self.request.user.is_lab_staff or self.request.user.is_admin_user:
@@ -356,10 +368,18 @@ class ProtocolPublicDetailView(DetailView):
         elif hasattr(protocol, "histopathology_sample"):
             sample = protocol.histopathology_sample
 
+        related_work_order = protocol.work_order
+        can_view_related_work_order = (
+            related_work_order is not None
+            and user_can_view_work_order_detail(self.request.user)
+        )
+
         context.update(
             {
                 "status_history": status_history,
                 "sample": sample,
+                "related_work_order": related_work_order,
+                "can_view_related_work_order": can_view_related_work_order,
             }
         )
 

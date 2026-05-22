@@ -16,6 +16,8 @@
         </a>
     </div>
 
+    {% include "protocols/workorder/_workflow_help.html" with variant="compact" %}
+
     <!-- Filter Form -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <form method="get" action="{% url 'protocols:workorder_list' %}">

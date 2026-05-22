@@ -6114,6 +6114,104 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
         self.assertLess(vet_info_index, status_timeline_index)
 
 
+class ProtocolDetailWorkOrderLinkTest(TestCase):
+    """Tests for work order link on protocol detail view."""
+
+    def setUp(self):
+        """Set up users, protocol, and linked work order."""
+        self.staff_user = User.objects.create_user(
+            email="staff@example.com",
+            username="staff",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+            email_verified=True,
+            is_staff=True,
+        )
+        self.lab_user_no_staff = User.objects.create_user(
+            email="lab@example.com",
+            username="lab",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+            email_verified=True,
+            is_staff=False,
+        )
+        self.vet_user = User.objects.create_user(
+            email="vet@example.com",
+            username="vet",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+            email_verified=True,
+            is_staff=False,
+        )
+        self.veterinarian = Veterinarian.objects.create(
+            user=self.vet_user,
+            first_name="Dr. Juan",
+            last_name="Pérez",
+            license_number="MP-123456",
+            phone="+54 341 1234567",
+            email="vet@example.com",
+        )
+        self.protocol = Protocol.objects.create(
+            temporary_code="TMP-HP-20251024-OT",
+            analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
+            veterinarian=self.veterinarian,
+            species="Canino",
+            animal_identification="Bella",
+            presumptive_diagnosis="Tumor",
+            submission_date=date.today(),
+            status=Protocol.Status.READY,
+        )
+        self.work_order = WorkOrder.objects.create(
+            veterinarian=self.veterinarian,
+            created_by=self.staff_user,
+            status=WorkOrder.Status.DRAFT,
+        )
+        self.protocol.work_order = self.work_order
+        self.protocol.save()
+
+    def _detail_url(self):
+        return reverse(
+            "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
+        )
+
+    def test_staff_with_permission_sees_work_order_link(self):
+        """Staff users (is_staff) see link to related work order."""
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(self._detail_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ver Orden de Trabajo")
+        self.assertContains(response, self.work_order.order_number)
+        self.assertContains(
+            response,
+            reverse(
+                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
+            ),
+        )
+
+    def test_lab_staff_without_is_staff_does_not_see_link(self):
+        """Lab staff without Django is_staff cannot see work order link."""
+        self.client.login(email="lab@example.com", password="testpass123")
+        response = self.client.get(self._detail_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Ver Orden de Trabajo")
+
+    def test_veterinarian_owner_does_not_see_work_order_link(self):
+        """Veterinarians cannot open work order detail; link is hidden."""
+        self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(self._detail_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Ver Orden de Trabajo")
+
+    def test_no_link_when_protocol_has_no_work_order(self):
+        """No work order link when protocol is not linked to an OT."""
+        self.protocol.work_order = None
+        self.protocol.save()
+        self.client.login(email="staff@example.com", password="testpass123")
+        response = self.client.get(self._detail_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Ver Orden de Trabajo")
+
+
 class ProtocolPublicDetailVeterinarianInfoTest(TestCase):
     """Test cases for veterinarian information in public protocol detail view."""
 

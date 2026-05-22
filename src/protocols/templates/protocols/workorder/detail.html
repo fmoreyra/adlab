@@ -48,26 +48,34 @@
         </div>
 
         <!-- Actions -->
-        <div class="mt-6 flex space-x-2">
-            {% if work_order.can_edit %}
-            <form method="post" action="{% url 'protocols:workorder_issue' work_order.pk %}">
-                {% csrf_token %}
-                <button type="submit" 
-                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-                    Emitir OT
-                </button>
-            </form>
-            {% endif %}
+        <div class="mt-6">
+            <div class="flex flex-wrap gap-2">
+                {% if work_order.can_edit %}
+                <form method="post" action="{% url 'protocols:workorder_issue' work_order.pk %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                            title="Cierra la OT internamente; deja de ser editable">
+                        Emitir OT
+                    </button>
+                </form>
+                {% endif %}
 
-            {% if work_order.status in 'draft,issued' %}
-            <form method="post" action="{% url 'protocols:workorder_send' work_order.pk %}">
-                {% csrf_token %}
-                <button type="submit" 
-                        class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
-                    Marcar como Enviada
-                </button>
-            </form>
-            {% endif %}
+                {% if work_order.status == 'draft' or work_order.status == 'issued' %}
+                <form method="post" action="{% url 'protocols:workorder_send' work_order.pk %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                            title="Notifica al veterinario por correo">
+                        Marcar como Enviada
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            <p class="mt-3 text-sm text-gray-600 max-w-3xl">
+                <strong>Emitir</strong> confirma la OT para el laboratorio (sin avisar al veterinario).
+                <strong>Enviar</strong> notifica al veterinario; puede hacerse desde borrador si no necesitás revisión previa.
+            </p>
         </div>
     </div>
 

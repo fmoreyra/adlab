@@ -82,6 +82,15 @@ class VeterinarianRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         )
 
 
+def user_can_view_work_order_detail(user):
+    """
+    Return whether the user may open work order detail URLs.
+
+    Matches ``WorkOrderStaffRequiredMixin`` (Django ``is_staff``).
+    """
+    return user.is_authenticated and user.is_staff
+
+
 class WorkOrderStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
     Restrict work order views to users with Django ``is_staff=True``.
@@ -98,7 +107,7 @@ class WorkOrderStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def test_func(self):
         """Allow only Django staff users (``User.is_staff``)."""
-        return self.request.user.is_staff
+        return user_can_view_work_order_detail(self.request.user)
 
     def get_permission_denied_message(self):
         """Return custom permission denied message."""

@@ -372,6 +372,12 @@
                            class="block w-full px-4 py-2 text-center bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
                             {{ back_label }}
                         </a>
+                        {% if can_view_related_work_order %}
+                            <a href="{% url 'protocols:workorder_detail' related_work_order.pk %}"
+                               class="block w-full px-4 py-2 text-center bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                                Ver Orden de Trabajo ({{ related_work_order.order_number }})
+                            </a>
+                        {% endif %}
                         {% if protocol.is_deletable %}
                             <form method="post" action="{% url 'protocols:protocol_delete' protocol.pk %}" 
                                   onsubmit="return confirm('¿Está seguro que desea eliminar este protocolo?');">

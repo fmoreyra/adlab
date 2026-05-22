@@ -1,0 +1,23 @@
+{# Estados y acciones de OT. variant: "compact" (listado) o "full" (crear / detalle) #}
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm text-blue-900" role="note">
+    <p class="font-semibold text-blue-900 mb-2">¿Emitida o enviada?</p>
+    {% if variant == "compact" %}
+    <ul class="list-disc list-inside space-y-1 text-blue-800">
+        <li><strong>Borrador:</strong> en preparación; se puede editar.</li>
+        <li><strong>Emitida:</strong> revisada y cerrada por el laboratorio; ya no se edita. El veterinario aún no fue notificado.</li>
+        <li><strong>Enviada:</strong> el veterinario recibió aviso (correo). Puede marcarse desde borrador o tras emitir.</li>
+        <li><strong>Facturada:</strong> cobro registrado en el ciclo administrativo.</li>
+    </ul>
+    {% else %}
+    <p class="text-blue-800 mb-3">
+        Son pasos distintos: <strong>emitir</strong> es confirmación interna; <strong>enviar</strong> notifica al veterinario.
+    </p>
+    <ul class="list-disc list-inside space-y-1 text-blue-800 mb-3">
+        <li><strong>Emitir OT</strong> — Cierra la OT para el laboratorio (no se editan montos ni ítems). Útil para revisar antes de avisar al cliente.</li>
+        <li><strong>Marcar como enviada</strong> — Dispara el correo y la notificación al veterinario. Se permite desde borrador si la OT ya está correcta.</li>
+    </ul>
+    <p class="text-blue-800 text-xs">
+        Al crear una OT queda en <strong>borrador</strong>. Emitir es opcional: si no necesitás una revisión interna, podés enviarla directamente.
+    </p>
+    {% endif %}
+</div>
