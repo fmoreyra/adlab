@@ -13,7 +13,7 @@ Documento de planificación detallada. Complementa [ROADMAP_PRIORIZADO.md](ROADM
 |------|-------------|------------|------------------------|
 | 1.3 Punción / PAAF | Baja | 0,5–1 h | Confirmar etiqueta deseada |
 | 1.2 Notificaciones móvil | Media | 4–8 h | Repro en prod / dispositivo real |
-| 1.1 Raza y Edad | Media–Alta | 8–16 h | Listado oficial de razas por especie |
+| 1.1 Raza y Edad | Media–Alta | 8–16 h | ✅ Hecho — catálogo en `choices.py` |
 
 **Orden recomendado:** 1.3 → 1.2 → 1.1  
 (quick win + bugs de UX antes del cambio de formularios más grande)
@@ -21,6 +21,15 @@ Documento de planificación detallada. Complementa [ROADMAP_PRIORIZADO.md](ROADM
 ---
 
 ## 1.1 Normalización de campos — Raza y Edad
+
+### Estado: ✅ Implementado (Jun 2026)
+
+**Decisiones finales:**
+- Edad **opcional**; dos inputs enteros (años, meses); sin migración de modelo.
+- Raza: select dependiente de especie + `Mestizo/CRIollo`, `Sin especificar`, `Otra`.
+- Datos legacy: edad no parseable queda vacía al editar; raza no listada → `Otra` + prefill.
+
+**Archivos:** `age_utils.py`, `choices.py`, mixins en `forms.py`, templates + partial JS.
 
 ### Situación actual
 

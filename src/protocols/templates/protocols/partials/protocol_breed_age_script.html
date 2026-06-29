@@ -1,0 +1,69 @@
+{{ breeds_by_species|json_script:"breeds-by-species" }}
+<script>
+(function () {
+    const breedsData = JSON.parse(
+        document.getElementById("breeds-by-species").textContent
+    );
+    const speciesSelect = document.getElementById("id_species");
+    const breedSelect = document.getElementById("id_breed");
+    const breedOtherWrapper = document.getElementById("breed-other-wrapper");
+    const breedOtherInput = document.getElementById("id_breed_other");
+
+    if (!speciesSelect || !breedSelect) {
+        return;
+    }
+
+    function toggleBreedOther() {
+        if (!breedOtherWrapper || !breedOtherInput) {
+            return;
+        }
+        const showOther = breedSelect.value === "Otra";
+        breedOtherWrapper.classList.toggle("hidden", !showOther);
+        breedOtherInput.required = showOther;
+    }
+
+    function updateBreeds(preserveSelection) {
+        const species = speciesSelect.value;
+        const breeds = breedsData[species] || breedsData.Otro || [];
+        const previous = preserveSelection ? breedSelect.value : "";
+        const previousOther = preserveSelection && breedOtherInput
+            ? breedOtherInput.value
+            : "";
+
+        breedSelect.innerHTML = "";
+        const emptyOption = document.createElement("option");
+        emptyOption.value = "";
+        emptyOption.textContent = "Seleccionar raza";
+        breedSelect.appendChild(emptyOption);
+
+        breeds.forEach(function (breed) {
+            const option = document.createElement("option");
+            option.value = breed;
+            option.textContent = breed;
+            breedSelect.appendChild(option);
+        });
+
+        if (preserveSelection && previous && breeds.includes(previous)) {
+            breedSelect.value = previous;
+        } else if (
+            preserveSelection &&
+            previous === "Otra" &&
+            breeds.includes("Otra")
+        ) {
+            breedSelect.value = "Otra";
+            if (breedOtherInput) {
+                breedOtherInput.value = previousOther;
+            }
+        }
+
+        toggleBreedOther();
+    }
+
+    speciesSelect.addEventListener("change", function () {
+        updateBreeds(false);
+    });
+    breedSelect.addEventListener("change", toggleBreedOther);
+
+    updateBreeds(true);
+})();
+</script>

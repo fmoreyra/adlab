@@ -33,6 +33,7 @@ from accounts.mixins import (
     user_can_view_protocol_processing,
 )
 from accounts.models import Veterinarian
+from protocols.choices import BREEDS_BY_SPECIES
 from protocols.forms import (
     CytologyProtocolForm,
     HistopathologyProtocolForm,
@@ -370,6 +371,12 @@ class ProtocolPublicDetailView(DetailView):
         return context
 
 
+def _add_protocol_breed_context(context):
+    """Add breed catalog JSON for species-dependent select fields."""
+    context["breeds_by_species"] = BREEDS_BY_SPECIES
+    return context
+
+
 class ProtocolCreateCytologyView(VeterinarianProfileRequiredMixin, CreateView):
     """
     Create a new cytology protocol.
@@ -408,7 +415,7 @@ class ProtocolCreateCytologyView(VeterinarianProfileRequiredMixin, CreateView):
         """Add analysis type to context."""
         context = super().get_context_data(**kwargs)
         context["analysis_type"] = "cytology"
-        return context
+        return _add_protocol_breed_context(context)
 
 
 class ProtocolCreateHistopathologyView(
@@ -451,7 +458,7 @@ class ProtocolCreateHistopathologyView(
         """Add analysis type to context."""
         context = super().get_context_data(**kwargs)
         context["analysis_type"] = "histopathology"
-        return context
+        return _add_protocol_breed_context(context)
 
 
 class ProtocolEditView(ProtocolOwnerOrStaffMixin, UpdateView):
@@ -510,7 +517,7 @@ class ProtocolEditView(ProtocolOwnerOrStaffMixin, UpdateView):
         # Add analysis type for template
         context["analysis_type"] = protocol.analysis_type
 
-        return context
+        return _add_protocol_breed_context(context)
 
     def get_success_url(self):
         """Redirect to protocol detail after successful update."""

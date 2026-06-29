@@ -26,16 +26,17 @@ Para cada ítem, anotar en **Notas / PR** el branch, PR o commit cuando correspo
 Prioridad operativa: calidad de datos en origen y experiencia móvil.
 
 > **Plan detallado:** [PLAN_PUNTO_1_VETERINARIO.md](PLAN_PUNTO_1_VETERINARIO.md)  
-> **Orden sugerido dentro del bloque:** 1.3 → 1.2 → 1.1
+> **Orden sugerido dentro del bloque:** 1.3 ✅ → 1.2 ✅ → 1.1 ✅
 
 ### 1.1 Normalización de campos (Raza y Edad)
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Hecho (Jun 2026)
 - **Objetivo:** Evitar texto libre que ensucie la base de datos.
-- **Alcance:**
-  - Campo **Raza**: selector o validación estricta (lista controlada + opción “Otra” con justificación, si aplica).
-  - Campo **Edad**: formato estandarizado (unidad + valor numérico, o rangos predefinidos).
-- **Áreas probables del código:** formularios de protocolo (`protocols/forms.py`), modelos `Protocol`, templates de envío veterinario.
+- **Implementado:**
+  - Edad opcional: inputs años + meses → `Protocol.age` compuesto
+  - Raza: select por especie (`choices.py`) + `Otra` con texto auxiliar
+  - JS mínimo filtra razas al cambiar especie (create/edit)
+  - Tests en `protocols/test_age_breed.py`
 - **Notas / PR:**
 
 ### 1.2 Optimización de notificaciones (móvil)

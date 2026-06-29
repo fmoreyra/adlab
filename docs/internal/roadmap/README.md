@@ -16,7 +16,7 @@ Planificación activa de cambios acordados con la facultad (Jun 2026).
 Punto 1 (Veterinario) → Punto 2 (Lab HP) → Punto 3 (Informes) → Punto 4 (Dominio) → Punto 5 (Correo)
 ```
 
-Dentro del Punto 1: **1.3 → 1.2 ✅ → 1.1**
+Dentro del Punto 1: **1.3 ✅ → 1.2 ✅ → 1.1 ✅**
 
 ---
 

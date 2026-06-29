@@ -400,9 +400,9 @@ class CytologyProtocolFormTest(TestCase):
         """Test valid cytology form."""
         form_data = {
             "species": "Canino",
-            "breed": "Labrador",
+            "breed": "Labrador Retriever",
             "sex": "male",
-            "age": "5 años",
+            "age_years": 5,
             "animal_identification": "Max",
             "owner_last_name": "García",
             "owner_first_name": "Ana",
@@ -495,9 +495,9 @@ class HistopathologyProtocolFormTest(TestCase):
         """Test valid histopathology form."""
         form_data = {
             "species": "Felino",
-            "breed": "Mestizo",
+            "breed": "Mestizo/CRIollo",
             "sex": "female",
-            "age": "8 años",
+            "age_years": 8,
             "animal_identification": "Luna",
             "owner_last_name": "Rodríguez",
             "owner_first_name": "Carlos",

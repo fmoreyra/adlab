@@ -4,6 +4,12 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from protocols.age_utils import compose_age_string, parse_age_string
+from protocols.choices import (
+    BREED_OTHER,
+    get_breed_choices_for_species,
+    resolve_stored_breed,
+)
 from protocols.models import (
     Cassette,
     CytologySample,
@@ -45,6 +51,152 @@ CYTOLOGY_TECHNIQUE_LEGACY_ALIASES = {
 }
 
 
+INPUT_CLASS = (
+    "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm "
+    "placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 "
+    "focus:border-blue-500 transition-colors duration-200"
+)
+SELECT_CLASS = (
+    "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm "
+    "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 "
+    "transition-colors duration-200 bg-white"
+)
+
+
+class ProtocolAgeFieldsMixin:
+    """Mixin for years + months age inputs composed into Protocol.age."""
+
+    def _register_age_fields(self) -> None:
+        """Register age inputs and pre-fill from stored Protocol.age."""
+        self.fields.pop("age", None)
+        self.fields["age_years"] = forms.IntegerField(
+            label=_("Edad (años)"),
+            min_value=0,
+            required=False,
+            widget=forms.NumberInput(
+                attrs={
+                    "class": INPUT_CLASS,
+                    "min": 0,
+                    "placeholder": "0",
+                }
+            ),
+        )
+        self.fields["age_months"] = forms.IntegerField(
+            label=_("Edad (meses)"),
+            min_value=0,
+            required=False,
+            widget=forms.NumberInput(
+                attrs={
+                    "class": INPUT_CLASS,
+                    "min": 0,
+                    "placeholder": "0",
+                }
+            ),
+        )
+
+        age_value = ""
+        instance = getattr(self, "instance", None)
+        if instance is not None and getattr(instance, "pk", None):
+            age_value = instance.age or ""
+        elif self.initial.get("age"):
+            age_value = self.initial["age"]
+
+        years, months = parse_age_string(age_value)
+        if years is not None:
+            self.fields["age_years"].initial = years
+        if months is not None:
+            self.fields["age_months"].initial = months
+
+    def _compose_age_cleaned_data(self, cleaned_data: dict) -> dict:
+        """Compose Protocol.age from age_years and age_months."""
+        cleaned_data["age"] = compose_age_string(
+            cleaned_data.get("age_years"),
+            cleaned_data.get("age_months"),
+        )
+        return cleaned_data
+
+
+class ProtocolBreedFieldsMixin:
+    """Mixin for species-dependent breed select with optional free text."""
+
+    def _get_form_species(self) -> str:
+        """Resolve current species from POST data, instance, or initial."""
+        if self.data.get("species"):
+            return self.data.get("species", "")
+        instance = getattr(self, "instance", None)
+        if instance is not None and getattr(instance, "pk", None):
+            return instance.species or ""
+        return self.initial.get("species", "")
+
+    def _register_breed_fields(self) -> None:
+        """Register breed select and optional free-text field."""
+        self.fields.pop("breed", None)
+
+        species = self._get_form_species()
+        breed_choices = get_breed_choices_for_species(species)
+        self.fields["breed"] = forms.ChoiceField(
+            label=_("Raza"),
+            required=False,
+            choices=[("", _("Seleccionar raza"))] + breed_choices,
+            widget=forms.Select(attrs={"class": SELECT_CLASS}),
+        )
+        self.fields["breed_other"] = forms.CharField(
+            label=_("Especifique la raza"),
+            max_length=100,
+            required=False,
+            widget=forms.TextInput(
+                attrs={
+                    "class": INPUT_CLASS,
+                    "data-breed-other": "true",
+                }
+            ),
+        )
+
+        stored_breed = ""
+        instance = getattr(self, "instance", None)
+        if instance is not None and getattr(instance, "pk", None):
+            stored_breed = instance.breed or ""
+        elif self.initial.get("breed"):
+            stored_breed = self.initial["breed"]
+
+        select_value, other_value = resolve_stored_breed(
+            species,
+            stored_breed,
+        )
+        if select_value:
+            self.fields["breed"].initial = select_value
+        if other_value:
+            self.fields["breed_other"].initial = other_value
+
+    def _resolve_breed_cleaned_data(self, cleaned_data: dict) -> dict:
+        """Resolve final breed value from select or other field."""
+        breed = cleaned_data.get("breed", "")
+        if breed == BREED_OTHER:
+            other = (cleaned_data.get("breed_other") or "").strip()
+            if not other:
+                self.add_error(
+                    "breed_other",
+                    _("Indique la raza cuando selecciona «Otra»."),
+                )
+            else:
+                cleaned_data["breed"] = other
+        return cleaned_data
+
+
+class ProtocolAgeBreedMixin(ProtocolAgeFieldsMixin, ProtocolBreedFieldsMixin):
+    """Combined age and breed mixins for veterinarian protocol forms."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._register_age_fields()
+        self._register_breed_fields()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data = self._compose_age_cleaned_data(cleaned_data)
+        return self._resolve_breed_cleaned_data(cleaned_data)
+
+
 class ProtocolForm(forms.ModelForm):
     """Base form for Protocol model with common fields."""
 
@@ -77,11 +229,6 @@ class ProtocolForm(forms.ModelForm):
             "species": forms.Select(
                 attrs={
                     "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
-                }
-            ),
-            "breed": forms.TextInput(
-                attrs={
-                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                 }
             ),
             "sex": forms.Select(
@@ -142,7 +289,7 @@ class ProtocolForm(forms.ModelForm):
             self.fields["submission_date"].initial = date.today()
 
 
-class CytologyProtocolForm(forms.Form):
+class CytologyProtocolForm(ProtocolAgeBreedMixin, forms.Form):
     """
     Combined form for creating a cytology protocol with sample information.
     """
@@ -157,16 +304,6 @@ class CytologyProtocolForm(forms.Form):
             }
         ),
     )
-    breed = forms.CharField(
-        label=_("Raza"),
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(
-            attrs={
-                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-            }
-        ),
-    )
     sex = forms.ChoiceField(
         label=_("Sexo"),
         choices=[("", _("Seleccionar sexo"))] + list(Protocol.Sex.choices),
@@ -174,17 +311,6 @@ class CytologyProtocolForm(forms.Form):
         widget=forms.Select(
             attrs={
                 "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
-            }
-        ),
-    )
-    age = forms.CharField(
-        label=_("Edad"),
-        max_length=50,
-        required=False,
-        widget=forms.TextInput(
-            attrs={
-                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
-                "placeholder": _("ej: 2 años, 6 meses"),
             }
         ),
     )
@@ -359,7 +485,7 @@ class CytologyProtocolForm(forms.Form):
         return protocol
 
 
-class HistopathologyProtocolForm(forms.Form):
+class HistopathologyProtocolForm(ProtocolAgeBreedMixin, forms.Form):
     """
     Combined form for creating a histopathology protocol with sample information.
     """
@@ -374,16 +500,6 @@ class HistopathologyProtocolForm(forms.Form):
             }
         ),
     )
-    breed = forms.CharField(
-        label=_("Raza"),
-        max_length=100,
-        required=False,
-        widget=forms.TextInput(
-            attrs={
-                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-            }
-        ),
-    )
     sex = forms.ChoiceField(
         label=_("Sexo"),
         choices=[("", _("Seleccionar sexo"))] + list(Protocol.Sex.choices),
@@ -391,17 +507,6 @@ class HistopathologyProtocolForm(forms.Form):
         widget=forms.Select(
             attrs={
                 "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
-            }
-        ),
-    )
-    age = forms.CharField(
-        label=_("Edad"),
-        max_length=50,
-        required=False,
-        widget=forms.TextInput(
-            attrs={
-                "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
-                "placeholder": _("ej: 2 años, 6 meses"),
             }
         ),
     )
@@ -570,7 +675,7 @@ class HistopathologyProtocolForm(forms.Form):
         return protocol
 
 
-class ProtocolEditForm(forms.ModelForm):
+class ProtocolEditForm(ProtocolAgeBreedMixin, forms.ModelForm):
     """Form for editing existing protocols (drafts only)."""
 
     species = forms.ChoiceField(
@@ -587,9 +692,7 @@ class ProtocolEditForm(forms.ModelForm):
         model = Protocol
         fields = [
             "species",
-            "breed",
             "sex",
-            "age",
             "animal_identification",
             "owner_last_name",
             "owner_first_name",
@@ -599,19 +702,9 @@ class ProtocolEditForm(forms.ModelForm):
             "submission_date",
         ]
         widgets = {
-            "breed": forms.TextInput(
-                attrs={
-                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                }
-            ),
             "sex": forms.Select(
                 attrs={
                     "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
-                }
-            ),
-            "age": forms.TextInput(
-                attrs={
-                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                 }
             ),
             "animal_identification": forms.TextInput(
@@ -653,6 +746,15 @@ class ProtocolEditForm(forms.ModelForm):
                 }
             ),
         }
+
+    def save(self, commit=True):
+        """Persist composed age and breed values on the protocol instance."""
+        instance = super().save(commit=False)
+        instance.breed = self.cleaned_data.get("breed", "")
+        instance.age = self.cleaned_data.get("age", "")
+        if commit:
+            instance.save()
+        return instance
 
 
 class CytologySampleEditForm(forms.ModelForm):
