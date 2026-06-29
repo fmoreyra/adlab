@@ -2388,7 +2388,12 @@ class InAppNotification(models.Model):
     )
     title = models.CharField(_("título"), max_length=255)
     body = models.TextField(_("cuerpo"), blank=True)
-    link_url = models.URLField(_("enlace"), blank=True)
+    link_url = models.CharField(
+        _("enlace"),
+        max_length=500,
+        blank=True,
+        help_text=_("Ruta relativa o URL de destino al abrir la notificación"),
+    )
     is_read = models.BooleanField(_("leída"), default=False)
     read_at = models.DateTimeField(_("leída el"), null=True, blank=True)
     created_at = models.DateTimeField(_("creada el"), auto_now_add=True)

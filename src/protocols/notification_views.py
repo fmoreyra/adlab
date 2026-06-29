@@ -18,6 +18,10 @@ from django.views import View
 from django.views.generic import ListView
 
 from protocols.models import InAppNotification
+from protocols.notification_utils import (
+    notification_go_path,
+    resolve_notification_destination,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +69,7 @@ class NotificationListView(LoginRequiredMixin, View):
         for n in notifications:
             n["created_at"] = n["created_at"].isoformat()
             n["read_at"] = n["read_at"].isoformat() if n["read_at"] else None
+            n["href"] = notification_go_path(n["id"])
 
         return JsonResponse(
             {
@@ -174,6 +179,29 @@ class RealtimeAuthView(LoginRequiredMixin, View):
         )
 
         return JsonResponse({"auth": auth})
+
+
+class NotificationGoView(LoginRequiredMixin, View):
+    """
+    Mark notification as read and redirect to its destination.
+
+    Used by inbox and bell dropdown so mark-read works without JavaScript.
+    """
+
+    def get(self, request, pk, *args, **kwargs):
+        """Mark notification read and redirect to stored link path."""
+        notification = InAppNotification.objects.filter(
+            pk=pk, recipient=request.user
+        ).first()
+        if not notification:
+            return redirect("pages:notifications_inbox")
+
+        notification.mark_as_read()
+        destination = resolve_notification_destination(notification.link_url)
+        if destination:
+            return redirect(destination)
+
+        return redirect("pages:notifications_inbox")
 
 
 class NotificationInboxView(LoginRequiredMixin, ListView):

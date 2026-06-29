@@ -4,6 +4,7 @@ from io import BytesIO
 
 import qrcode
 from django.contrib import messages
+from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import FileResponse
@@ -284,9 +285,11 @@ class ProtocolPublicDetailView(DetailView):
 
     def dispatch(self, request, *args, **kwargs):
         """Handle authentication and authorization checks."""
-        # Require authentication
         if not request.user.is_authenticated:
-            return redirect("accounts:login")
+            return redirect_to_login(
+                request.get_full_path(),
+                login_url=reverse("accounts:login"),
+            )
 
         return super().dispatch(request, *args, **kwargs)
 

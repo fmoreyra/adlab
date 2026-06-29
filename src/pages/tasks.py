@@ -7,7 +7,6 @@ Refreshes server stats snapshot for the admin dashboard.
 import logging
 
 from celery import shared_task
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
@@ -76,7 +75,7 @@ def notify_dashboard_announcement_update(announcement_id: int):
         return
 
     dashboard_path = reverse("pages:dashboard")
-    link_url = f"{settings.SITE_URL}{dashboard_path}"
+    link_url = dashboard_path
     body = get_notification_preview_body(announcement.message)
     title = "Nuevo aviso del laboratorio"
     service = NotificationService()

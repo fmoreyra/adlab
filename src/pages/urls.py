@@ -13,6 +13,11 @@ urlpatterns = [
         name="notifications_inbox",
     ),
     path(
+        "notifications/<int:pk>/go/",
+        notification_views.NotificationGoView.as_view(),
+        name="notifications_go",
+    ),
+    path(
         "notifications/mark-all-read/",
         notification_views.NotificationMarkAllReadRedirectView.as_view(),
         name="notifications_mark_all_read",

@@ -219,6 +219,76 @@ class NotificationAPITestCase(TestCase):
         ).count()
         self.assertEqual(unread, 0)
 
+    def test_list_includes_go_href(self):
+        """List API includes href for mark-read-and-go view."""
+        n = InAppNotification.objects.create(
+            recipient=self.user,
+            notification_type=InAppNotification.NotificationType.CUSTOM,
+            title="Test",
+            body="Body",
+            link_url="/protocols/public/test/",
+            is_read=False,
+        )
+        url = reverse("pages_api:notifications:list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        item = response.json()["notifications"][0]
+        self.assertEqual(
+            item["href"],
+            reverse("pages:notifications_go", kwargs={"pk": n.pk}),
+        )
+
+    def test_notification_go_marks_read_and_redirects(self):
+        """Go view marks notification read and redirects to destination."""
+        protocol_path = "/protocols/public/example/"
+        n = InAppNotification.objects.create(
+            recipient=self.user,
+            notification_type=InAppNotification.NotificationType.CUSTOM,
+            title="Test",
+            body="Body",
+            link_url=protocol_path,
+            is_read=False,
+        )
+        url = reverse("pages:notifications_go", kwargs={"pk": n.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, protocol_path)
+        n.refresh_from_db()
+        self.assertTrue(n.is_read)
+
+    def test_notification_go_legacy_absolute_url(self):
+        """Go view resolves legacy absolute link_url to same-site path."""
+        n = InAppNotification.objects.create(
+            recipient=self.user,
+            notification_type=InAppNotification.NotificationType.CUSTOM,
+            title="Legacy",
+            body="",
+            link_url="http://localhost:8000/dashboard/",
+            is_read=False,
+        )
+        url = reverse("pages:notifications_go", kwargs={"pk": n.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/dashboard/")
+
+    def test_login_after_protocol_redirect_honors_next(self):
+        """Login with next returns user to protocol after authentication."""
+        self.client.logout()
+        protocol_path = reverse(
+            "protocols:protocol_public_detail",
+            kwargs={"external_id": "00000000-0000-0000-0000-000000000001"},
+        )
+        login_url = reverse("accounts:login")
+        response = self.client.post(
+            f"{login_url}?next={protocol_path}",
+            {
+                "username": "vet@example.com",
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, protocol_path)
+
 
 class NotificationServiceTestCase(TestCase):
     """Tests for NotificationService."""

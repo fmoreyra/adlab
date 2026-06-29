@@ -42,6 +42,7 @@ from .models import (
     Veterinarian,
     VeterinarianChangeLog,
 )
+from .redirect_utils import resolve_safe_redirect
 from .report_access import (
     get_laboratory_staff_for_reports,
     user_requires_report_signature,
@@ -78,8 +79,19 @@ class LoginView(FormView):
     def get(self, request, *args, **kwargs):
         """Handle GET request with early return for authenticated users."""
         if request.user.is_authenticated:
-            return redirect("pages:dashboard")
+            next_url = resolve_safe_redirect(
+                request,
+                request.GET.get("next"),
+                default=reverse("pages:dashboard"),
+            )
+            return redirect(next_url)
         return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        """Expose ``next`` for login form action and hidden field."""
+        context = super().get_context_data(**kwargs)
+        context["next_url"] = self.request.GET.get("next", "")
+        return context
 
     def form_valid(self, form):
         """Process valid login form with early returns and service integration."""

@@ -4,6 +4,12 @@ Welcome to the Laboratory Management System documentation. This guide will help 
 
 ## 📚 Documentation Structure
 
+### 📋 [Roadmap FCV](./roadmap/)
+Plan de trabajo activo con la facultad (prioridades Jun 2026):
+- [Roadmap priorizado](./roadmap/ROADMAP_PRIORIZADO.md) — índice maestro por bloques
+- [Plan Punto 1 — Veterinario](./roadmap/PLAN_PUNTO_1_VETERINARIO.md) — detalle de implementación
+- [Diagnóstico notificaciones](./roadmap/NOTIFICATION_DIAGNOSTIC_RESULTS.md) — pruebas locales post-fix
+
 ### 🚀 [Setup](./setup/)
 Get started with the laboratory system:
 - [Quick Start Guide](./setup/quickstart.md) - Get up and running in 5 minutes

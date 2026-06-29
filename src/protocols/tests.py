@@ -5328,7 +5328,9 @@ class ProtocolPublicAccessTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, "/accounts/login/")
+        self.assertIn("/accounts/login/", response.url)
+        self.assertIn("next=", response.url)
+        self.assertIn(str(self.protocol.external_id), response.url)
 
     def test_protocol_public_detail_view_with_discrepancies(self):
         """Test public protocol detail view displays discrepancies when present."""

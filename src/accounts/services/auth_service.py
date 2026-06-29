@@ -17,6 +17,7 @@ from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import AuthAuditLog, PasswordResetToken, User
+from accounts.redirect_utils import resolve_safe_redirect
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +68,12 @@ class AuthenticationService:
         user.reset_failed_login_attempts()
         self._log_successful_login(user, request)
 
-        # All users redirect to dashboard (which routes to role-specific dashboard)
-        redirect_url = "pages:dashboard"
+        next_url = request.GET.get("next") or request.POST.get("next")
+        redirect_url = resolve_safe_redirect(
+            request,
+            next_url,
+            default=reverse("pages:dashboard"),
+        )
 
         return True, redirect_url, ""
 

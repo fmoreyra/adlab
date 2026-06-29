@@ -68,7 +68,7 @@ import Pusher from "pusher-js";
   function renderNotification(n) {
     const isRead = n.is_read;
     const item = document.createElement("a");
-    item.href = n.link_url || "#";
+    item.href = n.href || n.link_url || "#";
     item.className =
       "block p-3 hover:bg-purple-50 transition " +
       (isRead ? "bg-gray-50 text-gray-600" : "bg-white text-gray-900");
@@ -78,15 +78,13 @@ import Pusher from "pusher-js";
       ${n.body ? `<p class="text-xs mt-1 text-gray-500 line-clamp-2">${escapeHtml(n.body)}</p>` : ""}
       <p class="text-xs mt-1 text-gray-400">${formatDate(n.created_at)}</p>
     `;
-    if (!isRead) {
+    if (!item.href || item.href === "#") {
       item.addEventListener("click", (e) => {
-        if (n.link_url) return;
         e.preventDefault();
-        markAsRead(n.id);
+        if (!isRead) {
+          markAsRead(n.id);
+        }
       });
-    }
-    if (n.link_url) {
-      item.addEventListener("click", () => markAsRead(n.id));
     }
     return item;
   }

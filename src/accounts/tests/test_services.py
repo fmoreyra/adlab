@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import AuthAuditLog, PasswordResetToken, Veterinarian
@@ -73,9 +74,25 @@ class AuthenticationServiceTest(TestCase):
         )
 
         self.assertTrue(success)
-        self.assertEqual(redirect_url, "protocols:protocol_select_type")
+        self.assertEqual(redirect_url, reverse("pages:dashboard"))
         self.assertEqual(error, "")
         mock_login.assert_called_once_with(self.request, self.user)
+
+    @patch("accounts.services.auth_service.login")
+    def test_process_login_success_honors_next(self, mock_login):
+        """Test successful login redirects to safe next URL when provided."""
+        self.request.GET = {"next": "/protocols/public/test-uuid/"}
+
+        form = Mock()
+        form.get_user.return_value = self.user
+
+        success, redirect_url, error = self.service.process_login(
+            form, self.request
+        )
+
+        self.assertTrue(success)
+        self.assertEqual(redirect_url, "/protocols/public/test-uuid/")
+        self.assertEqual(error, "")
 
     @patch("accounts.services.auth_service.login")
     def test_process_login_success_staff(self, mock_login):
@@ -94,7 +111,7 @@ class AuthenticationServiceTest(TestCase):
         )
 
         self.assertTrue(success)
-        self.assertEqual(redirect_url, "/")
+        self.assertEqual(redirect_url, reverse("pages:dashboard"))
         self.assertEqual(error, "")
 
     def test_process_login_account_locked(self):

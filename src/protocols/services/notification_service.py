@@ -17,6 +17,10 @@ from django.urls import reverse
 from django.utils import timezone
 
 from protocols.models import InAppNotification, Protocol, WorkOrder
+from protocols.notification_utils import (
+    build_protocol_notification_path,
+    build_workorder_notification_path,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -280,7 +284,7 @@ class NotificationService:
             recipient: User to notify
             title: Notification title
             body: Plain-text preview body
-            link_url: Absolute URL to the user's dashboard
+            link_url: Relative or absolute path to the user's dashboard
 
         Returns:
             InAppNotification: Created notification
@@ -297,29 +301,21 @@ class NotificationService:
         self, recipient, message: str = ""
     ) -> InAppNotification:
         """Create a test notification (for admin action). Links to home page."""
-        home_url = f"{settings.SITE_URL}{reverse('home')}"
+        home_path = reverse("home")
         return self.create_notification(
             recipient=recipient,
             notification_type=InAppNotification.NotificationType.CUSTOM,
             title="Notificación de prueba",
             body=message or "Esta es una notificación de prueba del sistema.",
-            link_url=home_url,
+            link_url=home_path,
         )
 
 
 def _build_protocol_url(protocol) -> str:
-    """Build absolute URL for protocol public detail."""
-    path = reverse(
-        "protocols:protocol_public_detail",
-        kwargs={"external_id": protocol.external_id},
-    )
-    return f"{settings.SITE_URL}{path}"
+    """Build relative path for protocol public detail notification link."""
+    return build_protocol_notification_path(protocol)
 
 
 def _build_workorder_url(work_order) -> str:
-    """Build absolute URL for work order detail."""
-    path = reverse(
-        "protocols:workorder_detail",
-        kwargs={"pk": work_order.pk},
-    )
-    return f"{settings.SITE_URL}{path}"
+    """Build relative path for work order notification link."""
+    return build_workorder_notification_path(work_order)
