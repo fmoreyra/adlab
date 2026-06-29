@@ -21,30 +21,17 @@
         {% endif %}
       </div>
       <div class="flex items-center gap-2">
-        {% if cassette.fecha_fijacion %}
+        {% if cassette.estado == 'completado' %}
           <span class="text-green-600">✓</span>
-          <span>Fijación: {{ cassette.fecha_fijacion|date:"d/m/Y H:i" }}</span>
+          <span>
+            Procesado
+            {% if cassette.fecha_entacado %}
+              : {{ cassette.fecha_entacado|date:"d/m/Y H:i" }}
+            {% endif %}
+          </span>
         {% else %}
           <span class="text-gray-400">○</span>
-          <span class="text-gray-400">Fijación</span>
-        {% endif %}
-      </div>
-      <div class="flex items-center gap-2">
-        {% if cassette.fecha_inclusion %}
-          <span class="text-green-600">✓</span>
-          <span>Inclusión: {{ cassette.fecha_inclusion|date:"d/m/Y H:i" }}</span>
-        {% else %}
-          <span class="text-gray-400">○</span>
-          <span class="text-gray-400">Inclusión</span>
-        {% endif %}
-      </div>
-      <div class="flex items-center gap-2">
-        {% if cassette.fecha_entacado %}
-          <span class="text-green-600">✓</span>
-          <span>Entacado: {{ cassette.fecha_entacado|date:"d/m/Y H:i" }}</span>
-        {% else %}
-          <span class="text-gray-400">○</span>
-          <span class="text-gray-400">Entacado</span>
+          <span class="text-gray-400">Procesado (fijación, inclusión, entacado)</span>
         {% endif %}
       </div>
     </div>

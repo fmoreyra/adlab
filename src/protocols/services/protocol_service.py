@@ -415,26 +415,100 @@ class ProtocolProcessingService:
 
         Args:
             slide: Slide instance
-            slide_data: Slide data containing cassette relationships
+            slide_data: Slide data containing cassette_ids or legacy keys
             protocol: Protocol instance
         """
-        for pos in [1, 2]:  # Each slide can have up to 2 cassette positions
-            cassette_id = slide_data.get(f"cassette_{pos}")
-            if cassette_id:
-                try:
-                    cassette = Cassette.objects.get(
-                        id=cassette_id,
-                        histopathology_sample=protocol.histopathology_sample,
-                    )
-                    CassetteSlide.objects.create(
-                        cassette=cassette,
-                        slide=slide,
-                        position=pos,
-                    )
-                except Cassette.DoesNotExist:
-                    logger.warning(
-                        f"Cassette {cassette_id} not found for slide {slide.id}"
-                    )
+        cassette_ids = slide_data.get("cassette_ids")
+        if cassette_ids is None:
+            cassette_ids = [
+                slide_data[key]
+                for key in ("cassette_1", "cassette_2")
+                if slide_data.get(key)
+            ]
+
+        coloracion = slide_data.get("tecnica_coloracion", "")
+
+        for cassette_id in cassette_ids:
+            cassette = Cassette.objects.filter(
+                id=cassette_id,
+                histopathology_sample=protocol.histopathology_sample,
+            ).first()
+            if cassette is None:
+                logger.warning(
+                    "Cassette %s not found for slide %s",
+                    cassette_id,
+                    slide.id,
+                )
+                continue
+            CassetteSlide.objects.create(
+                cassette=cassette,
+                slide=slide,
+                posicion=CassetteSlide.Position.COMPLETO,
+                coloracion=coloracion,
+            )
+
+    def register_histopathology_slides(
+        self,
+        protocol: Protocol,
+        slide_data: List[Dict],
+        user,
+    ) -> Tuple[bool, List[Slide], str]:
+        """
+        Register histopathology slides with flexible cassette associations.
+
+        Args:
+            protocol: Protocol instance
+            slide_data: List of slide data dicts with cassette_ids
+            user: User registering the slides
+
+        Returns:
+            Tuple[bool, List[Slide], str]: (success, created_slides, error_message)
+        """
+        if not slide_data:
+            return False, [], _("Debe registrar al menos un portaobjetos.")
+        if len(slide_data) > 50:
+            return (
+                False,
+                [],
+                _("No se pueden registrar más de 50 portaobjetos a la vez."),
+            )
+
+        if not hasattr(protocol, "histopathology_sample"):
+            return (
+                False,
+                [],
+                _("El protocolo no tiene muestra de histopatología."),
+            )
+
+        if not protocol.histopathology_sample.cassettes.exists():
+            return (
+                False,
+                [],
+                _(
+                    "Debe crear al menos un cassette antes de registrar slides."
+                ),
+            )
+
+        normalized = []
+        for row in slide_data:
+            cassette_ids = row.get("cassette_ids") or []
+            if not cassette_ids:
+                return (
+                    False,
+                    [],
+                    _("Cada portaobjetos debe tener al menos un cassette."),
+                )
+            normalized.append(
+                {
+                    "cassette_ids": cassette_ids,
+                    "tecnica_coloracion": row.get(
+                        "tecnica_coloracion", "Hematoxilina-Eosina"
+                    ),
+                    "observaciones": row.get("observaciones", ""),
+                }
+            )
+
+        return self.register_slides(protocol, normalized, user)
 
     @staticmethod
     def _validate_revert_observaciones(action: str, observaciones: str) -> str:
@@ -505,6 +579,15 @@ class ProtocolProcessingService:
             log_observaciones = self._format_log_observaciones(
                 action, observaciones
             )
+            if action == "advance" and stage == "entacado":
+                collapsed_note = _(
+                    "Procesado (fijación, inclusión y entacado)."
+                )
+                log_observaciones = (
+                    f"{collapsed_note} {log_observaciones}".strip()
+                    if log_observaciones
+                    else collapsed_note
+                )
             ProcessingLog.log_action(
                 protocol=cassette.histopathology_sample.protocol,
                 etapa=self.CASSETTE_STAGE_LOG[stage],

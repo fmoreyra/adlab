@@ -452,7 +452,7 @@ class ProtocolProcessingServiceTest(TestCase):
         self.assertTrue(success)
         self.assertEqual(error, "")
         slide.refresh_from_db()
-        self.assertEqual(slide.estado, Slide.Status.MONTADO)
+        self.assertEqual(slide.estado, Slide.Status.LISTO)
 
     def test_update_slide_stage_revert_requires_observaciones(self):
         """Test reverting slide stage requires observations."""
@@ -461,7 +461,7 @@ class ProtocolProcessingServiceTest(TestCase):
             codigo_portaobjetos="SLIDE001",
             estado=Slide.Status.PENDIENTE,
         )
-        slide.update_stage("montaje")
+        slide.mark_ready_from_pending()
 
         success, error = self.service.update_slide_stage(
             slide, "revert", self.user, ""
@@ -497,19 +497,16 @@ class ProtocolProcessingServiceTest(TestCase):
         self.assertTrue(success)
         self.assertEqual(error, "")
         cassette.refresh_from_db()
-        self.assertIsNotNone(cassette.fecha_fijacion)
+        self.assertEqual(cassette.estado, Cassette.Status.COMPLETADO)
+        self.assertIsNotNone(cassette.fecha_entacado)
 
     def _complete_cassette(self, cassette):
         """Advance cassette through all processing stages."""
         cassette.update_stage("encasetado")
         cassette.advance_stage()
-        cassette.advance_stage()
-        cassette.advance_stage()
 
     def _complete_slide(self, slide):
         """Advance slide through all processing stages."""
-        slide.advance_stage()
-        slide.advance_stage()
         slide.advance_stage()
 
     def test_get_processing_readiness_histopathology_blockers(self):

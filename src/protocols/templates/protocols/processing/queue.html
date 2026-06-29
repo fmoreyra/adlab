@@ -85,17 +85,13 @@
                      class="text-purple-600 hover:text-purple-800">
                     Ver
                   </a>
-                  {% if protocol.analysis_type == 'histopathology' and protocol.needs_cassettes %}
-                    <a href="{% url 'protocols:cassette_create' protocol.pk %}" 
+                  {% if protocol.analysis_type == 'histopathology' %}
+                    {% if protocol.needs_cassettes or protocol.needs_slides %}
+                    <a href="{% url 'protocols:sample_register' protocol.pk %}"
                        class="text-blue-600 hover:text-blue-800">
-                      Cassettes
+                      Registrar
                     </a>
-                  {% endif %}
-                  {% if protocol.needs_slides %}
-                    <a href="{% url 'protocols:slide_register' protocol.pk %}" 
-                       class="text-green-600 hover:text-green-800">
-                      Slides
-                    </a>
+                    {% endif %}
                   {% endif %}
                 </div>
               </td>

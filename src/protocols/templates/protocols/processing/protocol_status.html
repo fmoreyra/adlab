@@ -114,9 +114,14 @@
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold text-gray-800">Cassettes</h2>
       {% if not cassettes %}
-        <a href="{% url 'protocols:cassette_create' protocol.pk %}"
+        <a href="{% url 'protocols:sample_register' protocol.pk %}"
            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-          + Crear Cassettes
+          + Registrar muestra
+        </a>
+      {% else %}
+        <a href="{% url 'protocols:sample_register' protocol.pk %}"
+           class="bg-gray-100 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-200 text-sm">
+          + Agregar cassettes/slides
         </a>
       {% endif %}
     </div>
@@ -176,9 +181,14 @@
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold text-gray-800">Portaobjetos</h2>
       {% if not slides and protocol.analysis_type != 'cytology' %}
-        <a href="{% url 'protocols:slide_register' protocol.pk %}"
+        <a href="{% url 'protocols:sample_register' protocol.pk %}"
            class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
-          + Registrar Slides
+          + Registrar muestra
+        </a>
+      {% elif protocol.analysis_type == 'histopathology' and slides %}
+        <a href="{% url 'protocols:sample_register' protocol.pk %}"
+           class="bg-gray-100 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-200 text-sm">
+          + Agregar portaobjetos
         </a>
       {% endif %}
     </div>
@@ -259,7 +269,7 @@
 
       {% if protocol.analysis_type != 'cytology' %}
       <div class="mt-4 text-right">
-        <a href="{% url 'protocols:slide_register' protocol.pk %}"
+        <a href="{% url 'protocols:sample_register' protocol.pk %}"
            class="text-purple-600 hover:text-purple-800 text-sm">
           + Agregar más slides
         </a>

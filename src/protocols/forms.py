@@ -1359,10 +1359,6 @@ class HistopathologySlideForm(forms.Form):
         cassette_ids = self.cleaned_data.get("cassette_ids", [])
         if not cassette_ids:
             raise ValidationError(_("Debe seleccionar al menos un cassette"))
-        if len(cassette_ids) > 3:
-            raise ValidationError(
-                _("No se pueden montar más de 3 cassettes en un portaobjetos")
-            )
         return cassette_ids
 
 

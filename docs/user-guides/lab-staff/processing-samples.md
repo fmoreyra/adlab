@@ -50,29 +50,29 @@ Todo el seguimiento de etapas se hace desde **Estado del procesamiento** del pro
 
 ### Histopatología
 
-1. **Crear cassettes**: En el estado del protocolo, use **Crear Cassettes**. Indique cantidad, material incluido y observaciones por cassette.
-2. **Avanzar etapas del cassette**: En la misma pantalla, en cada tarjeta de cassette use el botón de avance (**Fijar** → **Incluir** → **Entacar**). El encasetado se registra automáticamente al crear el cassette.
-3. **Registrar slides**: Use **Registrar Slides**. Complete la tabla:
-   - **Cassette superior** (obligatorio): cassette montado en la parte superior del portaobjetos.
-   - **Cassette inferior** (opcional): segundo cassette en el mismo slide, si aplica.
-   - **Coloración**: por defecto Hematoxilina-Eosina; puede ajustarse por fila.
-   - Use **+ Agregar slide** para más filas y **Registrar Slides** para guardar.
-4. **Avanzar etapas del portaobjetos**: En la tabla de portaobjetos, use **Montar** → **Colorear** → **Marcar listo**.
+1. **Registrar muestra (cassettes + slides):** Use el botón **Registrar muestra** en el estado del protocolo o en la cola de procesamiento. En una sola pantalla:
+   - **Cassettes:** indique cantidad, material incluido (descripción libre de qué piezas u órganos contiene cada cassette) y observaciones opcionales.
+   - **Portaobjetos (slides):** por cada fila, seleccione uno o más cassettes montados en ese slide (casillas de verificación), coloración opcional (por defecto Hematoxilina-Eosina) y observaciones.
+   - Use **+ Agregar cassette** / **+ Agregar slide** para más filas y **Guardar registro** para confirmar todo en un solo paso.
+2. **Procesar cassettes:** En la misma pantalla de estado, en cada tarjeta de cassette use **Procesar** cuando el tejido esté listo (fijación, inclusión y entacado se registran juntos). El encasetado se registra automáticamente al crear el cassette.
+3. **Marcar portaobjetos listos:** En la tabla de portaobjetos, use **Marcar listo** (montaje y coloración se registran en un solo paso).
+
+Si ya registró cassettes y solo necesita agregar slides, **Registrar muestra** abre la pantalla en modo complemento con los cassettes existentes visibles.
 
 ### Citología
 
 - Los portaobjetos se registran **automáticamente al confirmar la recepción** (cantidad recibida + Diff-Quick por defecto).
-- En **Estado de procesamiento** avance las etapas del portaobjetos (**Montar** → **Colorear** → **Marcar listo**).
+- En **Estado de procesamiento** use **Marcar listo** en cada portaobjetos (un solo paso desde pendiente).
 
 ### Revertir una etapa (cassettes y portaobjetos)
 
-Si hubo un error, use **Revertir etapa** en la columna Acciones. Se abrirá un cuadro de diálogo donde debe indicar el **motivo de la corrección** (obligatorio); queda registrado en el historial del protocolo.
+Si hubo un error, use **Revertir procesado** (cassettes) o **Revertir listo** (portaobjetos) en la columna Acciones. Se abrirá un cuadro de diálogo donde debe indicar el **motivo de la corrección** (obligatorio); queda registrado en el historial del protocolo.
 
 Use **Ver historial** en cada fila de cassette o portaobjetos para abrir el detalle de etapas, material y el registro de auditoría de ese elemento.
 
 ### Finalizar procesamiento de laboratorio
 
-Cuando **todos** los cassettes (histopatología) y portaobjetos estén en su última etapa, use **Marcar listo para diagnóstico** en la misma pantalla. El protocolo pasa a estado **Listo** y el caso queda disponible para informe u orden de trabajo.
+Cuando **todos** los cassettes (histopatología) y portaobjetos estén completos, use **Marcar listo para diagnóstico** en la misma pantalla. El protocolo pasa a estado **Listo** y el caso queda disponible para informe u orden de trabajo.
 
 Si faltan pasos, el sistema muestra una lista de pendientes (cassettes o portaobjetos incompletos).
 

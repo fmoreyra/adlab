@@ -6,6 +6,7 @@ import qrcode
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Q
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -44,7 +45,6 @@ from protocols.forms import (
 )
 from protocols.models import (
     Cassette,
-    CassetteSlide,
     ProcessingLog,
     Protocol,
     ProtocolStatusHistory,
@@ -1231,126 +1231,179 @@ class SlideProcessingHistoryView(StaffRequiredMixin, DetailView):
         return context
 
 
-class CassetteCreateView(StaffRequiredMixin, View):
+class SampleRegistrationView(StaffRequiredMixin, View):
     """
-    Create cassettes for a histopathology protocol.
+    Unified histopathology sample registration: cassettes and slides in one step.
     """
+
+    template_name = "protocols/processing/sample_register.html"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.processing_service = ProtocolProcessingService()
 
     def get(self, request, *args, **kwargs):
-        """Show cassette creation form."""
-        protocol = self.get_protocol()
-
+        """Show unified registration form."""
+        protocol = self._get_protocol()
         if protocol is None:
-            # Redirect to processing status if validation failed
             return redirect(
                 "protocols:processing_status", pk=self.kwargs["protocol_pk"]
             )
 
-        # Get existing cassettes
-        existing_cassettes = protocol.histopathology_sample.cassettes.all()
+        if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
+            messages.info(
+                request,
+                _(
+                    "Los portaobjetos de citología se registran al confirmar "
+                    "la recepción de la muestra."
+                ),
+            )
+            return redirect("protocols:processing_status", pk=protocol.pk)
 
-        context = {
-            "protocol": protocol,
-            "existing_cassettes": existing_cassettes,
-        }
         return render(
-            request, "protocols/processing/cassette_create.html", context
+            request, self.template_name, self._build_context(protocol)
         )
 
     def post(self, request, *args, **kwargs):
-        """Create cassettes."""
-        protocol = self.get_protocol()
-
+        """Create cassettes and slides atomically."""
+        protocol = self._get_protocol()
         if protocol is None:
-            # Redirect to processing status if validation failed
             return redirect(
                 "protocols:processing_status", pk=self.kwargs["protocol_pk"]
             )
 
-        try:
-            # Get form data
-            cassette_count = int(request.POST.get("cassette_count", 1))
-            if cassette_count < 1 or cassette_count > 20:
-                raise ValueError("Invalid cassette count")
-
-            # Create cassettes with form data
-            created_cassettes = []
-            for i in range(cassette_count):
-                # Get cassette-specific data
-                material = request.POST.get(f"material_{i}", "")
-                observaciones = request.POST.get(f"observaciones_{i}", "")
-
-                cassette = Cassette.objects.create(
-                    histopathology_sample=protocol.histopathology_sample,
-                    material_incluido=material,
-                    observaciones=observaciones,
-                )
-
-                # Update to encasetado stage
-                cassette.update_stage("encasetado")
-
-                # Log action
-                ProcessingLog.log_action(
-                    protocol=protocol,
-                    etapa=ProcessingLog.Stage.ENCASETADO,
-                    usuario=request.user,
-                    cassette=cassette,
-                    observaciones=f"Cassette creado: {material[:50]}",
-                )
-
-                created_cassettes.append(cassette)
-
-            # Update protocol status to processing
-            if protocol.status == Protocol.Status.RECEIVED:
-                protocol.status = Protocol.Status.PROCESSING
-                protocol.save(update_fields=["status"])
-
-                ProtocolStatusHistory.log_status_change(
-                    protocol=protocol,
-                    new_status=Protocol.Status.PROCESSING,
-                    changed_by=request.user,
-                    description=f"Iniciado procesamiento - {len(created_cassettes)} cassettes creados",
-                )
-
-            messages.success(
+        if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
+            messages.info(
                 request,
                 _(
-                    f"Se crearon {len(created_cassettes)} cassettes exitosamente."
+                    "Los portaobjetos de citología se registran al confirmar "
+                    "la recepción de la muestra."
                 ),
             )
+            return redirect("protocols:processing_status", pk=protocol.pk)
 
-        except (ValueError, TypeError) as e:
-            messages.error(
-                request,
-                _("Error al crear cassettes: %(error)s") % {"error": str(e)},
+        try:
+            cassette_rows = self._parse_cassette_rows(request)
+            slide_rows = self._parse_slide_rows(request)
+            self._validate_registration_rows(
+                protocol, cassette_rows, slide_rows
             )
 
-        return redirect("protocols:slide_register", protocol_pk=protocol.pk)
+            with transaction.atomic():
+                created_cassettes = []
+                if cassette_rows:
+                    success, created_cassettes, error = (
+                        self.processing_service.create_cassettes(
+                            protocol, cassette_rows, request.user
+                        )
+                    )
+                    if not success:
+                        raise ValueError(error)
 
-    def get_protocol(self):
-        """Get and validate protocol."""
+                if slide_rows:
+                    cassette_map = self._build_cassette_reference_map(
+                        protocol, created_cassettes
+                    )
+                    slide_payload = []
+                    for row in slide_rows:
+                        cassette_ids = [
+                            cassette_map[ref]
+                            for ref in row["cassette_refs"]
+                            if ref in cassette_map
+                        ]
+                        if not cassette_ids:
+                            raise ValueError(
+                                _(
+                                    "Cada portaobjetos debe tener al menos "
+                                    "un cassette asignado."
+                                )
+                            )
+                        slide_payload.append(
+                            {
+                                "cassette_ids": cassette_ids,
+                                "tecnica_coloracion": row[
+                                    "tecnica_coloracion"
+                                ],
+                                "observaciones": row["observaciones"],
+                            }
+                        )
+
+                    success, _slides, error = (
+                        self.processing_service.register_histopathology_slides(
+                            protocol, slide_payload, request.user
+                        )
+                    )
+                    if not success:
+                        raise ValueError(error)
+
+            parts = []
+            if cassette_rows:
+                parts.append(
+                    _("%(count)s cassettes") % {"count": len(cassette_rows)}
+                )
+            if slide_rows:
+                parts.append(
+                    _("%(count)s portaobjetos") % {"count": len(slide_rows)}
+                )
+            messages.success(
+                request,
+                _("Registro exitoso: %(summary)s.")
+                % {"summary": ", ".join(parts)},
+            )
+
+        except (ValueError, TypeError) as exc:
+            messages.error(
+                request,
+                _("Error al registrar muestra: %(error)s")
+                % {"error": str(exc)},
+            )
+
+        return redirect("protocols:processing_status", pk=protocol.pk)
+
+    def _build_context(self, protocol):
+        """Build template context for registration form."""
+        existing_cassettes = []
+        existing_slides = []
+        if hasattr(protocol, "histopathology_sample"):
+            existing_cassettes = list(
+                protocol.histopathology_sample.cassettes.all().order_by(
+                    "codigo_cassette"
+                )
+            )
+        existing_slides = list(
+            protocol.slides.all().prefetch_related("cassette_slides__cassette")
+        )
+        return {
+            "protocol": protocol,
+            "existing_cassettes": existing_cassettes,
+            "existing_slides": existing_slides,
+            "is_append_mode": bool(existing_cassettes),
+        }
+
+    def _get_protocol(self):
+        """Get and validate histopathology protocol."""
         protocol = get_object_or_404(
-            Protocol.objects.select_related("histopathology_sample"),
+            Protocol.objects.select_related(
+                "histopathology_sample",
+                "veterinarian__user",
+            ),
             pk=self.kwargs["protocol_pk"],
         )
 
-        # Check if protocol is rejected
         if protocol.status == Protocol.Status.REJECTED:
             messages.error(
                 self.request,
                 _(
-                    "No se puede procesar un protocolo rechazado. Cambie el estado primero."
+                    "No se puede procesar un protocolo rechazado. "
+                    "Cambie el estado primero."
                 ),
             )
             return None
 
-        # Verify it's histopathology
         if protocol.analysis_type != Protocol.AnalysisType.HISTOPATHOLOGY:
             messages.error(
                 self.request,
-                _(
-                    "Solo los protocolos de histopatología requieren cassettes."
-                ),
+                _("Esta pantalla es solo para protocolos de histopatología."),
             )
             return None
 
@@ -1362,6 +1415,125 @@ class CassetteCreateView(StaffRequiredMixin, View):
             return None
 
         return protocol
+
+    @staticmethod
+    def _parse_cassette_rows(request):
+        """Parse new cassette rows from POST data."""
+        count = int(request.POST.get("cassette_count", 0) or 0)
+        if count < 0 or count > 20:
+            raise ValueError(_("Cantidad de cassettes inválida."))
+
+        rows = []
+        for index in range(count):
+            material = (request.POST.get(f"material_{index}") or "").strip()
+            if not material:
+                raise ValueError(
+                    _("Debe describir el material de cada cassette nuevo.")
+                )
+            rows.append(
+                {
+                    "material": material,
+                    "observaciones": request.POST.get(
+                        f"observaciones_{index}", ""
+                    ),
+                }
+            )
+        return rows
+
+    @staticmethod
+    def _parse_slide_rows(request):
+        """Parse slide rows from POST data."""
+        count = int(request.POST.get("slide_count", 0) or 0)
+        if count < 0 or count > 50:
+            raise ValueError(_("Cantidad de portaobjetos inválida."))
+
+        general_comments = request.POST.get("comments", "")
+        rows = []
+        for index in range(count):
+            cassette_refs = request.POST.getlist(f"slide_{index}_cassettes")
+            if not cassette_refs:
+                continue
+
+            row_observaciones = request.POST.get(
+                f"slide_{index}_observaciones", ""
+            )
+            rows.append(
+                {
+                    "cassette_refs": cassette_refs,
+                    "tecnica_coloracion": request.POST.get(
+                        f"slide_{index}_coloracion", "Hematoxilina-Eosina"
+                    ),
+                    "observaciones": row_observaciones or general_comments,
+                }
+            )
+
+        if count > 0 and not rows:
+            raise ValueError(
+                _(
+                    "Cada portaobjetos debe tener al menos un cassette "
+                    "seleccionado."
+                )
+            )
+        return rows
+
+    @staticmethod
+    def _validate_registration_rows(protocol, cassette_rows, slide_rows):
+        """Validate that POST includes meaningful registration data."""
+        has_existing_cassettes = (
+            hasattr(protocol, "histopathology_sample")
+            and protocol.histopathology_sample.cassettes.exists()
+        )
+
+        if not cassette_rows and not slide_rows:
+            raise ValueError(_("Debe registrar al menos un cassette o slide."))
+
+        if not has_existing_cassettes and not cassette_rows:
+            raise ValueError(_("Debe crear al menos un cassette."))
+
+        if not has_existing_cassettes and not slide_rows:
+            raise ValueError(_("Debe registrar al menos un portaobjetos."))
+
+    @staticmethod
+    def _build_cassette_reference_map(protocol, created_cassettes):
+        """Map form cassette refs (existing_ID / new_INDEX) to database IDs."""
+        cassette_map = {}
+        for cassette in protocol.histopathology_sample.cassettes.all():
+            cassette_map[f"existing_{cassette.id}"] = cassette.id
+        for index, cassette in enumerate(created_cassettes):
+            cassette_map[f"new_{index}"] = cassette.id
+        return cassette_map
+
+
+class CassetteCreateView(StaffRequiredMixin, View):
+    """
+    Legacy URL — redirects to unified sample registration.
+    """
+
+    def get(self, request, *args, **kwargs):
+        return redirect(
+            "protocols:sample_register",
+            protocol_pk=self.kwargs["protocol_pk"],
+        )
+
+    def post(self, request, *args, **kwargs):
+        view = SampleRegistrationView.as_view()
+        return view(request, protocol_pk=self.kwargs["protocol_pk"])
+
+
+class SlideRegisterView(StaffRequiredMixin, View):
+    """
+    Legacy URL — redirects to unified sample registration.
+    """
+
+    def get(self, request, *args, **kwargs):
+        return redirect(
+            "protocols:sample_register",
+            protocol_pk=self.kwargs["protocol_pk"],
+        )
+
+    def post(self, request, *args, **kwargs):
+        view = SampleRegistrationView.as_view()
+        return view(request, protocol_pk=self.kwargs["protocol_pk"])
 
 
 class ReceptionConfirmView(StaffRequiredMixin, FormView):
@@ -1593,212 +1765,6 @@ class ReceptionLabelPDFView(StaffRequiredMixin, View):
         if not protocol.protocol_number:
             messages.error(
                 self.request, _("Este protocolo aún no tiene número asignado.")
-            )
-            return None
-
-        return protocol
-
-
-class SlideRegisterView(StaffRequiredMixin, View):
-    """
-    Register slides for a protocol (table UI for histopathology, simple form for cytology).
-    """
-
-    def get(self, request, *args, **kwargs):
-        """Show slide registration form."""
-        protocol = self.get_protocol()
-
-        if protocol is None:
-            return redirect(
-                "protocols:processing_status", pk=self.kwargs["protocol_pk"]
-            )
-
-        if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
-            messages.info(
-                request,
-                _(
-                    "Los portaobjetos de citología se registran al confirmar "
-                    "la recepción de la muestra."
-                ),
-            )
-            return redirect("protocols:processing_status", pk=protocol.pk)
-
-        # Get existing cassettes (for histopathology)
-        cassettes = []
-        if (
-            protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY
-            and hasattr(protocol, "histopathology_sample")
-        ):
-            cassettes = list(
-                protocol.histopathology_sample.cassettes.all().order_by(
-                    "codigo_cassette"
-                )
-            )
-
-        # Get existing slides
-        existing_slides = list(
-            protocol.slides.all().prefetch_related("cassette_slides__cassette")
-        )
-
-        context = {
-            "protocol": protocol,
-            "cassettes": cassettes,
-            "existing_slides": existing_slides,
-        }
-        return render(
-            request, "protocols/processing/slide_register.html", context
-        )
-
-    def post(self, request, *args, **kwargs):
-        """Process slide registration."""
-        protocol = self.get_protocol()
-
-        if protocol is None:
-            return redirect(
-                "protocols:processing_status", pk=self.kwargs["protocol_pk"]
-            )
-
-        if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
-            messages.info(
-                request,
-                _(
-                    "Los portaobjetos de citología se registran al confirmar "
-                    "la recepción de la muestra."
-                ),
-            )
-            return redirect("protocols:processing_status", pk=protocol.pk)
-
-        try:
-            created_count = self._create_histopathology_slides(
-                request, protocol
-            )
-
-            messages.success(
-                request,
-                _("Se registraron %(count)s slides exitosamente.")
-                % {"count": created_count},
-            )
-
-        except (ValueError, TypeError) as e:
-            messages.error(
-                request,
-                _("Error al registrar slides: %(error)s") % {"error": str(e)},
-            )
-
-        return redirect("protocols:processing_status", pk=protocol.pk)
-
-    @staticmethod
-    def _slide_row_indices_from_post(post_data):
-        """
-        Extract slide row indices from POST field names (slide_0_cassette_superior, …).
-        """
-        indices = []
-        prefix = "slide_"
-        suffix = "_cassette_superior"
-        for key in post_data:
-            if not key.startswith(prefix) or not key.endswith(suffix):
-                continue
-            row_id = key[len(prefix) : -len(suffix)]
-            if row_id.isdigit():
-                indices.append(int(row_id))
-        return sorted(set(indices))
-
-    def _create_histopathology_slides(self, request, protocol):
-        """Create histopathology slides and cassette relationships from table POST."""
-        row_indices = self._slide_row_indices_from_post(request.POST)
-        if not row_indices:
-            raise ValueError(_("Debe registrar al menos un slide"))
-        if len(row_indices) > 50:
-            raise ValueError(
-                _("No se pueden registrar más de 50 slides a la vez")
-            )
-
-        if not hasattr(protocol, "histopathology_sample"):
-            raise ValueError(
-                _("El protocolo no tiene muestra de histopatología")
-            )
-
-        general_comments = request.POST.get("comments", "")
-        histopathology_sample = protocol.histopathology_sample
-
-        for i in row_indices:
-            cassette_superior_id = request.POST.get(
-                f"slide_{i}_cassette_superior"
-            )
-            if not cassette_superior_id:
-                raise ValueError(
-                    _("Cada slide debe tener un cassette superior asignado")
-                )
-
-            tecnica_coloracion = request.POST.get(
-                f"slide_{i}_coloracion", "Hematoxilina-Eosina"
-            )
-            row_observaciones = request.POST.get(
-                f"slide_{i}_observaciones", ""
-            )
-            observaciones = row_observaciones or general_comments
-
-            slide = Slide.objects.create(
-                protocol=protocol,
-                tecnica_coloracion=tecnica_coloracion,
-                observaciones=observaciones,
-                estado=Slide.Status.PENDIENTE,
-            )
-
-            cassette_links = [
-                (
-                    cassette_superior_id,
-                    CassetteSlide.Position.SUPERIOR,
-                ),
-                (
-                    request.POST.get(f"slide_{i}_cassette_inferior"),
-                    CassetteSlide.Position.INFERIOR,
-                ),
-            ]
-
-            for cassette_id, posicion in cassette_links:
-                if not cassette_id:
-                    continue
-                cassette = Cassette.objects.filter(
-                    id=cassette_id,
-                    histopathology_sample=histopathology_sample,
-                ).first()
-                if cassette is None:
-                    continue
-                CassetteSlide.objects.create(
-                    cassette=cassette,
-                    slide=slide,
-                    posicion=posicion,
-                )
-
-            ProcessingLog.log_action(
-                protocol=protocol,
-                etapa=ProcessingLog.Stage.MONTAJE,
-                usuario=request.user,
-                slide=slide,
-                observaciones=f"Slide registrado: {slide.codigo_portaobjetos}",
-            )
-
-        return len(row_indices)
-
-    def get_protocol(self):
-        """Get and validate protocol."""
-        protocol = get_object_or_404(
-            Protocol.objects.select_related(
-                "veterinarian__user",
-                "cytology_sample",
-                "histopathology_sample",
-            ),
-            pk=self.kwargs["protocol_pk"],
-        )
-
-        # Check if protocol is rejected
-        if protocol.status == Protocol.Status.REJECTED:
-            messages.error(
-                self.request,
-                _(
-                    "No se puede procesar un protocolo rechazado. Cambie el estado primero."
-                ),
             )
             return None
 

@@ -3,27 +3,14 @@
   <span class="font-medium text-gray-700 block mb-2">Etapas de procesamiento</span>
   <div class="space-y-1 text-xs">
     <div class="flex items-center gap-2">
-      {% if slide.fecha_montaje %}
-        <span class="text-green-600">✓</span>
-        <span>Montaje: {{ slide.fecha_montaje|date:"d/m/Y H:i" }}</span>
-      {% else %}
-        <span class="text-gray-400">○</span>
-        <span class="text-gray-400">Montaje</span>
-      {% endif %}
-    </div>
-    <div class="flex items-center gap-2">
-      {% if slide.fecha_coloracion %}
-        <span class="text-green-600">✓</span>
-        <span>Coloración: {{ slide.fecha_coloracion|date:"d/m/Y H:i" }}</span>
-      {% else %}
-        <span class="text-gray-400">○</span>
-        <span class="text-gray-400">Coloración</span>
-      {% endif %}
-    </div>
-    <div class="flex items-center gap-2">
       {% if slide.estado == 'listo' %}
         <span class="text-green-600">✓</span>
-        <span>Listo para análisis</span>
+        <span>
+          Listo para análisis
+          {% if slide.fecha_montaje %}
+            : {{ slide.fecha_montaje|date:"d/m/Y H:i" }}
+          {% endif %}
+        </span>
       {% else %}
         <span class="text-gray-400">○</span>
         <span class="text-gray-400">Listo para análisis</span>

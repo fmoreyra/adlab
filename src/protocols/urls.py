@@ -132,6 +132,11 @@ urlpatterns = [
         name="protocol_mark_ready",
     ),
     path(
+        "processing/register/<int:protocol_pk>/",
+        views.SampleRegistrationView.as_view(),
+        name="sample_register",
+    ),
+    path(
         "processing/cassette/create/<int:protocol_pk>/",
         views.CassetteCreateView.as_view(),
         name="cassette_create",

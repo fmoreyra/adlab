@@ -1013,7 +1013,7 @@ class CassetteModelTest(TestCase):
         self.assertEqual(cassette.observaciones, "Requiere cortes adicionales")
 
     def test_cassette_advance_stage(self):
-        """Test advancing cassette through stages sequentially."""
+        """Test advancing cassette completes processing in one step."""
         cassette = Cassette.objects.create(
             histopathology_sample=self.sample,
             material_incluido="Test material",
@@ -1021,23 +1021,28 @@ class CassetteModelTest(TestCase):
         cassette.update_stage("encasetado")
         cassette.refresh_from_db()
 
-        self.assertEqual(cassette.advance_stage(), "fijacion")
+        self.assertEqual(cassette.advance_stage(), "entacado")
         cassette.refresh_from_db()
         self.assertIsNotNone(cassette.fecha_fijacion)
+        self.assertIsNotNone(cassette.fecha_inclusion)
+        self.assertIsNotNone(cassette.fecha_entacado)
+        self.assertEqual(cassette.estado, Cassette.Status.COMPLETADO)
 
     def test_cassette_revert_last_stage(self):
-        """Test reverting the last completed cassette stage."""
+        """Test reverting collapsed cassette processing."""
         cassette = Cassette.objects.create(
             histopathology_sample=self.sample,
             material_incluido="Test material",
         )
         cassette.update_stage("encasetado")
-        cassette.update_stage("fijacion")
+        cassette.mark_processed()
         cassette.refresh_from_db()
 
-        self.assertEqual(cassette.revert_last_stage(), "fijacion")
+        self.assertEqual(cassette.revert_last_stage(), "entacado")
         cassette.refresh_from_db()
         self.assertIsNone(cassette.fecha_fijacion)
+        self.assertIsNone(cassette.fecha_inclusion)
+        self.assertIsNone(cassette.fecha_entacado)
         self.assertIsNotNone(cassette.fecha_encasetado)
         self.assertEqual(cassette.estado, Cassette.Status.EN_PROCESO)
 
@@ -1158,43 +1163,32 @@ class SlideModelTest(TestCase):
         self.assertEqual(slide.estado, Slide.Status.LISTO)
 
     def test_slide_advance_stage(self):
-        """Test advancing slide through stages sequentially."""
+        """Test advancing slide marks ready in one step from pending."""
         slide = Slide.objects.create(
             protocol=self.cyto_protocol,
             cytology_sample=self.cyto_sample,
         )
-
-        self.assertEqual(slide.advance_stage(), "montaje")
-        slide.refresh_from_db()
-        self.assertEqual(slide.estado, Slide.Status.MONTADO)
-
-        self.assertEqual(slide.advance_stage(), "coloracion")
-        slide.refresh_from_db()
-        self.assertEqual(slide.estado, Slide.Status.COLOREADO)
 
         self.assertEqual(slide.advance_stage(), "listo")
         slide.refresh_from_db()
         self.assertEqual(slide.estado, Slide.Status.LISTO)
+        self.assertIsNotNone(slide.fecha_montaje)
+        self.assertIsNotNone(slide.fecha_coloracion)
 
     def test_slide_revert_last_stage(self):
-        """Test reverting the last completed slide stage."""
+        """Test reverting slide returns to pending from ready."""
         slide = Slide.objects.create(
             protocol=self.cyto_protocol,
             cytology_sample=self.cyto_sample,
         )
-        slide.update_stage("montaje")
-        slide.update_stage("coloracion")
-        slide.mark_ready()
+        slide.mark_ready_from_pending()
         slide.refresh_from_db()
 
         self.assertEqual(slide.revert_last_stage(), "listo")
         slide.refresh_from_db()
-        self.assertEqual(slide.estado, Slide.Status.COLOREADO)
-
-        self.assertEqual(slide.revert_last_stage(), "coloracion")
-        slide.refresh_from_db()
+        self.assertEqual(slide.estado, Slide.Status.PENDIENTE)
+        self.assertIsNone(slide.fecha_montaje)
         self.assertIsNone(slide.fecha_coloracion)
-        self.assertEqual(slide.estado, Slide.Status.MONTADO)
 
     def test_slide_quality_assessment(self):
         """Test slide quality assessment."""
@@ -1974,7 +1968,7 @@ class ProcessingViewsTest(TestCase):
         self.assertRedirects(response, reverse("accounts:complete_profile"))
 
     def test_cassette_create_view_get(self):
-        """Test GET request to cassette create view."""
+        """Legacy cassette create URL redirects to unified registration."""
         self.client.login(email="staff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -1984,18 +1978,35 @@ class ProcessingViewsTest(TestCase):
             )
         )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(
-            response, "protocols/processing/cassette_create.html"
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:sample_register",
+                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+            ),
         )
 
-        # Check context contains protocol and existing cassettes
+    def test_sample_register_view_get(self):
+        """Test GET request to unified sample registration view."""
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.get(
+            reverse(
+                "protocols:sample_register",
+                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response, "protocols/processing/sample_register.html"
+        )
         context = response.context
         self.assertEqual(context["protocol"], self.histopathology_protocol)
         self.assertIn("existing_cassettes", context)
 
     def test_cassette_create_view_post(self):
-        """Test POST request to create cassettes."""
+        """Test POST via legacy URL registers cassettes and slides."""
         self.client.login(email="staff@example.com", password="testpass123")
 
         form_data = {
@@ -2004,6 +2015,10 @@ class ProcessingViewsTest(TestCase):
             "observaciones_0": "Muestra principal",
             "material_1": "Tejido mamario secundario",
             "observaciones_1": "Muestra secundaria",
+            "slide_count": "1",
+            "slide_0_cassettes": ["new_0", "new_1"],
+            "slide_0_coloracion": "Hematoxilina-Eosina",
+            "slide_0_observaciones": "Montaje estándar",
         }
 
         response = self.client.post(
@@ -2014,23 +2029,21 @@ class ProcessingViewsTest(TestCase):
             data=form_data,
         )
 
-        # Should redirect to slide register (workflow continues to slide registration)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
             reverse(
-                "protocols:slide_register",
-                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+                "protocols:processing_status",
+                kwargs={"pk": self.histopathology_protocol.pk},
             ),
         )
 
-        # Check cassettes were created
         cassettes = (
             self.histopathology_protocol.histopathology_sample.cassettes.all()
         )
         self.assertEqual(cassettes.count(), 2)
+        self.assertEqual(self.histopathology_protocol.slides.count(), 1)
 
-        # Check protocol status was updated to processing
         self.histopathology_protocol.refresh_from_db()
         self.assertEqual(
             self.histopathology_protocol.status, Protocol.Status.PROCESSING
@@ -2042,7 +2055,7 @@ class ProcessingViewsTest(TestCase):
 
         response = self.client.get(
             reverse(
-                "protocols:cassette_create",
+                "protocols:sample_register",
                 kwargs={"protocol_pk": self.cytology_protocol.pk},
             )
         )
@@ -2088,7 +2101,7 @@ class ProcessingViewsTest(TestCase):
 
         response = self.client.get(
             reverse(
-                "protocols:slide_register",
+                "protocols:sample_register",
                 kwargs={"protocol_pk": self.cytology_protocol.pk},
             )
         )
@@ -2102,8 +2115,7 @@ class ProcessingViewsTest(TestCase):
         )
 
     def test_slide_register_view_get_histopathology(self):
-        """Test GET request to slide register view for histopathology."""
-        # First create some cassettes
+        """Legacy slide register URL redirects to unified registration."""
         Cassette.objects.create(
             histopathology_sample=self.histopathology_sample,
             material_incluido="Tejido mamario",
@@ -2118,15 +2130,16 @@ class ProcessingViewsTest(TestCase):
             )
         )
 
-        self.assertEqual(response.status_code, 200)
-
-        # Check context contains cassettes for histopathology
-        context = response.context
-        self.assertIn("cassettes", context)
-        self.assertEqual(len(context["cassettes"]), 1)
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:sample_register",
+                kwargs={"protocol_pk": self.histopathology_protocol.pk},
+            ),
+        )
 
     def test_slide_register_view_post_histopathology(self):
-        """Test POST creates slides and CassetteSlide links from table form."""
+        """Test POST creates slides with multi-cassette links."""
         cassette = Cassette.objects.create(
             histopathology_sample=self.histopathology_sample,
             material_incluido="Tejido mamario",
@@ -2135,13 +2148,13 @@ class ProcessingViewsTest(TestCase):
 
         response = self.client.post(
             reverse(
-                "protocols:slide_register",
+                "protocols:sample_register",
                 kwargs={"protocol_pk": self.histopathology_protocol.pk},
             ),
             data={
+                "cassette_count": "0",
                 "slide_count": "1",
-                "slide_0_cassette_superior": str(cassette.pk),
-                "slide_0_cassette_inferior": "",
+                "slide_0_cassettes": [f"existing_{cassette.pk}"],
                 "slide_0_coloracion": "Hematoxilina-Eosina",
                 "slide_0_observaciones": "Montaje estándar",
                 "comments": "",
@@ -2160,7 +2173,7 @@ class ProcessingViewsTest(TestCase):
         self.assertEqual(slide.tecnica_coloracion, "Hematoxilina-Eosina")
         link = slide.cassette_slides.get()
         self.assertEqual(link.cassette_id, cassette.pk)
-        self.assertEqual(link.posicion, CassetteSlide.Position.SUPERIOR)
+        self.assertEqual(link.posicion, CassetteSlide.Position.COMPLETO)
 
     def test_create_cytology_slides_on_reception_helper(self):
         """Helper creates slides for an already-received cytology protocol."""
@@ -2324,7 +2337,7 @@ class ProcessingViewsTest(TestCase):
 
         # Check slide stage was updated
         slide.refresh_from_db()
-        self.assertEqual(slide.estado, Slide.Status.MONTADO)
+        self.assertEqual(slide.estado, Slide.Status.LISTO)
 
     def test_slide_update_stage_view_mark_ready(self):
         """Test slide update stage view marking slide as ready."""
@@ -2355,7 +2368,7 @@ class ProcessingViewsTest(TestCase):
             protocol=self.cytology_protocol,
             campo="1",
         )
-        slide.update_stage("montaje")
+        slide.mark_ready_from_pending()
 
         self.client.login(email="staff@example.com", password="testpass123")
 
@@ -2368,7 +2381,7 @@ class ProcessingViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
         slide.refresh_from_db()
-        self.assertEqual(slide.estado, Slide.Status.MONTADO)
+        self.assertEqual(slide.estado, Slide.Status.LISTO)
 
         self.client.post(
             reverse(
@@ -2402,7 +2415,8 @@ class ProcessingViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
         cassette.refresh_from_db()
-        self.assertIsNotNone(cassette.fecha_fijacion)
+        self.assertEqual(cassette.estado, Cassette.Status.COMPLETADO)
+        self.assertIsNotNone(cassette.fecha_entacado)
 
     def test_cassette_update_stage_view_revert_requires_observaciones(self):
         """Test reverting cassette stage requires observations."""
@@ -2411,7 +2425,7 @@ class ProcessingViewsTest(TestCase):
             material_incluido="Tejido",
         )
         cassette.update_stage("encasetado")
-        cassette.update_stage("fijacion")
+        cassette.mark_processed()
 
         self.client.login(email="staff@example.com", password="testpass123")
 
@@ -2423,7 +2437,7 @@ class ProcessingViewsTest(TestCase):
             data={"action": "revert"},
         )
         cassette.refresh_from_db()
-        self.assertIsNotNone(cassette.fecha_fijacion)
+        self.assertEqual(cassette.estado, Cassette.Status.COMPLETADO)
 
         self.client.post(
             reverse(
@@ -2432,11 +2446,12 @@ class ProcessingViewsTest(TestCase):
             ),
             data={
                 "action": "revert",
-                "observaciones": "Fijación incorrecta",
+                "observaciones": "Procesamiento incorrecto",
             },
         )
         cassette.refresh_from_db()
-        self.assertIsNone(cassette.fecha_fijacion)
+        self.assertIsNone(cassette.fecha_entacado)
+        self.assertEqual(cassette.estado, Cassette.Status.EN_PROCESO)
 
     def test_slide_update_stage_view_invalid_action(self):
         """Test slide update stage view with invalid action."""
@@ -2462,8 +2477,6 @@ class ProcessingViewsTest(TestCase):
             protocol=self.cytology_protocol,
             campo="1",
         )
-        slide.advance_stage()
-        slide.advance_stage()
         slide.advance_stage()
 
         self.client.login(email="staff@example.com", password="testpass123")
@@ -4922,7 +4935,7 @@ class RejectedProtocolsTest(TestCase):
 
         response = self.client.get(
             reverse(
-                "protocols:cassette_create",
+                "protocols:sample_register",
                 kwargs={"protocol_pk": histo_protocol.pk},
             )
         )
@@ -4942,7 +4955,7 @@ class RejectedProtocolsTest(TestCase):
 
         response = self.client.get(
             reverse(
-                "protocols:slide_register",
+                "protocols:sample_register",
                 kwargs={"protocol_pk": self.rejected_protocol.pk},
             )
         )

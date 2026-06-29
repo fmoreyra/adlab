@@ -66,22 +66,18 @@ Prioridad operativa: reducir fricción con guantes puestos en el banco.
 
 ### 2.1 Simplificación del flujo de estados
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Hecho (Jun 2026)
 - **Objetivo:** Eliminar pantallas y acciones obligatorias de pasos manuales intermedios.
-- **Pasos a eliminar o hacer opcionales:**
-  - Registro de pasaje por alcoholes
-  - Deshidratación
-  - Inclusión en parafina
-  - Taco
-- **Alcance:**
-  - Revisar máquina de estados de procesamiento (`Cassette`, `Slide`, etapas).
-  - Ajustar vistas, permisos y transiciones para no bloquear el flujo clínico.
-- **Áreas probables del código:** `protocols/views` de procesamiento, modelos de etapas, templates Vue/HTMX del banco.
-- **Notas / PR:**
+- **Implementado:**
+  - Cassettes: un botón **Procesar** colapsa fijación, inclusión y entacado (`mark_processed()`).
+  - Slides: un botón **Marcar listo** desde pendiente (`mark_ready_from_pending()`).
+  - Timeline simplificado en `protocol_status.html`; sin migración de schema.
+- **Áreas del código:** `protocols/models.py`, `protocol_service.py`, templates `_cassette_timeline`, `_slide_timeline`, `_processing_actions`.
+- **Notas / PR:** Ver [PLAN_PUNTO_2_LAB_HP.md](PLAN_PUNTO_2_LAB_HP.md).
 
 ### 2.2 Unificación de Cassettes y Slides (pantalla única)
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Hecho (Jun 2026)
 - **Objetivo:** Cargar cassettes y slides en un solo paso, con descripción libre por cassette.
 
 #### Sección superior — Cassettes
@@ -91,11 +87,11 @@ Prioridad operativa: reducir fricción con guantes puestos en el banco.
 
 #### Sección inferior — Slides (vidrios)
 
-- Configuración visual del slide indicando qué cassettes se cortaron y montaron en él.
-- Mantener la relación many-to-many `CassetteSlide` en backend, simplificando la UI.
+- Multi-select de cassettes por slide; `posicion=COMPLETO` en backend.
+- POST atómico en `SampleRegistrationView` (`/processing/register/<pk>/`).
 
-- **Áreas probables del código:** vistas de registro de cassettes/slides, componentes Vue, `CassetteSlide`, templates de procesamiento.
-- **Notas / PR:**
+- **Implementado:** `sample_register.html`, redirects desde `cassette_create` / `slide_register`, navegación unificada (**Registrar muestra**).
+- **Notas / PR:** Ver [PLAN_PUNTO_2_LAB_HP.md](PLAN_PUNTO_2_LAB_HP.md).
 
 ---
 
@@ -219,7 +215,7 @@ Dentro de cada bloque, el orden puede ajustarse según dependencias técnicas de
 | # | Bloque | Ítems | Dependencias clave |
 |---|--------|-------|-------------------|
 | 1 | Veterinario / datos | 1.1, 1.2, 1.3 | Ninguna crítica |
-| 2 | Laboratorio HP | 2.1, 2.2 | Puede impactar modelos de procesamiento |
+| 2 | Laboratorio HP | 2.1 ✅, 2.2 ✅ | Implementado Jun 2026 — ver PLAN_PUNTO_2_LAB_HP.md |
 | 3 | Informes / PDF | 3.1, 3.2, 3.3 | Assets de logos (3.1) antes de producción formal |
 | 4 | Dominio / SSL | 4.1, 4.2 | Servidor y DNS listos |
 | 5 | Correo / auth | 5.1, 5.2 | Dominio (4) recomendado para links en emails |
@@ -233,7 +229,7 @@ Usar esta sección para anotar qué ítem se tomó en cada sesión.
 
 | Fecha | Ítem | Resultado |
 |-------|------|-----------|
-| | | |
+| Jun 2026 | 2.1, 2.2 | Rediseño Lab HP: etapas colapsadas + registro unificado |
 
 ---
 

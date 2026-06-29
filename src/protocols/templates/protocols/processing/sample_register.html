@@ -1,0 +1,315 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Registrar muestra - {{ protocol.protocol_number }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Registrar muestra</h1>
+    <a href="{% url 'protocols:processing_status' protocol.pk %}"
+       class="text-purple-600 hover:text-purple-800">
+      ← Volver al estado
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-500">Protocolo</label>
+        <div class="text-lg font-semibold text-gray-900">{{ protocol.protocol_number }}</div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-500">Animal</label>
+        <div class="text-lg">{{ protocol.animal_identification }}</div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-500">Veterinario</label>
+        <div class="text-lg">{{ protocol.veterinarian.get_full_name }}</div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-500">Modo</label>
+        <div class="text-lg">
+          {% if is_append_mode %}Agregar a existentes{% else %}Registro inicial{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if existing_cassettes or existing_slides %}
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Registrado previamente</h2>
+    {% if existing_cassettes %}
+    <p class="text-sm font-medium text-gray-700 mb-2">Cassettes ({{ existing_cassettes|length }})</p>
+    <ul class="text-sm text-gray-600 mb-4 list-disc list-inside">
+      {% for cassette in existing_cassettes %}
+      <li>{{ cassette.codigo_cassette }} — {{ cassette.material_incluido|truncatechars:80 }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if existing_slides %}
+    <p class="text-sm font-medium text-gray-700 mb-2">Portaobjetos ({{ existing_slides|length }})</p>
+    <ul class="text-sm text-gray-600 list-disc list-inside">
+      {% for slide in existing_slides %}
+      <li>
+        {{ slide.codigo_portaobjetos }} —
+        {% for cs in slide.cassette_slides.all %}
+          {{ cs.cassette.codigo_cassette }}{% if not forloop.last %}, {% endif %}
+        {% empty %}—{% endfor %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <form method="post" id="sample-register-form">
+    {% csrf_token %}
+
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">Cassettes</h2>
+      <p class="text-sm text-gray-600 mb-4">
+        Describa libremente el material incluido en cada cassette.
+        {% if is_append_mode %}Deje en 0 si no agrega cassettes nuevos.{% endif %}
+      </p>
+
+      <div class="mb-4">
+        <label for="cassette_count" class="block text-sm font-medium text-gray-700 mb-2">
+          Cassettes nuevos a crear
+        </label>
+        <select name="cassette_count" id="cassette_count"
+                class="block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+          {% if is_append_mode %}
+          <option value="0" selected>0</option>
+          {% endif %}
+          {% for i in "12345678901234567890"|make_list %}
+          <option value="{{ forloop.counter }}"{% if not is_append_mode and forloop.counter == 1 %} selected{% endif %}>
+            {{ forloop.counter }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div id="cassette-fields" class="space-y-4"></div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">Portaobjetos</h2>
+      <p class="text-sm text-gray-600 mb-4">
+        Indique qué cassettes se montaron en cada portaobjetos.
+        {% if not is_append_mode %}Requiere al menos un cassette y un portaobjetos.{% endif %}
+      </p>
+
+      <input type="hidden" name="slide_count" id="slide-count" value="1">
+
+      <div class="overflow-x-auto mb-4">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">#</th>
+              <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cassettes</th>
+              <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Coloración</th>
+              <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Observaciones</th>
+              <th class="px-3 py-3 w-12"></th>
+            </tr>
+          </thead>
+          <tbody id="slide-rows" class="divide-y divide-gray-200 bg-white"></tbody>
+        </table>
+      </div>
+
+      <button type="button" id="add-slide-row"
+              class="mb-4 bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-md text-sm font-medium">
+        + Agregar portaobjetos
+      </button>
+
+      <div class="mb-2">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Observaciones generales (opcional)</label>
+        <textarea name="comments" rows="2"
+                  class="w-full p-2 border border-gray-300 rounded-md"></textarea>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'protocols:processing_status' protocol.pk %}"
+         class="bg-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-400">
+        Cancelar
+      </a>
+      <button type="submit"
+              class="bg-purple-600 text-white px-6 py-3 rounded-md hover:bg-purple-700">
+        Guardar registro
+      </button>
+    </div>
+  </form>
+</div>
+
+<script id="existing-cassettes-data" type="application/json">
+[
+  {% for cassette in existing_cassettes %}
+  {"ref": "existing_{{ cassette.id }}", "label": "{{ cassette.codigo_cassette|escapejs }}"}{% if not forloop.last %},{% endif %}
+  {% endfor %}
+]
+</script>
+
+<template id="slide-row-template">
+  <tr class="slide-row">
+    <td class="px-3 py-3 text-sm font-medium text-gray-700 row-number">1</td>
+    <td class="px-3 py-3 cassette-checkboxes text-sm"></td>
+    <td class="px-3 py-3">
+      <input type="text" data-slide-field="coloracion" value="Hematoxilina-Eosina"
+             class="w-full p-2 border border-gray-300 rounded-md text-sm">
+    </td>
+    <td class="px-3 py-3">
+      <input type="text" data-slide-field="observaciones"
+             class="w-full p-2 border border-gray-300 rounded-md text-sm">
+    </td>
+    <td class="px-3 py-3 text-center">
+      <button type="button" class="remove-slide-row text-red-600 hover:text-red-800 text-sm font-medium" title="Eliminar fila">✕</button>
+    </td>
+  </tr>
+</template>
+
+<script>
+(function () {
+  const existingCassettes = JSON.parse(
+    document.getElementById("existing-cassettes-data").textContent || "[]"
+  );
+  const cassetteCountSelect = document.getElementById("cassette_count");
+  const cassetteFields = document.getElementById("cassette-fields");
+  const slideRows = document.getElementById("slide-rows");
+  const slideRowTemplate = document.getElementById("slide-row-template");
+  const slideCountInput = document.getElementById("slide-count");
+  const addSlideBtn = document.getElementById("add-slide-row");
+  const form = document.getElementById("sample-register-form");
+  const isAppendMode = {{ is_append_mode|yesno:"true,false" }};
+
+  function getNewCassetteOptions() {
+    const count = parseInt(cassetteCountSelect.value, 10) || 0;
+    const options = [];
+    for (let i = 0; i < count; i += 1) {
+      options.push({ ref: "new_" + i, label: "Cassette nuevo " + (i + 1) });
+    }
+    return options;
+  }
+
+  function getAllCassetteOptions() {
+    return existingCassettes.concat(getNewCassetteOptions());
+  }
+
+  function renderCassetteFields() {
+    const count = parseInt(cassetteCountSelect.value, 10) || 0;
+    cassetteFields.innerHTML = "";
+    for (let i = 0; i < count; i += 1) {
+      cassetteFields.innerHTML += `
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-medium text-gray-800 mb-3">Cassette nuevo ${i + 1}</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Descripción del material</label>
+              <textarea name="material_${i}" rows="3" required
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+              <textarea name="observaciones_${i}" rows="2"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></textarea>
+            </div>
+          </div>
+        </div>`;
+    }
+    refreshSlideCassetteOptions();
+  }
+
+  function buildCassetteCheckboxes(rowIndex) {
+    const options = getAllCassetteOptions();
+    if (!options.length) {
+      return '<span class="text-gray-400 text-xs">Cree cassettes arriba primero</span>';
+    }
+    return options.map(function (opt) {
+      return `
+        <label class="flex items-center gap-2 mb-1">
+          <input type="checkbox" name="slide_${rowIndex}_cassettes" value="${opt.ref}"
+                 class="h-4 w-4 text-purple-600 border-gray-300 rounded">
+          <span>${opt.label}</span>
+        </label>`;
+    }).join("");
+  }
+
+  function refreshSlideCassetteOptions() {
+    slideRows.querySelectorAll(".slide-row").forEach(function (row, index) {
+      const cell = row.querySelector(".cassette-checkboxes");
+      const checked = Array.from(
+        cell.querySelectorAll("input[type=checkbox]:checked")
+      ).map(function (el) { return el.value; });
+      cell.innerHTML = buildCassetteCheckboxes(index);
+      checked.forEach(function (value) {
+        const input = cell.querySelector('input[value="' + value + '"]');
+        if (input) {
+          input.checked = true;
+        }
+      });
+    });
+  }
+
+  function renumberSlideRows() {
+    slideRows.querySelectorAll(".slide-row").forEach(function (row, index) {
+      row.querySelector(".row-number").textContent = index + 1;
+      row.querySelector(".cassette-checkboxes").innerHTML = buildCassetteCheckboxes(index);
+      row.querySelectorAll("[data-slide-field]").forEach(function (el) {
+        el.name = "slide_" + index + "_" + el.dataset.slideField;
+      });
+    });
+    slideCountInput.value = slideRows.querySelectorAll(".slide-row").length;
+  }
+
+  function addSlideRow() {
+    slideRows.appendChild(slideRowTemplate.content.cloneNode(true));
+    renumberSlideRows();
+  }
+
+  cassetteCountSelect.addEventListener("change", renderCassetteFields);
+  addSlideBtn.addEventListener("click", addSlideRow);
+
+  slideRows.addEventListener("click", function (event) {
+    if (!event.target.classList.contains("remove-slide-row")) {
+      return;
+    }
+    if (slideRows.querySelectorAll(".slide-row").length <= 1) {
+      return;
+    }
+    event.target.closest(".slide-row").remove();
+    renumberSlideRows();
+  });
+
+  form.addEventListener("submit", function (event) {
+    renumberSlideRows();
+    const cassetteCount = parseInt(cassetteCountSelect.value, 10) || 0;
+    const slideCount = parseInt(slideCountInput.value, 10) || 0;
+
+    if (!isAppendMode && cassetteCount < 1) {
+      event.preventDefault();
+      window.alert("Debe crear al menos un cassette.");
+      return;
+    }
+    if (!isAppendMode && slideCount < 1) {
+      event.preventDefault();
+      window.alert("Debe registrar al menos un portaobjetos.");
+      return;
+    }
+
+    let hasSlide = false;
+    slideRows.querySelectorAll(".slide-row").forEach(function (row) {
+      if (row.querySelector('input[type=checkbox]:checked')) {
+        hasSlide = true;
+      }
+    });
+
+    if (slideCount > 0 && !hasSlide && (cassetteCount > 0 || existingCassettes.length)) {
+      event.preventDefault();
+      window.alert("Cada portaobjetos debe tener al menos un cassette seleccionado.");
+    }
+  });
+
+  renderCassetteFields();
+  addSlideRow();
+})();
+</script>
+{% endblock %}
