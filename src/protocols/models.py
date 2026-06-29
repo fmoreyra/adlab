@@ -340,9 +340,7 @@ class CytologySample(models.Model):
     technique_used = models.CharField(
         _("técnica utilizada"),
         max_length=200,
-        help_text=_(
-            "Ej: Punción aspiración con aguja fina (PAAF), hisopado, raspado, etc."
-        ),
+        help_text=_("Ej: Punción (PAAF), hisopado, raspado, etc."),
     )
     sampling_site = models.CharField(
         _("sitio de muestreo"),

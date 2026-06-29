@@ -27,18 +27,22 @@ SPECIES_CHOICES = [
 ]
 
 # Cytology technique choices
+CYTOLOGY_TECHNIQUE_PAAF = "Punción (PAAF)"
+
 CYTOLOGY_TECHNIQUE_CHOICES = [
     ("", _("Seleccionar técnica")),
-    (
-        "Punción aspiración con aguja fina (PAAF)",
-        _("Punción aspiración con aguja fina (PAAF)"),
-    ),
+    (CYTOLOGY_TECHNIQUE_PAAF, _(CYTOLOGY_TECHNIQUE_PAAF)),
     ("Hisopado", _("Hisopado")),
     ("Raspado", _("Raspado")),
     ("Impronta", _("Impronta")),
     ("Lavado", _("Lavado")),
     ("Otro", _("Otro")),
 ]
+
+CYTOLOGY_TECHNIQUE_LEGACY_ALIASES = {
+    "PAAF": CYTOLOGY_TECHNIQUE_PAAF,
+    "Punción aspiración con aguja fina (PAAF)": CYTOLOGY_TECHNIQUE_PAAF,
+}
 
 
 class ProtocolForm(forms.ModelForm):
@@ -306,7 +310,7 @@ class CytologyProtocolForm(forms.Form):
         technique = self.cleaned_data.get("technique_used")
         if not technique:
             raise ValidationError(_("Por favor seleccione una técnica"))
-        return technique
+        return CYTOLOGY_TECHNIQUE_LEGACY_ALIASES.get(technique, technique)
 
     def save(self, veterinarian, commit=True):
         """
@@ -690,6 +694,13 @@ class CytologySampleEditForm(forms.ModelForm):
                 }
             ),
         }
+
+    def clean_technique_used(self):
+        """Validate technique selection."""
+        technique = self.cleaned_data.get("technique_used")
+        if not technique:
+            raise ValidationError(_("Por favor seleccione una técnica"))
+        return CYTOLOGY_TECHNIQUE_LEGACY_ALIASES.get(technique, technique)
 
 
 class HistopathologySampleEditForm(forms.ModelForm):

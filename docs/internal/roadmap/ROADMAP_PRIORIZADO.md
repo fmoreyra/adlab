@@ -52,12 +52,9 @@ Prioridad operativa: calidad de datos en origen y experiencia móvil.
 
 ### 1.3 Validación de tipos de punción (Citología)
 
-- **Estado:** ⬜ Pendiente
-- **Objetivo:** Incorporar **"Punción"** (PAAF — Punción Aspiración con Aguja Fina) en métodos de extracción de citología.
-- **Alcance:**
-  - Agregar opción al listado desplegable de métodos de extracción.
-  - Actualizar choices del modelo/formulario y migración si corresponde.
-- **Áreas probables del código:** `CytologySample`, formularios de citología, migraciones.
+- **Estado:** ✅ Hecho (Jun 2026)
+- **Objetivo:** Etiqueta **"Punción (PAAF)"** visible en el select de técnica de citología.
+- **Implementado:** Choice renombrado, aliases legacy en formularios, migración `0020`.
 - **Notas / PR:**
 
 ---

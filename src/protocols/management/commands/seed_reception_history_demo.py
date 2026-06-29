@@ -38,7 +38,7 @@ class Command(BaseCommand):
             lambda protocol: CytologySample.objects.create(
                 protocol=protocol,
                 veterinarian=vet,
-                technique_used="PAAF",
+                technique_used="Punción (PAAF)",
                 sampling_site="Ganglio cervical",
                 number_of_slides=2,
             ),

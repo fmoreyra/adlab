@@ -250,7 +250,7 @@ class CytologySampleModelTest(TestCase):
         sample = CytologySample.objects.create(
             protocol=self.protocol,
             veterinarian=self.veterinarian,
-            technique_used="Punción aspiración con aguja fina (PAAF)",
+            technique_used="Punción (PAAF)",
             sampling_site="Linfonódulo submandibular izquierdo",
             number_of_slides=2,
         )
@@ -262,7 +262,7 @@ class CytologySampleModelTest(TestCase):
         sample = CytologySample.objects.create(
             protocol=self.protocol,
             veterinarian=self.veterinarian,
-            technique_used="Punción aspiración con aguja fina (PAAF)",
+            technique_used="Punción (PAAF)",
             sampling_site="Linfonódulo submandibular",
             number_of_slides=2,
         )
@@ -410,13 +410,23 @@ class CytologyProtocolFormTest(TestCase):
             "clinical_history": "Presenta linfoadenopatía generalizada",
             "academic_interest": False,
             "submission_date": date.today(),
-            "technique_used": "Punción aspiración con aguja fina (PAAF)",
+            "technique_used": "Punción (PAAF)",
             "sampling_site": "Linfonódulo submandibular izquierdo",
             "number_of_slides": 2,
             "observations": "Se enviaron 2 láminas",
         }
         form = CytologyProtocolForm(data=form_data)
         self.assertTrue(form.is_valid(), form.errors)
+
+    def test_cytology_form_paaf_label_in_choices(self):
+        """Punción (PAAF) is available as the first technique option."""
+        form = CytologyProtocolForm()
+        choice_values = [
+            value
+            for value, _label in form.fields["technique_used"].choices
+            if value
+        ]
+        self.assertIn("Punción (PAAF)", choice_values)
 
     def test_cytology_form_missing_required_fields(self):
         """Test cytology form with missing required fields."""
@@ -440,7 +450,7 @@ class CytologyProtocolFormTest(TestCase):
             "animal_identification": "Max",
             "presumptive_diagnosis": "Sospecha de linfoma",
             "submission_date": date.today(),
-            "technique_used": "Punción aspiración con aguja fina (PAAF)",
+            "technique_used": "Punción (PAAF)",
             "sampling_site": "Linfonódulo submandibular",
             "number_of_slides": 2,
         }
@@ -600,7 +610,7 @@ class ProtocolViewsTest(TestCase):
             "animal_identification": "Max",
             "presumptive_diagnosis": "Sospecha de linfoma",
             "submission_date": date.today(),
-            "technique_used": "Punción aspiración con aguja fina (PAAF)",
+            "technique_used": "Punción (PAAF)",
             "sampling_site": "Linfonódulo submandibular",
             "number_of_slides": 2,
         }
