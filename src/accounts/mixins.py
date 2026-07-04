@@ -7,6 +7,7 @@ in the laboratory system.
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext_lazy as _
 
@@ -16,6 +17,23 @@ from accounts.report_access import (
     user_requires_report_signature,
 )
 from protocols.models import Protocol
+
+
+class ApiLoginRequiredMixin(LoginRequiredMixin):
+    """
+    LoginRequiredMixin that returns JSON 401 for /api/ paths.
+
+    Avoids HTML login redirects that break fetch().json() and DJDT panels.
+    """
+
+    def handle_no_permission(self):
+        """Return JSON for API routes; redirect for normal pages."""
+        if self.request.path.startswith("/api/"):
+            return JsonResponse(
+                {"error": "Autenticación requerida"},
+                status=401,
+            )
+        return super().handle_no_permission()
 
 
 class ReportSignatureRequiredMixin:

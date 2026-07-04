@@ -63,6 +63,43 @@ class NotificationAPITestCase(TestCase):
         data = response.json()
         self.assertEqual(data["count"], 0)
 
+    def test_unread_count_requires_login_json(self):
+        """Unauthenticated API returns JSON 401, not HTML redirect."""
+        self.client.logout()
+        url = reverse("pages_api:notifications:unread_count")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"], "Autenticación requerida")
+
+    def test_unread_count_with_incomplete_profile(self):
+        """Navbar API works when veterinarian profile is still incomplete."""
+        incomplete_user = User.objects.create_user(
+            email="incomplete@example.com",
+            username="incomplete",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+            email_verified=True,
+        )
+        Veterinarian.objects.create(
+            user=incomplete_user,
+            first_name="Jane",
+            last_name="Doe",
+            phone="+54 341 1234567",
+            email="incomplete@example.com",
+        )
+        InAppNotification.objects.create(
+            recipient=incomplete_user,
+            notification_type=InAppNotification.NotificationType.CUSTOM,
+            title="Pendiente",
+            body="Body",
+            is_read=False,
+        )
+        self.client.force_login(incomplete_user)
+        url = reverse("pages_api:notifications:unread_count")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["count"], 1)
+
     def test_unread_count_with_notifications(self):
         """Unread count returns correct count."""
         InAppNotification.objects.create(
@@ -161,11 +198,12 @@ class NotificationAPITestCase(TestCase):
         self.assertEqual(unread, 0)
 
     def test_list_requires_login(self):
-        """API requires authentication."""
+        """API requires authentication and returns JSON 401."""
         self.client.logout()
         url = reverse("pages_api:notifications:list")
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"], "Autenticación requerida")
 
     def test_inbox_view_authenticated(self):
         """Inbox page returns 200 for authenticated user."""

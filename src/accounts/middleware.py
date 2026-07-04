@@ -10,6 +10,9 @@ from django.utils.deprecation import MiddlewareMixin
 
 from accounts.models import Veterinarian
 
+# JSON API routes must never receive HTML redirects (fetch clients, debug toolbar).
+API_PATH_PREFIX = "/api/"
+
 
 class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
     """
@@ -51,6 +54,10 @@ class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
 
         # Skip if accessing whitelisted URLs
         if self._is_whitelisted_url(request.path):
+            return None
+
+        # JSON APIs handle auth themselves; HTML redirects break fetch().json().
+        if request.path.startswith(API_PATH_PREFIX):
             return None
 
         # Check if veterinarian has a complete profile

@@ -16,6 +16,10 @@ import Pusher from "pusher-js";
   const apiList = container.dataset.apiList;
   const apiUnreadCount = container.dataset.apiUnreadCount;
   const apiReadAll = container.dataset.apiReadAll;
+  const previewLimit = Math.max(
+    1,
+    parseInt(container.dataset.previewLimit || "5", 10) || 5
+  );
   const bell = document.getElementById("notifications-bell");
   const badge = document.getElementById("notifications-badge");
   const dropdown = document.getElementById("notifications-dropdown");
@@ -126,11 +130,13 @@ import Pusher from "pusher-js";
     loadingEl.classList.remove("hidden");
     listEl.innerHTML = "";
     listEl.appendChild(loadingEl);
-    fetchJson(apiList)
+    const url = `${apiList}?per_page=${previewLimit}&page=1`;
+    fetchJson(url)
       .then((data) => {
         loadingEl.classList.add("hidden");
         loadingEl.remove();
         const notifications = data.notifications || [];
+        const total = data.total || notifications.length;
         if (notifications.length === 0) {
           const empty = document.createElement("div");
           empty.className = "p-4 text-center text-gray-500 text-sm";
@@ -138,6 +144,17 @@ import Pusher from "pusher-js";
           listEl.appendChild(empty);
         } else {
           notifications.forEach((n) => listEl.appendChild(renderNotification(n)));
+          const remaining = total - notifications.length;
+          if (remaining > 0) {
+            const hint = document.createElement("p");
+            hint.className =
+              "px-3 py-2 text-xs text-center text-gray-500 bg-gray-50";
+            hint.textContent =
+              remaining === 1
+                ? "Hay 1 notificación más en la central"
+                : `Hay ${remaining} notificaciones más en la central`;
+            listEl.appendChild(hint);
+          }
         }
       })
       .catch(() => {

@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView
 
+from accounts.mixins import ApiLoginRequiredMixin
 from protocols.models import InAppNotification
 from protocols.notification_utils import (
     notification_go_path,
@@ -34,7 +35,7 @@ def _get_client_ip(request):
     return request.META.get("REMOTE_ADDR", "")
 
 
-class NotificationListView(LoginRequiredMixin, View):
+class NotificationListView(ApiLoginRequiredMixin, View):
     """List notifications for the current user."""
 
     def get(self, request, *args, **kwargs):
@@ -81,7 +82,7 @@ class NotificationListView(LoginRequiredMixin, View):
         )
 
 
-class NotificationMarkReadView(LoginRequiredMixin, View):
+class NotificationMarkReadView(ApiLoginRequiredMixin, View):
     """Mark a single notification as read."""
 
     def post(self, request, pk, *args, **kwargs):
@@ -98,7 +99,7 @@ class NotificationMarkReadView(LoginRequiredMixin, View):
         return JsonResponse({"ok": True})
 
 
-class NotificationMarkAllReadView(LoginRequiredMixin, View):
+class NotificationMarkAllReadView(ApiLoginRequiredMixin, View):
     """Mark all notifications as read."""
 
     def post(self, request, *args, **kwargs):
@@ -110,7 +111,7 @@ class NotificationMarkAllReadView(LoginRequiredMixin, View):
         return JsonResponse({"ok": True, "updated": updated})
 
 
-class NotificationUnreadCountView(LoginRequiredMixin, View):
+class NotificationUnreadCountView(ApiLoginRequiredMixin, View):
     """Return unread notification count for badge."""
 
     def get(self, request, *args, **kwargs):
@@ -122,7 +123,7 @@ class NotificationUnreadCountView(LoginRequiredMixin, View):
         return JsonResponse({"count": count})
 
 
-class RealtimeAuthView(LoginRequiredMixin, View):
+class RealtimeAuthView(ApiLoginRequiredMixin, View):
     """
     Authenticate private channel subscription (Pusher format).
 

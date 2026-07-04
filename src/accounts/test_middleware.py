@@ -291,3 +291,29 @@ class VeterinarianProfileRequiredMiddlewareTest(TestCase):
         self.assertFalse(
             self.middleware._is_whitelisted_url("/accounts/profile/")
         )
+
+    def test_middleware_allows_api_paths_with_incomplete_profile(self):
+        """API routes must not redirect to HTML (breaks navbar notifications)."""
+        vet_incomplete = User.objects.create_user(
+            username="vet_api@example.com",
+            email="vet_api@example.com",
+            password="testpass123",
+            first_name="Test",
+            last_name="VetApi",
+            role=User.Role.VETERINARIO,
+            email_verified=True,
+        )
+        Veterinarian.objects.create(
+            user=vet_incomplete,
+            first_name="Test",
+            last_name="VetApi",
+            phone="+54 11 1234-5678",
+            email="vet_api@example.com",
+        )
+
+        request = self.factory.get("/api/notifications/unread-count/")
+        request.user = vet_incomplete
+
+        response = self.middleware.process_request(request)
+
+        self.assertIsNone(response)
