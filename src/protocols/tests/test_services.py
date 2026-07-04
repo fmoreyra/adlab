@@ -525,7 +525,7 @@ class ProtocolProcessingServiceTest(TestCase):
         )
 
     def test_mark_ready_for_diagnosis_success(self):
-        """Test marking protocol READY when processing is complete."""
+        """Test marking protocol READY completes pending items automatically."""
         from protocols.models import HistopathologySample
 
         sample = HistopathologySample.objects.create(
@@ -539,13 +539,12 @@ class ProtocolProcessingServiceTest(TestCase):
             histopathology_sample=sample,
             material_incluido="Biopsy",
         )
-        self._complete_cassette(cassette)
+        cassette.update_stage("encasetado")
 
         slide = Slide.objects.create(
             protocol=self.protocol,
             codigo_portaobjetos="SLIDE001",
         )
-        self._complete_slide(slide)
 
         with patch.object(
             self.service, "_notify_protocol_ready"
@@ -558,6 +557,10 @@ class ProtocolProcessingServiceTest(TestCase):
         self.assertEqual(error, "")
         self.protocol.refresh_from_db()
         self.assertEqual(self.protocol.status, Protocol.Status.READY)
+        cassette.refresh_from_db()
+        slide.refresh_from_db()
+        self.assertEqual(cassette.estado, Cassette.Status.COMPLETADO)
+        self.assertEqual(slide.estado, Slide.Status.LISTO)
         mock_notify.assert_called_once()
 
     def test_mark_ready_for_diagnosis_already_ready(self):

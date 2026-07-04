@@ -7,9 +7,9 @@
 <div class="container mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold text-gray-800">Registrar muestra</h1>
-    <a href="{% url 'protocols:processing_status' protocol.pk %}"
+    <a href="{{ protocol_detail_processing_url }}"
        class="text-purple-600 hover:text-purple-800">
-      ← Volver al estado
+      ← Volver al protocolo
     </a>
   </div>
 
@@ -41,24 +41,55 @@
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Registrado previamente</h2>
     {% if existing_cassettes %}
     <p class="text-sm font-medium text-gray-700 mb-2">Cassettes ({{ existing_cassettes|length }})</p>
-    <ul class="text-sm text-gray-600 mb-4 list-disc list-inside">
-      {% for cassette in existing_cassettes %}
-      <li>{{ cassette.codigo_cassette }} — {{ cassette.material_incluido|truncatechars:80 }}</li>
-      {% endfor %}
-    </ul>
+    <div class="overflow-x-auto border border-gray-200 rounded-md mb-6">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Observaciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for cassette in existing_cassettes %}
+          <tr>
+            <td class="px-3 py-2 font-medium whitespace-nowrap">{{ cassette.codigo_cassette }}</td>
+            <td class="px-3 py-2 text-gray-600">{{ cassette.material_incluido }}</td>
+            <td class="px-3 py-2 text-gray-600">{{ cassette.observaciones|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
     {% endif %}
     {% if existing_slides %}
     <p class="text-sm font-medium text-gray-700 mb-2">Portaobjetos ({{ existing_slides|length }})</p>
-    <ul class="text-sm text-gray-600 list-disc list-inside">
-      {% for slide in existing_slides %}
-      <li>
-        {{ slide.codigo_portaobjetos }} —
-        {% for cs in slide.cassette_slides.all %}
-          {{ cs.cassette.codigo_cassette }}{% if not forloop.last %}, {% endif %}
-        {% empty %}—{% endfor %}
-      </li>
-      {% endfor %}
-    </ul>
+    <div class="overflow-x-auto border border-gray-200 rounded-md mb-4">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cassettes</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Coloración</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Observaciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for slide in existing_slides %}
+          <tr>
+            <td class="px-3 py-2 font-medium whitespace-nowrap">{{ slide.codigo_portaobjetos }}</td>
+            <td class="px-3 py-2 text-gray-600">
+              {% for cs in slide.cassette_slides.all %}
+                {{ cs.cassette.codigo_cassette }}{% if not forloop.last %}, {% endif %}
+              {% empty %}—{% endfor %}
+            </td>
+            <td class="px-3 py-2 text-gray-600">{{ slide.tecnica_coloracion|default:"—" }}</td>
+            <td class="px-3 py-2 text-gray-600">{{ slide.observaciones|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
     {% endif %}
   </div>
   {% endif %}
@@ -71,6 +102,9 @@
       <p class="text-sm text-gray-600 mb-4">
         Describa libremente el material incluido en cada cassette.
         {% if is_append_mode %}Deje en 0 si no agrega cassettes nuevos.{% endif %}
+        {% if protocol_number %}
+        Los códigos mostrados son los que se asignarán al guardar.
+        {% endif %}
       </p>
 
       <div class="mb-4">
@@ -105,7 +139,7 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">#</th>
+              <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-28">Código</th>
               <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cassettes</th>
               <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Coloración</th>
               <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Observaciones</th>
@@ -129,7 +163,7 @@
     </div>
 
     <div class="flex justify-end gap-3">
-      <a href="{% url 'protocols:processing_status' protocol.pk %}"
+      <a href="{{ protocol_detail_processing_url }}"
          class="bg-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-400">
         Cancelar
       </a>
@@ -180,12 +214,29 @@
   const addSlideBtn = document.getElementById("add-slide-row");
   const form = document.getElementById("sample-register-form");
   const isAppendMode = {{ is_append_mode|yesno:"true,false" }};
+  const protocolNumber = "{{ protocol_number|escapejs }}";
+  const nextCassetteNumber = {{ next_cassette_number }};
+  const nextSlideNumber = {{ next_slide_number }};
+
+  function previewCassetteCode(offset) {
+    if (!protocolNumber) {
+      return "Cassette " + (offset + 1);
+    }
+    return protocolNumber + "-C" + (nextCassetteNumber + offset);
+  }
+
+  function previewSlideCode(offset) {
+    if (!protocolNumber) {
+      return String(offset + 1);
+    }
+    return protocolNumber + "-S" + (nextSlideNumber + offset);
+  }
 
   function getNewCassetteOptions() {
     const count = parseInt(cassetteCountSelect.value, 10) || 0;
     const options = [];
     for (let i = 0; i < count; i += 1) {
-      options.push({ ref: "new_" + i, label: "Cassette nuevo " + (i + 1) });
+      options.push({ ref: "new_" + i, label: previewCassetteCode(i) });
     }
     return options;
   }
@@ -198,9 +249,11 @@
     const count = parseInt(cassetteCountSelect.value, 10) || 0;
     cassetteFields.innerHTML = "";
     for (let i = 0; i < count; i += 1) {
+      const code = previewCassetteCode(i);
       cassetteFields.innerHTML += `
         <div class="border border-gray-200 rounded-lg p-4">
-          <h3 class="text-lg font-medium text-gray-800 mb-3">Cassette nuevo ${i + 1}</h3>
+          <h3 class="text-lg font-medium text-gray-800 mb-1">${code}</h3>
+          <p class="text-xs text-gray-500 mb-3">Código de cassette</p>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Descripción del material</label>
@@ -251,11 +304,35 @@
 
   function renumberSlideRows() {
     slideRows.querySelectorAll(".slide-row").forEach(function (row, index) {
-      row.querySelector(".row-number").textContent = index + 1;
-      row.querySelector(".cassette-checkboxes").innerHTML = buildCassetteCheckboxes(index);
+      row.querySelector(".row-number").textContent = previewSlideCode(index);
+      const cell = row.querySelector(".cassette-checkboxes");
+      const checked = Array.from(
+        cell.querySelectorAll("input[type=checkbox]:checked")
+      ).map(function (el) { return el.value; });
+      cell.innerHTML = buildCassetteCheckboxes(index);
+      checked.forEach(function (value) {
+        const input = cell.querySelector('input[value="' + value + '"]');
+        if (input) {
+          input.checked = true;
+        }
+      });
       row.querySelectorAll("[data-slide-field]").forEach(function (el) {
         el.name = "slide_" + index + "_" + el.dataset.slideField;
       });
+    });
+    slideCountInput.value = slideRows.querySelectorAll(".slide-row").length;
+  }
+
+  function assignSlideFieldNames() {
+    slideRows.querySelectorAll(".slide-row").forEach(function (row, index) {
+      row.querySelectorAll("[data-slide-field]").forEach(function (el) {
+        el.name = "slide_" + index + "_" + el.dataset.slideField;
+      });
+      row.querySelectorAll(".cassette-checkboxes input[type=checkbox]").forEach(
+        function (el) {
+          el.name = "slide_" + index + "_cassettes";
+        }
+      );
     });
     slideCountInput.value = slideRows.querySelectorAll(".slide-row").length;
   }
@@ -280,9 +357,8 @@
   });
 
   form.addEventListener("submit", function (event) {
-    renumberSlideRows();
     const cassetteCount = parseInt(cassetteCountSelect.value, 10) || 0;
-    const slideCount = parseInt(slideCountInput.value, 10) || 0;
+    const slideCount = slideRows.querySelectorAll(".slide-row").length;
 
     if (!isAppendMode && cassetteCount < 1) {
       event.preventDefault();
@@ -295,17 +371,26 @@
       return;
     }
 
-    let hasSlide = false;
+    let hasSlideWithCassette = false;
     slideRows.querySelectorAll(".slide-row").forEach(function (row) {
       if (row.querySelector('input[type=checkbox]:checked')) {
-        hasSlide = true;
+        hasSlideWithCassette = true;
       }
     });
 
-    if (slideCount > 0 && !hasSlide && (cassetteCount > 0 || existingCassettes.length)) {
+    if (
+      slideCount > 0
+      && !hasSlideWithCassette
+      && (cassetteCount > 0 || existingCassettes.length)
+    ) {
       event.preventDefault();
-      window.alert("Cada portaobjetos debe tener al menos un cassette seleccionado.");
+      window.alert(
+        "Cada portaobjetos debe tener al menos un cassette seleccionado."
+      );
+      return;
     }
+
+    assignSlideFieldNames();
   });
 
   renderCassetteFields();

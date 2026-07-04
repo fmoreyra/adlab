@@ -152,24 +152,22 @@
             {% endif %}
 
             {% if can_view_protocol_processing %}
-                <a href="{% url 'protocols:processing_status' protocol.pk %}"
-                   class="block w-full px-4 py-2 text-center bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                {% if protocol.analysis_type == 'histopathology' %}
                     {% if protocol.status == 'received' or protocol.status == 'processing' %}
-                        Ir a procesamiento
+                <a href="{% url 'protocols:sample_register' protocol.pk %}"
+                   class="block w-full px-4 py-2 text-center bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                    {% if protocol.status == 'received' %}
+                    Registrar muestra
                     {% else %}
-                        Ver procesamiento
+                    Editar registro de banco
                     {% endif %}
                 </a>
-            {% endif %}
-
-            {% if can_mark_ready %}
-                <form method="post" action="{% url 'protocols:protocol_mark_ready' protocol.pk %}">
-                    {% csrf_token %}
-                    <button type="submit"
-                            class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                        Marcar listo para diagnóstico
-                    </button>
-                </form>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'protocols:protocol_detail' protocol.pk %}#procesamiento-lab"
+                   class="block w-full px-4 py-2 text-center border border-purple-600 text-purple-800 rounded-md hover:bg-purple-50">
+                    Ver procesamiento
+                </a>
             {% endif %}
 
             {% if can_create_report %}

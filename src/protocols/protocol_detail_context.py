@@ -15,8 +15,122 @@ from accounts.report_access import (
     user_can_view_report_images,
     user_requires_report_signature,
 )
-from protocols.models import Protocol, Report
+from protocols.models import Cassette, Protocol, Report, Slide
 from protocols.services.protocol_service import ProtocolProcessingService
+
+_PROCESSING_ACTIVE_STATUSES = frozenset(
+    {
+        Protocol.Status.RECEIVED,
+        Protocol.Status.PROCESSING,
+        Protocol.Status.READY,
+    }
+)
+
+
+def build_sample_registration_context(protocol):
+    """
+    Build context for the inline histopathology registration form.
+
+    Args:
+        protocol: Protocol instance with histopathology_sample
+
+    Returns:
+        dict: existing cassettes/slides and append mode flag
+    """
+    existing_cassettes = []
+    if hasattr(protocol, "histopathology_sample"):
+        existing_cassettes = Cassette.sort_for_display(
+            list(protocol.histopathology_sample.cassettes.all())
+        )
+    existing_slides = Slide.sort_for_display(
+        list(
+            protocol.slides.all().prefetch_related("cassette_slides__cassette")
+        )
+    )
+    return {
+        "existing_cassettes": existing_cassettes,
+        "existing_slides": existing_slides,
+        "is_append_mode": bool(existing_cassettes),
+        "protocol_number": protocol.protocol_number or "",
+        "next_cassette_number": Cassette.next_sequence_number(
+            protocol.histopathology_sample
+        )
+        if hasattr(protocol, "histopathology_sample")
+        else 1,
+        "next_slide_number": Slide.next_sequence_number(protocol),
+    }
+
+
+def sample_register_url(protocol):
+    """Return URL for the dedicated cassette/slide registration view."""
+    return reverse(
+        "protocols:sample_register",
+        kwargs={"protocol_pk": protocol.pk},
+    )
+
+
+def build_protocol_processing_context(user, protocol):
+    """
+    Build lab processing section context for protocol detail.
+
+    Args:
+        user: Authenticated user
+        protocol: Protocol instance
+
+    Returns:
+        dict: Processing lists, readiness, and registration link flags
+    """
+    if not user_can_view_protocol_processing(user, protocol):
+        return {"show_protocol_processing": False}
+
+    if protocol.status not in _PROCESSING_ACTIVE_STATUSES:
+        return {"show_protocol_processing": False}
+
+    processing_service = ProtocolProcessingService()
+    readiness = processing_service.get_processing_readiness(protocol)
+
+    cassettes = []
+    if (
+        protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY
+        and hasattr(protocol, "histopathology_sample")
+    ):
+        cassettes = Cassette.sort_for_display(
+            list(protocol.histopathology_sample.cassettes.all())
+        )
+
+    slides = Slide.sort_for_display(
+        list(
+            protocol.slides.all().prefetch_related("cassette_slides__cassette")
+        )
+    )
+
+    can_register_samples = (
+        protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY
+        and protocol.status
+        in (
+            Protocol.Status.RECEIVED,
+            Protocol.Status.PROCESSING,
+        )
+    )
+
+    return {
+        "show_protocol_processing": True,
+        "processing_cassettes": cassettes,
+        "processing_slides": slides,
+        "processing_readiness": readiness,
+        "can_register_samples": can_register_samples,
+        "sample_register_url": sample_register_url(protocol)
+        if can_register_samples
+        else "",
+    }
+
+
+def protocol_detail_processing_url(protocol):
+    """Return protocol detail URL anchored to the lab processing section."""
+    return (
+        reverse("protocols:protocol_detail", kwargs={"pk": protocol.pk})
+        + "#procesamiento-lab"
+    )
 
 
 def _user_owns_protocol(user, protocol):

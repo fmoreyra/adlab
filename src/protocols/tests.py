@@ -974,6 +974,83 @@ class CassetteModelTest(TestCase):
         self.assertTrue(cassette2.codigo_cassette.endswith("-C2"))
         self.assertTrue(cassette3.codigo_cassette.endswith("-C3"))
 
+    def test_cassette_preview_code_matches_creation(self):
+        """Preview codes use the same rule as save-time generation."""
+        preview_c1 = Cassette.preview_code(self.protocol, offset=0)
+        preview_c2 = Cassette.preview_code(self.protocol, offset=1)
+
+        cassette1 = Cassette.objects.create(
+            histopathology_sample=self.sample,
+            material_incluido="Material 1",
+        )
+        self.assertEqual(preview_c1, cassette1.codigo_cassette)
+
+        cassette2 = Cassette.objects.create(
+            histopathology_sample=self.sample,
+            material_incluido="Material 2",
+        )
+        self.assertEqual(preview_c2, cassette2.codigo_cassette)
+
+    def test_slide_preview_code_matches_creation(self):
+        """Preview slide codes use the same rule as save-time generation."""
+        preview_s1 = Slide.preview_code(self.protocol, offset=0)
+        slide1 = Slide.objects.create(protocol=self.protocol, campo="1")
+        self.assertEqual(preview_s1, slide1.codigo_portaobjetos)
+
+    def test_slide_sort_for_display_uses_numeric_order(self):
+        """Slides list as S1, S2, … S10 — not S1, S10, S11, S2."""
+        pn = self.protocol.protocol_number
+        slides = [
+            Slide.objects.create(
+                protocol=self.protocol,
+                codigo_portaobjetos=f"{pn}-S10",
+                campo="10",
+            ),
+            Slide.objects.create(
+                protocol=self.protocol,
+                codigo_portaobjetos=f"{pn}-S2",
+                campo="2",
+            ),
+            Slide.objects.create(
+                protocol=self.protocol,
+                codigo_portaobjetos=f"{pn}-S1",
+                campo="1",
+            ),
+        ]
+        ordered = Slide.sort_for_display(slides)
+        suffixes = [
+            Slide.sequence_number_from_code(slide.codigo_portaobjetos)
+            for slide in ordered
+        ]
+        self.assertEqual(suffixes, [1, 2, 10])
+
+    def test_cassette_sort_for_display_uses_numeric_order(self):
+        """Cassettes list as C1, C2, … C10 — not lexicographic order."""
+        pn = self.protocol.protocol_number
+        cassettes = [
+            Cassette.objects.create(
+                histopathology_sample=self.sample,
+                codigo_cassette=f"{pn}-C10",
+                material_incluido="Ten",
+            ),
+            Cassette.objects.create(
+                histopathology_sample=self.sample,
+                codigo_cassette=f"{pn}-C2",
+                material_incluido="Two",
+            ),
+            Cassette.objects.create(
+                histopathology_sample=self.sample,
+                codigo_cassette=f"{pn}-C1",
+                material_incluido="One",
+            ),
+        ]
+        ordered = Cassette.sort_for_display(cassettes)
+        suffixes = [
+            Cassette.sequence_number_from_code(cassette.codigo_cassette)
+            for cassette in ordered
+        ]
+        self.assertEqual(suffixes, [1, 2, 10])
+
     def test_cassette_stage_updates(self):
         """Test updating cassette processing stages."""
         cassette = Cassette.objects.create(
@@ -1694,6 +1771,26 @@ class ProcessingViewsTest(TestCase):
 
         self.client = Client()
 
+    def assert_redirects_to_protocol_detail(self, response, protocol):
+        """Assert redirect targets protocol detail (optional #anchor)."""
+        self.assertEqual(response.status_code, 302)
+        base_url = reverse(
+            "protocols:protocol_detail", kwargs={"pk": protocol.pk}
+        )
+        self.assertTrue(response.url.startswith(base_url))
+
+    def assert_redirects_to_sample_register(self, response, protocol):
+        """Assert redirect targets the dedicated registration view."""
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:sample_register",
+                kwargs={"protocol_pk": protocol.pk},
+            ),
+            fetch_redirect_response=False,
+        )
+
     def test_processing_dashboard_view(self):
         """Test processing dashboard view shows correct statistics."""
         self.client.login(email="staff@example.com", password="testpass123")
@@ -1863,29 +1960,39 @@ class ProcessingViewsTest(TestCase):
         self.assertRedirects(response, reverse("accounts:complete_profile"))
 
     def test_protocol_processing_status_view(self):
-        """Test protocol processing status view shows complete timeline."""
+        """Legacy processing status URL lands on protocol detail processing."""
         self.client.login(email="staff@example.com", password="testpass123")
 
         response = self.client.get(
             reverse(
                 "protocols:processing_status",
                 kwargs={"pk": self.cytology_protocol.pk},
-            )
+            ),
+            follow=True,
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(
-            response, "protocols/processing/protocol_status.html"
+        self.assertContains(response, "Procesamiento de laboratorio")
+
+    def test_protocol_processing_status_redirects_histopathology_to_register(
+        self,
+    ):
+        """Histopathology in lab workflow opens dedicated registration."""
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.get(
+            reverse(
+                "protocols:processing_status",
+                kwargs={"pk": self.histopathology_protocol.pk},
+            ),
         )
 
-        # Check context contains expected data
-        context = response.context
-        self.assertEqual(context["protocol"], self.cytology_protocol)
-        self.assertIn("slides", context)
-        self.assertIn("processing_readiness", context)
+        self.assert_redirects_to_sample_register(
+            response, self.histopathology_protocol
+        )
 
     def test_processing_status_shows_report_workflow_when_ready(self):
-        """Processing status shows report workflow when protocol is ready."""
+        """Protocol detail shows report workflow when protocol is ready."""
         self.cytology_protocol.status = Protocol.Status.READY
         self.cytology_protocol.protocol_number = "CY 26/001"
         self.cytology_protocol.save(
@@ -1895,7 +2002,7 @@ class ProcessingViewsTest(TestCase):
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(
             reverse(
-                "protocols:processing_status",
+                "protocols:protocol_detail",
                 kwargs={"pk": self.cytology_protocol.pk},
             )
         )
@@ -1925,22 +2032,19 @@ class ProcessingViewsTest(TestCase):
         self.assertContains(response, "Elaborar informe")
 
     def test_protocol_processing_status_view_histopathology(self):
-        """Test protocol processing status view for histopathology protocol."""
+        """Protocol detail shows inline lab processing for histopathology."""
         self.client.login(email="staff@example.com", password="testpass123")
 
         response = self.client.get(
             reverse(
-                "protocols:processing_status",
+                "protocols:protocol_detail",
                 kwargs={"pk": self.histopathology_protocol.pk},
             )
         )
 
         self.assertEqual(response.status_code, 200)
-
-        # Check context contains cassettes for histopathology
-        context = response.context
-        self.assertIn("cassettes", context)
-        self.assertEqual(context["protocol"], self.histopathology_protocol)
+        self.assertContains(response, "Procesamiento de laboratorio")
+        self.assertContains(response, "procesamiento-lab")
 
     def test_protocol_processing_status_view_permission_staff_required(self):
         """Test that only staff can access protocol processing status."""
@@ -1958,7 +2062,7 @@ class ProcessingViewsTest(TestCase):
 
         response = self.client.get(
             reverse(
-                "protocols:processing_status",
+                "protocols:protocol_detail",
                 kwargs={"pk": self.cytology_protocol.pk},
             )
         )
@@ -1975,19 +2079,15 @@ class ProcessingViewsTest(TestCase):
             reverse(
                 "protocols:cassette_create",
                 kwargs={"protocol_pk": self.histopathology_protocol.pk},
-            )
+            ),
+            follow=True,
         )
 
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:sample_register",
-                kwargs={"protocol_pk": self.histopathology_protocol.pk},
-            ),
-        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Registrar muestra")
 
     def test_sample_register_view_get(self):
-        """Test GET request to unified sample registration view."""
+        """GET on sample register shows dedicated registration form."""
         self.client.login(email="staff@example.com", password="testpass123")
 
         response = self.client.get(
@@ -2001,9 +2101,16 @@ class ProcessingViewsTest(TestCase):
         self.assertTemplateUsed(
             response, "protocols/processing/sample_register.html"
         )
-        context = response.context
-        self.assertEqual(context["protocol"], self.histopathology_protocol)
-        self.assertIn("existing_cassettes", context)
+        self.assertContains(response, "Registrar muestra")
+        self.assertContains(
+            response,
+            f'const protocolNumber = "{self.histopathology_protocol.protocol_number}"',
+        )
+        self.assertContains(response, "previewCassetteCode")
+        self.assertContains(
+            response,
+            "Los códigos mostrados son los que se asignarán al guardar",
+        )
 
     def test_cassette_create_view_post(self):
         """Test POST via legacy URL registers cassettes and slides."""
@@ -2030,12 +2137,8 @@ class ProcessingViewsTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:processing_status",
-                kwargs={"pk": self.histopathology_protocol.pk},
-            ),
+        self.assert_redirects_to_sample_register(
+            response, self.histopathology_protocol
         )
 
         cassettes = (
@@ -2062,12 +2165,8 @@ class ProcessingViewsTest(TestCase):
 
         # Should redirect with error message
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:processing_status",
-                kwargs={"pk": self.cytology_protocol.pk},
-            ),
+        self.assert_redirects_to_protocol_detail(
+            response, self.cytology_protocol
         )
 
     def test_cassette_create_view_permission_staff_required(self):
@@ -2106,12 +2205,8 @@ class ProcessingViewsTest(TestCase):
             )
         )
 
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:processing_status",
-                kwargs={"pk": self.cytology_protocol.pk},
-            ),
+        self.assert_redirects_to_protocol_detail(
+            response, self.cytology_protocol
         )
 
     def test_slide_register_view_get_histopathology(self):
@@ -2136,6 +2231,7 @@ class ProcessingViewsTest(TestCase):
                 "protocols:sample_register",
                 kwargs={"protocol_pk": self.histopathology_protocol.pk},
             ),
+            fetch_redirect_response=False,
         )
 
     def test_slide_register_view_post_histopathology(self):
@@ -2161,12 +2257,8 @@ class ProcessingViewsTest(TestCase):
             },
         )
 
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:processing_status",
-                kwargs={"pk": self.histopathology_protocol.pk},
-            ),
+        self.assert_redirects_to_sample_register(
+            response, self.histopathology_protocol
         )
 
         slide = self.histopathology_protocol.slides.get()
@@ -2325,14 +2417,9 @@ class ProcessingViewsTest(TestCase):
             data=form_data,
         )
 
-        # Should redirect to processing status
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:processing_status",
-                kwargs={"pk": self.cytology_protocol.pk},
-            ),
+        # Should redirect to protocol detail
+        self.assert_redirects_to_protocol_detail(
+            response, self.cytology_protocol
         )
 
         # Check slide stage was updated
@@ -2491,13 +2578,8 @@ class ProcessingViewsTest(TestCase):
                 )
             )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:processing_status",
-                kwargs={"pk": self.cytology_protocol.pk},
-            ),
+        self.assert_redirects_to_protocol_detail(
+            response, self.cytology_protocol
         )
         self.cytology_protocol.refresh_from_db()
         self.assertEqual(self.cytology_protocol.status, Protocol.Status.READY)
@@ -2562,14 +2644,8 @@ class ProcessingViewsTest(TestCase):
         self.assertContains(response, slide.codigo_portaobjetos)
         self.assertContains(response, "Montaje registrado")
 
-    def test_protocol_mark_ready_view_blocked_incomplete_slides(self):
-        """Test mark-ready fails when slides are not all LISTO."""
-        Slide.objects.create(
-            protocol=self.cytology_protocol,
-            campo="1",
-            estado=Slide.Status.PENDIENTE,
-        )
-
+    def test_protocol_mark_ready_view_blocked_without_slides(self):
+        """Test mark-ready fails when no slides are registered."""
         self.client.login(email="staff@example.com", password="testpass123")
 
         response = self.client.post(
@@ -2638,14 +2714,9 @@ class ProcessingViewsTest(TestCase):
             data=form_data,
         )
 
-        # Should redirect to processing status
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:processing_status",
-                kwargs={"pk": self.cytology_protocol.pk},
-            ),
+        # Should redirect to protocol detail
+        self.assert_redirects_to_protocol_detail(
+            response, self.cytology_protocol
         )
 
         # Check slide quality was updated
@@ -4942,12 +5013,10 @@ class RejectedProtocolsTest(TestCase):
 
         # Should redirect due to validation failure
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:processing_status", kwargs={"pk": histo_protocol.pk}
-            ),
+        base_url = reverse(
+            "protocols:protocol_detail", kwargs={"pk": histo_protocol.pk}
         )
+        self.assertTrue(response.url.startswith(base_url))
 
     def test_slide_register_rejects_rejected_protocol(self):
         """Test that slide registration is blocked for rejected protocols."""
@@ -4962,13 +5031,11 @@ class RejectedProtocolsTest(TestCase):
 
         # Should redirect due to validation failure
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response,
-            reverse(
-                "protocols:processing_status",
-                kwargs={"pk": self.rejected_protocol.pk},
-            ),
+        base_url = reverse(
+            "protocols:protocol_detail",
+            kwargs={"pk": self.rejected_protocol.pk},
         )
+        self.assertTrue(response.url.startswith(base_url))
 
     def test_reception_confirm_handles_rejection(self):
         """Test that reception confirmation handles rejected protocols correctly."""
@@ -6120,12 +6187,12 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Ir a procesamiento")
+        self.assertContains(response, "Registrar muestra")
         self.assertContains(
             response,
             reverse(
-                "protocols:processing_status",
-                kwargs={"pk": self.protocol.pk},
+                "protocols:sample_register",
+                kwargs={"protocol_pk": self.protocol.pk},
             ),
         )
 

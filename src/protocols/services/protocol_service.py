@@ -736,46 +736,14 @@ class ProtocolProcessingService:
         slides = list(protocol.slides.all())
         if not slides:
             blockers.append(_("Debe registrar al menos un portaobjetos."))
-        else:
-            pending_slides = [
-                s.codigo_portaobjetos
-                for s in slides
-                if s.estado != Slide.Status.LISTO
-            ]
-            if pending_slides:
-                blockers.append(
-                    _(
-                        "Complete todas las etapas de los portaobjetos "
-                        "(pendientes: %(codes)s)."
-                    )
-                    % {"codes": ", ".join(pending_slides)}
-                )
 
         if protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY:
             if not hasattr(protocol, "histopathology_sample"):
                 blockers.append(
                     _("Este protocolo no tiene muestra de histopatología.")
                 )
-            else:
-                cassettes = list(
-                    protocol.histopathology_sample.cassettes.all()
-                )
-                if not cassettes:
-                    blockers.append(_("Debe crear al menos un cassette."))
-                else:
-                    pending_cassettes = [
-                        c.codigo_cassette
-                        for c in cassettes
-                        if c.estado != Cassette.Status.COMPLETADO
-                    ]
-                    if pending_cassettes:
-                        blockers.append(
-                            _(
-                                "Complete todas las etapas de los cassettes "
-                                "(pendientes: %(codes)s)."
-                            )
-                            % {"codes": ", ".join(pending_cassettes)}
-                        )
+            elif not protocol.histopathology_sample.cassettes.exists():
+                blockers.append(_("Debe crear al menos un cassette."))
 
         is_complete = len(blockers) == 0
         return {
@@ -809,6 +777,8 @@ class ProtocolProcessingService:
             return False, _("No se puede marcar el protocolo como listo.")
 
         try:
+            self._complete_pending_processing(protocol, user)
+
             protocol.status = Protocol.Status.READY
             protocol.save(update_fields=["status"])
 
@@ -829,6 +799,27 @@ class ProtocolProcessingService:
                 f"Error marking protocol {protocol.pk} ready for diagnosis: {e}"
             )
             return False, str(e)
+
+    def _complete_pending_processing(self, protocol: Protocol, user) -> None:
+        """
+        Mark all registered cassettes and slides complete when closing lab work.
+
+        The lab tracks fine-grained steps on paper; the system only records
+        inventory plus this single closure action.
+        """
+        if (
+            protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY
+            and hasattr(protocol, "histopathology_sample")
+        ):
+            for cassette in protocol.histopathology_sample.cassettes.all():
+                if cassette.estado == Cassette.Status.COMPLETADO:
+                    continue
+                self.update_cassette_stage(cassette, "advance", user)
+
+        for slide in protocol.slides.all():
+            if slide.estado == Slide.Status.LISTO:
+                continue
+            self.update_slide_stage(slide, "advance", user)
 
     def _notify_protocol_ready(self, protocol: Protocol) -> None:
         """Queue email and in-app notification when protocol becomes READY."""

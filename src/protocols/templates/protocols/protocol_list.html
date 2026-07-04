@@ -133,10 +133,14 @@
                                                  {% if protocol.status == 'draft' %}bg-gray-100 text-gray-800
                                                  {% elif protocol.status == 'submitted' %}bg-yellow-100 text-yellow-800
                                                  {% elif protocol.status == 'received' %}bg-blue-100 text-blue-800
-                                                 {% elif protocol.status == 'processing' %}bg-purple-100 text-purple-800
-                                                 {% elif protocol.status == 'ready' %}bg-green-100 text-green-800
+                                                 {% elif protocol.status == 'processing' or protocol.status == 'ready' %}bg-purple-100 text-purple-800
+                                                 {% elif protocol.status == 'report_sent' %}bg-green-100 text-green-800
                                                  {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                        {{ protocol.get_status_display }}
+                                        {% if user.is_veterinarian %}
+                                            {{ protocol.get_veterinarian_status_display }}
+                                        {% else %}
+                                            {{ protocol.get_status_display }}
+                                        {% endif %}
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 w-32">

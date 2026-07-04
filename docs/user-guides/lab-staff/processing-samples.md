@@ -46,35 +46,31 @@ _[Espacio para captura de pantalla: Cassettes preparados]_
 
 ## 📊 Registro en el Sistema
 
-Todo el seguimiento de etapas se hace desde **Estado del procesamiento** del protocolo (menú de procesamiento → abrir el protocolo). No hace falta cambiar de pantalla.
+El flujo combina dos pantallas: **registro de banco** (vista dedicada) y **resumen en el protocolo**.
 
 ### Histopatología
 
-1. **Registrar muestra (cassettes + slides):** Use el botón **Registrar muestra** en el estado del protocolo o en la cola de procesamiento. En una sola pantalla:
-   - **Cassettes:** indique cantidad, material incluido (descripción libre de qué piezas u órganos contiene cada cassette) y observaciones opcionales.
-   - **Portaobjetos (slides):** por cada fila, seleccione uno o más cassettes montados en ese slide (casillas de verificación), coloración opcional (por defecto Hematoxilina-Eosina) y observaciones.
-   - Use **+ Agregar cassette** / **+ Agregar slide** para más filas y **Guardar registro** para confirmar todo en un solo paso.
-2. **Procesar cassettes:** En la misma pantalla de estado, en cada tarjeta de cassette use **Procesar** cuando el tejido esté listo (fijación, inclusión y entacado se registran juntos). El encasetado se registra automáticamente al crear el cassette.
-3. **Marcar portaobjetos listos:** En la tabla de portaobjetos, use **Marcar listo** (montaje y coloración se registran en un solo paso).
+1. **Registrar cassettes y portaobjetos:** desde la cola de procesamiento o el detalle del protocolo, abra **Registrar muestra** (`/protocols/processing/register/<id>/`):
+   - **Cassettes:** cantidad, material incluido (descripción libre) y observaciones opcionales.
+   - **Portaobjetos:** multi-select de cassettes por fila, coloración opcional y observaciones.
+   - **Guardar registro** confirma todo en un solo paso y permanece en la misma pantalla para agregar más.
+2. **Cerrar procesamiento:** en el **detalle del protocolo** (sección «Procesamiento de laboratorio»), use **Marcar listo para diagnóstico** cuando el trabajo de banco esté terminado (planilla de papel).
 
-Si ya registró cassettes y solo necesita agregar slides, **Registrar muestra** abre la pantalla en modo complemento con los cassettes existentes visibles.
+Si ya hay cassettes, el formulario permite agregar solo portaobjetos nuevos.
 
 ### Citología
 
 - Los portaobjetos se registran **automáticamente al confirmar la recepción** (cantidad recibida + Diff-Quick por defecto).
-- En **Estado de procesamiento** use **Marcar listo** en cada portaobjetos (un solo paso desde pendiente).
+- Cierre el caso con **Marcar listo para diagnóstico** cuando el trabajo de banco esté terminado.
 
-### Revertir una etapa (cassettes y portaobjetos)
+### Veterinarios externos
 
-Si hubo un error, use **Revertir procesado** (cassettes) o **Revertir listo** (portaobjetos) en la columna Acciones. Se abrirá un cuadro de diálogo donde debe indicar el **motivo de la corrección** (obligatorio); queda registrado en el historial del protocolo.
+- En su panel solo ven **En laboratorio** mientras el caso está en banco o listo para diagnóstico interno.
+- El avance visible hacia el informe final ocurre cuando el informe está disponible.
 
-Use **Ver historial** en cada fila de cassette o portaobjetos para abrir el detalle de etapas, material y el registro de auditoría de ese elemento.
+### Historial por ítem
 
-### Finalizar procesamiento de laboratorio
-
-Cuando **todos** los cassettes (histopatología) y portaobjetos estén completos, use **Marcar listo para diagnóstico** en la misma pantalla. El protocolo pasa a estado **Listo** y el caso queda disponible para informe u orden de trabajo.
-
-Si faltan pasos, el sistema muestra una lista de pendientes (cassettes o portaobjetos incompletos).
+No se muestra en la interfaz principal: el seguimiento fino queda en la planilla de papel. El sistema conserva registros internos solo para auditoría al cerrar el procesamiento.
 
 ### Órdenes de trabajo
 
@@ -85,7 +81,7 @@ Desde el estado **Listo** puede enlazarse a órdenes de trabajo solo si su usuar
 - El protocolo pasa a estado de procesamiento según el flujo del laboratorio.
 - Documente incidencias en observaciones o en el estado del protocolo.
 
-_[Espacio para captura de pantalla: Estado del procesamiento con cassettes y portaobjetos]_
+_[Espacio para captura de pantalla: Detalle del protocolo con sección de procesamiento]_
 
 ---
 

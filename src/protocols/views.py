@@ -52,10 +52,11 @@ from protocols.models import (
     Slide,
 )
 from protocols.protocol_detail_context import (
-    _get_latest_report,
     build_protocol_detail_action_context,
-    build_protocol_report_action_context,
-    build_protocol_report_images_context,
+    build_protocol_processing_context,
+    build_sample_registration_context,
+    protocol_detail_processing_url,
+    sample_register_url,
 )
 from protocols.services.email_service import EmailNotificationService
 from protocols.services.protocol_service import (
@@ -264,6 +265,10 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
                 "sample": sample,
                 **build_protocol_detail_action_context(
                     self.request.user, protocol, self.request
+                ),
+                **build_protocol_processing_context(
+                    self.request.user,
+                    protocol,
                 ),
             }
         )
@@ -1066,67 +1071,21 @@ class ProcessingQueueView(StaffRequiredMixin, ListView):
         return context
 
 
-class ProtocolProcessingStatusView(StaffRequiredMixin, DetailView):
-    """
-    Show complete processing status for a protocol with timeline.
-    """
+class ProtocolProcessingStatusView(StaffRequiredMixin, View):
+    """Legacy URL: redirect to registration or protocol detail summary."""
 
-    model = Protocol
-    template_name = "protocols/processing/protocol_status.html"
-    context_object_name = "protocol"
+    def get(self, request, *args, **kwargs):
+        """Send staff to the right processing screen for this protocol."""
+        protocol = get_object_or_404(Protocol, pk=kwargs["pk"])
 
-    def get_queryset(self):
-        """Get protocol with related objects."""
-        return Protocol.objects.select_related(
-            "veterinarian__user",
-            "cytology_sample",
-            "histopathology_sample",
-        ).prefetch_related(
-            "reports__images__cassette",
-            "reports__images__slide",
-        )
-
-    def get_context_data(self, **kwargs):
-        """Add processing-related context data."""
-        context = super().get_context_data(**kwargs)
-        protocol = self.object
-        latest_report = _get_latest_report(protocol)
-
-        # Get cassettes for histopathology
-        cassettes = []
         if (
             protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY
-            and hasattr(protocol, "histopathology_sample")
+            and protocol.status
+            in (Protocol.Status.RECEIVED, Protocol.Status.PROCESSING)
         ):
-            cassettes = protocol.histopathology_sample.cassettes.all().prefetch_related(
-                "cassette_slides__slide"
-            )
+            return redirect(sample_register_url(protocol))
 
-        # Get slides
-        slides = protocol.slides.all().prefetch_related(
-            "cassette_slides__cassette"
-        )
-
-        processing_service = ProtocolProcessingService()
-        readiness = processing_service.get_processing_readiness(protocol)
-
-        context.update(
-            {
-                "cassettes": cassettes,
-                "slides": slides,
-                "processing_readiness": readiness,
-                "show_lab_actions": self.request.user.is_lab_staff,
-                "latest_report": latest_report,
-                **build_protocol_report_action_context(
-                    self.request.user, protocol
-                ),
-                **build_protocol_report_images_context(
-                    self.request.user, protocol, latest_report
-                ),
-            }
-        )
-
-        return context
+        return redirect(protocol_detail_processing_url(protocol))
 
 
 class ProtocolMarkReadyView(StaffRequiredMixin, View):
@@ -1148,7 +1107,7 @@ class ProtocolMarkReadyView(StaffRequiredMixin, View):
                     "Cambie el estado primero."
                 ),
             )
-            return redirect("protocols:processing_status", pk=protocol.pk)
+            return redirect(protocol_detail_processing_url(protocol))
 
         success, error_message = (
             self.processing_service.mark_ready_for_diagnosis(
@@ -1165,7 +1124,7 @@ class ProtocolMarkReadyView(StaffRequiredMixin, View):
         else:
             messages.error(request, error_message)
 
-        return redirect("protocols:processing_status", pk=protocol.pk)
+        return redirect(protocol_detail_processing_url(protocol))
 
 
 class CassetteProcessingHistoryView(StaffRequiredMixin, DetailView):
@@ -1243,11 +1202,12 @@ class SampleRegistrationView(StaffRequiredMixin, View):
         self.processing_service = ProtocolProcessingService()
 
     def get(self, request, *args, **kwargs):
-        """Show unified registration form."""
+        """Show dedicated registration form for cassettes and slides."""
         protocol = self._get_protocol()
         if protocol is None:
             return redirect(
-                "protocols:processing_status", pk=self.kwargs["protocol_pk"]
+                "protocols:protocol_detail",
+                pk=self.kwargs["protocol_pk"],
             )
 
         if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
@@ -1258,10 +1218,12 @@ class SampleRegistrationView(StaffRequiredMixin, View):
                     "la recepción de la muestra."
                 ),
             )
-            return redirect("protocols:processing_status", pk=protocol.pk)
+            return redirect(protocol_detail_processing_url(protocol))
 
         return render(
-            request, self.template_name, self._build_context(protocol)
+            request,
+            self.template_name,
+            self._build_context(protocol),
         )
 
     def post(self, request, *args, **kwargs):
@@ -1269,7 +1231,8 @@ class SampleRegistrationView(StaffRequiredMixin, View):
         protocol = self._get_protocol()
         if protocol is None:
             return redirect(
-                "protocols:processing_status", pk=self.kwargs["protocol_pk"]
+                "protocols:protocol_detail",
+                pk=self.kwargs["protocol_pk"],
             )
 
         if protocol.analysis_type == Protocol.AnalysisType.CYTOLOGY:
@@ -1280,7 +1243,7 @@ class SampleRegistrationView(StaffRequiredMixin, View):
                     "la recepción de la muestra."
                 ),
             )
-            return redirect("protocols:processing_status", pk=protocol.pk)
+            return redirect(protocol_detail_processing_url(protocol))
 
         try:
             cassette_rows = self._parse_cassette_rows(request)
@@ -1358,27 +1321,16 @@ class SampleRegistrationView(StaffRequiredMixin, View):
                 % {"error": str(exc)},
             )
 
-        return redirect("protocols:processing_status", pk=protocol.pk)
+        return redirect(sample_register_url(protocol))
 
     def _build_context(self, protocol):
         """Build template context for registration form."""
-        existing_cassettes = []
-        existing_slides = []
-        if hasattr(protocol, "histopathology_sample"):
-            existing_cassettes = list(
-                protocol.histopathology_sample.cassettes.all().order_by(
-                    "codigo_cassette"
-                )
-            )
-        existing_slides = list(
-            protocol.slides.all().prefetch_related("cassette_slides__cassette")
+        context = build_sample_registration_context(protocol)
+        context["protocol"] = protocol
+        context["protocol_detail_processing_url"] = (
+            protocol_detail_processing_url(protocol)
         )
-        return {
-            "protocol": protocol,
-            "existing_cassettes": existing_cassettes,
-            "existing_slides": existing_slides,
-            "is_append_mode": bool(existing_cassettes),
-        }
+        return context
 
     def _get_protocol(self):
         """Get and validate histopathology protocol."""
@@ -1794,7 +1746,7 @@ class CassetteUpdateStageView(StaffRequiredMixin, View):
                     "Cambie el estado primero."
                 ),
             )
-            return redirect("protocols:processing_status", pk=protocol.pk)
+            return redirect(protocol_detail_processing_url(protocol))
 
         action = request.POST.get("action", "")
         observaciones = request.POST.get("observaciones", "")
@@ -1819,7 +1771,7 @@ class CassetteUpdateStageView(StaffRequiredMixin, View):
         else:
             messages.error(request, error_message)
 
-        return redirect("protocols:processing_status", pk=protocol.pk)
+        return redirect(protocol_detail_processing_url(protocol))
 
 
 class SlideUpdateStageView(StaffRequiredMixin, View):
@@ -1844,9 +1796,7 @@ class SlideUpdateStageView(StaffRequiredMixin, View):
                     "Cambie el estado primero."
                 ),
             )
-            return redirect(
-                "protocols:processing_status", pk=slide.protocol.pk
-            )
+            return redirect(protocol_detail_processing_url(slide.protocol))
 
         action = request.POST.get("action", "")
         observaciones = request.POST.get("observaciones", "")
@@ -1871,7 +1821,7 @@ class SlideUpdateStageView(StaffRequiredMixin, View):
         else:
             messages.error(request, error_message)
 
-        return redirect("protocols:processing_status", pk=slide.protocol.pk)
+        return redirect(protocol_detail_processing_url(slide.protocol))
 
 
 class SlideUpdateQualityView(StaffRequiredMixin, View):
@@ -1905,7 +1855,7 @@ class SlideUpdateQualityView(StaffRequiredMixin, View):
         else:
             messages.error(request, error_message)
 
-        return redirect("protocols:processing_status", pk=slide.protocol.pk)
+        return redirect(protocol_detail_processing_url(slide.protocol))
 
 
 class ProtocolResubmitView(StaffRequiredMixin, FormView):

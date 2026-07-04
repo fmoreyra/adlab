@@ -316,6 +316,17 @@ class Protocol(models.Model):
         """Check if protocol can be deleted by veterinarian."""
         return self.status == self.Status.DRAFT
 
+    def get_veterinarian_status_display(self):
+        """
+        Status label for external veterinarians.
+
+        Internal milestones (processing, ready for diagnosis) are collapsed
+        so the vet only sees movement toward the final report.
+        """
+        if self.status in (self.Status.PROCESSING, self.Status.READY):
+            return _("En laboratorio")
+        return self.get_status_display()
+
 
 class CytologySample(models.Model):
     """
@@ -1289,13 +1300,86 @@ class Cassette(models.Model):
                 "Protocol must have a protocol_number before creating cassettes"
             )
 
-        # Get next cassette number for this protocol
-        existing_cassettes = Cassette.objects.filter(
-            histopathology_sample=self.histopathology_sample
-        ).count()
-        next_number = existing_cassettes + 1
+        sequence_number = self.next_sequence_number(self.histopathology_sample)
+        return self.format_code(protocol_number, sequence_number)
 
-        return f"{protocol_number}-C{next_number}"
+    @classmethod
+    def next_sequence_number(cls, histopathology_sample):
+        """
+        Return the sequence number for the next cassette on a sample.
+
+        Args:
+            histopathology_sample: HistopathologySample instance
+
+        Returns:
+            int: Next cassette number (1-based)
+        """
+        return (
+            cls.objects.filter(
+                histopathology_sample=histopathology_sample
+            ).count()
+            + 1
+        )
+
+    @classmethod
+    def format_code(cls, protocol_number, sequence_number):
+        """Build cassette code from protocol number and sequence."""
+        return f"{protocol_number}-C{sequence_number}"
+
+    @classmethod
+    def preview_code(cls, protocol, offset=0):
+        """
+        Preview the code for a cassette about to be registered.
+
+        Uses the same numbering rule as ``generate_cassette_code`` at save time.
+        Actual codes are assigned atomically on POST.
+
+        Args:
+            protocol: Protocol instance with histopathology_sample
+            offset: 0-based index within the batch being created
+
+        Returns:
+            str: Predicted cassette code, or empty string if unavailable
+        """
+        if not protocol.protocol_number or not hasattr(
+            protocol, "histopathology_sample"
+        ):
+            return ""
+
+        sequence_number = (
+            cls.next_sequence_number(protocol.histopathology_sample) + offset
+        )
+        return cls.format_code(protocol.protocol_number, sequence_number)
+
+    @staticmethod
+    def sequence_number_from_code(codigo_cassette):
+        """
+        Extract numeric suffix from a cassette code (e.g. HP 26/006-C10 -> 10).
+
+        Args:
+            codigo_cassette: Full cassette code string
+
+        Returns:
+            int: Sequence number for sorting, or 0 if not parseable
+        """
+        if "-C" not in codigo_cassette:
+            return 0
+        suffix = codigo_cassette.rsplit("-C", 1)[-1]
+        try:
+            return int(suffix)
+        except ValueError:
+            return 0
+
+    @classmethod
+    def sort_for_display(cls, cassettes):
+        """Sort cassettes by numeric suffix (C1, C2, … C10), not lexicographically."""
+        return sorted(
+            cassettes,
+            key=lambda cassette: (
+                cls.sequence_number_from_code(cassette.codigo_cassette),
+                cassette.pk,
+            ),
+        )
 
     def get_last_completed_stage(self):
         """Return the latest processing stage that has a timestamp."""
@@ -1598,11 +1682,77 @@ class Slide(models.Model):
                 "Protocol must have a protocol_number before creating slides"
             )
 
-        # Get next slide number for this protocol
-        existing_slides = Slide.objects.filter(protocol=self.protocol).count()
-        next_number = existing_slides + 1
+        sequence_number = self.next_sequence_number(self.protocol)
+        return self.format_code(protocol_number, sequence_number)
 
-        return f"{protocol_number}-S{next_number}"
+    @classmethod
+    def next_sequence_number(cls, protocol):
+        """
+        Return the sequence number for the next slide on a protocol.
+
+        Args:
+            protocol: Protocol instance
+
+        Returns:
+            int: Next slide number (1-based)
+        """
+        return cls.objects.filter(protocol=protocol).count() + 1
+
+    @classmethod
+    def format_code(cls, protocol_number, sequence_number):
+        """Build slide code from protocol number and sequence."""
+        return f"{protocol_number}-S{sequence_number}"
+
+    @classmethod
+    def preview_code(cls, protocol, offset=0):
+        """
+        Preview the code for a slide about to be registered.
+
+        Uses the same numbering rule as ``generate_slide_code`` at save time.
+        Actual codes are assigned atomically on POST.
+
+        Args:
+            protocol: Protocol instance
+            offset: 0-based index within the batch being created
+
+        Returns:
+            str: Predicted slide code, or empty string if unavailable
+        """
+        if not protocol.protocol_number:
+            return ""
+
+        sequence_number = cls.next_sequence_number(protocol) + offset
+        return cls.format_code(protocol.protocol_number, sequence_number)
+
+    @staticmethod
+    def sequence_number_from_code(codigo_portaobjetos):
+        """
+        Extract numeric suffix from a slide code (e.g. HP 26/006-S10 -> 10).
+
+        Args:
+            codigo_portaobjetos: Full slide code string
+
+        Returns:
+            int: Sequence number for sorting, or 0 if not parseable
+        """
+        if "-S" not in codigo_portaobjetos:
+            return 0
+        suffix = codigo_portaobjetos.rsplit("-S", 1)[-1]
+        try:
+            return int(suffix)
+        except ValueError:
+            return 0
+
+    @classmethod
+    def sort_for_display(cls, slides):
+        """Sort slides by numeric suffix (S1, S2, … S10), not lexicographically."""
+        return sorted(
+            slides,
+            key=lambda slide: (
+                cls.sequence_number_from_code(slide.codigo_portaobjetos),
+                slide.pk,
+            ),
+        )
 
     ADVANCE_LABELS = {
         "listo": _("Marcar listo"),

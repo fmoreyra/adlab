@@ -100,7 +100,7 @@
             {% for log in recent_logs %}
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap">
-                <a href="{% url 'protocols:processing_status' log.protocol.pk %}" 
+                <a href="{% url 'protocols:protocol_detail' log.protocol.pk %}#procesamiento-lab" 
                    class="text-purple-600 hover:text-purple-800 font-medium">
                   {{ log.protocol.protocol_number|default:log.protocol.temporary_code }}
                 </a>

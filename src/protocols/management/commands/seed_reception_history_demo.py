@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
 from accounts.models import Veterinarian
+from accounts.test_helpers import ensure_veterinarian_profile_complete
 from protocols.models import (
     CytologySample,
     HistopathologySample,
@@ -171,4 +172,4 @@ class Command(BaseCommand):
                 "email": "demo.vet@adlab.local",
             },
         )
-        return vet
+        return ensure_veterinarian_profile_complete(vet)

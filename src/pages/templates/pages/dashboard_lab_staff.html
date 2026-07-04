@@ -120,9 +120,15 @@
                                             {% else %}bg-gray-100 text-gray-800{% endif %}">
                                             {{ protocol.get_status_display }}
                                         </span>
-                                        <a href="{% url 'protocols:processing_status' protocol.pk %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                                        {% if protocol.analysis_type == 'histopathology' %}
+                                        <a href="{% url 'protocols:sample_register' protocol.pk %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                                            Registrar
+                                        </a>
+                                        {% else %}
+                                        <a href="{% url 'protocols:protocol_detail' protocol.pk %}#procesamiento-lab" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
                                             Procesar
                                         </a>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
