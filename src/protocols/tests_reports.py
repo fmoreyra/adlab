@@ -128,11 +128,9 @@ class ReportModelTest(TestCase):
         self.assertEqual(self.report.email_status, Report.EmailStatus.SENT)
 
     def test_report_generate_pdf_filename(self):
-        """Test PDF filename generation."""
+        """Test official PDF filename from protocol number."""
         filename = self.report.generate_pdf_filename()
-        self.assertIn("HP_24_001", filename)
-        self.assertIn("v1", filename)
-        self.assertTrue(filename.endswith(".pdf"))
+        self.assertEqual(filename, "HP-24-001.pdf")
 
 
 class CassetteObservationModelTest(TestCase):

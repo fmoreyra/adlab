@@ -3,7 +3,7 @@
 Documento de trabajo para implementar los cambios acordados con la facultad.  
 Los ítems se abordan **en orden de prioridad**; marcar el estado a medida que avancemos.
 
-**Última actualización:** Junio 2026  
+**Última actualización:** Julio 2026  
 **Dominio objetivo:** `patologiavetfcvunl.ar`
 
 ---
@@ -16,6 +16,7 @@ Los ítems se abordan **en orden de prioridad**; marcar el estado a medida que a
 | 🔄 En curso | Trabajo activo |
 | ✅ Hecho | Implementado y verificado |
 | ⏸️ Postergado | Fuera del alcance de esta etapa |
+| 🚫 Deshabilitado | Código de dominio conservado; UI/rutas retiradas |
 
 Para cada ítem, anotar en **Notas / PR** el branch, PR o commit cuando corresponda.
 
@@ -41,13 +42,17 @@ Prioridad operativa: calidad de datos en origen y experiencia móvil.
 
 ### 1.2 Optimización de notificaciones (móvil)
 
-- **Estado:** ✅ Hecho (Jun 2026)
+- **Estado:** ✅ Hecho (Jun 2026; pulido Jul 2026)
 - **Objetivo:** Corregir demora y redirección interna al abrir una notificación desde el celular.
 - **Implementado:**
   - Login con `?next=` en vista pública de protocolo
   - `AuthenticationService` respeta `next` seguro post-login
   - `link_url` como path relativo + migración de URLs legacy
   - Vista `/notifications/<id>/go/` (marca leída + redirect) en bandeja y campana
+- **Pulido posterior (Jul 2026):**
+  - Middleware de perfil incompleto **no interfiere** con rutas `/api/` (evitaba HTML en respuestas JSON y rompía la campana / DJDT)
+  - APIs de notificaciones devuelven **401 JSON** si no hay sesión
+  - Dropdown del navbar: **últimas 5** + enlace a **Central de notificaciones**
 - **Diagnóstico:** [NOTIFICATION_DIAGNOSTIC_RESULTS.md](NOTIFICATION_DIAGNOSTIC_RESULTS.md)
 - **Notas / PR:**
 
@@ -57,6 +62,49 @@ Prioridad operativa: calidad de datos en origen y experiencia móvil.
 - **Objetivo:** Etiqueta **"Punción (PAAF)"** visible en el select de técnica de citología.
 - **Implementado:** Choice renombrado, aliases legacy en formularios, migración `0020`.
 - **Notas / PR:**
+
+### 1.4 Timeline simplificado para el veterinario + recorte de emails
+
+- **Estado:** ✅ Hecho (Jul 2026)
+- **Objetivo:** El veterinario no ve hitos internos del lab; solo el progreso que le importa hasta el informe. Menos emails en el camino feliz.
+- **Principio:** el modelo `Protocol.Status` **no cambia**. Solo cambia la **presentación** y los canales hacia el veterinario.
+
+#### Estados visibles para el veterinario
+
+| Estado interno | Etiqueta veterinario |
+|----------------|----------------------|
+| `draft` | Borrador |
+| `submitted` | Enviado |
+| `received` | Recibido |
+| `processing` / `ready` | **En laboratorio** |
+| `report_sent` | Informe enviado |
+| `rejected` | Rechazado |
+
+#### Implementado
+
+- Badge: `get_veterinarian_status_display` (ya existía).
+- Historial colapsado: `build_veterinarian_status_history` / `build_status_history_for_user` en `protocol_detail_context.py`.
+- Lab staff: historial completo (`build_staff_status_history`).
+- **READY (opción A):** sin email ni in-app al marcar listo para diagnóstico.
+
+#### Recorte de emails (flujo protocolo)
+
+| Momento | Email | In-app |
+|---------|-------|--------|
+| Enviado (`SUBMITTED`) | No | Sí |
+| Recibido (`RECEIVED`) | Sí (discrepancias en el mismo mail si hay) | Sí (body ampliado si hay observaciones) |
+| Rechazado | Sí | Sí |
+| Listo (`READY`) | No | No |
+| Informe disponible | Sí (+ PDF) | Sí |
+| Orden de trabajo | No (UI deshabilitada) | No |
+
+Camino feliz: **2 emails** (recepción + informe). Auth (verificación / reset) sin cambios.
+
+#### Áreas del código
+
+- `protocol_detail_context.py`, `protocol_detail.html`, `views.py` (submit / reception)
+- `protocol_service.py` (sin notify en READY)
+- `emails.py`, `email_service.py`, `sample_reception.html`, `notification_service.py`
 
 ---
 
@@ -91,6 +139,7 @@ Prioridad operativa: reducir fricción con guantes puestos en el banco.
 - POST atómico en `SampleRegistrationView` (`/processing/register/<pk>/`).
 
 - **Implementado:** `sample_register.html`, redirects desde `cassette_create` / `slide_register`, navegación unificada (**Registrar muestra**).
+- **Pulido (Jul 2026):** códigos preview (`HP 26/006-C1`), orden numérico de slides, seeds demo, docs de lab staff.
 - **Notas / PR:** Ver [PLAN_PUNTO_2_LAB_HP.md](PLAN_PUNTO_2_LAB_HP.md).
 
 ---
@@ -99,35 +148,39 @@ Prioridad operativa: reducir fricción con guantes puestos en el banco.
 
 Prioridad operativa: entregables institucionales listos para uso oficial.
 
+> **Nota de alcance (Jul 2026):** el formato institucional del PDF (**3.1**) queda **bloqueado** hasta que la facultad entregue logos y especificación tipográfica. Los ítems **3.2** y **3.3** se implementan de forma independiente.
+
 ### 3.1 Formato y encabezado del PDF
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ⏸️ Postergado (espera assets/formato de la facultad)
 - **Objetivo:** Reemplazar diseño provisorio por formato legal e institucional definitivo.
 - **Alcance:**
   - Incorporar logos nuevos y limpios de la facultad.
   - Ajustar tipografía, márgenes, encabezado y pie de página según normativa institucional.
 - **Áreas probables del código:** `services/pdf_service.py`, assets estáticos (logos), plantillas ReportLab.
-- **Notas / PR:**
+- **Notas / PR:** No iniciar hasta recibir material oficial.
 
 ### 3.2 Automatización del nombre del archivo PDF
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Hecho (Jul 2026)
 - **Objetivo:** Al descargar o guardar el informe final, usar nomenclatura oficial.
-- **Ejemplo:** `HP-[Código-de-protocolo]` (confirmar formato exacto con facultad).
-- **Alcance:**
-  - Header `Content-Disposition` en descarga.
-  - Nombre de archivo en adjuntos de correo, si aplica.
-- **Áreas probables del código:** vistas de descarga de reportes, `pdf_service.py`, tareas de email.
-- **Notas / PR:**
+- **Formato acordado (provisorio hasta confirmación facultad):** `HP-YY-NNN.pdf` a partir de `protocol_number` (ej. `HP 26/006` → `HP-26-006.pdf`).
+- **Implementado:**
+  - `Report.generate_pdf_filename()` → `HP-26-006.pdf`
+  - Descarga (`ReportPDFView`) y persistencia en storage usan el mismo nombre
+- **Áreas del código:** `protocols/models.py`, `views_reports.py`, `pdf_service.py`
+- **Notas / PR:** Confirmar con facultad si el formato exacto difiere.
 
 ### 3.3 Corrección en la carga de imágenes (galería macro/micro)
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Hecho (Jul 2026)
 - **Objetivo:** Solucionar demora o falla al adjuntar fotos macro y micro con referencias al final del informe.
-- **Alcance:**
-  - Diagnosticar timeout, procesamiento síncrono o límites de tamaño.
-  - Verificar upload, almacenamiento y render en PDF.
-- **Áreas probables del código:** `ReportImage`, vistas de informe, `pdf_service.py`, configuración de media/static.
+- **Implementado:**
+  - Embebido en PDF vía PIL (JPEG; soporta WebP/PNG que ReportLab no maneja nativo)
+  - Downscale de imágenes grandes al embeber (máx. 1600 px)
+  - Validación de payload real de imagen en upload
+  - Borrado de archivos en storage al eliminar del formset
+- **Áreas del código:** `report_image_service.py`, `pdf_service.py`, `forms_reports.py`
 - **Notas / PR:**
 
 ---
@@ -135,6 +188,8 @@ Prioridad operativa: entregables institucionales listos para uso oficial.
 ## 4. Migración al Dominio Final
 
 Prioridad operativa: producción bajo dominio institucional antes de correos y ajustes finales de backend.
+
+> **Confirmado (Jul 2026):** el cambio de dominio sigue previsto y es prioritario una vez cerrados los ítems de informes que no dependen del formato (3.2, 3.3). Requiere DNS y acceso al servidor; no es solo un cambio de código.
 
 ### 4.1 Configuración del entorno de producción
 
@@ -188,38 +243,46 @@ Prioridad operativa: correo institucional operativo con verificación de usuario
 
 ---
 
-## 6. Módulos Postergados (etapas futuras)
-
-Estos ítems quedan **fuera del alcance actual** para concentrar esfuerzo en el circuito médico del protocolo.
+## 6. Módulos deshabilitados / postergados
 
 ### 6.1 Órdenes de Trabajo y Finanzas
 
-- **Estado:** ⏸️ Postergado
-- **Incluye (congelado por ahora):**
+- **Estado:** 🚫 Deshabilitado en UI (Jul 2026) — modelos conservados
+- **Decisión:** La facultad **no usará** órdenes de trabajo en esta etapa. Se retira la funcionalidad de la interfaz y las rutas HTTP; **no se eliminan modelos ni migraciones** (reactivación futura sin pérdida de datos).
+- **Qué se retira:**
+  - Rutas `/workorders/...` (no registradas en `urls.py`)
+  - Enlaces en dashboards (lab staff y veterinario)
+  - Acciones en detalle de protocolo (“Ver orden…”, “Agregar a orden…”)
+  - Opción “Incluir orden de trabajo” al enviar informe
+- **Qué se conserva:**
+  - Modelos `WorkOrder`, `WorkOrderService`, `WorkOrderCounter`, `PricingCatalog`
+  - Servicios, formularios y vistas en código (`views_workorder.py`, etc.) para reactivación
+  - Tests de modelo/servicio (no de vistas HTTP)
+  - Admin de Django (acceso técnico interno)
+- **No se usa** feature flag por env var: deshabilitación simple por ausencia de URLs y de enlaces en plantillas.
+- **Incluye (congelado para el futuro):**
   - Gestión de aranceles
   - Cálculo automático según cantidad de piezas/materiales
   - Saldos pendientes
   - Emisión de resúmenes de cuenta
-- **Notas:** El código base (Step 07) permanece; no se prioriza UI ni reglas de negocio nuevas hasta completar ítems 1–5.
+- **Notas / PR:**
 
 ---
 
 ## Orden sugerido de implementación
 
 ```
-1 → 2 → 3 → 4 → 5 → (6 cuando la facultad lo solicite)
+1 ✅ → 2 ✅ → 3.2 + 3.3 → 4 → 5 → (3.1 cuando haya formato) → (6.1 reactivar si la facultad lo pide)
 ```
-
-Dentro de cada bloque, el orden puede ajustarse según dependencias técnicas descubiertas en desarrollo.
 
 | # | Bloque | Ítems | Dependencias clave |
 |---|--------|-------|-------------------|
-| 1 | Veterinario / datos | 1.1, 1.2, 1.3 | Ninguna crítica |
-| 2 | Laboratorio HP | 2.1 ✅, 2.2 ✅ | Implementado Jun 2026 — ver PLAN_PUNTO_2_LAB_HP.md |
-| 3 | Informes / PDF | 3.1, 3.2, 3.3 | Assets de logos (3.1) antes de producción formal |
+| 1 | Veterinario / datos | 1.1–1.3 ✅, 1.4 menor | Ninguna crítica |
+| 2 | Laboratorio HP | 2.1 ✅, 2.2 ✅ | Implementado Jun–Jul 2026 |
+| 3 | Informes / PDF | 3.2, 3.3 activos; **3.1 postergado** | Logos/formato facultad solo para 3.1 |
 | 4 | Dominio / SSL | 4.1, 4.2 | Servidor y DNS listos |
 | 5 | Correo / auth | 5.1, 5.2 | Dominio (4) recomendado para links en emails |
-| 6 | Finanzas | — | Postergado |
+| 6 | Finanzas / OT | 6.1 🚫 UI off | Modelos intactos |
 
 ---
 
@@ -230,6 +293,10 @@ Usar esta sección para anotar qué ítem se tomó en cada sesión.
 | Fecha | Ítem | Resultado |
 |-------|------|-----------|
 | Jun 2026 | 2.1, 2.2 | Rediseño Lab HP: etapas colapsadas + registro unificado |
+| Jun–Jul 2026 | 1.2 (pulido) | Fix campana/API JSON (middleware perfil incompleto); dropdown últimas 5 + central |
+| Jul 2026 | Roadmap | Documentar dominio (4), deshabilitar OT (6.1), informes sin formato (3.2–3.3; 3.1 espera facultad) |
+| Jul 2026 | 3.2, 3.3, 6.1 | Implementación: nombre PDF, galería imágenes, retiro UI de órdenes de trabajo |
+| Jul 2026 | 1.4 | Timeline vet “En laboratorio”; recorte emails (READY off, submit in-app only, discrepancias en recepción) |
 
 ---
 

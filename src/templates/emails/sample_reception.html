@@ -50,8 +50,20 @@
             <p style="margin: 10px 0 0 0;">{{ protocol.reception_notes }}</p>
         </div>
         {% endif %}
+
+        {% if discrepancies %}
+        <div style="background-color: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0;"><strong>Observaciones en la recepción:</strong></p>
+            <p style="margin: 10px 0 0 0;">{{ discrepancies }}</p>
+            {% if sample_condition %}
+            <p style="margin: 10px 0 0 0; font-size: 14px; color: #92400e;">
+                Condición registrada: {{ sample_condition }}
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
         
-        <p>La muestra está siendo procesada por nuestro laboratorio. Le notificaremos cuando el informe esté listo.</p>
+        <p>La muestra está en el laboratorio. Le notificaremos cuando el informe esté listo.</p>
         
         <div style="text-align: center; margin: 30px 0;">
             <a href="{{ protocol_url }}" 

@@ -9,6 +9,7 @@ import secrets
 from django.conf import settings
 from django.urls import reverse
 
+from config.email_utils import apply_recipient_override
 from protocols.models import EmailLog, NotificationPreference
 from protocols.tasks import send_email
 
@@ -106,14 +107,18 @@ def queue_email(
     Returns:
         EmailLog: Created email log instance
     """
+    delivery_email, delivery_subject = apply_recipient_override(
+        recipient_email, subject
+    )
+
     # Placeholder must be unique (celery_task_id is unique); replaced after dispatch.
     pending_task_id = f"pending-{secrets.token_urlsafe(32)}"
 
     email_log = EmailLog.objects.create(
         email_type=email_type,
-        recipient_email=recipient_email,
+        recipient_email=delivery_email,
         recipient=veterinarian,
-        subject=subject,
+        subject=delivery_subject,
         protocol=protocol,
         work_order=work_order,
         celery_task_id=pending_task_id,
@@ -127,8 +132,8 @@ def queue_email(
     # Dispatch Celery task
     task = send_email.delay(
         email_type=email_type,
-        recipient_email=recipient_email,
-        subject=subject,
+        recipient_email=delivery_email,
+        subject=delivery_subject,
         context=serialized_context,
         template_name=template_name,
         attachment_path=attachment_path,
@@ -138,11 +143,59 @@ def queue_email(
     email_log.celery_task_id = task.id
     email_log.save(update_fields=["celery_task_id"])
 
-    logger.info(
-        f"Email queued: {email_type} to {recipient_email} (task: {task.id})"
-    )
+    if delivery_email != recipient_email:
+        logger.info(
+            "Email queued with recipient override: %s (intended %s) "
+            "type=%s task=%s",
+            delivery_email,
+            recipient_email,
+            email_type,
+            task.id,
+        )
+    else:
+        logger.info(
+            f"Email queued: {email_type} to {delivery_email} (task: {task.id})"
+        )
 
     return email_log
+
+
+def prepare_outbound_email(intended_email, subject):
+    """
+    Resolve delivery address and subject (applies EMAIL_RECIPIENT_OVERRIDE).
+
+    Args:
+        intended_email: Logical recipient
+        subject: Original subject
+
+    Returns:
+        tuple[str, str]: (delivery_email, delivery_subject)
+    """
+    return apply_recipient_override(intended_email, subject)
+
+
+def record_sent_email(email_type, delivery_email, subject):
+    """
+    Record a successfully sent synchronous email in EmailLog.
+
+    Args:
+        email_type: EmailLog.EmailType choice
+        delivery_email: Address actually used for delivery
+        subject: Subject actually sent
+
+    Returns:
+        EmailLog: Created log row
+    """
+    from django.utils import timezone
+
+    return EmailLog.objects.create(
+        email_type=email_type,
+        recipient_email=delivery_email,
+        subject=subject,
+        celery_task_id=f"sync-{secrets.token_urlsafe(24)}",
+        status=EmailLog.Status.SENT,
+        sent_at=timezone.now(),
+    )
 
 
 def send_verification_email(user, verification_url):
@@ -191,12 +244,16 @@ def send_password_reset_email(user, reset_url, expiry_hours=1):
     )
 
 
-def send_sample_reception_notification(protocol):
+def send_sample_reception_notification(protocol, discrepancies=""):
     """
     Send sample reception notification to veterinarian.
 
+    Discrepancies (if any) are included in the same email so the veterinarian
+    receives a single reception notice.
+
     Args:
         protocol: Protocol instance
+        discrepancies: Optional discrepancy notes from reception
 
     Returns:
         EmailLog or None: Created email log instance, or None if not sent
@@ -214,15 +271,28 @@ def send_sample_reception_notification(protocol):
         return None
 
     recipient_email = prefs.get_recipient_email()
+    discrepancies = (discrepancies or "").strip()
+    subject = f"Muestra recibida - Protocolo {protocol.protocol_number}"
+    if discrepancies:
+        subject = (
+            f"Muestra recibida con observaciones - "
+            f"Protocolo {protocol.protocol_number}"
+        )
 
     return queue_email(
         email_type=EmailLog.EmailType.SAMPLE_RECEPTION,
         recipient_email=recipient_email,
-        subject=f"Muestra recibida - Protocolo {protocol.protocol_number}",
+        subject=subject,
         context={
             "protocol": protocol,
             "veterinarian": veterinarian,
             "protocol_url": build_protocol_url(protocol),
+            "discrepancies": discrepancies,
+            "sample_condition": (
+                protocol.get_sample_condition_display()
+                if protocol.sample_condition
+                else ""
+            ),
         },
         protocol=protocol,
         veterinarian=veterinarian,

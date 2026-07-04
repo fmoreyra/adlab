@@ -68,14 +68,8 @@
       Procesamiento técnico finalizado
     </h2>
     <p class="text-sm text-green-800 mb-4">
-      La muestra está lista para diagnóstico. Use el bloque de informe arriba o gestione la orden de trabajo.
+      La muestra está lista para diagnóstico. Use el bloque de informe arriba para continuar.
     </p>
-    {% if user.is_staff %}
-    <a href="{% url 'protocols:workorder_pending_protocols' %}"
-       class="inline-flex items-center px-4 py-2 border border-green-700 text-green-800 text-sm font-medium rounded-md hover:bg-green-100">
-      Órdenes de trabajo
-    </a>
-    {% endif %}
   </div>
   {% elif protocol.status != 'rejected' and protocol.status != 'report_sent' %}
   <div class="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6">

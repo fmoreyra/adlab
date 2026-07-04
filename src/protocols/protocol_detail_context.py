@@ -2,13 +2,14 @@
 Shared context builders for protocol detail templates.
 """
 
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
+
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from accounts.mixins import (
-    user_can_access_work_order,
-    user_can_view_protocol_processing,
-)
+from accounts.mixins import user_can_view_protocol_processing
 from accounts.models import Veterinarian
 from accounts.report_access import (
     get_report_signature_redirect_url,
@@ -25,6 +26,130 @@ _PROCESSING_ACTIVE_STATUSES = frozenset(
         Protocol.Status.READY,
     }
 )
+
+_LAB_STATUSES_FOR_VET = frozenset(
+    {
+        Protocol.Status.PROCESSING,
+        Protocol.Status.READY,
+    }
+)
+
+
+@dataclass
+class StatusHistoryDisplay:
+    """Presentation row for the protocol status timeline."""
+
+    status: str
+    label: str
+    changed_at: datetime
+    description: str = ""
+    changed_by: Optional[object] = None
+
+
+def build_veterinarian_status_history(protocol) -> list[StatusHistoryDisplay]:
+    """
+    Collapse internal lab milestones for veterinarian-facing timeline.
+
+    ``processing`` and ``ready`` become a single ``En laboratorio`` entry
+    (timestamp of the first lab milestone). Internal descriptions and staff
+    authors are omitted for that row.
+
+    Args:
+        protocol: Protocol instance with status_history relation
+
+    Returns:
+        list[StatusHistoryDisplay]: Newest-first timeline rows
+    """
+    entries = list(
+        protocol.status_history.all()
+        .select_related("changed_by")
+        .order_by("changed_at")
+    )
+    result: list[StatusHistoryDisplay] = []
+    lab_entry_added = False
+
+    for entry in entries:
+        if entry.status in _LAB_STATUSES_FOR_VET:
+            if lab_entry_added:
+                continue
+            result.append(
+                StatusHistoryDisplay(
+                    status=Protocol.Status.PROCESSING,
+                    label=str(_("En laboratorio")),
+                    changed_at=entry.changed_at,
+                    description="",
+                    changed_by=None,
+                )
+            )
+            lab_entry_added = True
+            continue
+
+        result.append(
+            StatusHistoryDisplay(
+                status=entry.status,
+                label=str(
+                    dict(Protocol.Status.choices).get(
+                        entry.status, entry.status
+                    )
+                ),
+                changed_at=entry.changed_at,
+                description=entry.description or "",
+                changed_by=entry.changed_by,
+            )
+        )
+
+    result.reverse()
+    return result
+
+
+def build_staff_status_history(protocol) -> list[StatusHistoryDisplay]:
+    """
+    Full status timeline for laboratory staff and admins.
+
+    Args:
+        protocol: Protocol instance with status_history relation
+
+    Returns:
+        list[StatusHistoryDisplay]: Newest-first timeline rows
+    """
+    entries = (
+        protocol.status_history.all()
+        .select_related("changed_by")
+        .order_by("-changed_at")
+    )
+    return [
+        StatusHistoryDisplay(
+            status=entry.status,
+            label=entry.get_status_display(),
+            changed_at=entry.changed_at,
+            description=entry.description or "",
+            changed_by=entry.changed_by,
+        )
+        for entry in entries
+    ]
+
+
+def build_status_history_for_user(
+    user, protocol
+) -> list[StatusHistoryDisplay]:
+    """
+    Return the status timeline appropriate for the viewing user.
+
+    Args:
+        user: Authenticated user
+        protocol: Protocol instance
+
+    Returns:
+        list[StatusHistoryDisplay]: Newest-first timeline rows
+    """
+    is_vet_owner = (
+        user.is_authenticated
+        and user.is_veterinarian
+        and _user_owns_protocol(user, protocol)
+    )
+    if is_vet_owner:
+        return build_veterinarian_status_history(protocol)
+    return build_staff_status_history(protocol)
 
 
 def build_sample_registration_context(protocol):
@@ -347,18 +472,6 @@ def build_protocol_detail_action_context(user, protocol, request=None):
         back_url = reverse("home")
         back_label = _("← Volver")
 
-    related_work_order = getattr(protocol, "work_order", None)
-    if related_work_order is None:
-        try:
-            related_work_order = protocol.work_order
-        except Exception:
-            related_work_order = None
-
-    can_view_related_work_order = (
-        related_work_order is not None
-        and user_can_access_work_order(user, related_work_order)
-    )
-
     can_view_protocol_processing = user_can_view_protocol_processing(
         user, protocol
     )
@@ -413,12 +526,6 @@ def build_protocol_detail_action_context(user, protocol, request=None):
         or protocol.status == Protocol.Status.REJECTED
     )
     can_print_reception_label = is_lab_staff and bool(protocol.protocol_number)
-    can_add_to_work_order = (
-        is_lab_staff
-        and user.is_staff
-        and protocol.status == Protocol.Status.READY
-        and related_work_order is None
-    )
 
     public_detail_url = None
     if request is not None:
@@ -432,8 +539,6 @@ def build_protocol_detail_action_context(user, protocol, request=None):
     return {
         "back_url": back_url,
         "back_label": back_label,
-        "related_work_order": related_work_order,
-        "can_view_related_work_order": can_view_related_work_order,
         "can_view_protocol_processing": can_view_protocol_processing,
         "latest_report": latest_report,
         "can_view_report_detail": can_view_report_detail,
@@ -450,7 +555,6 @@ def build_protocol_detail_action_context(user, protocol, request=None):
         "can_resubmit_protocol": can_resubmit_protocol,
         "can_view_reception_detail": can_view_reception_detail,
         "can_print_reception_label": can_print_reception_label,
-        "can_add_to_work_order": can_add_to_work_order,
         "public_detail_url": public_detail_url,
         "hide_veterinarian_card": is_veterinarian and owns_protocol,
         "is_protocol_owner": owns_protocol,

@@ -586,7 +586,7 @@ class ReportPDFView(View):
             messages.error(request, str(exc))
             return redirect("protocols:report_detail", pk=report.pk)
 
-        filename = f"informe_{report.protocol.protocol_number}.pdf"
+        filename = report.generate_pdf_filename()
         return FileResponse(
             pdf_buffer,
             as_attachment=True,

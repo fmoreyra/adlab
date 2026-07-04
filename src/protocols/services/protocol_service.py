@@ -791,7 +791,8 @@ class ProtocolProcessingService:
                 ),
             )
 
-            self._notify_protocol_ready(protocol)
+            # Veterinarians see READY as "En laboratorio" (same as PROCESSING).
+            # Do not email or push in-app on this internal milestone (roadmap 1.4).
             return True, ""
 
         except Exception as e:
@@ -820,39 +821,3 @@ class ProtocolProcessingService:
             if slide.estado == Slide.Status.LISTO:
                 continue
             self.update_slide_stage(slide, "advance", user)
-
-    def _notify_protocol_ready(self, protocol: Protocol) -> None:
-        """Queue email and in-app notification when protocol becomes READY."""
-        from protocols.emails import queue_email
-        from protocols.models import EmailLog
-        from protocols.services.notification_service import (
-            NotificationService,
-        )
-
-        try:
-            queue_email(
-                email_type=EmailLog.EmailType.CUSTOM,
-                recipient_email=protocol.veterinarian.email,
-                subject=(
-                    "Muestra lista para diagnóstico - Protocolo "
-                    f"{protocol.protocol_number}"
-                ),
-                context={
-                    "protocol": protocol,
-                    "veterinarian": protocol.veterinarian,
-                },
-                template_name="emails/protocol_ready.html",
-                protocol=protocol,
-                veterinarian=protocol.veterinarian,
-            )
-        except Exception as e:
-            logger.error(
-                f"Failed to queue ready email for protocol {protocol.pk}: {e}"
-            )
-
-        try:
-            NotificationService().create_for_ready(protocol)
-        except Exception as e:
-            logger.error(
-                f"Failed to create in-app notification for protocol {protocol.pk}: {e}"
-            )

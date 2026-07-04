@@ -78,21 +78,9 @@
                 </a>
             {% endif %}
 
-            {% if can_view_related_work_order and related_work_order %}
-                <a href="{% url 'protocols:workorder_detail' related_work_order.pk %}"
-                   class="block w-full px-4 py-2 text-center bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                    Ver orden de trabajo ({{ related_work_order.order_number }})
-                </a>
-            {% endif %}
-
             <a href="{% url 'protocols:my_reports' %}"
                class="block w-full px-4 py-2 text-center border border-purple-300 text-purple-800 rounded-md hover:bg-purple-100">
                 Mis informes
-            </a>
-
-            <a href="{% url 'protocols:my_workorders' %}"
-               class="block w-full px-4 py-2 text-center border border-purple-300 text-purple-800 rounded-md hover:bg-purple-100">
-                Mis órdenes de trabajo
             </a>
 
             {% if public_detail_url %}
@@ -210,20 +198,6 @@
                 <a href="{% url 'protocols:protocol_report_images' protocol.pk %}"
                    class="block w-full px-4 py-2 text-center border border-indigo-500 text-indigo-800 rounded-md hover:bg-indigo-50">
                     Imágenes microscópicas ({{ report_image_count }})
-                </a>
-            {% endif %}
-
-            {% if can_add_to_work_order %}
-                <a href="{% url 'protocols:workorder_pending_protocols' %}"
-                   class="block w-full px-4 py-2 text-center border border-green-700 text-green-800 rounded-md hover:bg-green-100">
-                    Agregar a orden de trabajo
-                </a>
-            {% endif %}
-
-            {% if can_view_related_work_order and related_work_order %}
-                <a href="{% url 'protocols:workorder_detail' related_work_order.pk %}"
-                   class="block w-full px-4 py-2 text-center bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                    Ver orden de trabajo ({{ related_work_order.order_number }})
                 </a>
             {% endif %}
 

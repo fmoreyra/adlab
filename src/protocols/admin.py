@@ -1689,6 +1689,7 @@ class ProcessingLogAdmin(admin.ModelAdmin):
 class EmailLogAdmin(admin.ModelAdmin):
     """Admin for email logs."""
 
+    change_list_template = "admin/protocols/emaillog/change_list.html"
     list_display = [
         "id",
         "email_type",
@@ -1767,6 +1768,50 @@ class EmailLogAdmin(admin.ModelAdmin):
     )
     date_hierarchy = "created_at"
     ordering = ["-created_at"]
+
+    def changelist_view(self, request, extra_context=None):
+        """Add daily send quota metrics to the changelist."""
+        from datetime import datetime
+
+        from django.conf import settings
+        from django.contrib import messages
+        from django.utils import timezone
+
+        from config.email_utils import build_email_quota_metrics
+
+        extra_context = extra_context or {}
+        metric_date = timezone.localdate()
+        date_param = request.GET.get("metric_date", "").strip()
+        if date_param:
+            try:
+                metric_date = datetime.strptime(date_param, "%Y-%m-%d").date()
+            except ValueError:
+                messages.warning(
+                    request,
+                    _("Fecha inválida; se muestra el día de hoy."),
+                )
+
+        quota_metrics = build_email_quota_metrics(metric_date)
+        rolling = quota_metrics["rolling_24h"]
+        calendar = quota_metrics["calendar"]
+        usage_pct = 0
+        if rolling["limit"]:
+            usage_pct = min(
+                100, round(100 * rolling["sent"] / rolling["limit"])
+            )
+
+        extra_context.update(
+            {
+                "email_quota_metrics": quota_metrics,
+                "email_metrics": rolling,
+                "email_metrics_calendar": calendar,
+                "email_metrics_usage_pct": usage_pct,
+                "email_recipient_override": getattr(
+                    settings, "EMAIL_RECIPIENT_OVERRIDE", ""
+                ),
+            }
+        )
+        return super().changelist_view(request, extra_context=extra_context)
 
     def has_add_permission(self, request):
         """Email logs are created programmatically."""

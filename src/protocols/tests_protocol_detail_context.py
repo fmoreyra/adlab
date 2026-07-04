@@ -7,10 +7,18 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from accounts.models import LaboratoryStaff, Veterinarian
-from protocols.models import Protocol, Report, ReportImage
+from protocols.models import (
+    Protocol,
+    ProtocolStatusHistory,
+    Report,
+    ReportImage,
+)
 from protocols.protocol_detail_context import (
     build_protocol_detail_action_context,
     build_protocol_report_action_context,
+    build_staff_status_history,
+    build_status_history_for_user,
+    build_veterinarian_status_history,
 )
 
 User = get_user_model()
@@ -204,3 +212,102 @@ class BuildProtocolDetailActionContextTest(TestCase):
 
         self.assertFalse(context["can_view_report_images"])
         self.assertEqual(len(context["report_images_preview"]), 0)
+
+
+class VeterinarianStatusHistoryTest(TestCase):
+    """Tests for veterinarian-facing collapsed status timeline."""
+
+    def setUp(self):
+        """Create protocol with full lab status history."""
+        self.staff_user = User.objects.create_user(
+            email="staff-hist@example.com",
+            username="staffhist",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+            email_verified=True,
+            is_staff=True,
+        )
+        self.vet_user = User.objects.create_user(
+            email="vet-hist@example.com",
+            username="vethist",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+            email_verified=True,
+        )
+        self.veterinarian = Veterinarian.objects.create(
+            user=self.vet_user,
+            first_name="Ana",
+            last_name="García",
+            license_number="MP-HIST",
+            email="vet-hist@example.com",
+        )
+        self.protocol = Protocol.objects.create(
+            veterinarian=self.veterinarian,
+            species="Canino",
+            animal_identification="Luna",
+            presumptive_diagnosis="Masa",
+            submission_date=date.today(),
+            analysis_type=Protocol.AnalysisType.HISTOPATHOLOGY,
+            status=Protocol.Status.READY,
+            protocol_number="HP 26/099",
+        )
+        ProtocolStatusHistory.log_status_change(
+            self.protocol,
+            Protocol.Status.SUBMITTED,
+            changed_by=self.vet_user,
+            description="Enviado",
+        )
+        ProtocolStatusHistory.log_status_change(
+            self.protocol,
+            Protocol.Status.RECEIVED,
+            changed_by=self.staff_user,
+            description="Recibido en lab",
+        )
+        ProtocolStatusHistory.log_status_change(
+            self.protocol,
+            Protocol.Status.PROCESSING,
+            changed_by=self.staff_user,
+            description="Inicio procesamiento",
+        )
+        ProtocolStatusHistory.log_status_change(
+            self.protocol,
+            Protocol.Status.READY,
+            changed_by=self.staff_user,
+            description="Muestra lista para diagnóstico",
+        )
+
+    def test_veterinarian_history_collapses_lab_milestones(self):
+        """Processing and ready become a single En laboratorio row."""
+        history = build_veterinarian_status_history(self.protocol)
+        labels = [row.label for row in history]
+
+        self.assertEqual(labels.count("En laboratorio"), 1)
+        self.assertNotIn("En procesamiento", labels)
+        self.assertNotIn("Listo", labels)
+        self.assertIn("Enviado", labels)
+        self.assertIn("Recibido", labels)
+
+        lab_row = next(row for row in history if row.label == "En laboratorio")
+        self.assertEqual(lab_row.description, "")
+        self.assertIsNone(lab_row.changed_by)
+
+    def test_staff_history_keeps_internal_milestones(self):
+        """Lab staff still see processing and ready separately."""
+        history = build_staff_status_history(self.protocol)
+        labels = [row.label for row in history]
+
+        self.assertIn("En procesamiento", labels)
+        self.assertIn("Listo", labels)
+        self.assertGreaterEqual(len(history), 4)
+
+    def test_status_history_for_user_routes_by_role(self):
+        """Owner gets collapsed history; staff gets full history."""
+        vet_history = build_status_history_for_user(
+            self.vet_user, self.protocol
+        )
+        staff_history = build_status_history_for_user(
+            self.staff_user, self.protocol
+        )
+
+        self.assertEqual(len(vet_history), 3)
+        self.assertEqual(len(staff_history), 4)

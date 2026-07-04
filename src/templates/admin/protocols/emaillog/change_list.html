@@ -1,0 +1,95 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block content_title %}
+    {{ block.super }}
+{% endblock %}
+
+{% block result_list %}
+<div class="module" style="margin-bottom: 20px; padding: 16px 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+    <h2 style="margin-top: 0; font-size: 1.1rem;">Presupuesto de envío de emails</h2>
+    <p style="margin: 0 0 12px; color: #475569; font-size: 13px;">
+        Contador interno según <code>EmailLog</code> (cola Celery y auth síncrono).
+        El límite mostrado (<code>EMAIL_DAILY_LIMIT</code>, por defecto 500) es un
+        <strong>presupuesto configurable</strong>, no la cuota exacta de Google.
+        Gmail personal documenta ~500 envíos/día; vía SMTP el techo efectivo puede ser
+        menor y Google aplica una <strong>ventana rolling de 24 horas</strong>, no día
+        calendario.
+        <a href="https://support.google.com/mail/answer/22839" target="_blank" rel="noopener">
+            Límites oficiales de Gmail
+        </a>.
+    </p>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center; margin-bottom: 20px;">
+        <div>
+            <div style="font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px;">
+                Últimas 24 horas (aprox. cuota Gmail)
+            </div>
+            <div style="font-size: 2rem; font-weight: 700; line-height: 1.1;
+                        {% if email_metrics_usage_pct >= 90 %}color: #b91c1c;
+                        {% elif email_metrics_usage_pct >= 70 %}color: #c2410c;
+                        {% else %}color: #0f766e;{% endif %}">
+                {{ email_metrics.sent }} / {{ email_metrics.limit }}
+            </div>
+            <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                Quedan {{ email_metrics.remaining }}
+                {% if email_metrics.failed %} · fallidos: {{ email_metrics.failed }}{% endif %}
+                {% if email_metrics.queued %} · en cola: {{ email_metrics.queued }}{% endif %}
+                {% if email_metrics.quota_failures %}
+                    · <strong style="color: #b91c1c;">cuota SMTP: {{ email_metrics.quota_failures }}</strong>
+                {% endif %}
+            </div>
+        </div>
+        <div style="flex: 1; min-width: 200px; max-width: 360px;">
+            <div style="height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                <div style="height: 100%; width: {{ email_metrics_usage_pct }}%;
+                            background: {% if email_metrics_usage_pct >= 90 %}#ef4444{% elif email_metrics_usage_pct >= 70 %}#f97316{% else %}#14b8a6{% endif %};">
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 6px;">
+                Uso rolling 24h: {{ email_metrics_usage_pct }}%
+            </div>
+        </div>
+    </div>
+
+    <form method="get" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 12px;">
+        <div>
+            <label for="id_metric_date" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">
+                Día calendario (histórico)
+            </label>
+            <input type="date"
+                   id="id_metric_date"
+                   name="metric_date"
+                   value="{{ email_metrics_calendar.day|date:'Y-m-d' }}"
+                   style="padding: 6px 8px;">
+        </div>
+        <button type="submit" class="button" style="padding: 8px 14px;">
+            Ver día
+        </button>
+        {% if email_recipient_override %}
+        <p style="margin: 0; font-size: 12px; color: #b45309; align-self: center;">
+            Override activo: todos los envíos van a
+            <strong>{{ email_recipient_override }}</strong>
+            (<code>EMAIL_RECIPIENT_OVERRIDE</code>).
+        </p>
+        {% endif %}
+    </form>
+
+    <div style="font-size: 13px; color: #64748b;">
+        Enviados el {{ email_metrics_calendar.day|date:"d/m/Y" }}:
+        <strong>{{ email_metrics_calendar.sent }}</strong> / {{ email_metrics_calendar.limit }}
+        (quedan {{ email_metrics_calendar.remaining }})
+        {% if email_metrics_calendar.failed %} · fallidos: {{ email_metrics_calendar.failed }}{% endif %}
+        {% if email_metrics_calendar.queued %} · en cola: {{ email_metrics_calendar.queued }}{% endif %}
+    </div>
+
+    {% if email_metrics.quota_failures %}
+    <p style="margin: 12px 0 0; font-size: 12px; color: #b91c1c;">
+        Se detectaron {{ email_metrics.quota_failures }} fallo(s) por cuota SMTP
+        (p. ej. <code>550 5.4.5</code>) en las últimas 24 h. Bajá
+        <code>EMAIL_DAILY_LIMIT</code> o esperá a que se resetee la ventana de Google.
+    </p>
+    {% endif %}
+</div>
+{{ block.super }}
+{% endblock %}

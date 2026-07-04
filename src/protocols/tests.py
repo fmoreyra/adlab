@@ -1,3 +1,4 @@
+import unittest
 import uuid
 from datetime import date
 from decimal import Decimal
@@ -2568,21 +2569,26 @@ class ProcessingViewsTest(TestCase):
 
         self.client.login(email="staff@example.com", password="testpass123")
 
-        with patch(
-            "protocols.services.protocol_service.ProtocolProcessingService._notify_protocol_ready"
-        ):
-            response = self.client.post(
-                reverse(
-                    "protocols:protocol_mark_ready",
-                    kwargs={"pk": self.cytology_protocol.pk},
-                )
+        response = self.client.post(
+            reverse(
+                "protocols:protocol_mark_ready",
+                kwargs={"pk": self.cytology_protocol.pk},
             )
+        )
 
         self.assert_redirects_to_protocol_detail(
             response, self.cytology_protocol
         )
         self.cytology_protocol.refresh_from_db()
         self.assertEqual(self.cytology_protocol.status, Protocol.Status.READY)
+        from protocols.models import InAppNotification
+
+        self.assertFalse(
+            InAppNotification.objects.filter(
+                protocol=self.cytology_protocol,
+                notification_type=InAppNotification.NotificationType.READY,
+            ).exists()
+        )
 
     def test_cassette_processing_history_view(self):
         """Test cassette processing history page."""
@@ -2786,6 +2792,7 @@ class ProcessingViewsTest(TestCase):
 # ============================================================================
 
 
+@unittest.skip("Work order UI disabled (roadmap 6.1)")
 class WorkOrderViewsTest(TestCase):
     """Test cases for work order views (Phase 2.1)."""
 
@@ -6468,7 +6475,7 @@ class ProtocolDetailVeterinarianInfoTest(TestCase):
 
 
 class ProtocolDetailWorkOrderLinkTest(TestCase):
-    """Tests for work order link on protocol detail view."""
+    """Work order UI is disabled; protocol detail must not expose OT links."""
 
     def setUp(self):
         """Set up users, protocol, and linked work order."""
@@ -6479,14 +6486,6 @@ class ProtocolDetailWorkOrderLinkTest(TestCase):
             role=User.Role.PERSONAL_LAB,
             email_verified=True,
             is_staff=True,
-        )
-        self.lab_user_no_staff = User.objects.create_user(
-            email="lab@example.com",
-            username="lab",
-            password="testpass123",
-            role=User.Role.PERSONAL_LAB,
-            email_verified=True,
-            is_staff=False,
         )
         self.vet_user = User.objects.create_user(
             email="vet@example.com",
@@ -6528,44 +6527,22 @@ class ProtocolDetailWorkOrderLinkTest(TestCase):
             "protocols:protocol_detail", kwargs={"pk": self.protocol.pk}
         )
 
-    def test_staff_with_permission_sees_work_order_link(self):
-        """Staff users (is_staff) see link to related work order."""
+    def test_staff_does_not_see_work_order_links(self):
+        """Staff users no longer see work order actions on protocol detail."""
         self.client.login(email="staff@example.com", password="testpass123")
         response = self.client.get(self._detail_url())
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "orden de trabajo")
-        self.assertContains(response, self.work_order.order_number)
-        self.assertContains(
-            response,
-            reverse(
-                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
-            ),
-        )
+        self.assertNotContains(response, "orden de trabajo")
+        self.assertNotContains(response, "Órdenes de trabajo")
+        self.assertNotContains(response, self.work_order.order_number)
 
-    def test_lab_staff_without_is_staff_does_not_see_link(self):
-        """Lab staff without Django is_staff cannot see work order link."""
-        self.client.login(email="lab@example.com", password="testpass123")
-        response = self.client.get(self._detail_url())
-        self.assertEqual(response.status_code, 200)
-        self.assertNotContains(
-            response,
-            reverse(
-                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
-            ),
-        )
-
-    def test_veterinarian_owner_sees_own_work_order_link(self):
-        """Owning veterinarian can open their related work order."""
+    def test_veterinarian_does_not_see_work_order_links(self):
+        """Veterinarians no longer see work order actions on protocol detail."""
         self.client.login(email="vet@example.com", password="testpass123")
         response = self.client.get(self._detail_url())
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Ver orden de trabajo")
-        self.assertContains(
-            response,
-            reverse(
-                "protocols:workorder_detail", kwargs={"pk": self.work_order.pk}
-            ),
-        )
+        self.assertNotContains(response, "orden de trabajo")
+        self.assertNotContains(response, "Mis órdenes de trabajo")
 
     def test_no_link_when_protocol_has_no_work_order(self):
         """No work order link when protocol is not linked to an OT."""

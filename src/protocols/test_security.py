@@ -9,6 +9,7 @@ This module tests:
 5. Authentication and authorization flows
 """
 
+import unittest
 from datetime import date
 from decimal import Decimal
 
@@ -250,6 +251,7 @@ class SecurityTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("protocols:protocol_list"))
 
+    @unittest.skip("Work order UI disabled (roadmap 6.1)")
     def test_veterinarian_cannot_access_other_veterinarian_work_orders(self):
         """Test that veterinarians can only access their own work orders."""
         # Login as vet_user
@@ -267,6 +269,7 @@ class SecurityTest(TestCase):
         if response.status_code == 302:
             self.assertRedirects(response, reverse("protocols:protocol_list"))
 
+    @unittest.skip("Work order UI disabled (roadmap 6.1)")
     def test_veterinarian_can_access_own_work_order(self):
         """Test that veterinarians can open their own work order detail."""
         self.client.login(email="vet@example.com", password="testpass123")
@@ -560,6 +563,7 @@ class SecurityTest(TestCase):
         self.assertIn(self.protocol1.id, protocol_ids)
         self.assertIn(self.protocol2.id, protocol_ids)
 
+    @unittest.skip("Work order UI disabled (roadmap 6.1)")
     def test_work_order_list_shows_only_own_work_orders_for_veterinarians(
         self,
     ):

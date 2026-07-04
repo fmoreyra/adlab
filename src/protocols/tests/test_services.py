@@ -546,12 +546,9 @@ class ProtocolProcessingServiceTest(TestCase):
             codigo_portaobjetos="SLIDE001",
         )
 
-        with patch.object(
-            self.service, "_notify_protocol_ready"
-        ) as mock_notify:
-            success, error = self.service.mark_ready_for_diagnosis(
-                self.protocol, self.user
-            )
+        success, error = self.service.mark_ready_for_diagnosis(
+            self.protocol, self.user
+        )
 
         self.assertTrue(success)
         self.assertEqual(error, "")
@@ -561,7 +558,15 @@ class ProtocolProcessingServiceTest(TestCase):
         slide.refresh_from_db()
         self.assertEqual(cassette.estado, Cassette.Status.COMPLETADO)
         self.assertEqual(slide.estado, Slide.Status.LISTO)
-        mock_notify.assert_called_once()
+        # READY does not notify the veterinarian (roadmap 1.4 option A)
+        from protocols.models import InAppNotification
+
+        self.assertFalse(
+            InAppNotification.objects.filter(
+                protocol=self.protocol,
+                notification_type=InAppNotification.NotificationType.READY,
+            ).exists()
+        )
 
     def test_mark_ready_for_diagnosis_already_ready(self):
         """Test cannot mark READY twice."""

@@ -357,6 +357,14 @@ else:
     DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@adlab.com")
     SERVER_EMAIL = os.getenv("SERVER_EMAIL", "server@adlab.com")
 
+# When set, all outbound mail is delivered to this address instead of the
+# logical recipient (local/dev only). Leave empty in production.
+EMAIL_RECIPIENT_OVERRIDE = os.getenv("EMAIL_RECIPIENT_OVERRIDE", "").strip()
+
+# Soft daily send budget for admin metrics. Gmail personal documents ~500/day
+# but SMTP may enforce a lower effective limit; use EMAIL_DAILY_LIMIT to tune.
+EMAIL_DAILY_LIMIT = int(os.getenv("EMAIL_DAILY_LIMIT", "500"))
+
 # Security settings for production
 # https://docs.djangoproject.com/en/5.2/ref/settings/#security
 if not DEBUG:

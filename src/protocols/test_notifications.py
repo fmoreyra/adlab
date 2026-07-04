@@ -4,6 +4,7 @@ Tests for in-app notifications (Step 21).
 Covers API endpoints, NotificationService, and integration points.
 """
 
+import unittest
 from datetime import date
 from decimal import Decimal
 from unittest.mock import patch
@@ -439,8 +440,10 @@ class NotificationViewIntegrationTestCase(TestCase):
     @patch(
         "protocols.services.email_service.EmailNotificationService.send_submission_confirmation_email"
     )
-    def test_protocol_submit_view_creates_notification(self, mock_send_email):
-        """ProtocolSubmitView creates InAppNotification type SUBMITTED."""
+    def test_protocol_submit_view_creates_notification_without_email(
+        self, mock_send_email
+    ):
+        """ProtocolSubmitView creates in-app SUBMITTED and does not email."""
         protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             veterinarian=self.veterinarian,
@@ -461,6 +464,7 @@ class NotificationViewIntegrationTestCase(TestCase):
         )
         self.assertEqual(notifications.count(), 1)
         self.assertIn("enviado", notifications.first().title.lower())
+        mock_send_email.assert_not_called()
 
     @patch(
         "protocols.services.email_service.EmailNotificationService.send_reception_email"
@@ -564,10 +568,10 @@ class NotificationViewIntegrationTestCase(TestCase):
     @patch(
         "protocols.services.email_service.EmailNotificationService.send_discrepancy_alert_email"
     )
-    def test_reception_confirm_view_creates_discrepancy_notification(
+    def test_reception_confirm_view_merges_discrepancies_into_reception(
         self, mock_discrepancy, mock_reception
     ):
-        """ReceptionConfirmView (with discrepancies) creates DISCREPANCY notification."""
+        """Reception with discrepancies uses one RECEPTION notice, not DISCREPANCY."""
         protocol = Protocol.objects.create(
             analysis_type=Protocol.AnalysisType.CYTOLOGY,
             veterinarian=self.veterinarian,
@@ -600,12 +604,25 @@ class NotificationViewIntegrationTestCase(TestCase):
             data=form_data,
         )
 
-        discrepancy_notifs = InAppNotification.objects.filter(
+        reception_notifs = InAppNotification.objects.filter(
             recipient=self.vet_user,
-            notification_type=InAppNotification.NotificationType.DISCREPANCY,
+            notification_type=InAppNotification.NotificationType.RECEPTION,
         )
-        self.assertEqual(discrepancy_notifs.count(), 1)
-        self.assertIn("Discrepancias", discrepancy_notifs.first().title)
+        self.assertEqual(reception_notifs.count(), 1)
+        self.assertIn("observaciones", reception_notifs.first().title.lower())
+        self.assertIn("Falta etiqueta", reception_notifs.first().body)
+        self.assertFalse(
+            InAppNotification.objects.filter(
+                recipient=self.vet_user,
+                notification_type=InAppNotification.NotificationType.DISCREPANCY,
+            ).exists()
+        )
+        mock_reception.assert_called_once()
+        mock_discrepancy.assert_not_called()
+        self.assertEqual(
+            mock_reception.call_args.kwargs["discrepancies"],
+            "Falta etiqueta",
+        )
 
     @patch(
         "protocols.services.email_service.EmailNotificationService.send_report_ready_notification"
@@ -670,6 +687,7 @@ class NotificationViewIntegrationTestCase(TestCase):
         self.assertEqual(notifications.count(), 1)
         self.assertIn("Informe", notifications.first().title)
 
+    @unittest.skip("Work order UI disabled (roadmap 6.1)")
     @patch("protocols.views_workorder.send_work_order_notification")
     def test_workorder_send_view_creates_notification(self, mock_send_wo):
         """WorkOrderSendView creates InAppNotification WORK_ORDER."""

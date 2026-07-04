@@ -26,21 +26,25 @@ class EmailNotificationService:
     complexity of email queuing and error handling.
     """
 
-    def send_reception_email(self, protocol) -> bool:
+    def send_reception_email(self, protocol, discrepancies: str = "") -> bool:
         """
         Send reception confirmation email to veterinarian asynchronously.
 
         Uses Celery-based email system for non-blocking delivery with
-        automatic retry logic and preference checking.
+        automatic retry logic and preference checking. Discrepancies are
+        included in the same message when present.
 
         Args:
             protocol: Protocol instance that was received
+            discrepancies: Optional discrepancy notes from reception
 
         Returns:
             bool: True if email was queued successfully, False otherwise
         """
         try:
-            email_log = send_sample_reception_notification(protocol)
+            email_log = send_sample_reception_notification(
+                protocol, discrepancies=discrepancies
+            )
             if email_log:
                 logger.info(
                     f"Reception email queued for protocol {protocol.pk} "

@@ -335,7 +335,7 @@ class ReportImageForm(forms.ModelForm):
 
 
 class BaseReportImageFormSet(BaseInlineFormSet):
-    """Limit total images per report."""
+    """Limit total images per report and clean storage on delete."""
 
     def clean(self):
         super().clean()
@@ -356,6 +356,22 @@ class BaseReportImageFormSet(BaseInlineFormSet):
                 _("No puede adjuntar más de %(max)s imágenes por informe.")
                 % {"max": MAX_IMAGES_PER_REPORT}
             )
+
+    def save(self, commit=True):
+        """Save formset and remove storage files for deleted images."""
+        deleted_storage_names = []
+        for form in self.deleted_forms:
+            instance = form.instance
+            if instance.pk and instance.image:
+                deleted_storage_names.append(instance.image.name)
+
+        result = super().save(commit=commit)
+
+        if commit:
+            for storage_name in deleted_storage_names:
+                ReportImageService.delete_storage_file(storage_name)
+
+        return result
 
 
 ReportImageFormSet = inlineformset_factory(
@@ -406,13 +422,6 @@ class ReportSendForm(forms.Form):
             }
         ),
         help_text=_("Mensaje personalizado para el veterinario"),
-    )
-
-    include_work_order = forms.BooleanField(
-        label=_("Incluir Orden de Trabajo"),
-        required=False,
-        initial=False,
-        help_text=_("Adjuntar la orden de trabajo en el mismo email"),
     )
 
     def __init__(self, *args, veterinarian_email=None, **kwargs):

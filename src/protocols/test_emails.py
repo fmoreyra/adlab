@@ -6,7 +6,7 @@ from datetime import date
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from accounts.models import User, Veterinarian
 from protocols import emails
@@ -117,6 +117,26 @@ class EmailNotificationTest(TestCase):
         self.assertEqual(call_args[1]["recipient_email"], "test@example.com")
         self.assertEqual(call_args[1]["subject"], "Test Subject")
         self.assertEqual(call_args[1]["context"], context)
+
+    @patch("protocols.emails.send_email.delay")
+    @override_settings(EMAIL_RECIPIENT_OVERRIDE="dev-inbox@example.com")
+    def test_queue_email_applies_recipient_override(self, mock_send_email):
+        """When EMAIL_RECIPIENT_OVERRIDE is set, delivery uses override."""
+        mock_send_email.return_value = MagicMock(id="override-task")
+
+        email_log = emails.queue_email(
+            email_type=EmailLog.EmailType.CUSTOM,
+            recipient_email="vet@example.com",
+            subject="Hola",
+            context={},
+        )
+
+        self.assertEqual(email_log.recipient_email, "dev-inbox@example.com")
+        self.assertIn("vet@example.com", email_log.subject)
+        self.assertEqual(
+            mock_send_email.call_args.kwargs["recipient_email"],
+            "dev-inbox@example.com",
+        )
 
     @patch("protocols.emails.send_email.delay")
     def test_queue_email_with_protocol(self, mock_send_email):
@@ -350,6 +370,28 @@ class EmailNotificationTest(TestCase):
         )
         self.assertEqual(call_args[1]["protocol"], self.protocol)
         self.assertEqual(call_args[1]["veterinarian"], self.veterinarian)
+
+    @patch("protocols.emails.queue_email")
+    def test_send_sample_reception_notification_includes_discrepancies(
+        self, mock_queue_email
+    ):
+        """Reception email embeds discrepancies in the same message."""
+        NotificationPreference.objects.create(
+            veterinarian=self.veterinarian,
+            notify_on_reception=True,
+        )
+        mock_queue_email.return_value = MagicMock()
+
+        emails.send_sample_reception_notification(
+            self.protocol, discrepancies="Falta etiqueta"
+        )
+
+        mock_queue_email.assert_called_once()
+        call_kwargs = mock_queue_email.call_args[1]
+        self.assertIn("observaciones", call_kwargs["subject"].lower())
+        self.assertEqual(
+            call_kwargs["context"]["discrepancies"], "Falta etiqueta"
+        )
 
     @patch("protocols.emails.queue_email")
     def test_send_sample_reception_notification_preferences_disabled(

@@ -118,13 +118,28 @@ class AuthenticationService:
             )
             plain_message = strip_tags(html_message)
 
+            from protocols.emails import (
+                prepare_outbound_email,
+                record_sent_email,
+            )
+            from protocols.models import EmailLog
+
+            delivery_email, delivery_subject = prepare_outbound_email(
+                user.email, "Verifique su email - AdLab"
+            )
+
             send_mail(
-                subject="Verifique su email - AdLab",
+                subject=delivery_subject,
                 message=plain_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
+                recipient_list=[delivery_email],
                 html_message=html_message,
                 fail_silently=False,
+            )
+            record_sent_email(
+                EmailLog.EmailType.EMAIL_VERIFICATION,
+                delivery_email,
+                delivery_subject,
             )
 
             # Log email verification sent
@@ -178,13 +193,28 @@ class AuthenticationService:
             )
             plain_message = strip_tags(html_message)
 
+            from protocols.emails import (
+                prepare_outbound_email,
+                record_sent_email,
+            )
+            from protocols.models import EmailLog
+
+            delivery_email, delivery_subject = prepare_outbound_email(
+                user.email, "Restablecer contraseña - AdLab"
+            )
+
             send_mail(
-                subject="Restablecer contraseña - AdLab",
+                subject=delivery_subject,
                 message=plain_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
+                recipient_list=[delivery_email],
                 html_message=html_message,
                 fail_silently=False,
+            )
+            record_sent_email(
+                EmailLog.EmailType.PASSWORD_RESET,
+                delivery_email,
+                delivery_subject,
             )
 
             return True

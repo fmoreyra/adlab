@@ -4,6 +4,7 @@ Storage and validation for report microscopy images.
 Uses Django's default file storage (filesystem locally, Garage/S3 in production).
 """
 
+import io
 import logging
 import os
 from typing import Optional
@@ -12,6 +13,8 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
+from PIL import Image as PILImage
+from PIL import UnidentifiedImageError
 
 from protocols.report_media import ALLOWED_IMAGE_EXTENSIONS
 
@@ -24,6 +27,9 @@ ALLOWED_IMAGE_CONTENT_TYPES = {
 }
 MAX_REPORT_IMAGE_SIZE_BYTES = 10 * 1024 * 1024
 MAX_IMAGES_PER_REPORT = 20
+# Longest edge for PDF embedding (keeps ReportLab fast and memory-safe)
+PDF_IMAGE_MAX_EDGE_PX = 1600
+PDF_JPEG_QUALITY = 85
 
 
 class ReportImageService:
@@ -60,6 +66,69 @@ class ReportImageService:
             raise ValidationError(
                 _("Extensión no permitida. Use JPG, PNG o WebP.")
             )
+
+        # Ensure the payload is a real image (catches corrupt uploads early)
+        try:
+            uploaded_file.seek(0)
+            with PILImage.open(uploaded_file) as image:
+                image.verify()
+        except (UnidentifiedImageError, OSError) as exc:
+            raise ValidationError(
+                _("El archivo no es una imagen válida.")
+            ) from exc
+        finally:
+            uploaded_file.seek(0)
+
+    @classmethod
+    def open_for_pdf(cls, report_image) -> io.BytesIO:
+        """
+        Load a report image as JPEG bytes suitable for ReportLab.
+
+        Converts WebP/PNG and downscales large photos so PDF generation
+        stays reliable and reasonably fast.
+
+        Args:
+            report_image: ReportImage instance with an image file
+
+        Returns:
+            io.BytesIO: JPEG buffer positioned at start
+
+        Raises:
+            ValueError: If the image cannot be opened or converted
+        """
+        if not report_image.image:
+            raise ValueError("Report image has no file")
+
+        try:
+            with (
+                report_image.image.open("rb") as img_file,
+                PILImage.open(img_file) as image,
+            ):
+                if image.mode not in ("RGB", "L") or image.mode == "L":
+                    image = image.convert("RGB")
+
+                max_edge = max(image.size)
+                if max_edge > PDF_IMAGE_MAX_EDGE_PX:
+                    ratio = PDF_IMAGE_MAX_EDGE_PX / max_edge
+                    new_size = (
+                        max(1, int(image.width * ratio)),
+                        max(1, int(image.height * ratio)),
+                    )
+                    image = image.resize(new_size, PILImage.Resampling.LANCZOS)
+
+                buffer = io.BytesIO()
+                image.save(
+                    buffer,
+                    format="JPEG",
+                    quality=PDF_JPEG_QUALITY,
+                    optimize=True,
+                )
+                buffer.seek(0)
+                return buffer
+        except (UnidentifiedImageError, OSError) as exc:
+            raise ValueError(
+                f"Cannot prepare report image {report_image.pk} for PDF"
+            ) from exc
 
     @classmethod
     def delete_storage_file(cls, storage_name: Optional[str]) -> None:

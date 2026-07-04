@@ -67,6 +67,16 @@ class ReportImageServiceTests(TestCase):
         """Valid JPEG uploads pass validation."""
         ReportImageService.validate_upload(_make_test_image())
 
+    def test_validate_upload_rejects_corrupt_payload(self):
+        """Non-image bytes are rejected even with a JPEG content type."""
+        corrupt = SimpleUploadedFile(
+            "fake.jpg",
+            b"not-an-image",
+            content_type="image/jpeg",
+        )
+        with self.assertRaises(ValidationError):
+            ReportImageService.validate_upload(corrupt)
+
 
 class ReportImageUploadViewTests(TestCase):
     """Integration tests for uploading images on report edit."""
@@ -227,6 +237,30 @@ class ReportImageUploadViewTests(TestCase):
             image=_make_test_image("micro.jpg"),
             description="Hallazgo principal",
             magnification="400x",
+        )
+        self.report.status = Report.Status.FINALIZED
+        self.report.save()
+
+        pdf_buffer, pdf_hash = PDFGenerationService().generate_report_pdf(
+            self.report
+        )
+
+        self.assertGreater(len(pdf_buffer.getvalue()), 500)
+        self.assertEqual(len(pdf_hash), 64)
+
+    def test_pdf_includes_webp_image(self):
+        """WebP uploads are embedded in the PDF after conversion."""
+        buffer = BytesIO()
+        PILImage.new("RGB", (120, 90), "green").save(buffer, format="WEBP")
+        buffer.seek(0)
+        ReportImage.objects.create(
+            report=self.report,
+            image=SimpleUploadedFile(
+                "micro.webp",
+                buffer.read(),
+                content_type="image/webp",
+            ),
+            description="WebP hallazgo",
         )
         self.report.status = Report.Status.FINALIZED
         self.report.save()

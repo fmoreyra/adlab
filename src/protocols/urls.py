@@ -1,7 +1,7 @@
 from django.urls import path
 from django.views.generic import RedirectView
 
-from protocols import views, views_reports, views_workorder
+from protocols import views, views_reports
 
 app_name = "protocols"
 
@@ -217,50 +217,6 @@ urlpatterns = [
         views_reports.ReportSendView.as_view(),
         name="report_send",
     ),
-    # Work Orders (Step 07)
-    path(
-        "workorders/",
-        views_workorder.WorkOrderListView.as_view(),
-        name="workorder_list",
-    ),
-    path(
-        "workorders/mine/",
-        views_workorder.VeterinarianWorkOrderListView.as_view(),
-        name="my_workorders",
-    ),
-    path(
-        "workorders/pending/",
-        views_workorder.WorkOrderPendingProtocolsView.as_view(),
-        name="workorder_pending_protocols",
-    ),
-    path(
-        "workorders/select/<int:veterinarian_id>/",
-        views_workorder.WorkOrderSelectProtocolsView.as_view(),
-        name="workorder_select_protocols",
-    ),
-    path(
-        "workorders/create/<str:protocol_ids>/",
-        views_workorder.WorkOrderCreateView.as_view(),
-        name="workorder_create_with_protocols",
-    ),
-    path(
-        "workorders/<int:pk>/",
-        views_workorder.WorkOrderDetailView.as_view(),
-        name="workorder_detail",
-    ),
-    path(
-        "workorders/<int:pk>/issue/",
-        views_workorder.WorkOrderIssueView.as_view(),
-        name="workorder_issue",
-    ),
-    path(
-        "workorders/<int:pk>/send/",
-        views_workorder.WorkOrderSendView.as_view(),
-        name="workorder_send",
-    ),
-    path(
-        "workorders/<int:pk>/pdf/",
-        views_workorder.WorkOrderPDFView.as_view(),
-        name="workorder_pdf",
-    ),
+    # Work Orders (Step 07): UI/routes disabled — models kept for future use.
+    # See roadmap item 6.1 and protocols.views_workorder.
 ]

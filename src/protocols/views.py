@@ -55,6 +55,7 @@ from protocols.protocol_detail_context import (
     build_protocol_detail_action_context,
     build_protocol_processing_context,
     build_sample_registration_context,
+    build_status_history_for_user,
     protocol_detail_processing_url,
     sample_register_url,
 )
@@ -247,10 +248,11 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
         context = super().get_context_data(**kwargs)
         protocol = self.object
 
-        status_history = (
-            protocol.status_history.all()
-            .select_related("changed_by")
-            .order_by("-changed_at")
+        action_context = build_protocol_detail_action_context(
+            self.request.user, protocol, self.request
+        )
+        status_history = build_status_history_for_user(
+            self.request.user, protocol
         )
 
         sample = None
@@ -263,9 +265,7 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
             {
                 "status_history": status_history,
                 "sample": sample,
-                **build_protocol_detail_action_context(
-                    self.request.user, protocol, self.request
-                ),
+                **action_context,
                 **build_protocol_processing_context(
                     self.request.user,
                     protocol,
@@ -774,10 +774,6 @@ class ProtocolSubmitView(ProtocolOwnerOrStaffMixin, View):
     Generates temporary code and changes status to SUBMITTED.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.email_service = EmailNotificationService()
-
     def post(self, request, *args, **kwargs):
         """Handle protocol submission with service integration."""
         protocol = self.get_object()
@@ -793,10 +789,7 @@ class ProtocolSubmitView(ProtocolOwnerOrStaffMixin, View):
                 description="Protocol submitted by veterinarian",
             )
 
-            # Send submission confirmation email using service
-            self.email_service.send_submission_confirmation_email(protocol)
-
-            # In-app notification (Step 21)
+            # In-app only: vet already sees success + temporary code on screen
             from protocols.services.notification_service import (
                 NotificationService,
             )
@@ -1581,22 +1574,19 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
                 % {"number": protocol.protocol_number},
             )
         else:
-            # Send normal reception email
-            self.email_service.send_reception_email(protocol)
+            # Single reception notice (discrepancies included when present)
+            discrepancies = form_data.get("discrepancies", "")
+            self.email_service.send_reception_email(
+                protocol, discrepancies=discrepancies
+            )
 
             from protocols.services.notification_service import (
                 NotificationService,
             )
 
-            notif_svc = NotificationService()
-            notif_svc.create_for_reception(protocol)
-            discrepancies = form_data.get("discrepancies", "")
-            if discrepancies:
-                sample_condition = form_data.get("sample_condition", "")
-                self.email_service.send_discrepancy_alert_email(
-                    protocol, discrepancies, sample_condition
-                )
-                notif_svc.create_for_discrepancy(protocol, discrepancies)
+            NotificationService().create_for_reception(
+                protocol, discrepancies=discrepancies
+            )
 
             messages.success(
                 self.request,

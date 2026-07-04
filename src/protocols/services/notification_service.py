@@ -185,15 +185,27 @@ class NotificationService:
             protocol=protocol,
         )
 
-    def create_for_reception(self, protocol) -> InAppNotification:
+    def create_for_reception(
+        self, protocol, discrepancies: str = ""
+    ) -> InAppNotification:
         """Create notification when sample is received."""
         user = protocol.veterinarian.user
         link = _build_protocol_url(protocol)
+        discrepancies = (discrepancies or "").strip()
+        if discrepancies:
+            body = (
+                "Hemos recibido su muestra con observaciones: "
+                f"{discrepancies[:400]}"
+            )
+            title = f"Muestra recibida (observaciones) - {protocol.protocol_number}"
+        else:
+            body = "Hemos recibido su muestra. Puede seguir el estado en el portal."
+            title = f"Muestra recibida - {protocol.protocol_number}"
         return self.create_notification(
             recipient=user,
             notification_type=InAppNotification.NotificationType.RECEPTION,
-            title=f"Muestra recibida - {protocol.protocol_number}",
-            body="Hemos recibido su muestra. Puede seguir el estado en el portal.",
+            title=title,
+            body=body,
             link_url=link,
             protocol=protocol,
         )

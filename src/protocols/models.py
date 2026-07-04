@@ -2219,11 +2219,16 @@ class Report(models.Model):
         return f"Informe {self.protocol.protocol_number} - v{self.version}"
 
     def generate_pdf_filename(self):
-        """Generate standardized PDF filename."""
-        protocol_num = self.protocol.protocol_number.replace(" ", "_").replace(
-            "/", "_"
-        )
-        return f"Informe_{protocol_num}_v{self.version}.pdf"
+        """
+        Generate official PDF download filename.
+
+        Protocol numbers like ``HP 26/006`` become ``HP-26-006.pdf``.
+        """
+        protocol_number = self.protocol.protocol_number or f"report-{self.pk}"
+        safe_name = protocol_number.strip().replace(" ", "-").replace("/", "-")
+        while "--" in safe_name:
+            safe_name = safe_name.replace("--", "-")
+        return f"{safe_name}.pdf"
 
     def get_signer(self):
         """

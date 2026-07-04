@@ -300,8 +300,8 @@
                                                                  {% if entry.status == 'draft' %}bg-gray-400
                                                                  {% elif entry.status == 'submitted' %}bg-yellow-400
                                                                  {% elif entry.status == 'received' %}bg-blue-400
-                                                                 {% elif entry.status == 'processing' %}bg-purple-400
-                                                                 {% elif entry.status == 'ready' %}bg-green-400
+                                                                 {% elif entry.status == 'processing' or entry.status == 'ready' %}bg-purple-400
+                                                                 {% elif entry.status == 'report_sent' %}bg-green-400
                                                                  {% else %}bg-gray-400{% endif %}">
                                                         <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -310,7 +310,7 @@
                                                 </div>
                                                 <div class="min-w-0 flex-1 pt-1.5">
                                                     <div>
-                                                        <p class="text-sm font-medium text-gray-900">{{ entry.get_status_display }}</p>
+                                                        <p class="text-sm font-medium text-gray-900">{{ entry.label }}</p>
                                                         {% if entry.description %}
                                                             <p class="text-xs text-gray-500">{{ entry.description }}</p>
                                                         {% endif %}
@@ -350,7 +350,13 @@
                                             </div>
                                             <div class="min-w-0 flex-1 pt-1.5">
                                                 <div>
-                                                    <p class="text-sm font-medium text-gray-900">{{ protocol.get_status_display }}</p>
+                                                    <p class="text-sm font-medium text-gray-900">
+                                                        {% if show_vet_actions %}
+                                                            {{ protocol.get_veterinarian_status_display }}
+                                                        {% else %}
+                                                            {{ protocol.get_status_display }}
+                                                        {% endif %}
+                                                    </p>
                                                     <p class="text-xs text-gray-500">Estado actual</p>
                                                     <p class="text-xs text-gray-400">{{ protocol.created_at|date:"d" }} de {{ protocol.created_at|date:"F" }} de {{ protocol.created_at|date:"Y" }}, {{ protocol.created_at|date:"H:i" }}</p>
                                                     <p class="text-xs text-gray-500 mt-1">

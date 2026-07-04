@@ -23,6 +23,8 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from protocols.services.report_image_service import ReportImageService
+
 logger = logging.getLogger(__name__)
 
 
@@ -358,8 +360,7 @@ class PDFGenerationService:
                 if not report_image.image:
                     continue
                 try:
-                    with report_image.image.open("rb") as img_file:
-                        img_buffer = io.BytesIO(img_file.read())
+                    img_buffer = ReportImageService.open_for_pdf(report_image)
                     reader = ImageReader(img_buffer)
                     img_w, img_h = reader.getSize()
                     max_w, max_h = 4.5 * inch, 3.5 * inch
@@ -505,11 +506,8 @@ class PDFGenerationService:
             PDFGenerationError: If PDF generation fails
         """
         buffer, pdf_hash = self.generate_report_pdf(report)
-        protocol_number = (
-            report.protocol.protocol_number or f"report-{report.pk}"
-        )
-        safe_name = protocol_number.replace(" ", "_").replace("/", "-")
-        storage_name = f"reports/{report.pk}/{safe_name}.pdf"
+        filename = report.generate_pdf_filename()
+        storage_name = f"reports/{report.pk}/{filename}"
 
         if default_storage.exists(storage_name):
             default_storage.delete(storage_name)

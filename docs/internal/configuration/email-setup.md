@@ -131,7 +131,9 @@ SERVER_EMAIL=your-email@gmail.com
 ```
 
 **Limitations**:
-- ⚠️ 500 emails per day limit
+- ⚠️ Gmail personal documents ~500 outgoing messages per rolling 24-hour window ([official limits](https://support.google.com/mail/answer/22839)); SMTP via `smtp.gmail.com` may hit a lower effective ceiling (not explicitly documented for personal accounts)
+- ⚠️ Admin metrics in **Logs de email** count `EmailLog` entries — an internal budget (`EMAIL_DAILY_LIMIT`), not Google's live quota
+- ⚠️ For heavy local testing, set `EMAIL_DAILY_LIMIT=100` in `.env` as a conservative safety belt until you confirm your account's real SMTP limit
 - ⚠️ May go to spam
 - ⚠️ Not professional
 - ⚠️ NOT recommended for production
