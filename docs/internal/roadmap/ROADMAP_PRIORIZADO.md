@@ -162,17 +162,19 @@ Prioridad operativa: reducir fricción con guantes puestos en el banco.
 
 Prioridad operativa: entregables institucionales listos para uso oficial.
 
-> **Nota de alcance (Jul 2026):** el formato institucional del PDF (**3.1**) queda **bloqueado** hasta que la facultad entregue logos y especificación tipográfica. Los ítems **3.2** y **3.3** se implementan de forma independiente.
+> **Nota de alcance (Jul 2026):** el formato institucional del PDF (**3.1**) se implementó con la plantilla Word de la facultad. Los ítems **3.2** y **3.3** ya estaban completos de forma independiente.
 
 ### 3.1 Formato y encabezado del PDF
 
-- **Estado:** ⏸️ Postergado (espera assets/formato de la facultad)
+- **Estado:** ✅ Hecho (Jul 2026)
 - **Objetivo:** Reemplazar diseño provisorio por formato legal e institucional definitivo.
-- **Alcance:**
-  - Incorporar logos nuevos y limpios de la facultad.
-  - Ajustar tipografía, márgenes, encabezado y pie de página según normativa institucional.
-- **Áreas probables del código:** `services/pdf_service.py`, assets estáticos (logos), plantillas ReportLab.
-- **Notas / PR:** No iniciar hasta recibir material oficial.
+- **Implementado:**
+  - Banners de encabezado y pie extraídos del Word oficial (`assets/static/images/reports/`)
+  - Layout institucional en ReportLab (`report_pdf_builder.py`): HP y CT, secciones RESULTADOS/OBSERVACIONES
+  - Mapeo de campos: remisión, material, animal, propietario, MV comitente, fijación, tinción, firma
+  - Especificación: `docs/internal/reports/pdf-template-spec.md`
+- **Áreas del código:** `report_pdf_builder.py`, `pdf_service.py`, assets estáticos
+- **Notas / PR:** Tipografía v1 en Helvetica; Calibri opcional si la facultad lo confirma. Validación visual pendiente con un informe real en prod.
 
 ### 3.2 Automatización del nombre del archivo PDF
 
@@ -286,14 +288,14 @@ Prioridad operativa: correo institucional operativo con verificación de usuario
 ## Orden sugerido de implementación
 
 ```
-1 ✅ → 2 ✅ → 3.2 + 3.3 → 4 → 5 → (3.1 cuando haya formato) → (6.1 reactivar si la facultad lo pide)
+1 ✅ → 2 ✅ → 3.1 + 3.2 + 3.3 ✅ → 4 → 5 → (6.1 reactivar si la facultad lo pide)
 ```
 
 | # | Bloque | Ítems | Dependencias clave |
 |---|--------|-------|-------------------|
 | 1 | Veterinario / datos | 1.1–1.3 ✅, 1.4 menor | Ninguna crítica |
 | 2 | Laboratorio HP | 2.1 ✅, 2.2 ✅ | Implementado Jun–Jul 2026 |
-| 3 | Informes / PDF | 3.2, 3.3 activos; **3.1 postergado** | Logos/formato facultad solo para 3.1 |
+| 3 | Informes / PDF | 3.1, 3.2, 3.3 ✅ | Formato facultad aplicado Jul 2026 |
 | 4 | Dominio / SSL | 4.1, 4.2 | Servidor y DNS listos |
 | 5 | Correo / auth | 5.1, 5.2 | Dominio (4) recomendado para links en emails |
 | 6 | Finanzas / OT | 6.1 🚫 UI off | Modelos intactos |
@@ -315,6 +317,7 @@ Usar esta sección para anotar qué ítem se tomó en cada sesión.
 | Jul 2026 | Bloque 1 (verif. local) | 1.1–1.4 probados OK en entorno local |
 | Jul 2026 | Bloque 2 (verif. local) | 2.1 HP, 2.2 registro unificado, 2.3 observaciones CT probados OK |
 | Jul 2026 | Bloque 3 (verif. local) | 3.2 nombre PDF, 3.3 imágenes en PDF, envío al vet probados OK |
+| Jul 2026 | 3.1 | Formato institucional PDF (banners Word, layout HP/CT, RESULTADOS/OBSERVACIONES) |
 
 ---
 

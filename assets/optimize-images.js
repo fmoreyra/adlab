@@ -18,15 +18,19 @@ async function copyImages() {
   console.log(`📁 Output: ${outputDir}`);
 
   try {
-    const files = await imagemin([`${inputDir}/*.{jpg,jpeg,png}`], {
-      destination: outputDir
-    });
+    const files = await imagemin(
+      [`${inputDir}/**/*.{jpg,jpeg,png}`, `${inputDir}/*.{jpg,jpeg,png}`],
+      {
+        destination: outputDir,
+        plugins: [],
+      }
+    );
 
     console.log(`✅ Copied ${files.length} images:`);
     files.forEach(file => {
-      const fileName = path.basename(file.destinationPath);
+      const relativePath = path.relative(outputDir, file.destinationPath);
       const fileSize = fs.statSync(file.destinationPath).size;
-      console.log(`   ${fileName}: ${(fileSize / 1024).toFixed(1)}KB`);
+      console.log(`   ${relativePath}: ${(fileSize / 1024).toFixed(1)}KB`);
     });
 
     console.log('🎉 Image copy complete!');

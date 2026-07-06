@@ -13,9 +13,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.lib.utils import ImageReader
 from reportlab.platypus import (
-    Image,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -23,13 +21,12 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from protocols.services.report_image_service import ReportImageService
+from protocols.services.pdf_exceptions import PDFGenerationError
+from protocols.services.report_pdf_builder import ReportPDFBuilder
+
+__all__ = ["PDFGenerationError", "PDFGenerationService"]
 
 logger = logging.getLogger(__name__)
-
-
-class PDFGenerationError(Exception):
-    """Raised when a report PDF cannot be generated."""
 
 
 class PDFGenerationService:
@@ -186,306 +183,12 @@ class PDFGenerationService:
 
     def generate_report_pdf(self, report) -> Tuple[io.BytesIO, str]:
         """
-        Generate PDF for a report using ReportLab.
+        Generate PDF for a report using the institutional ReportLab builder.
         Returns tuple of (pdf_buffer, pdf_hash).
         """
         buffer = io.BytesIO()
+        ReportPDFBuilder(report).build(buffer)
 
-        # Create PDF document
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=A4,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=72,
-        )
-
-        # Container for PDF elements
-        elements = []
-
-        # Define styles
-        styles = getSampleStyleSheet()
-        title_style = ParagraphStyle(
-            "CustomTitle",
-            parent=styles["Heading1"],
-            fontSize=16,
-            textColor=colors.HexColor("#1a1a1a"),
-            spaceAfter=30,
-            alignment=1,  # Center
-        )
-
-        heading_style = ParagraphStyle(
-            "CustomHeading",
-            parent=styles["Heading2"],
-            fontSize=12,
-            textColor=colors.HexColor("#333333"),
-            spaceAfter=12,
-            spaceBefore=12,
-        )
-
-        normal_style = styles["Normal"]
-
-        # Title
-        elements.append(Paragraph("INFORME HISTOPATOLÓGICO", title_style))
-        elements.append(Spacer(1, 0.2 * inch))
-
-        # Protocol information
-        protocol = report.protocol
-        protocol_data = [
-            ["Protocolo:", protocol.protocol_number or "-"],
-            ["Fecha de Informe:", report.report_date.strftime("%d/%m/%Y")],
-            ["Versión:", str(report.version)],
-        ]
-
-        protocol_table = Table(protocol_data, colWidths=[2 * inch, 4 * inch])
-        protocol_table.setStyle(
-            TableStyle(
-                [
-                    ("FONT", (0, 0), (0, -1), "Helvetica-Bold"),
-                    ("FONT", (1, 0), (1, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 10),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                ]
-            )
-        )
-        elements.append(protocol_table)
-        elements.append(Spacer(1, 0.3 * inch))
-
-        # Patient information
-        elements.append(Paragraph("DATOS DEL PACIENTE", heading_style))
-        patient_data = [
-            ["Especie:", protocol.species],
-            ["Raza:", protocol.breed or "-"],
-            ["Edad:", protocol.age or "-"],
-            ["Sexo:", protocol.get_sex_display()],
-            ["Identificación:", protocol.animal_identification or "-"],
-        ]
-
-        patient_table = Table(patient_data, colWidths=[2 * inch, 4 * inch])
-        patient_table.setStyle(
-            TableStyle(
-                [
-                    ("FONT", (0, 0), (0, -1), "Helvetica-Bold"),
-                    ("FONT", (1, 0), (1, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 10),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                ]
-            )
-        )
-        elements.append(patient_table)
-        elements.append(Spacer(1, 0.3 * inch))
-
-        # Veterinarian information
-        elements.append(Paragraph("VETERINARIO SOLICITANTE", heading_style))
-        vet = report.veterinarian
-        vet_data = [
-            ["Nombre:", vet.get_full_name()],
-            ["Matrícula:", vet.license_number],
-            ["Email:", vet.email],
-            ["Teléfono:", vet.phone or "-"],
-        ]
-
-        vet_table = Table(vet_data, colWidths=[2 * inch, 4 * inch])
-        vet_table.setStyle(
-            TableStyle(
-                [
-                    ("FONT", (0, 0), (0, -1), "Helvetica-Bold"),
-                    ("FONT", (1, 0), (1, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 10),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                ]
-            )
-        )
-        elements.append(vet_table)
-        elements.append(Spacer(1, 0.3 * inch))
-
-        # Macroscopic observations
-        if report.macroscopic_observations:
-            elements.append(
-                Paragraph("DESCRIPCIÓN MACROSCÓPICA", heading_style)
-            )
-            elements.append(
-                Paragraph(report.macroscopic_observations, normal_style)
-            )
-            elements.append(Spacer(1, 0.2 * inch))
-
-        # Microscopic observations
-        if report.microscopic_observations:
-            elements.append(
-                Paragraph("DESCRIPCIÓN MICROSCÓPICA", heading_style)
-            )
-            elements.append(
-                Paragraph(report.microscopic_observations, normal_style)
-            )
-            elements.append(Spacer(1, 0.2 * inch))
-
-        # Cassette observations
-        cassette_observations = report.cassette_observations.order_by(
-            "order", "cassette__codigo_cassette"
-        )
-        if cassette_observations.exists():
-            elements.append(
-                Paragraph("OBSERVACIONES POR CASSETTE", heading_style)
-            )
-            for obs in cassette_observations:
-                cassette_title = f"Cassette {obs.cassette.codigo_cassette}"
-                elements.append(
-                    Paragraph(
-                        cassette_title,
-                        ParagraphStyle(
-                            "CassetteTitle",
-                            parent=styles["Heading3"],
-                            fontSize=10,
-                            textColor=colors.HexColor("#555555"),
-                            spaceAfter=6,
-                            spaceBefore=6,
-                        ),
-                    )
-                )
-                elements.append(Paragraph(obs.observations, normal_style))
-                if obs.partial_diagnosis:
-                    elements.append(
-                        Paragraph(
-                            f"<b>Diagnóstico:</b> {obs.partial_diagnosis}",
-                            normal_style,
-                        )
-                    )
-                elements.append(Spacer(1, 0.15 * inch))
-
-        report_images = report.images.order_by("order", "created_at")
-        if report_images.exists():
-            elements.append(Paragraph("IMÁGENES MICROSCÓPICAS", heading_style))
-            for report_image in report_images:
-                if not report_image.image:
-                    continue
-                try:
-                    img_buffer = ReportImageService.open_for_pdf(report_image)
-                    reader = ImageReader(img_buffer)
-                    img_w, img_h = reader.getSize()
-                    max_w, max_h = 4.5 * inch, 3.5 * inch
-                    scale = min(max_w / img_w, max_h / img_h, 1.0)
-                    img_buffer.seek(0)
-                    elements.append(
-                        Image(
-                            img_buffer,
-                            width=img_w * scale,
-                            height=img_h * scale,
-                        )
-                    )
-                except Exception as exc:
-                    logger.warning(
-                        "Could not load report image %s: %s",
-                        report_image.pk,
-                        exc,
-                    )
-                    continue
-
-                caption_parts = []
-                if report_image.cassette:
-                    caption_parts.append(
-                        f"Cassette {report_image.cassette.codigo_cassette}"
-                    )
-                if report_image.magnification:
-                    caption_parts.append(report_image.magnification)
-                if report_image.technique:
-                    caption_parts.append(report_image.technique)
-                if report_image.description:
-                    caption_parts.append(report_image.description)
-
-                if caption_parts:
-                    elements.append(
-                        Paragraph(
-                            " — ".join(caption_parts),
-                            ParagraphStyle(
-                                "ImageCaption",
-                                parent=normal_style,
-                                fontSize=9,
-                                textColor=colors.HexColor("#555555"),
-                                spaceAfter=12,
-                            ),
-                        )
-                    )
-                elements.append(Spacer(1, 0.2 * inch))
-
-        # Diagnosis
-        elements.append(Paragraph("DIAGNÓSTICO", heading_style))
-        elements.append(
-            Paragraph(
-                report.diagnosis,
-                ParagraphStyle(
-                    "Diagnosis",
-                    parent=normal_style,
-                    fontSize=11,
-                    textColor=colors.HexColor("#000000"),
-                    spaceAfter=12,
-                    fontName="Helvetica-Bold",
-                ),
-            )
-        )
-
-        # Comments
-        if report.comments:
-            elements.append(Paragraph("COMENTARIOS", heading_style))
-            elements.append(Paragraph(report.comments, normal_style))
-            elements.append(Spacer(1, 0.2 * inch))
-
-        # Recommendations
-        if report.recommendations:
-            elements.append(Paragraph("RECOMENDACIONES", heading_style))
-            elements.append(Paragraph(report.recommendations, normal_style))
-            elements.append(Spacer(1, 0.2 * inch))
-
-        # Signature
-        elements.append(Spacer(1, 0.5 * inch))
-        signer = report.get_signer()
-        if not signer:
-            raise PDFGenerationError(
-                "El informe no tiene un profesional asignado para firmar."
-            )
-
-        if not report.signer_has_signature():
-            raise PDFGenerationError(
-                "El profesional asignado no tiene firma digital cargada."
-            )
-
-        # Add signature image (required for finalized PDFs)
-        if signer.signature_image:
-            try:
-                with signer.signature_image.open("rb") as img_file:
-                    sig_img = Image(
-                        img_file,
-                        width=2 * inch,
-                        height=1 * inch,
-                    )
-                    elements.append(sig_img)
-            except Exception as e:
-                logger.warning(f"Could not load signature image: {e}")
-
-        signature_data = [
-            [signer.get_formal_name()],
-            [f"Mat. {signer.license_number}"],
-        ]
-        if signer.position:
-            signature_data.append([signer.position])
-
-        signature_table = Table(signature_data, colWidths=[4 * inch])
-        signature_table.setStyle(
-            TableStyle(
-                [
-                    ("FONT", (0, 0), (-1, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 10),
-                    ("ALIGNMENT", (0, 0), (-1, -1), "CENTER"),
-                    ("TOPPADDING", (0, 0), (-1, -1), 2),
-                ]
-            )
-        )
-        elements.append(signature_table)
-
-        # Build PDF
-        doc.build(elements)
-
-        # Get PDF content and calculate hash
         pdf_content = buffer.getvalue()
         pdf_hash = hashlib.sha256(pdf_content).hexdigest()
 
