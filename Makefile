@@ -386,11 +386,11 @@ deploy-prod: ## Run production deployment script
 
 safety-check: ## Check dependencies for security vulnerabilities
 	@echo "🔒 Checking dependencies for security vulnerabilities..."
-	@source scripts/docker-helper.sh && _dc web safety check
+	@source scripts/docker-helper.sh && _dc_run web safety check
 
 safety-report: ## Generate security report and save to file
 	@echo "📊 Generating security report..."
-	@source scripts/docker-helper.sh && _dc web safety check --save-json safety-report.json
+	@source scripts/docker-helper.sh && _dc_run web safety check --save-json safety-report.json
 	@echo "✅ Security report saved to safety-report.json in container"
 	@echo "💡 To copy the report to host: make cmd ARGS=\"cp safety-report.json /app/safety-report.json\""
 

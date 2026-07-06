@@ -286,6 +286,8 @@ SESSION_COOKIE_AGE = 7200  # 2 hours in seconds
 SESSION_COOKIE_SECURE = not DEBUG  # HTTPS only in production
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
 SESSION_SAVE_EVERY_REQUEST = True  # Extend session on each request
 
 # Login/logout URLs

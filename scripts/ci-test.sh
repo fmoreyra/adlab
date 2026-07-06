@@ -150,6 +150,10 @@ main() {
   # Build and start containers
   echo "Building containers..."
   docker compose build
+
+  echo "Checking dependencies for security vulnerabilities..."
+  _dc_run web safety check
+
   echo "Starting containers with profiles: ${COMPOSE_PROFILES}"
   docker compose up -d
 
