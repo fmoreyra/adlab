@@ -68,6 +68,8 @@ _[Espacio para captura de pantalla: Lista de verificación de condición de mues
 
 Al confirmar la recepción de un protocolo de **citología**, debe indicar al menos **1 portaobjeto recibido** (salvo que la muestra se rechace). El sistema crea automáticamente los registros según esa cantidad, con coloración por defecto **Diff-Quick**. No es necesario usar la pantalla de registro de slides por separado.
 
+Las **observaciones de banco** por portaobjeto (tinción, calidad del extendido, etc.) se cargan más adelante, al **cerrar el procesamiento** en el detalle del protocolo. Ver [Procesar muestras](processing-samples.md).
+
 _[Espacio para captura de pantalla: Formulario de registro de recepción]_
 
 #### Asignar Número de Protocolo

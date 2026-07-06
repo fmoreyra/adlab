@@ -15,6 +15,7 @@ from PIL import Image as PILImage
 from accounts.models import LaboratoryStaff, User, Veterinarian
 from protocols.models import (
     Cassette,
+    CytologySample,
     HistopathologySample,
     Protocol,
     Report,
@@ -185,6 +186,257 @@ class ReportImageUploadViewTests(TestCase):
         self.assertTrue(report_image.image.name)
         self.assertEqual(report_image.magnification, "400x")
         self.assertEqual(report_image.cassette_id, self.cassette.pk)
+
+    def test_upload_image_with_unused_extra_form_row(self):
+        """Default extra rows must not block saving a single image upload."""
+        image_file = _make_test_image()
+        response = self.client.post(
+            reverse("protocols:report_edit", kwargs={"pk": self.report.pk}),
+            data={
+                "laboratory_staff": self.laboratory_staff.pk,
+                "macroscopic_observations": "",
+                "microscopic_observations": "",
+                "diagnosis": "Dermatitis",
+                "comments": "",
+                "recommendations": "",
+                "form-TOTAL_FORMS": "0",
+                "form-INITIAL_FORMS": "0",
+                "form-MIN_NUM_FORMS": "0",
+                "form-MAX_NUM_FORMS": "1000",
+                "images-TOTAL_FORMS": "1",
+                "images-INITIAL_FORMS": "0",
+                "images-MIN_NUM_FORMS": "0",
+                "images-MAX_NUM_FORMS": "20",
+                "images-0-cassette": self.cassette.pk,
+                "images-0-slide": "",
+                "images-0-image": image_file,
+                "images-0-description": "Infiltrado inflamatorio",
+                "images-0-magnification": "400x",
+                "images-0-technique": "H&E",
+                "images-0-order": "0",
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.report.images.count(), 1)
+
+    def test_cytology_save_unchanged_with_existing_image(self):
+        """Saving without edits must succeed on cytology reports with images."""
+        cytology_protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            veterinarian=self.veterinarian,
+            species="Felino",
+            animal_identification="Michi",
+            presumptive_diagnosis="Citología",
+            submission_date=date.today(),
+            status=Protocol.Status.READY,
+            protocol_number="CT 26/010",
+        )
+        CytologySample.objects.create(
+            protocol=cytology_protocol,
+            veterinarian=self.veterinarian,
+            technique_used="Punción (PAAF)",
+            sampling_site="Masa cutánea",
+            number_of_slides=2,
+        )
+        cytology_report = Report.objects.create(
+            protocol=cytology_protocol,
+            laboratory_staff=self.laboratory_staff,
+            veterinarian=self.veterinarian,
+            diagnosis="Citología benigna",
+            status=Report.Status.DRAFT,
+        )
+        ReportImage.objects.create(
+            report=cytology_report,
+            image=_make_test_image("stored.jpg"),
+            description="Hallazgo",
+            magnification="400x",
+        )
+
+        get_response = self.client.get(
+            reverse(
+                "protocols:report_edit",
+                kwargs={"pk": cytology_report.pk},
+            )
+        )
+        self.assertEqual(get_response.status_code, 200)
+        self.assertContains(get_response, 'name="form-TOTAL_FORMS" value="0"')
+
+        post_data = {
+            "laboratory_staff": self.laboratory_staff.pk,
+            "macroscopic_observations": "",
+            "microscopic_observations": "",
+            "diagnosis": "Citología benigna",
+            "comments": "",
+            "recommendations": "",
+            "form-TOTAL_FORMS": "0",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "images-TOTAL_FORMS": "2",
+            "images-INITIAL_FORMS": "1",
+            "images-MIN_NUM_FORMS": "0",
+            "images-MAX_NUM_FORMS": "20",
+            "images-0-id": cytology_report.images.first().pk,
+            "images-0-cassette": "",
+            "images-0-slide": "",
+            "images-0-description": "Hallazgo",
+            "images-0-magnification": "400x",
+            "images-0-technique": "",
+            "images-0-order": "0",
+        }
+        response = self.client.post(
+            reverse(
+                "protocols:report_edit",
+                kwargs={"pk": cytology_report.pk},
+            ),
+            data=post_data,
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_upload_three_images_via_report_edit(self):
+        """Report edit accepts more than the default two empty image forms."""
+        data = {
+            "laboratory_staff": self.laboratory_staff.pk,
+            "macroscopic_observations": "",
+            "microscopic_observations": "",
+            "diagnosis": "Dermatitis",
+            "comments": "",
+            "recommendations": "",
+            "form-TOTAL_FORMS": "0",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "images-TOTAL_FORMS": "3",
+            "images-INITIAL_FORMS": "0",
+            "images-MIN_NUM_FORMS": "0",
+            "images-MAX_NUM_FORMS": "20",
+        }
+        for index in range(3):
+            data.update(
+                {
+                    f"images-{index}-cassette": self.cassette.pk,
+                    f"images-{index}-slide": "",
+                    f"images-{index}-image": _make_test_image(
+                        f"micro-{index}.jpg"
+                    ),
+                    f"images-{index}-description": f"Imagen {index + 1}",
+                    f"images-{index}-magnification": "400x",
+                    f"images-{index}-technique": "H&E",
+                    f"images-{index}-order": str(index),
+                }
+            )
+
+        response = self.client.post(
+            reverse("protocols:report_edit", kwargs={"pk": self.report.pk}),
+            data=data,
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.report.images.count(), 3)
+
+    def test_cytology_report_edit_includes_cassette_management_form(self):
+        """Cytology edits must still post cassette formset management fields."""
+        cytology_protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            veterinarian=self.veterinarian,
+            species="Felino",
+            animal_identification="Michi",
+            presumptive_diagnosis="Citología",
+            submission_date=date.today(),
+            status=Protocol.Status.READY,
+            protocol_number="CT 26/001",
+        )
+        CytologySample.objects.create(
+            protocol=cytology_protocol,
+            veterinarian=self.veterinarian,
+            technique_used="Punción (PAAF)",
+            sampling_site="Masa cutánea",
+            number_of_slides=2,
+        )
+        cytology_report = Report.objects.create(
+            protocol=cytology_protocol,
+            laboratory_staff=self.laboratory_staff,
+            veterinarian=self.veterinarian,
+            diagnosis="Citología benigna",
+            status=Report.Status.DRAFT,
+        )
+
+        response = self.client.get(
+            reverse(
+                "protocols:report_edit",
+                kwargs={"pk": cytology_report.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="form-TOTAL_FORMS"')
+        self.assertNotContains(response, "Observaciones por Cassette")
+
+    def test_upload_image_via_cytology_report_edit(self):
+        """Cytology report edit saves images without cassette observation UI."""
+        cytology_protocol = Protocol.objects.create(
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            veterinarian=self.veterinarian,
+            species="Felino",
+            animal_identification="Michi",
+            presumptive_diagnosis="Citología",
+            submission_date=date.today(),
+            status=Protocol.Status.READY,
+            protocol_number="CT 26/002",
+        )
+        CytologySample.objects.create(
+            protocol=cytology_protocol,
+            veterinarian=self.veterinarian,
+            technique_used="Punción (PAAF)",
+            sampling_site="Masa cutánea",
+            number_of_slides=2,
+        )
+        cytology_report = Report.objects.create(
+            protocol=cytology_protocol,
+            laboratory_staff=self.laboratory_staff,
+            veterinarian=self.veterinarian,
+            diagnosis="Citología benigna",
+            status=Report.Status.DRAFT,
+        )
+        image_file = _make_test_image("cyto.jpg")
+
+        response = self.client.post(
+            reverse(
+                "protocols:report_edit",
+                kwargs={"pk": cytology_report.pk},
+            ),
+            data={
+                "laboratory_staff": self.laboratory_staff.pk,
+                "macroscopic_observations": "",
+                "microscopic_observations": "",
+                "diagnosis": "Citología benigna",
+                "comments": "",
+                "recommendations": "",
+                "form-TOTAL_FORMS": "0",
+                "form-INITIAL_FORMS": "0",
+                "form-MIN_NUM_FORMS": "0",
+                "form-MAX_NUM_FORMS": "1000",
+                "images-TOTAL_FORMS": "1",
+                "images-INITIAL_FORMS": "0",
+                "images-MIN_NUM_FORMS": "0",
+                "images-MAX_NUM_FORMS": "20",
+                "images-0-cassette": "",
+                "images-0-slide": "",
+                "images-0-image": image_file,
+                "images-0-description": "Citología",
+                "images-0-magnification": "400x",
+                "images-0-technique": "Papanicolaou",
+                "images-0-order": "0",
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(cytology_report.images.count(), 1)
 
     def test_delete_image_via_report_edit(self):
         """Deleting an image removes the database row and stored file."""

@@ -34,10 +34,10 @@ from accounts.report_access import (
     user_requires_report_signature,
 )
 from protocols.forms_reports import (
-    CassetteObservationFormSet,
     ReportCreateForm,
     ReportImageFormSet,
     ReportSendForm,
+    build_cassette_observation_formset,
 )
 from protocols.models import Protocol, Report, ReportImage
 from protocols.protocol_detail_context import _get_latest_report
@@ -49,6 +49,15 @@ from protocols.services.pdf_service import (
 from protocols.services.report_service import ReportGenerationService
 
 logger = logging.getLogger(__name__)
+
+
+def _protocol_uses_cassette_observations(protocol: Protocol) -> bool:
+    """Return whether the report edit UI includes cassette observation rows."""
+    if protocol.analysis_type != Protocol.AnalysisType.HISTOPATHOLOGY:
+        return False
+
+    return getattr(protocol, "histopathology_sample", None) is not None
+
 
 # =============================================================================
 # REPORT LIST AND SEARCH
@@ -280,17 +289,21 @@ class ReportEditView(
 
     def get_cassette_formset(self):
         """Build cassette observation formset for the report."""
+        extra = (
+            1
+            if _protocol_uses_cassette_observations(self.object.protocol)
+            else 0
+        )
+        formset_class = build_cassette_observation_formset(extra=extra)
         kwargs = {"form_kwargs": {"report": self.object}}
         if self.request.method == "POST":
-            return CassetteObservationFormSet(
+            return formset_class(
                 self.request.POST,
                 instance=self.object,
                 prefix="form",
                 **kwargs,
             )
-        return CassetteObservationFormSet(
-            instance=self.object, prefix="form", **kwargs
-        )
+        return formset_class(instance=self.object, prefix="form", **kwargs)
 
     def get_image_formset(self):
         """Build microscopy image formset for the report."""
@@ -313,9 +326,26 @@ class ReportEditView(
         context["protocol"] = self.object.protocol
         context["report"] = self.object
         context["title"] = _("Editar Informe")
+        context["show_cassette_observations"] = (
+            _protocol_uses_cassette_observations(self.object.protocol)
+        )
         context.setdefault("formset", self.get_cassette_formset())
         context.setdefault("image_formset", self.get_image_formset())
         return context
+
+    def _report_edit_render_context(self, form, formset, image_formset):
+        """Build template context for edit view renders."""
+        return {
+            "form": form,
+            "formset": formset,
+            "image_formset": image_formset,
+            "protocol": self.object.protocol,
+            "report": self.object,
+            "title": _("Editar Informe"),
+            "show_cassette_observations": _protocol_uses_cassette_observations(
+                self.object.protocol
+            ),
+        }
 
     def post(self, request, *args, **kwargs):
         """Validate and save report, observations, and images together."""
@@ -329,17 +359,16 @@ class ReportEditView(
         image_formset_valid = image_formset.is_valid()
 
         if not form_valid or not formset_valid or not image_formset_valid:
+            messages.error(
+                request,
+                _(
+                    "No se pudo guardar el informe. Revise los errores marcados."
+                ),
+            )
             return render(
                 request,
                 self.template_name,
-                {
-                    "form": form,
-                    "formset": formset,
-                    "image_formset": image_formset,
-                    "protocol": self.object.protocol,
-                    "report": self.object,
-                    "title": _("Editar Informe"),
-                },
+                self._report_edit_render_context(form, formset, image_formset),
             )
 
         content_data = {
@@ -364,14 +393,7 @@ class ReportEditView(
             return render(
                 request,
                 self.template_name,
-                {
-                    "form": form,
-                    "formset": formset,
-                    "image_formset": image_formset,
-                    "protocol": self.object.protocol,
-                    "report": self.object,
-                    "title": _("Editar Informe"),
-                },
+                self._report_edit_render_context(form, formset, image_formset),
             )
 
         with transaction.atomic():
@@ -389,14 +411,9 @@ class ReportEditView(
                 return render(
                     request,
                     self.template_name,
-                    {
-                        "form": form,
-                        "formset": formset,
-                        "image_formset": image_formset,
-                        "protocol": self.object.protocol,
-                        "report": self.object,
-                        "title": _("Editar Informe"),
-                    },
+                    self._report_edit_render_context(
+                        form, formset, image_formset
+                    ),
                 )
 
             formset.save()

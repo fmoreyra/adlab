@@ -6,7 +6,7 @@ Planificación activa de cambios acordados con la facultad (Jun 2026).
 
 | Documento | Descripción |
 |-----------|-------------|
-| [ROADMAP_PRIORIZADO.md](./ROADMAP_PRIORIZADO.md) | Índice maestro por bloques (1–6) con estado por ítem |
+| [ROADMAP_PRIORIZADO.md](./ROADMAP_PRIORIZADO.md) | Índice maestro por bloques (1–6); incluye **2.3** observaciones CT |
 | [PLAN_PUNTO_1_VETERINARIO.md](./PLAN_PUNTO_1_VETERINARIO.md) | Plan detallado: interfaz veterinario, notificaciones, PAAF |
 | [NOTIFICATION_DIAGNOSTIC_RESULTS.md](./NOTIFICATION_DIAGNOSTIC_RESULTS.md) | Diagnóstico y re-validación local del fix de notificaciones |
 

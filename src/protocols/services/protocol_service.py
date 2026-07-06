@@ -3,7 +3,7 @@ Protocol processing service for handling protocol reception and processing logic
 """
 
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -754,7 +754,10 @@ class ProtocolProcessingService:
         }
 
     def mark_ready_for_diagnosis(
-        self, protocol: Protocol, user
+        self,
+        protocol: Protocol,
+        user,
+        slide_observations: Optional[Dict[int, str]] = None,
     ) -> Tuple[bool, str]:
         """
         Mark protocol as ready for histopathological diagnosis (READY status).
@@ -762,6 +765,8 @@ class ProtocolProcessingService:
         Args:
             protocol: Protocol instance
             user: Lab staff performing the action
+            slide_observations: Optional map of slide PK to observation text
+                (citology only; empty values are ignored)
 
         Returns:
             Tuple[bool, str]: (success, error_message)
@@ -777,6 +782,9 @@ class ProtocolProcessingService:
             return False, _("No se puede marcar el protocolo como listo.")
 
         try:
+            self._save_cytology_slide_observations(
+                protocol, slide_observations
+            )
             self._complete_pending_processing(protocol, user)
 
             protocol.status = Protocol.Status.READY
@@ -800,6 +808,32 @@ class ProtocolProcessingService:
                 f"Error marking protocol {protocol.pk} ready for diagnosis: {e}"
             )
             return False, str(e)
+
+    def _save_cytology_slide_observations(
+        self,
+        protocol: Protocol,
+        slide_observations: Optional[Dict[int, str]],
+    ) -> None:
+        """
+        Persist optional per-slide observations when closing cytology lab work.
+
+        Empty strings are skipped so reception auto-text is kept unchanged.
+        """
+        if protocol.analysis_type != Protocol.AnalysisType.CYTOLOGY:
+            return
+        if not slide_observations:
+            return
+
+        slides_by_id = {slide.pk: slide for slide in protocol.slides.all()}
+        for slide_id, text in slide_observations.items():
+            slide = slides_by_id.get(slide_id)
+            if not slide:
+                continue
+            cleaned = (text or "").strip()
+            if not cleaned:
+                continue
+            slide.observaciones = cleaned
+            slide.save(update_fields=["observaciones", "updated_at"])
 
     def _complete_pending_processing(self, protocol: Protocol, user) -> None:
         """

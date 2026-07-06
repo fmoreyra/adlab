@@ -359,7 +359,18 @@ else:
 
 # When set, all outbound mail is delivered to this address instead of the
 # logical recipient (local/dev only). Leave empty in production.
-EMAIL_RECIPIENT_OVERRIDE = os.getenv("EMAIL_RECIPIENT_OVERRIDE", "").strip()
+# In DEBUG (local), defaults to fmoreyra2011@gmail.com unless unset via env.
+_LOCAL_DEV_EMAIL_OVERRIDE = "fmoreyra2011@gmail.com"
+if TESTING:
+    EMAIL_RECIPIENT_OVERRIDE = ""
+elif "EMAIL_RECIPIENT_OVERRIDE" in os.environ:
+    EMAIL_RECIPIENT_OVERRIDE = os.getenv(
+        "EMAIL_RECIPIENT_OVERRIDE", ""
+    ).strip()
+elif DEBUG:
+    EMAIL_RECIPIENT_OVERRIDE = _LOCAL_DEV_EMAIL_OVERRIDE
+else:
+    EMAIL_RECIPIENT_OVERRIDE = ""
 
 # Soft daily send budget for admin metrics. Gmail personal documents ~500/day
 # but SMTP may enforce a lower effective limit; use EMAIL_DAILY_LIMIT to tune.

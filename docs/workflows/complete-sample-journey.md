@@ -119,14 +119,15 @@ _[Espacio para captura de pantalla: Formulario de rechazo de muestra]_
 7. **Registra cada paso** en el sistema
 
 #### Para Citología
-1. **Prepara los extendidos**: Si no vienen preparados
-2. **Aplica tinciones**: Wright, Diff-Quik, etc.
-3. **Verifica calidad**: De las laminillas
-4. **Registra en el sistema**
+1. **Recepción:** el sistema registra los portaobjetos según la cantidad recibida.
+2. **Banco:** tinción (p. ej. Diff-Quick) según protocolo del laboratorio.
+3. **Cierre en el sistema:** en el detalle del protocolo, anote **observaciones opcionales por portaobjeto** y confirme **Marcar listo para diagnóstico**.
+4. **Sin pantalla de registro de slides:** a diferencia de histopatología, no hay «Registrar muestra» para CT.
 
 ### ¿Qué pasa en el sistema?
 - **Se actualiza el estado** a PROCESSING
-- **Se registran cassettes y slides**: En el sistema
+- **Se registran cassettes y slides**: En el sistema (HP en «Registrar muestra»; CT en recepción + observaciones al cerrar banco)
+- **Citología:** las observaciones de banco quedan en cada portaobjeto; el protocolo pasa a **READY** sin notificar al veterinario (sigue viendo «En laboratorio»)
 - **Se asigna a un histopatólogo** disponible
 - **Se envía notificación** al histopatólogo
 

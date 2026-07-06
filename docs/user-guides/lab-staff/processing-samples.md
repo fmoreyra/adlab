@@ -60,8 +60,14 @@ Si ya hay cassettes, el formulario permite agregar solo portaobjetos nuevos.
 
 ### Citología
 
-- Los portaobjetos se registran **automáticamente al confirmar la recepción** (cantidad recibida + Diff-Quick por defecto).
-- Cierre el caso con **Marcar listo para diagnóstico** cuando el trabajo de banco esté terminado.
+1. **Recepción:** los portaobjetos se crean **automáticamente** al confirmar la recepción (cantidad recibida + coloración por defecto **Diff-Quick**). Ver [Recibir muestras](receiving-samples.md).
+2. **Procesamiento en banco:** abra el **detalle del protocolo** → sección **«Procesamiento de laboratorio»**.
+   - Verá la lista de portaobjetos con un **campo de observaciones opcional** por cada uno (notas de tinción, calidad del extendido, etc.).
+   - Complete los campos que necesite (puede dejar algunos vacíos).
+3. **Cerrar el caso:** pulse **Marcar listo para diagnóstico**. El sistema guarda las observaciones ingresadas y marca el protocolo listo para diagnóstico interno.
+4. **Después del cierre:** las observaciones se muestran en **solo lectura**; no hay edición desde esta pantalla.
+
+> **Nota:** La citología **no** usa la pantalla «Registrar muestra» (reservada a histopatología). Las observaciones de recepción (muestra, discrepancias) se cargan al recepcionar; las de banco, al cerrar el procesamiento.
 
 ### Veterinarios externos
 
@@ -74,7 +80,7 @@ No se muestra en la interfaz principal: el seguimiento fino queda en la planilla
 
 ### Órdenes de trabajo
 
-Desde el estado **Listo** puede enlazarse a órdenes de trabajo solo si su usuario tiene **`is_staff` habilitado** («Staff status» en Administración → Usuarios). El rol de personal de laboratorio no alcanza por sí solo; un administrador debe activar ese flag para quien factura o arma OTs.
+> **Jul 2026:** la interfaz de órdenes de trabajo está **deshabilitada** en esta etapa. Los modelos se conservan en admin técnico para uso futuro.
 
 ### General
 

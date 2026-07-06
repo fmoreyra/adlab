@@ -142,6 +142,20 @@ Prioridad operativa: reducir fricción con guantes puestos en el banco.
 - **Pulido (Jul 2026):** códigos preview (`HP 26/006-C1`), orden numérico de slides, seeds demo, docs de lab staff.
 - **Notas / PR:** Ver [PLAN_PUNTO_2_LAB_HP.md](PLAN_PUNTO_2_LAB_HP.md).
 
+### 2.3 Observaciones por portaobjeto en citología (cierre de banco)
+
+- **Estado:** ✅ Hecho (Jul 2026)
+- **Objetivo:** Anotar observaciones de banco por cada portaobjeto de CT al cerrar el procesamiento, sin edición ni revertir etapas.
+- **Implementado:**
+  - Solo **citología**; HP sigue con observaciones en **Registrar muestra**.
+  - Detalle del protocolo → «Procesamiento de laboratorio»: textarea **opcional por slide** en `received` / `processing`.
+  - **Marcar listo para diagnóstico** guarda observaciones en `Slide.observaciones` y cierra el protocolo (`READY`).
+  - Campo vacío → no sobrescribe texto previo (p. ej. recepción automática).
+  - Tras `READY`: tabla solo lectura.
+- **Fuera de alcance:** marcar listo por slide, revertir, calidad/coloración, registro unificado CT.
+- **Áreas del código:** `_protocol_processing_section.html`, `ProtocolMarkReadyView`, `mark_ready_for_diagnosis`.
+- **Docs:** `processing-samples.md`, `receiving-samples.md`, `complete-sample-journey.md`.
+
 ---
 
 ## 3. Informes, Formato y Galería
@@ -297,6 +311,10 @@ Usar esta sección para anotar qué ítem se tomó en cada sesión.
 | Jul 2026 | Roadmap | Documentar dominio (4), deshabilitar OT (6.1), informes sin formato (3.2–3.3; 3.1 espera facultad) |
 | Jul 2026 | 3.2, 3.3, 6.1 | Implementación: nombre PDF, galería imágenes, retiro UI de órdenes de trabajo |
 | Jul 2026 | 1.4 | Timeline vet “En laboratorio”; recorte emails (READY off, submit in-app only, discrepancias en recepción) |
+| Jul 2026 | 2.3 | Observaciones CT por portaobjeto al marcar listo para diagnóstico |
+| Jul 2026 | Bloque 1 (verif. local) | 1.1–1.4 probados OK en entorno local |
+| Jul 2026 | Bloque 2 (verif. local) | 2.1 HP, 2.2 registro unificado, 2.3 observaciones CT probados OK |
+| Jul 2026 | Bloque 3 (verif. local) | 3.2 nombre PDF, 3.3 imágenes en PDF, envío al vet probados OK |
 
 ---
 

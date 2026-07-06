@@ -225,14 +225,24 @@ class CassetteObservationForm(forms.ModelForm):
 # FORMSETS FOR CASSETTE OBSERVATIONS
 # =============================================================================
 
-CassetteObservationFormSet = inlineformset_factory(
-    Report,
-    CassetteObservation,
-    form=CassetteObservationForm,
-    extra=1,
-    can_delete=True,
-    fields=["cassette", "observations", "partial_diagnosis", "order"],
-)
+
+def build_cassette_observation_formset(*, extra=1):
+    """
+    Build a cassette observation formset with a configurable number of extras.
+
+    Citología uses ``extra=0`` because no cassette rows are rendered in the UI.
+    """
+    return inlineformset_factory(
+        Report,
+        CassetteObservation,
+        form=CassetteObservationForm,
+        extra=extra,
+        can_delete=True,
+        fields=["cassette", "observations", "partial_diagnosis", "order"],
+    )
+
+
+CassetteObservationFormSet = build_cassette_observation_formset(extra=1)
 
 
 class ReportImageForm(forms.ModelForm):
@@ -293,6 +303,9 @@ class ReportImageForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.report = report
         self.fields["image"].required = False
+        self.fields["order"].required = False
+        if not self.instance.pk and not self.initial.get("order"):
+            self.fields["order"].initial = 0
 
         if report and report.protocol:
             protocol = report.protocol
@@ -310,6 +323,44 @@ class ReportImageForm(forms.ModelForm):
         if report and not self.instance.pk:
             self.instance.report = report
 
+    def _bound_row_has_content(self):
+        """Return whether POST data includes user input for this image row."""
+        if not self.is_bound:
+            return False
+
+        if self.files.get(self.add_prefix("image")):
+            return True
+
+        for field_name in (
+            "cassette",
+            "slide",
+            "description",
+            "magnification",
+            "technique",
+        ):
+            raw_value = self.data.get(self.add_prefix(field_name), "")
+            if field_name in ("cassette", "slide"):
+                if str(raw_value).strip():
+                    return True
+                continue
+            if str(raw_value).strip():
+                return True
+
+        return False
+
+    def has_changed(self):
+        """Ignore untouched extra rows (order defaults should not create DB rows)."""
+        if self.instance.pk:
+            return super().has_changed()
+        return self._bound_row_has_content()
+
+    def clean_order(self):
+        """Default empty order to zero for optional extra rows."""
+        order = self.cleaned_data.get("order")
+        if order is None:
+            return 0
+        return order
+
     def clean_image(self):
         """Validate new uploads; keep existing file when not replaced."""
         image = self.cleaned_data.get("image")
@@ -317,13 +368,26 @@ class ReportImageForm(forms.ModelForm):
             ReportImageService.validate_upload(image)
         return image
 
+    def _row_has_submitted_content(self, cleaned):
+        """Return whether the user entered data in this image row."""
+        if cleaned.get("image"):
+            return True
+        if cleaned.get("cassette") or cleaned.get("slide"):
+            return True
+        for field_name in ("description", "magnification", "technique"):
+            if (cleaned.get(field_name) or "").strip():
+                return True
+        return False
+
     def clean(self):
         """Skip empty extra forms; require image when the row has data."""
         cleaned = super().clean()
         if cleaned.get("DELETE"):
             return cleaned
 
-        if not self.has_changed() and not self.instance.pk:
+        if not self.instance.pk and not self._row_has_submitted_content(
+            cleaned
+        ):
             return cleaned
 
         has_file = cleaned.get("image") or (
@@ -379,7 +443,7 @@ ReportImageFormSet = inlineformset_factory(
     ReportImage,
     form=ReportImageForm,
     formset=BaseReportImageFormSet,
-    extra=2,
+    extra=1,
     can_delete=True,
     max_num=MAX_IMAGES_PER_REPORT,
     fields=[

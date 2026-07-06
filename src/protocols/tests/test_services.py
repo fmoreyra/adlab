@@ -580,6 +580,50 @@ class ProtocolProcessingServiceTest(TestCase):
         self.assertFalse(success)
         self.assertIn("ya está listo", error.lower())
 
+    def test_mark_ready_saves_cytology_slide_observations(self):
+        """Cytology mark-ready persists non-empty per-slide observations."""
+        from protocols.models import CytologySample
+
+        cytology_protocol = Protocol.objects.create(
+            veterinarian=self.veterinarian,
+            animal_identification="CYTO001",
+            species="Canino",
+            analysis_type=Protocol.AnalysisType.CYTOLOGY,
+            status=Protocol.Status.PROCESSING,
+        )
+        CytologySample.objects.create(
+            protocol=cytology_protocol,
+            veterinarian=self.veterinarian,
+            technique_used="PAAF",
+            sampling_site="Piel",
+            number_of_slides=2,
+        )
+        auto_note = "Registrado automáticamente en recepción"
+        slide1 = Slide.objects.create(
+            protocol=cytology_protocol,
+            observaciones=auto_note,
+        )
+        slide2 = Slide.objects.create(
+            protocol=cytology_protocol,
+            observaciones=auto_note,
+        )
+
+        success, error = self.service.mark_ready_for_diagnosis(
+            cytology_protocol,
+            self.user,
+            slide_observations={
+                slide1.pk: "Extendido irregular",
+                slide2.pk: "   ",
+            },
+        )
+
+        self.assertTrue(success)
+        self.assertEqual(error, "")
+        slide1.refresh_from_db()
+        slide2.refresh_from_db()
+        self.assertEqual(slide1.observaciones, "Extendido irregular")
+        self.assertEqual(slide2.observaciones, auto_note)
+
     def test_update_slide_stage_invalid(self):
         """Test slide stage update with invalid action."""
         slide = Slide.objects.create(

@@ -2564,6 +2564,7 @@ class ProcessingViewsTest(TestCase):
         slide = Slide.objects.create(
             protocol=self.cytology_protocol,
             campo="1",
+            observaciones="Registrado automáticamente en recepción",
         )
         slide.advance_stage()
 
@@ -2573,7 +2574,8 @@ class ProcessingViewsTest(TestCase):
             reverse(
                 "protocols:protocol_mark_ready",
                 kwargs={"pk": self.cytology_protocol.pk},
-            )
+            ),
+            data={f"slide_observaciones_{slide.pk}": "Buena celularidad"},
         )
 
         self.assert_redirects_to_protocol_detail(
@@ -2581,6 +2583,8 @@ class ProcessingViewsTest(TestCase):
         )
         self.cytology_protocol.refresh_from_db()
         self.assertEqual(self.cytology_protocol.status, Protocol.Status.READY)
+        slide.refresh_from_db()
+        self.assertEqual(slide.observaciones, "Buena celularidad")
         from protocols.models import InAppNotification
 
         self.assertFalse(

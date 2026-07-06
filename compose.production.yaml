@@ -11,6 +11,10 @@ services:
     expose:
       - "8000"
 
+  # Postgres must not be reachable from outside the Docker network in production.
+  postgres:
+    ports: !reset []
+
   # Nginx reverse proxy with background reload loop.
   # Every 6 hours nginx gracefully re-reads SSL certificates so renewals
   # performed by the certbot container are picked up automatically.

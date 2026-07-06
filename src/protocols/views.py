@@ -1081,6 +1081,33 @@ class ProtocolProcessingStatusView(StaffRequiredMixin, View):
         return redirect(protocol_detail_processing_url(protocol))
 
 
+def _parse_cytology_slide_observations_from_post(request, protocol):
+    """
+    Extract per-slide observation fields from a mark-ready POST (cytology only).
+
+    Args:
+        request: HTTP request
+        protocol: Protocol being closed
+
+    Returns:
+        dict[int, str] | None: Slide PK to text, or None for non-cytology
+    """
+    if protocol.analysis_type != Protocol.AnalysisType.CYTOLOGY:
+        return None
+
+    observations = {}
+    prefix = "slide_observaciones_"
+    for key, value in request.POST.items():
+        if not key.startswith(prefix):
+            continue
+        try:
+            slide_id = int(key.removeprefix(prefix))
+        except ValueError:
+            continue
+        observations[slide_id] = value
+    return observations
+
+
 class ProtocolMarkReadyView(StaffRequiredMixin, View):
     """Mark protocol technical processing complete (READY for diagnosis)."""
 
@@ -1104,7 +1131,11 @@ class ProtocolMarkReadyView(StaffRequiredMixin, View):
 
         success, error_message = (
             self.processing_service.mark_ready_for_diagnosis(
-                protocol, request.user
+                protocol,
+                request.user,
+                slide_observations=_parse_cytology_slide_observations_from_post(
+                    request, protocol
+                ),
             )
         )
 

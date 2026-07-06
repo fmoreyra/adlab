@@ -1,0 +1,127 @@
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-semibold mb-4">Imágenes Microscópicas</h2>
+    <p class="text-sm text-gray-600 mb-4">
+        Adjunte fotografías del microscopio (JPG, PNG o WebP, máximo 10 MB por imagen).
+        Puede asociar cada imagen a un cassette o portaobjetos.
+        Hasta {{ image_formset.max_num }} imágenes por informe.
+    </p>
+
+    {{ image_formset.management_form }}
+
+    <div id="report-image-forms" class="space-y-4">
+        {% for img_form in image_formset %}
+            {% include "protocols/reports/_report_image_form_row.html" with img_form=img_form only %}
+        {% endfor %}
+    </div>
+
+    <template id="report-image-empty-form-template">
+        {% include "protocols/reports/_report_image_form_row.html" with img_form=image_formset.empty_form only %}
+    </template>
+
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button type="button"
+                id="add-report-image-row"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            + Agregar otra imagen
+        </button>
+        <p id="report-image-limit-message"
+           class="hidden text-sm text-amber-700">
+            Alcanzó el máximo de {{ image_formset.max_num }} imágenes por informe.
+        </p>
+    </div>
+</div>
+
+<script>
+(function () {
+    const container = document.getElementById('report-image-forms');
+    const template = document.getElementById('report-image-empty-form-template');
+    const addBtn = document.getElementById('add-report-image-row');
+    const limitMessage = document.getElementById('report-image-limit-message');
+    const totalInput = document.getElementById('id_images-TOTAL_FORMS');
+    const maxInput = document.getElementById('id_images-MAX_NUM_FORMS');
+
+    if (!container || !template || !addBtn || !totalInput || !maxInput) {
+        return;
+    }
+
+    const maxForms = parseInt(maxInput.value, 10);
+
+    function currentFormCount() {
+        return container.querySelectorAll('.report-image-form-row').length;
+    }
+
+    function syncTotalForms() {
+        totalInput.value = currentFormCount();
+    }
+
+    function renumberForms() {
+        container.querySelectorAll('.report-image-form-row').forEach(function (row, index) {
+            row.querySelectorAll('input, select, textarea, label').forEach(function (el) {
+                if (el.name) {
+                    el.name = el.name.replace(/images-\d+-/, 'images-' + index + '-');
+                }
+                if (el.id) {
+                    el.id = el.id.replace(/id_images-\d+-/, 'id_images-' + index + '-');
+                }
+                if (el.htmlFor) {
+                    el.htmlFor = el.htmlFor.replace(
+                        /id_images-\d+-/,
+                        'id_images-' + index + '-'
+                    );
+                }
+            });
+        });
+        syncTotalForms();
+    }
+
+    function updateAddButtonState() {
+        const atLimit = currentFormCount() >= maxForms;
+        addBtn.disabled = atLimit;
+        addBtn.classList.toggle('opacity-50', atLimit);
+        addBtn.classList.toggle('cursor-not-allowed', atLimit);
+        if (limitMessage) {
+            limitMessage.classList.toggle('hidden', !atLimit);
+        }
+    }
+
+    function addImageRow() {
+        if (currentFormCount() >= maxForms) {
+            updateAddButtonState();
+            return;
+        }
+
+        const formIndex = currentFormCount();
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = template.innerHTML.replace(/__prefix__/g, formIndex);
+        const row = wrapper.firstElementChild;
+        if (!row) {
+            return;
+        }
+
+        container.appendChild(row);
+        syncTotalForms();
+        updateAddButtonState();
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    addBtn.addEventListener('click', addImageRow);
+
+    container.addEventListener('click', function (event) {
+        const removeBtn = event.target.closest('.remove-report-image-row');
+        if (!removeBtn) {
+            return;
+        }
+
+        const row = removeBtn.closest('.report-image-form-row');
+        if (!row || row.querySelector('input[name$="-id"]')?.value) {
+            return;
+        }
+
+        row.remove();
+        renumberForms();
+        updateAddButtonState();
+    });
+
+    updateAddButtonState();
+})();
+</script>
