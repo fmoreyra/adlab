@@ -16,7 +16,7 @@ jobs:
     name: "Lint and Format Check"
     runs-on: "ubuntu-22.04"
     steps:
-      - uses: "actions/checkout@v4"
+      - uses: "actions/checkout@v7"
 
       - name: "Set up Python"
         uses: "actions/setup-python@v5"
@@ -85,7 +85,7 @@ jobs:
     needs: lint  # Run tests only after linting passes
 
     steps:
-      - uses: "actions/checkout@v4"
+      - uses: "actions/checkout@v7"
 
       - name: "Install CI dependencies"
         run: |
