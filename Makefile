@@ -12,7 +12,7 @@ TTY := $(shell [ -t 1 ] && echo "" || echo "-T")
 # .PHONY declarations for all targets
 # -----------------------------------------------------------------------------
 
-.PHONY: help cmd shell psql redis-cli manage secret test test-with-sqlite test-specific test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups celery-refresh-stats deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test pre-commit-install pre-commit-run pre-commit-update server-connect deploy deploy-prod safety-check safety-report
+.PHONY: help cmd shell psql redis-cli manage secret test test-with-sqlite test-specific test-cleanup lint lint-dockerfile lint-shell format format-shell quality db-dump db-restore db-list-backups backup-complete restore-complete celery-refresh-stats deps-install uv uv-outdated yarn yarn-install yarn-outdated yarn-build-js yarn-build-css yarn-optimize-images docs-serve docs-build docs-update-paths docs-update-paths-preview clean ci-install-deps ci-test pre-commit-install pre-commit-run pre-commit-update server-connect deploy deploy-prod safety-check safety-report
 
 # -----------------------------------------------------------------------------
 # Help target (default)
@@ -51,6 +51,8 @@ help: ## Display available targets
 	@echo "  db-dump                Generate a database dump"
 	@echo "  db-restore             Restore database from dump (use: make db-restore DUMP_FILE=path)"
 	@echo "  db-list-backups        List available database backups"
+	@echo "  backup-complete        Full backup: database + media + manifest (Mac: via Linux container)"
+	@echo "  restore-complete       Restore full backup (use: make restore-complete BACKUP_DIR=path [-- ARGS=\"--force\"])"
 	@echo ""
 	@echo "Dependencies:"
 	@echo "  deps-install           Install all dependencies"
@@ -206,6 +208,24 @@ db-restore: ## Restore database from dump
 
 db-list-backups: ## List available database backups
 	@./scripts/db-list-backups.sh
+
+backup-complete: ## Full backup (database + media + manifest)
+	@if [ "$$(uname -s)" = "Darwin" ]; then \
+		./bin/run-linux.sh backup-complete; \
+	else \
+		./bin/backup-complete.sh; \
+	fi
+
+restore-complete: ## Restore full backup (database + media)
+	@if [ -z "$(BACKUP_DIR)" ]; then \
+		echo "Usage: make restore-complete BACKUP_DIR=backups/adlab_complete_YYYYMMDD_HHMMSS"; \
+		exit 1; \
+	fi
+	@if [ "$$(uname -s)" = "Darwin" ]; then \
+		./bin/run-linux.sh restore-complete "$(BACKUP_DIR)" $(ARGS); \
+	else \
+		./bin/restore-complete.sh "$(BACKUP_DIR)" $(ARGS); \
+	fi
 
 # -----------------------------------------------------------------------------
 # Celery / server stats (production 503 fix)
