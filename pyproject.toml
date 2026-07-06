@@ -18,7 +18,7 @@ dependencies = [
   "pymdown-extensions>=10.21.3",
   "qrcode==8.0",
   "redis==6.4.0",
-  "reportlab==4.2.5",
+  "reportlab==5.0.0",
   "ruff==0.14.0",
   "sentry-sdk>=2.0.0",
   "setuptools==80.9.0",
