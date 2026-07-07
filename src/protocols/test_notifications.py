@@ -16,6 +16,7 @@ from django.urls import reverse
 from accounts.models import Histopathologist, LaboratoryStaff, Veterinarian
 from accounts.test_helpers import (
     create_test_signature_file,
+    ensure_lab_staff_onboarded,
     ensure_veterinarian_profile_complete,
 )
 from protocols.models import (
@@ -435,6 +436,7 @@ class NotificationViewIntegrationTestCase(TestCase):
             license_number="HP-001",
             is_active=True,
         )
+        ensure_lab_staff_onboarded(self.histo_user, license_number="HP-001")
         self.client = Client()
 
     @patch(

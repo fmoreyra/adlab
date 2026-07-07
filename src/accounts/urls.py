@@ -65,10 +65,15 @@ urlpatterns = [
         views.VeterinarianProfileHistoryView.as_view(),
         name="veterinarian_profile_history",
     ),
-    # Histopathologist Management
+    # Histopathologist Management (legacy redirect)
     path(
         "histopathologist/create/",
-        views.CreateHistopathologistView.as_view(),
+        views.redirect_create_histopathologist,
         name="create_histopathologist",
+    ),
+    path(
+        "lab-staff/create/",
+        views.CreateLaboratoryStaffView.as_view(),
+        name="create_laboratory_staff",
     ),
 ]

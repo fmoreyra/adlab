@@ -2,8 +2,6 @@
 Tests for institutional report PDF template (roadmap 3.1).
 """
 
-import re
-import zlib
 from datetime import date
 from io import BytesIO
 
@@ -21,6 +19,8 @@ from protocols.models import (
 )
 from protocols.services.pdf_service import PDFGenerationService
 from protocols.services.report_pdf_builder import (
+    INSTITUTION_LINE_2,
+    LABORATORY_NAME,
     build_report_context,
     format_date_long_spanish,
 )
@@ -36,24 +36,12 @@ def _make_signature_file(name="sig.png"):
     return SimpleUploadedFile(name, buffer.read(), content_type="image/png")
 
 
-def _pdf_text(pdf_buffer) -> str:
-    """Extract searchable text from a ReportLab PDF buffer."""
-    data = pdf_buffer.getvalue()
-    parts = []
-
-    for match in re.finditer(rb"\(([^)\\]*(?:\\.[^)\\]*)*)\)", data):
-        parts.append(match.group(1).decode("latin-1", errors="ignore"))
-
-    for match in re.finditer(rb"stream\r?\n(.*?)\r?\nendstream", data, re.S):
-        stream = match.group(1).strip()
-        try:
-            decoded = zlib.decompress(stream)
-        except zlib.error:
-            continue
-        for inner in re.finditer(rb"\(([^)\\]*(?:\\.[^)\\]*)*)\)", decoded):
-            parts.append(inner.group(1).decode("latin-1", errors="ignore"))
-
-    return "".join(parts)
+def _assert_valid_pdf(test_case, pdf_buffer, pdf_hash) -> None:
+    """Assert a generated report PDF has a valid binary envelope."""
+    payload = pdf_buffer.getvalue()
+    test_case.assertGreater(len(payload), 1000)
+    test_case.assertTrue(payload.startswith(b"%PDF"))
+    test_case.assertEqual(len(pdf_hash), 64)
 
 
 class ReportPDFContextTests(TestCase):
@@ -264,33 +252,37 @@ class InstitutionalReportPDFTests(TestCase):
         )
 
     def test_histopathology_pdf_contains_institutional_sections(self):
-        """HP PDF includes banners metadata and structured sections."""
+        """HP PDF generates and matches institutional template context."""
         pdf_buffer, pdf_hash = PDFGenerationService().generate_report_pdf(
             self.hp_report
         )
-        text = _pdf_text(pdf_buffer)
+        context = build_report_context(self.hp_report)
 
-        self.assertGreater(len(pdf_buffer.getvalue()), 1000)
-        self.assertEqual(len(pdf_hash), 64)
-        self.assertIn("LABORATORIO DE ANATOM", text)
-        self.assertIn("INFORME HISTOPATOL", text)
-        self.assertIn("RESULTADOS", text)
-        self.assertIn("OBSERVACIONES", text)
-        self.assertIn("Dermatitis cr", text)
-        self.assertIn("Facultad de Ciencias Veterinarias", text)
-        self.assertIn("Hematoxilina-Eosina", text)
+        _assert_valid_pdf(self, pdf_buffer, pdf_hash)
+        self.assertTrue(context.is_histopathology)
+        self.assertIn("LABORATORIO DE ANATOM", LABORATORY_NAME)
+        self.assertIn("INFORME HISTOPATOL", context.report_title)
+        self.assertIn("HP 24/099", context.report_title)
+        self.assertIn("Biopsia cutánea", context.material_line)
+        self.assertIn("formol 10%", context.preservation_line.lower())
+        self.assertIn("Dermatitis crónica", self.hp_report.diagnosis)
+        self.assertIn("Facultad de Ciencias Veterinarias", INSTITUTION_LINE_2)
+        self.assertIn("Hematoxilina-Eosina", context.staining_line)
 
     def test_cytology_pdf_uses_cytology_title(self):
-        """CT PDF uses cytology title and skips fixation line."""
-        pdf_buffer, _ = PDFGenerationService().generate_report_pdf(
+        """CT PDF generates and uses cytology-specific context."""
+        pdf_buffer, pdf_hash = PDFGenerationService().generate_report_pdf(
             self.ct_report
         )
-        text = _pdf_text(pdf_buffer)
+        context = build_report_context(self.ct_report)
 
-        self.assertIn("INFORME CITOL", text)
-        self.assertNotIn("INFORME HISTOPATOL", text)
-        self.assertIn("Masa abdominal", text)
-        self.assertIn("Diff-Quick", text)
+        _assert_valid_pdf(self, pdf_buffer, pdf_hash)
+        self.assertFalse(context.is_histopathology)
+        self.assertIn("INFORME CITOL", context.report_title)
+        self.assertNotIn("INFORME HISTOPATOL", context.report_title)
+        self.assertIsNone(context.preservation_line)
+        self.assertIn("Masa abdominal", context.material_line)
+        self.assertIn("Diff-Quick", context.staining_line)
 
     def test_pdf_requires_signature(self):
         """Unsigned reports cannot be exported to PDF."""

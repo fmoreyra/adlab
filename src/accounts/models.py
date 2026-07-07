@@ -176,12 +176,14 @@ class User(AbstractUser):
         - Internal users (lab staff, admin): Only need is_active=True
         - External users (veterinarians): Need is_active=True AND email_verified=True
         """
-        # Internal users don't need verification
+        # Internal users (lab staff, admin): lab staff must verify email
         if self.role in [
             self.Role.PERSONAL_LAB,
             self.Role.HISTOPATOLOGO,
             self.Role.ADMIN,
         ]:
+            if self.role == self.Role.PERSONAL_LAB:
+                return self.is_active and self.email_verified
             return self.is_active
 
         # External users (veterinarians) need verification

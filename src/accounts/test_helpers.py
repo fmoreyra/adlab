@@ -157,3 +157,55 @@ def create_report_capable_lab_staff(
         lab_data.update(staff_kwargs)
     laboratory_staff = LaboratoryStaff.objects.create(**lab_data)
     return user, laboratory_staff
+
+
+def ensure_lab_staff_onboarded(
+    user,
+    *,
+    license_number=None,
+    can_create_reports=True,
+    with_signature=True,
+    **profile_kwargs,
+):
+    """
+    Ensure a lab staff user has a profile and signature for middleware/tests.
+
+    Creates or updates LaboratoryStaff. For legacy Histopathologist-only users,
+    adds a signature image on the existing profile when no LaboratoryStaff exists.
+    """
+    from accounts.models import Histopathologist, LaboratoryStaff
+
+    license_value = license_number or f"LAB-{user.pk or user.username}"
+    signature_file = create_test_signature_file() if with_signature else None
+
+    lab_staff = LaboratoryStaff.objects.filter(user=user).first()
+    if lab_staff:
+        if with_signature and not lab_staff.has_signature():
+            lab_staff.signature_image = signature_file
+            lab_staff.save(update_fields=["signature_image"])
+        return lab_staff
+
+    try:
+        histo = user.histopathologist_profile
+    except Histopathologist.DoesNotExist:
+        histo = None
+
+    if histo:
+        if with_signature and not histo.has_signature():
+            histo.signature_image = signature_file
+            histo.save(update_fields=["signature_image"])
+        return histo
+
+    profile_data = {
+        "user": user,
+        "first_name": user.first_name or "Staff",
+        "last_name": user.last_name or "Test",
+        "license_number": license_value,
+        "can_create_reports": can_create_reports,
+        "is_active": True,
+    }
+    profile_data.update(profile_kwargs)
+    if signature_file:
+        profile_data["signature_image"] = signature_file
+
+    return LaboratoryStaff.objects.create(**profile_data)

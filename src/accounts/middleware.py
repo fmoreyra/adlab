@@ -1,14 +1,16 @@
 """
-Middleware for enforcing veterinarian profile completion.
+Middleware for enforcing veterinarian profile completion and lab staff onboarding.
 
-This middleware ensures that all authenticated veterinarians have completed
-their professional profile before accessing any protected pages.
+Veterinarians must complete their professional profile before accessing
+protected pages. Laboratory staff must upload a digital signature during
+onboarding before using the application.
 """
 
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 
 from accounts.models import Veterinarian
+from accounts.report_access import user_requires_lab_staff_signature
 
 # JSON API routes must never receive HTML redirects (fetch clients, debug toolbar).
 API_PATH_PREFIX = "/api/"
@@ -22,73 +24,89 @@ class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
     profile completion page. Allows access to whitelisted URLs.
     """
 
-    # URLs that veterinarians can access without complete profile
     WHITELISTED_URLS = [
         "/accounts/veterinarian/complete-profile/",
         "/accounts/logout/",
         "/accounts/password-reset/",
         "/accounts/resend-verification/",
-        "/accounts/histopathologist/create/",  # Admin-only view
+        "/accounts/verify-email/",
+        "/accounts/lab-staff/create/",
         "/admin/",
         "/static/",
         "/media/",
     ]
 
     def process_request(self, request):
-        """
-        Process the request and redirect if profile is incomplete.
-
-        Args:
-            request: HTTP request object
-
-        Returns:
-            HttpResponse or None: Redirect response if profile incomplete, None otherwise
-        """
-        # Skip if user is not authenticated
+        """Redirect veterinarians with incomplete profiles."""
         if not request.user.is_authenticated:
             return None
 
-        # Skip if user is not a veterinarian or is admin
         if not request.user.is_veterinarian or request.user.is_admin_user:
             return None
 
-        # Skip if accessing whitelisted URLs
         if self._is_whitelisted_url(request.path):
             return None
 
-        # JSON APIs handle auth themselves; HTML redirects break fetch().json().
         if request.path.startswith(API_PATH_PREFIX):
             return None
 
-        # Check if veterinarian has a complete profile
         if not self._has_complete_profile(request.user):
             return redirect("accounts:complete_profile")
 
         return None
 
     def _is_whitelisted_url(self, path):
-        """
-        Check if the URL is whitelisted for veterinarians without complete profiles.
-
-        Args:
-            path: URL path to check
-
-        Returns:
-            bool: True if URL is whitelisted, False otherwise
-        """
+        """Return True if the path is accessible without a complete profile."""
         return any(path.startswith(url) for url in self.WHITELISTED_URLS)
 
     def _has_complete_profile(self, user):
-        """
-        Check if veterinarian has a complete profile.
-
-        Args:
-            user: User instance to check
-
-        Returns:
-            bool: True if profile is complete, False otherwise
-        """
+        """Return True when the veterinarian profile is complete."""
         if not Veterinarian.objects.filter(user=user).exists():
             return False
 
         return user.veterinarian_profile.is_profile_complete_for_access()
+
+
+class LabStaffSignatureRequiredMiddleware(MiddlewareMixin):
+    """
+    Middleware that enforces digital signature upload for laboratory staff.
+
+    Redirects authenticated lab staff without a signature to the upload form.
+    """
+
+    WHITELISTED_URLS = [
+        "/accounts/lab-staff/signature/",
+        "/accounts/logout/",
+        "/accounts/password-reset/",
+        "/accounts/password-reset/confirm/",
+        "/accounts/resend-verification/",
+        "/accounts/verify-email/",
+        "/accounts/lab-staff/create/",
+        "/accounts/histopathologist/create/",
+        "/admin/",
+        "/static/",
+        "/media/",
+    ]
+
+    def process_request(self, request):
+        """Redirect lab staff missing a digital signature."""
+        if not request.user.is_authenticated:
+            return None
+
+        if not request.user.is_lab_staff or request.user.is_admin_user:
+            return None
+
+        if self._is_whitelisted_url(request.path):
+            return None
+
+        if request.path.startswith(API_PATH_PREFIX):
+            return None
+
+        if user_requires_lab_staff_signature(request.user):
+            return redirect("accounts:lab_staff_signature")
+
+        return None
+
+    def _is_whitelisted_url(self, path):
+        """Return True if the path is accessible without a signature."""
+        return any(path.startswith(url) for url in self.WHITELISTED_URLS)

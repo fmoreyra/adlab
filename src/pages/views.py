@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.db.models import Avg, Case, Count, F, IntegerField, Q, When
-from django.db.models.functions import Extract
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -269,11 +268,8 @@ class LabStaffDashboardView(LoginRequiredMixin, TemplateView):
                             When(
                                 status=Report.Status.FINALIZED,
                                 protocol__reception_date__isnull=False,
-                                then=Extract(
-                                    F("updated_at")
-                                    - F("protocol__reception_date"),
-                                    "days",
-                                ),
+                                then=F("updated_at__date")
+                                - F("protocol__reception_date"),
                             ),
                             default=None,
                             output_field=IntegerField(),

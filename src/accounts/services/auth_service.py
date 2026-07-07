@@ -63,6 +63,15 @@ class AuthenticationService:
                 _("Debe verificar su email antes de iniciar sesión."),
             )
 
+        # Laboratory staff must verify email before first login
+        if user.role == User.Role.PERSONAL_LAB and not user.email_verified:
+            self._log_failed_login(user, request, "Email not verified")
+            return (
+                False,
+                "",
+                _("Debe verificar su email antes de iniciar sesión."),
+            )
+
         # Process successful login
         login(request, user)
         user.reset_failed_login_attempts()

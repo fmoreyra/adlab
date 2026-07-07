@@ -22,7 +22,7 @@ from django.views.generic import (
 )
 
 from .forms import (
-    HistopathologistCreationForm,
+    LaboratoryStaffCreationForm,
     LaboratoryStaffSignatureForm,
     PasswordResetConfirmForm,
     PasswordResetRequestForm,
@@ -44,8 +44,8 @@ from .models import (
 )
 from .redirect_utils import resolve_safe_redirect
 from .report_access import (
-    get_laboratory_staff_for_reports,
-    user_requires_report_signature,
+    get_or_create_laboratory_staff_profile,
+    user_requires_lab_staff_signature,
 )
 from .services.auth_service import AuthenticationService
 
@@ -174,48 +174,88 @@ class RegisterView(CreateView):
         return super().form_valid(form)
 
 
-class CreateHistopathologistView(AdminRequiredMixin, FormView):
+class CreateLaboratoryStaffView(AdminRequiredMixin, FormView):
     """
-    View for creating histopathologist users with complete profile.
+    View for creating laboratory staff with unified profile.
 
-    Creates both User account and Histopathologist profile in a single form.
-    Only accessible by administrators and superusers.
+    Creates User account and LaboratoryStaff profile, sends verification
+    email, and logs the creation. Only accessible by administrators.
     """
 
-    form_class = HistopathologistCreationForm
-    template_name = "accounts/create_histopathologist.html"
-    success_url = reverse_lazy("admin:accounts_histopathologist_changelist")
+    form_class = LaboratoryStaffCreationForm
+    template_name = "accounts/create_laboratory_staff.html"
+    success_url = reverse_lazy("admin:accounts_laboratorystaff_changelist")
 
     def form_valid(self, form):
-        """Process valid form and create histopathologist."""
+        """Process valid form and create laboratory staff."""
         try:
-            user, _ = form.save()
-
-            # Log creation in audit log
+            user, lab_staff = form.save()
             auth_service = AuthenticationService()
+
             AuthAuditLog.objects.create(
                 user=user,
                 email=user.email,
                 action=AuthAuditLog.Action.USER_CREATED,
                 ip_address=auth_service._get_client_ip(self.request),
                 user_agent=auth_service._get_user_agent(self.request),
-                details=f"Histopathologist created by {self.request.user.email}",
+                details=(
+                    f"Laboratory staff created by {self.request.user.email}"
+                ),
             )
+
+            if auth_service.send_verification_email(user, self.request):
+                AuthAuditLog.objects.create(
+                    user=user,
+                    email=user.email,
+                    action=AuthAuditLog.Action.EMAIL_VERIFICATION_SENT,
+                    ip_address=auth_service._get_client_ip(self.request),
+                    user_agent=auth_service._get_user_agent(self.request),
+                )
+                verification_note = _(
+                    " Se envió un email de verificación al empleado."
+                )
+            else:
+                verification_note = _(
+                    " No se pudo enviar el email de verificación; "
+                    "verifique la configuración SMTP."
+                )
+
+            signature_note = ""
+            if not lab_staff.has_signature():
+                signature_note = _(
+                    " Deberá cargar su firma digital en el primer ingreso."
+                )
 
             messages.success(
                 self.request,
-                f"Histopatólogo {user.get_full_name()} creado exitosamente. "
-                f"Email: {user.email}",
+                _(
+                    "Personal de laboratorio %(name)s creado exitosamente. "
+                    "Email: %(email)s.%(verification)s%(signature)s"
+                )
+                % {
+                    "name": user.get_full_name(),
+                    "email": user.email,
+                    "verification": verification_note,
+                    "signature": signature_note,
+                },
             )
 
         except Exception:
             messages.error(
                 self.request,
-                _("Error al crear el histopatólogo. Intente nuevamente."),
+                _(
+                    "Error al crear el personal de laboratorio. "
+                    "Intente nuevamente."
+                ),
             )
             return self.form_invalid(form)
 
         return super().form_valid(form)
+
+
+def redirect_create_histopathologist(request):
+    """Redirect legacy histopathologist creation URL to unified staff flow."""
+    return redirect("accounts:create_laboratory_staff", permanent=True)
 
 
 class PasswordResetRequestView(FormView):
@@ -367,7 +407,7 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
     template_name = "accounts/lab_staff_signature.html"
 
     def dispatch(self, request, *args, **kwargs):
-        """Only lab staff with report permission may access this form."""
+        """Only laboratory staff may access the signature upload form."""
         if not request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
 
@@ -378,14 +418,13 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
             )
             return redirect("pages:dashboard")
 
-        self.lab_staff_profile = get_laboratory_staff_for_reports(request.user)
-        if (
-            not self.lab_staff_profile
-            or not self.lab_staff_profile.can_create_reports
-        ):
+        self.lab_staff_profile = get_or_create_laboratory_staff_profile(
+            request.user
+        )
+        if not self.lab_staff_profile:
             messages.error(
                 request,
-                _("No tiene permiso para elaborar informes patológicos."),
+                _("No se encontró un perfil de personal de laboratorio."),
             )
             return redirect("pages:dashboard")
 
@@ -400,8 +439,8 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
         return reverse_lazy("pages:dashboard")
 
     def get(self, request, *args, **kwargs):
-        """Skip form when signature already exists unless user opens it."""
-        if not user_requires_report_signature(
+        """Skip form when signature already exists unless forced."""
+        if not user_requires_lab_staff_signature(
             request.user
         ) and not request.GET.get("force"):
             messages.info(request, _("Su firma digital ya está cargada."))
@@ -426,7 +465,7 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
         form.save()
         messages.success(
             self.request,
-            _("Firma digital guardada. Ya puede elaborar y firmar informes."),
+            _("Firma digital guardada. Ya puede continuar con su trabajo."),
         )
         return super().form_valid(form)
 

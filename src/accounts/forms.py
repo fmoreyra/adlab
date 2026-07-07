@@ -53,9 +53,13 @@ class UserLoginForm(AuthenticationForm):
 
                 user = User.objects.get(email=username)
 
-                # Check email verification first (for veterinarians)
+                # Check email verification (veterinarians and laboratory staff)
                 if (
-                    user.role == User.Role.VETERINARIO
+                    user.role
+                    in (
+                        User.Role.VETERINARIO,
+                        User.Role.PERSONAL_LAB,
+                    )
                     and not user.email_verified
                 ):
                     # Log failed login attempt for audit
@@ -85,9 +89,14 @@ class UserLoginForm(AuthenticationForm):
 
     def confirm_login_allowed(self, user):
         """Check if the given user may log in."""
-        # Check email verification first (for veterinarians)
-        if user.role == User.Role.VETERINARIO and not user.email_verified:
-            # Log failed login attempt for audit
+        if (
+            user.role
+            in (
+                User.Role.VETERINARIO,
+                User.Role.PERSONAL_LAB,
+            )
+            and not user.email_verified
+        ):
             from .models import AuthAuditLog
 
             AuthAuditLog.objects.create(
@@ -101,7 +110,6 @@ class UserLoginForm(AuthenticationForm):
                 code="email_not_verified",
             )
 
-        # Check if account is inactive (for other reasons)
         if not user.is_active:
             raise forms.ValidationError(
                 self.error_messages["inactive"],
@@ -229,13 +237,20 @@ class VeterinarianRegistrationForm(UserCreationForm):
         return user
 
 
-class HistopathologistCreationForm(forms.Form):
+class LaboratoryStaffCreationForm(forms.Form):
     """
-    Form for creating histopathologist users with complete profile.
+    Form for creating laboratory staff users with a unified profile.
 
-    Creates both User account and Histopathologist profile in a single form.
-    Used by administrators to create internal laboratory staff.
+    Creates both User account and LaboratoryStaff profile in a single form.
+    Used by administrators to onboard internal laboratory personnel.
     """
+
+    INPUT_CLASS = (
+        "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg "
+        "shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 "
+        "focus:ring-blue-500 focus:border-blue-500 transition-colors "
+        "duration-200"
+    )
 
     # User account fields
     email = forms.EmailField(
@@ -354,7 +369,25 @@ class HistopathologistCreationForm(forms.Form):
                 "accept": "image/*",
             }
         ),
-        help_text=_("Imagen de la firma para incluir en informes (opcional)"),
+        help_text=_(
+            "Opcional: si no se carga ahora, el empleado deberá subirla "
+            "en su primer ingreso."
+        ),
+    )
+    can_create_reports = forms.BooleanField(
+        label=_("Puede crear informes"),
+        required=False,
+        initial=False,
+        help_text=_("Habilita elaboración y firma de informes patológicos."),
+    )
+    grant_staff_status = forms.BooleanField(
+        label=_("Acceso a órdenes de trabajo y panel admin"),
+        required=False,
+        initial=False,
+        help_text=_(
+            "Activa el permiso de staff de Django (órdenes de trabajo y "
+            "acceso al panel de administración)."
+        ),
     )
 
     def clean_email(self):
@@ -365,17 +398,25 @@ class HistopathologistCreationForm(forms.Form):
         return email.lower() if email else email
 
     def clean_license_number(self):
-        """Validate license number is unique."""
+        """Validate license number is unique across staff profiles."""
         license_number = self.cleaned_data.get("license_number")
-        if (
-            license_number
-            and Histopathologist.objects.filter(
-                license_number=license_number
-            ).exists()
-        ):
+        if not license_number:
+            return license_number
+
+        if LaboratoryStaff.objects.filter(
+            license_number=license_number
+        ).exists():
             raise ValidationError(
                 _("Este número de matrícula ya está registrado.")
             )
+
+        if Histopathologist.objects.filter(
+            license_number=license_number
+        ).exists():
+            raise ValidationError(
+                _("Este número de matrícula ya está registrado.")
+            )
+
         return license_number
 
     def clean(self):
@@ -391,26 +432,25 @@ class HistopathologistCreationForm(forms.Form):
 
     def save(self):
         """
-        Create both User account and Histopathologist profile.
+        Create User account and LaboratoryStaff profile.
 
         Returns:
-            tuple: (user, histopathologist) instances created
+            tuple: (user, laboratory_staff) instances created
         """
-        # Create User account
+        email = self.cleaned_data["email"].lower()
         user = User.objects.create_user(
-            email=self.cleaned_data["email"].lower(),
-            username=self.cleaned_data["email"].lower(),
+            email=email,
+            username=email,
             password=self.cleaned_data["password1"],
             first_name=self.cleaned_data["first_name"],
             last_name=self.cleaned_data["last_name"],
-            role=User.Role.HISTOPATOLOGO,
+            role=User.Role.PERSONAL_LAB,
             is_active=True,
-            email_verified=True,  # Internal users don't need verification
-            is_staff=True,  # Allow admin access
+            email_verified=False,
+            is_staff=self.cleaned_data.get("grant_staff_status", False),
         )
 
-        # Create Histopathologist profile
-        histopathologist = Histopathologist.objects.create(
+        laboratory_staff = LaboratoryStaff.objects.create(
             user=user,
             first_name=self.cleaned_data["first_name"],
             last_name=self.cleaned_data["last_name"],
@@ -419,9 +459,12 @@ class HistopathologistCreationForm(forms.Form):
             specialty=self.cleaned_data.get("specialty", ""),
             phone_number=self.cleaned_data.get("phone_number", ""),
             signature_image=self.cleaned_data.get("signature_image"),
+            can_create_reports=self.cleaned_data.get(
+                "can_create_reports", False
+            ),
         )
 
-        return user, histopathologist
+        return user, laboratory_staff
 
 
 class PasswordResetRequestForm(forms.Form):
@@ -1329,7 +1372,7 @@ class LaboratoryStaffSignatureForm(forms.ModelForm):
         help_texts = {
             "signature_image": _(
                 "Imagen de su firma (PNG o JPG). Es obligatoria para "
-                "elaborar y firmar informes patológicos."
+                "completar su incorporación al laboratorio."
             ),
         }
         widgets = {

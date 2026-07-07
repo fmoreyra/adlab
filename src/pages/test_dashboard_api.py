@@ -12,7 +12,10 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Histopathologist, Veterinarian
-from accounts.test_helpers import ensure_veterinarian_profile_complete
+from accounts.test_helpers import (
+    ensure_lab_staff_onboarded,
+    ensure_veterinarian_profile_complete,
+)
 from protocols.models import (
     Cassette,
     HistopathologySample,
@@ -89,6 +92,13 @@ class DashboardAPITestCase(TestCase):
             last_name="López",
             license_number="HISTO123",
             specialty="Patología General",
+        )
+        ensure_lab_staff_onboarded(
+            self.lab_staff, license_number="LAB-API-STAFF"
+        )
+        ensure_lab_staff_onboarded(
+            self.histopathologist,
+            license_number="HISTO123",
         )
 
         # Create test protocols

@@ -112,15 +112,29 @@ class UserModelTest(TestCase):
 
     def test_can_login_behavior(self):
         """Test login behavior for different user types."""
-        # Lab staff should be able to login without verification
         lab_user = User.objects.create_user(
             email="lab@example.com",
             username="labuser",
             password="testpass123",
             role=User.Role.PERSONAL_LAB,
             is_active=True,
+            email_verified=False,
         )
+        self.assertFalse(lab_user.can_login())
+
+        lab_user.email_verified = True
+        lab_user.save(update_fields=["email_verified"])
         self.assertTrue(lab_user.can_login())
+
+        histo_user = User.objects.create_user(
+            email="histo@example.com",
+            username="histouser",
+            password="testpass123",
+            role=User.Role.HISTOPATOLOGO,
+            is_active=True,
+            email_verified=False,
+        )
+        self.assertTrue(histo_user.can_login())
 
         # Vet needs verification to login
         vet_user = User.objects.create_user(
@@ -528,10 +542,21 @@ class EmailVerificationTest(TestCase):
         self.assertTrue(self.vet.can_login())
 
     def test_can_login_internal_user_no_verification(self):
-        """Test that internal users don't need email verification."""
-        # Lab staff don't need verification
+        """Laboratory staff require verification; legacy histopathologists do not."""
+        self.assertFalse(self.lab_staff.can_login())
+
+        self.lab_staff.email_verified = True
+        self.lab_staff.save(update_fields=["email_verified"])
         self.assertTrue(self.lab_staff.can_login())
-        self.assertFalse(self.lab_staff.email_verified)  # Not even set
+
+        legacy_histo = User.objects.create_user(
+            email="legacy-histo@example.com",
+            username="legacy-histo",
+            password="password123",
+            role=User.Role.HISTOPATOLOGO,
+            email_verified=False,
+        )
+        self.assertTrue(legacy_histo.can_login())
 
     def test_generate_verification_token(self):
         """Test generating verification token."""

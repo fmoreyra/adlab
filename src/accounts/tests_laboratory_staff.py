@@ -190,9 +190,13 @@ class UserModelRoleConsolidationTest(TestCase):
             password="testpass123",
             role=User.Role.PERSONAL_LAB,
             is_active=True,
+            email_verified=False,
         )
 
-        # Lab staff should be able to login without email verification
+        self.assertFalse(lab_user.can_login())
+
+        lab_user.email_verified = True
+        lab_user.save(update_fields=["email_verified"])
         self.assertTrue(lab_user.can_login())
 
         # Vet needs verification

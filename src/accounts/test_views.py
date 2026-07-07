@@ -20,7 +20,7 @@ from django.utils import timezone
 from accounts.models import (
     Address,
     AuthAuditLog,
-    Histopathologist,
+    LaboratoryStaff,
     PasswordResetToken,
     Veterinarian,
 )
@@ -48,6 +48,17 @@ class AccountsViewsTest(TestCase):
             role=User.Role.PERSONAL_LAB,
             email_verified=True,
             is_staff=True,
+        )
+        from accounts.test_helpers import create_test_signature_file
+
+        LaboratoryStaff.objects.create(
+            user=self.staff_user,
+            first_name="Staff",
+            last_name="Test",
+            license_number="LAB-STAFF-TEST",
+            can_create_reports=True,
+            is_active=True,
+            signature_image=create_test_signature_file(),
         )
         self.admin_user = User.objects.create_user(
             email="admin@example.com",
@@ -696,12 +707,11 @@ class AccountsViewsTest(TestCase):
         self.assertRedirects(response, reverse("accounts:resend_verification"))
 
 
-class CreateHistopathologistViewTest(TestCase):
-    """Tests for the CreateHistopathologistView."""
+class CreateLaboratoryStaffViewTest(TestCase):
+    """Tests for the unified laboratory staff creation view."""
 
     def setUp(self):
-        """Set up test data for histopathologist creation."""
-        # Create admin user
+        """Set up test data for laboratory staff creation."""
         self.admin_user = User.objects.create_user(
             email="admin@example.com",
             username="admin",
@@ -709,81 +719,93 @@ class CreateHistopathologistViewTest(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
             is_superuser=True,
+            email_verified=True,
         )
 
-        # Create regular user (non-admin)
         self.regular_user = User.objects.create_user(
             email="regular@example.com",
             username="regular",
             password="testpass123",
             role=User.Role.VETERINARIO,
+            email_verified=True,
         )
 
-    def test_create_histopathologist_view_requires_admin_permission(self):
+    def test_create_laboratory_staff_view_requires_admin_permission(self):
         """Test that only admin users can access the creation view."""
-        # Test unauthenticated user
-        response = self.client.get(reverse("accounts:create_histopathologist"))
-        self.assertEqual(response.status_code, 302)  # Redirect to login
+        response = self.client.get(reverse("accounts:create_laboratory_staff"))
+        self.assertEqual(response.status_code, 302)
 
-        # Test regular user
         self.client.login(email="regular@example.com", password="testpass123")
-        response = self.client.get(reverse("accounts:create_histopathologist"))
-        self.assertEqual(
-            response.status_code, 403
-        )  # Forbidden due to permission denied
+        response = self.client.get(reverse("accounts:create_laboratory_staff"))
+        self.assertEqual(response.status_code, 403)
 
-        # Test admin user
         self.client.login(email="admin@example.com", password="testpass123")
-        response = self.client.get(reverse("accounts:create_histopathologist"))
+        response = self.client.get(reverse("accounts:create_laboratory_staff"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Crear Histopatólogo")
+        self.assertContains(response, "Crear Personal de Laboratorio")
 
-    def test_create_histopathologist_successful(self):
-        """Test successful histopathologist creation."""
+    def test_legacy_histopathologist_url_redirects(self):
+        """Legacy creation URL redirects to unified staff flow."""
+        self.client.login(email="admin@example.com", password="testpass123")
+        response = self.client.get(
+            reverse("accounts:create_histopathologist"),
+            follow=False,
+        )
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(
+            response["Location"],
+            reverse("accounts:create_laboratory_staff"),
+        )
+
+    @patch(
+        "accounts.services.auth_service.AuthenticationService.send_verification_email"
+    )
+    def test_create_laboratory_staff_successful(self, mock_send_email):
+        """Test successful laboratory staff creation."""
+        mock_send_email.return_value = True
         self.client.login(email="admin@example.com", password="testpass123")
 
         form_data = {
-            "email": "newhisto@example.com",
-            "first_name": "Dr. New",
-            "last_name": "Histopathologist",
+            "email": "newstaff@example.com",
+            "first_name": "Nuevo",
+            "last_name": "Personal",
             "password1": "securepass123",
             "password2": "securepass123",
-            "license_number": "HP-12345",
-            "position": "Profesor Titular",
+            "license_number": "LAB-12345",
+            "position": "Técnico Superior",
             "specialty": "Patología Veterinaria",
             "phone_number": "+54 341 1234567",
+            "can_create_reports": "on",
+            "grant_staff_status": "on",
         }
 
         response = self.client.post(
-            reverse("accounts:create_histopathologist"), form_data
+            reverse("accounts:create_laboratory_staff"), form_data
         )
 
-        self.assertEqual(response.status_code, 302)  # Redirect after success
+        self.assertEqual(response.status_code, 302)
+        mock_send_email.assert_called_once()
 
-        # Check that User was created
-        user = User.objects.filter(email="newhisto@example.com").first()
+        user = User.objects.filter(email="newstaff@example.com").first()
         self.assertIsNotNone(user)
-        self.assertEqual(user.role, User.Role.HISTOPATOLOGO)
+        self.assertEqual(user.role, User.Role.PERSONAL_LAB)
         self.assertTrue(user.is_active)
-        self.assertTrue(user.email_verified)
+        self.assertFalse(user.email_verified)
         self.assertTrue(user.is_staff)
 
-        # Check that Histopathologist profile was created
-        histopathologist = Histopathologist.objects.filter(user=user).first()
-        self.assertIsNotNone(histopathologist)
-        self.assertEqual(histopathologist.license_number, "HP-12345")
-        self.assertEqual(histopathologist.position, "Profesor Titular")
+        lab_staff = LaboratoryStaff.objects.filter(user=user).first()
+        self.assertIsNotNone(lab_staff)
+        self.assertEqual(lab_staff.license_number, "LAB-12345")
+        self.assertTrue(lab_staff.can_create_reports)
 
-        # Check audit log
         log = AuthAuditLog.objects.filter(
             action=AuthAuditLog.Action.USER_CREATED,
-            email="newhisto@example.com",
+            email="newstaff@example.com",
         ).first()
         self.assertIsNotNone(log)
 
-    def test_create_histopathologist_duplicate_email(self):
+    def test_create_laboratory_staff_duplicate_email(self):
         """Test creation with duplicate email fails."""
-        # Create existing user
         User.objects.create_user(
             email="existing@example.com",
             username="existing",
@@ -794,93 +816,110 @@ class CreateHistopathologistViewTest(TestCase):
 
         form_data = {
             "email": "existing@example.com",
-            "first_name": "Dr. New",
-            "last_name": "Histopathologist",
+            "first_name": "Nuevo",
+            "last_name": "Personal",
             "password1": "securepass123",
             "password2": "securepass123",
-            "license_number": "HP-12345",
+            "license_number": "LAB-12345",
         }
 
         response = self.client.post(
-            reverse("accounts:create_histopathologist"), form_data
+            reverse("accounts:create_laboratory_staff"), form_data
         )
 
-        self.assertEqual(response.status_code, 200)  # Form errors
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Este email ya está registrado")
 
-    def test_create_histopathologist_duplicate_license_number(self):
+    def test_create_laboratory_staff_duplicate_license_number(self):
         """Test creation with duplicate license number fails."""
-        # Create existing histopathologist
         existing_user = User.objects.create_user(
             email="existing@example.com",
             username="existing",
             password="testpass123",
-            role=User.Role.HISTOPATOLOGO,
+            role=User.Role.PERSONAL_LAB,
+            email_verified=True,
         )
-        Histopathologist.objects.create(
+        LaboratoryStaff.objects.create(
             user=existing_user,
             first_name="Existing",
-            last_name="Histopathologist",
-            license_number="HP-12345",
+            last_name="Staff",
+            license_number="LAB-12345",
         )
 
         self.client.login(email="admin@example.com", password="testpass123")
 
         form_data = {
             "email": "new@example.com",
-            "first_name": "Dr. New",
-            "last_name": "Histopathologist",
+            "first_name": "Nuevo",
+            "last_name": "Personal",
             "password1": "securepass123",
             "password2": "securepass123",
-            "license_number": "HP-12345",  # Duplicate
+            "license_number": "LAB-12345",
         }
 
         response = self.client.post(
-            reverse("accounts:create_histopathologist"), form_data
+            reverse("accounts:create_laboratory_staff"), form_data
         )
 
-        self.assertEqual(response.status_code, 200)  # Form errors
+        self.assertEqual(response.status_code, 200)
         self.assertContains(
             response, "Este número de matrícula ya está registrado"
         )
 
-    def test_create_histopathologist_password_mismatch(self):
+    def test_create_laboratory_staff_password_mismatch(self):
         """Test creation with password mismatch fails."""
         self.client.login(email="admin@example.com", password="testpass123")
 
         form_data = {
             "email": "new@example.com",
-            "first_name": "Dr. New",
-            "last_name": "Histopathologist",
+            "first_name": "Nuevo",
+            "last_name": "Personal",
             "password1": "securepass123",
-            "password2": "differentpass123",  # Mismatch
-            "license_number": "HP-12345",
+            "password2": "differentpass123",
+            "license_number": "LAB-12345",
         }
 
         response = self.client.post(
-            reverse("accounts:create_histopathologist"), form_data
+            reverse("accounts:create_laboratory_staff"), form_data
         )
 
-        self.assertEqual(response.status_code, 200)  # Form errors
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Las contraseñas no coinciden")
 
-    def test_create_histopathologist_form_validation(self):
+    def test_create_laboratory_staff_form_validation(self):
         """Test form validation for required fields."""
         self.client.login(email="admin@example.com", password="testpass123")
 
-        # Test with missing required fields
         form_data = {
-            "email": "",  # Missing
-            "first_name": "",  # Missing
-            "last_name": "",  # Missing
-            "password1": "short",  # Too short
-            "password2": "different",  # Mismatch
-            "license_number": "",  # Missing
+            "email": "",
+            "first_name": "",
+            "last_name": "",
+            "password1": "short",
+            "password2": "different",
+            "license_number": "",
         }
 
         response = self.client.post(
-            reverse("accounts:create_histopathologist"), form_data
+            reverse("accounts:create_laboratory_staff"), form_data
         )
 
-        self.assertEqual(response.status_code, 200)  # Form errors
-        # Form should show validation errors for required fields
+        self.assertEqual(response.status_code, 200)
+
+    def test_personal_lab_login_blocked_without_email_verification(self):
+        """Laboratory staff cannot log in until email is verified."""
+        User.objects.create_user(
+            email="unverified@example.com",
+            username="unverified@example.com",
+            password="testpass123",
+            role=User.Role.PERSONAL_LAB,
+            email_verified=False,
+            is_active=True,
+        )
+
+        response = self.client.post(
+            reverse("accounts:login"),
+            {"username": "unverified@example.com", "password": "testpass123"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Debe verificar su email")

@@ -5112,8 +5112,8 @@ class ProtocolResubmitTest(TestCase):
             is_staff=True,
         )
 
-        # Create LaboratoryStaff profile for staff_user
         from accounts.models import LaboratoryStaff
+        from accounts.test_helpers import ensure_lab_staff_onboarded
 
         self.staff_lab_profile = LaboratoryStaff.objects.create(
             user=self.staff_user,
@@ -5122,6 +5122,9 @@ class ProtocolResubmitTest(TestCase):
             license_number="LAB-STAFF-99999",
             can_create_reports=True,
             is_active=True,
+        )
+        ensure_lab_staff_onboarded(
+            self.staff_user, license_number="LAB-STAFF-99999"
         )
 
         # Create veterinarian user

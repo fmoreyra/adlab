@@ -18,6 +18,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import Address, Histopathologist, Veterinarian
+from accounts.test_helpers import ensure_lab_staff_onboarded
 from protocols.models import (
     CytologySample,
     HistopathologySample,
@@ -116,6 +117,13 @@ class SecurityTest(TestCase):
             license_number="HP-67890",
             position="Profesor Titular",
             specialty="Patología Veterinaria",
+        )
+        ensure_lab_staff_onboarded(
+            self.staff_user, license_number="LAB-STAFF-SEC"
+        )
+        ensure_lab_staff_onboarded(
+            self.histopathologist_user,
+            license_number="HP-67890",
         )
 
         # Create test protocols
@@ -432,25 +440,24 @@ class SecurityTest(TestCase):
         # Should not be able to login
         self.assertFalse(self.client.session.get("_auth_user_id"))
 
-    def test_staff_user_can_login_without_verification(self):
-        """Test that staff users can login without email verification."""
-        # Unverify staff user
+    def test_staff_user_requires_email_verification(self):
+        """Laboratory staff must verify email before logging in."""
         self.staff_user.email_verified = False
-        self.staff_user.save()
+        self.staff_user.save(update_fields=["email_verified"])
 
-        # Test the can_login method directly
-        self.assertTrue(self.staff_user.can_login())
+        self.assertFalse(self.staff_user.can_login())
 
-        # Test that the user can actually login
         response = self.client.post(
             reverse("accounts:login"),
-            {"email": "staff@example.com", "password": "testpass123"},
+            {"username": "staff@example.com", "password": "testpass123"},
         )
 
-        # Should be able to login (staff users don't need verification)
-        # The login might return 200 with form errors or 302 on success
-        # The important thing is that can_login() returns True
-        self.assertIn(response.status_code, [200, 302])
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Debe verificar su email")
+
+        self.staff_user.email_verified = True
+        self.staff_user.save(update_fields=["email_verified"])
+        self.assertTrue(self.staff_user.can_login())
 
     # ============================================================================
     # PERMISSION BOUNDARY TESTS

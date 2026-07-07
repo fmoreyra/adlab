@@ -6,7 +6,10 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import Histopathologist, Veterinarian
-from accounts.test_helpers import ensure_veterinarian_profile_complete
+from accounts.test_helpers import (
+    ensure_lab_staff_onboarded,
+    ensure_veterinarian_profile_complete,
+)
 from protocols.models import Protocol, Report, WorkOrder
 
 User = get_user_model()
@@ -68,6 +71,10 @@ class DashboardViewsTest(TestCase):
         )
         ensure_veterinarian_profile_complete(self.veterinarian)
 
+        ensure_lab_staff_onboarded(
+            self.staff_user, license_number="LAB-STAFF-PAGES"
+        )
+
         # Create histopathologist
         self.histopathologist = Histopathologist.objects.create(
             user=self.histopathologist_user,
@@ -76,6 +83,10 @@ class DashboardViewsTest(TestCase):
             license_number="MP-67890",
             position="Jefe de Histopatología",
             specialty="Oncología",
+        )
+        ensure_lab_staff_onboarded(
+            self.histopathologist_user,
+            license_number="MP-67890",
         )
 
         # Create test protocols with different statuses

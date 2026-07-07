@@ -808,6 +808,10 @@ class HistopathologistAdmin(admin.ModelAdmin):
 
     actions = ["activate_histopathologists", "deactivate_histopathologists"]
 
+    def has_add_permission(self, request):
+        """Disable manual creation; use unified lab staff onboarding."""
+        return False
+
     def has_signature_display(self, obj):
         """Display if histopathologist has uploaded signature."""
         return obj.has_signature()
