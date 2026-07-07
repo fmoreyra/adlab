@@ -80,10 +80,10 @@ class DashboardView(LoginRequiredMixin, View):
             return VeterinarianDashboardView.as_view()(
                 request, *args, **kwargs
             )
-        elif user.is_lab_staff:
-            return LabStaffDashboardView.as_view()(request, *args, **kwargs)
-        elif user.is_admin_user:
+        if user.is_admin_user:
             return AdminDashboardView.as_view()(request, *args, **kwargs)
+        if user.is_lab_staff:
+            return LabStaffDashboardView.as_view()(request, *args, **kwargs)
 
         # Default fallback
         return render(request, "pages/dashboard_default.html", {"user": user})
@@ -100,15 +100,17 @@ class VeterinarianDashboardView(LoginRequiredMixin, TemplateView):
         """Handle GET request with permission checks."""
         user = request.user
 
-        # Early return if not veterinarian
-        if not user.is_veterinarian:
+        if not user.is_veterinarian and not user.is_admin_user:
             return redirect("pages:dashboard")
 
-        # Check if veterinarian profile exists
-        try:
-            self.veterinarian = user.veterinarian_profile
-        except user.veterinarian_profile.RelatedObjectDoesNotExist:
-            return redirect("accounts:complete_profile")
+        if user.is_veterinarian:
+            try:
+                self.veterinarian = user.veterinarian_profile
+            except user.veterinarian_profile.RelatedObjectDoesNotExist:
+                return redirect("accounts:complete_profile")
+        else:
+            self.veterinarian = None
+            self.is_admin_preview = True
 
         return super().get(request, *args, **kwargs)
 
@@ -116,6 +118,21 @@ class VeterinarianDashboardView(LoginRequiredMixin, TemplateView):
         """Add veterinarian-specific context data."""
         context = super().get_context_data(**kwargs)
         user = self.request.user
+
+        if getattr(self, "is_admin_preview", False):
+            context.update(
+                {
+                    "user": user,
+                    "is_admin_preview": True,
+                    "veterinarian": None,
+                    "active_protocols_count": 0,
+                    "ready_reports_count": 0,
+                    "monthly_protocols_count": 0,
+                    "recent_protocols": [],
+                }
+            )
+            return context
+
         veterinarian = self.veterinarian
 
         # Get statistics

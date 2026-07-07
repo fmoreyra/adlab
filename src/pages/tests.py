@@ -207,15 +207,14 @@ class DashboardViewsTest(TestCase):
         self.assertIn("pending_reception_count", response.context)
 
     def test_dashboard_view_admin_redirect(self):
-        """Test that dashboard_view shows unified lab staff dashboard for admins."""
+        """Test that dashboard_view routes admins to the admin dashboard."""
         self.client.login(email="admin@example.com", password="testpass123")
 
         response = self.client.get(reverse("pages:dashboard"))
 
         self.assertEqual(response.status_code, 200)
-        # With unified dashboard, admins use the same dashboard as lab staff
-        self.assertTemplateUsed(response, "pages/dashboard_lab_staff.html")
-        self.assertIn("pending_reception_count", response.context)
+        self.assertTemplateUsed(response, "pages/dashboard_admin.html")
+        self.assertIn("total_protocols_count", response.context)
 
     def test_dashboard_view_requires_login(self):
         """Test that dashboard_view requires login."""
@@ -408,6 +407,10 @@ class DashboardViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pages/dashboard_admin.html")
+        self.assertContains(response, "Vistas por rol")
+        self.assertContains(response, reverse("pages:dashboard_veterinarian"))
+        self.assertContains(response, reverse("pages:dashboard_lab_staff"))
+        self.assertContains(response, reverse("pages:dashboard_management"))
         self.assertIn("total_protocols_count", response.context)
         self.assertIn("completed_reports_count", response.context)
         self.assertIn("total_users_count", response.context)
@@ -447,6 +450,39 @@ class DashboardViewsTest(TestCase):
         self.assertRedirects(
             response, "/accounts/login/?next=/dashboard/admin/"
         )
+
+    def test_admin_can_preview_veterinarian_dashboard(self):
+        """Admins can open the veterinarian dashboard in preview mode."""
+        self.client.login(email="admin@example.com", password="testpass123")
+
+        response = self.client.get(reverse("pages:dashboard_veterinarian"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pages/dashboard_veterinarian.html")
+        self.assertContains(response, "Vista previa como administrador")
+        self.assertContains(
+            response, "Vista previa del panel para clientes externos"
+        )
+        self.assertTrue(response.context["is_admin_preview"])
+
+    def test_django_admin_links_back_to_app_admin_dashboard(self):
+        """Django admin header links admins back to the AdLab admin dashboard."""
+        self.client.login(email="admin@example.com", password="testpass123")
+
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Panel de administración AdLab")
+        self.assertContains(response, reverse("pages:dashboard_admin"))
+
+    def test_django_admin_hides_app_dashboard_link_for_lab_staff(self):
+        """Lab staff without admin role do not see the AdLab admin dashboard link."""
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Panel de administración AdLab")
 
     # =============================================================================
     # HOME PAGE TESTS

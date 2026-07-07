@@ -6,11 +6,17 @@
 {% block dashboard_content %}
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% include "components/ui/admin_dashboard_preview_bar.html" %}
         
         <!-- Welcome Section -->
         <div class="mb-8 bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg shadow-lg p-8 text-white">
+            {% if is_admin_preview %}
+            <h1 class="text-3xl font-bold mb-2">Panel de Veterinario</h1>
+            <p class="text-purple-100">Vista previa del panel para clientes externos</p>
+            {% else %}
             <h1 class="text-3xl font-bold mb-2">Bienvenido, Dr./Dra. {{ veterinarian.get_full_name }}</h1>
             <p class="text-purple-100">Panel de control para veterinarios clientes</p>
+            {% endif %}
         </div>
 
         <!-- Quick Actions -->

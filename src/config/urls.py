@@ -22,6 +22,10 @@ from django.urls import include, path
 
 from pages import views
 
+admin.site.site_header = "AdLab — Administración Django"
+admin.site.site_title = "AdLab Admin"
+admin.site.index_title = "Administración del sitio"
+
 
 def trigger_error(request):
     return 1 / 0
