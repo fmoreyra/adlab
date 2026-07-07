@@ -411,3 +411,98 @@ class LaboratoryStaffIntegrationTest(TestCase):
         # This would test the integration with AuthAuditLog
         # For now, just verify the model exists
         self.assertTrue(hasattr(AuthAuditLog, "objects"))
+
+
+class HistopathologistMigrationServiceTest(TestCase):
+    """Tests for migrating Histopathologist profiles to LaboratoryStaff."""
+
+    def setUp(self):
+        """Create histopathologist users without LaboratoryStaff profiles."""
+        self.histo_user = User.objects.create_user(
+            email="histo@example.com",
+            username="histouser",
+            password="testpass123",
+            role=User.Role.HISTOPATOLOGO,
+        )
+        self.histopathologist = Histopathologist.objects.create(
+            user=self.histo_user,
+            first_name="Ana",
+            last_name="García",
+            license_number="HP-90001",
+            position="Jefe de TP",
+            specialty="Oncología",
+            phone_number="3415551234",
+            is_active=True,
+        )
+
+        self.other_user = User.objects.create_user(
+            email="histo2@example.com",
+            username="histouser2",
+            password="testpass123",
+            role=User.Role.HISTOPATOLOGO,
+        )
+        self.other_histopathologist = Histopathologist.objects.create(
+            user=self.other_user,
+            first_name="Luis",
+            last_name="Pérez",
+            license_number="HP-90002",
+            is_active=False,
+        )
+        LaboratoryStaff.objects.create(
+            user=self.other_user,
+            first_name="Luis",
+            last_name="Pérez",
+            license_number="HP-90002",
+            can_create_reports=False,
+            is_active=False,
+        )
+
+    def test_migrate_histopathologist_creates_laboratory_staff(self):
+        """Migrating a histopathologist creates a LaboratoryStaff profile."""
+        from accounts.services.laboratory_staff_service import (
+            migrate_histopathologist_to_laboratory_staff,
+        )
+
+        lab_staff, created = migrate_histopathologist_to_laboratory_staff(
+            self.histopathologist
+        )
+
+        self.assertTrue(created)
+        self.assertEqual(lab_staff.user, self.histo_user)
+        self.assertEqual(lab_staff.first_name, "Ana")
+        self.assertEqual(lab_staff.last_name, "García")
+        self.assertEqual(lab_staff.license_number, "HP-90001")
+        self.assertEqual(lab_staff.position, "Jefe de TP")
+        self.assertEqual(lab_staff.specialty, "Oncología")
+        self.assertEqual(lab_staff.phone_number, "3415551234")
+        self.assertTrue(lab_staff.can_create_reports)
+        self.assertTrue(lab_staff.is_active)
+
+    def test_migrate_histopathologist_skips_existing_profile(self):
+        """Migrating skips users that already have LaboratoryStaff."""
+        from accounts.services.laboratory_staff_service import (
+            migrate_histopathologist_to_laboratory_staff,
+            migrate_histopathologists_to_laboratory_staff,
+        )
+
+        lab_staff, created = migrate_histopathologist_to_laboratory_staff(
+            self.other_histopathologist
+        )
+
+        self.assertFalse(created)
+        self.assertEqual(lab_staff.user, self.other_user)
+        self.assertFalse(lab_staff.can_create_reports)
+
+        result = migrate_histopathologists_to_laboratory_staff(
+            Histopathologist.objects.all()
+        )
+        self.assertEqual(result["created"], 1)
+        self.assertEqual(result["skipped"], 1)
+
+    def test_histopathologist_admin_registers_migration_action(self):
+        """Histopathologist admin exposes the migration bulk action."""
+        from accounts.admin import HistopathologistAdmin
+
+        admin_class = HistopathologistAdmin(Histopathologist, None)
+
+        self.assertIn("migrate_to_laboratory_staff", admin_class.actions)

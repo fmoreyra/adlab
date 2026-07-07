@@ -16,6 +16,9 @@ from .models import (
     Veterinarian,
     VeterinarianChangeLog,
 )
+from .services.laboratory_staff_service import (
+    migrate_histopathologists_to_laboratory_staff,
+)
 
 
 @admin.register(User)
@@ -806,7 +809,11 @@ class HistopathologistAdmin(admin.ModelAdmin):
         ),
     )
 
-    actions = ["activate_histopathologists", "deactivate_histopathologists"]
+    actions = [
+        "activate_histopathologists",
+        "deactivate_histopathologists",
+        "migrate_to_laboratory_staff",
+    ]
 
     def has_add_permission(self, request):
         """Disable manual creation; use unified lab staff onboarding."""
@@ -841,4 +848,22 @@ class HistopathologistAdmin(admin.ModelAdmin):
 
     deactivate_histopathologists.short_description = (
         "Deactivate selected histopathologists"
+    )
+
+    def migrate_to_laboratory_staff(self, request, queryset):
+        """Create LaboratoryStaff profiles for selected histopathologists."""
+        result = migrate_histopathologists_to_laboratory_staff(
+            queryset.select_related("user")
+        )
+        self.message_user(
+            request,
+            _(
+                "Migración completada: %(created)s perfil(es) creado(s), "
+                "%(skipped)s omitido(s) (ya tenían personal de laboratorio)."
+            )
+            % result,
+        )
+
+    migrate_to_laboratory_staff.short_description = _(
+        "Migrar a personal de laboratorio"
     )
