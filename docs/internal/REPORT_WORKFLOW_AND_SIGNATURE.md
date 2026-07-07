@@ -141,11 +141,31 @@ La property ahora resuelve con `LaboratoryStaff.objects.filter(user=self).first(
 
 ## Administración en Django Admin
 
-1. **Usuarios** → rol `personal_lab` / `histopatologo`
+### Alta unificada de personal (julio 2026)
+
+| Componente | Ubicación |
+|------------|-----------|
+| Formulario web | `CreateLaboratoryStaffView` → `/accounts/lab-staff/create/` |
+| Redirect legacy | `/accounts/histopathologist/create/` → 301 al formulario unificado |
+| Admin add histopatólogo | `HistopathologistAdmin.has_add_permission = False` |
+| Éxito del alta | Redirect a `admin:accounts_laboratorystaff_changelist` |
+
+El formulario `LaboratoryStaffCreationForm` crea `User` (`PERSONAL_LAB`, `email_verified=False`) + `LaboratoryStaff`, envía verificación por email y registra `USER_CREATED` / `EMAIL_VERIFICATION_SENT` en `AuthAuditLog`.
+
+**Login:** `PERSONAL_LAB` requiere `email_verified=True` (`User.can_login()`).
+
+**Firma:** `LabStaffSignatureRequiredMiddleware` redirige a `/accounts/lab-staff/signature/` para todo lab staff sin imagen de firma (no solo quienes crean informes).
+
+Guía de usuario: [Gestionar usuarios](../user-guides/administrators/managing-users.md).
+
+### Permisos en perfiles existentes
+
+1. **Usuarios** → rol `personal_lab` / `histopatologo` (solo legacy)
 2. **Personal de laboratorio** (`LaboratoryStaff`):
-   - `can_create_reports` — habilita informes
+   - `can_create_reports` — habilita informes y enlace **Reportes** en navbar
    - `signature_image` — puede subirse desde admin o el usuario desde `/accounts/lab-staff/signature/`
    - `is_active` — debe estar activo
+3. **Grant staff** en el formulario de alta → `User.is_staff` (órdenes de trabajo)
 
 Migración histórica `0008_migrate_histopathologists_to_laboratory_staff` creó perfiles unificados con `can_create_reports=True` para histopatólogos existentes.
 

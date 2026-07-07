@@ -10,7 +10,7 @@ Esta guía te explica cómo moverte por el sistema y encontrar lo que necesitas 
 
 #### Barra superior
 - **Logo del sistema**: Hacer clic para volver al inicio
-- **Menú principal**: Acceso a las secciones principales
+- **Menú principal**: Dashboard, Gestión, Recepción (personal de lab), **Reportes** (personal con permiso de informes o admin), Mis Protocolos (veterinarios)
 - **Notificaciones**: Ver alertas y actualizaciones importantes
 - **Tu perfil**: Acceso a configuraciones y cerrar sesión
 
@@ -93,10 +93,11 @@ _[Espacio para captura de pantalla: Panel de veterinario con accesos rápidos]_
 - **Productividad**: Tus métricas de trabajo
 
 #### Personal de Laboratorio
-- **Recibir Muestra**: Registrar nuevas llegadas
-- **Procesar Muestra**: Continuar con el procesamiento
-- **Cola de Trabajo**: Tareas pendientes del día
-- **Inventario**: Estado de materiales
+- **Recepción** (menú superior): Registrar llegadas de muestras
+- **Dashboard**: Cola de recepción y procesamiento
+- **Reportes** (menú superior): Solo si el administrador activó **«Puede crear informes»** — misma entrada que ven los administradores; lleva a la cola de informes pendientes
+- **Firma digital**: Obligatoria en el primer ingreso (ver [Firma digital](../user-guides/lab-staff/digital-signature.md))
+- **Verificación de email**: Obligatoria antes del primer login (cuentas creadas por el administrador)
 
 #### Administradores
 - **Gestión de Usuarios**: Crear y editar cuentas

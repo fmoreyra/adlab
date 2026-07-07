@@ -8,13 +8,16 @@ Esta guía explica cómo el **personal de laboratorio** con permiso para elabora
 
 ## ¿Quién debe cargar la firma?
 
-Debes completar este paso si cumples **las tres** condiciones:
+Todo el **personal de laboratorio** (`PERSONAL_LAB`) debe cargar su firma en el **primer ingreso**, aunque solo haga recepción o procesamiento. El sistema redirige automáticamente hasta completar este paso.
 
-1. Tu usuario tiene rol **Personal de laboratorio** o **Histopatólogo**
-2. En admin existe tu perfil **Personal de laboratorio** (`LaboratoryStaff`)
-3. Tu perfil tiene activado **«Puede crear informes»** (`can_create_reports`)
+Además, para **elaborar informes** hace falta:
 
-Si solo hacés recepción o procesamiento técnico (sin ese permiso), **no** necesitás cargar firma para esas tareas.
+1. Perfil **Personal de laboratorio** (`LaboratoryStaff`) activo
+2. Permiso **«Puede crear informes»** (`can_create_reports`) marcado por el administrador
+
+Los histopatólogos legacy (`HISTOPATOLOGO`) con perfil activo siguen el mismo criterio de firma.
+
+Si solo hacés recepción o procesamiento (sin permiso de informes), igual debés subir la firma una vez; no podrás usar el resto del sistema hasta hacerlo.
 
 ---
 

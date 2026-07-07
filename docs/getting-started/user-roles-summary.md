@@ -45,7 +45,13 @@ Esta página proporciona un resumen completo de las capacidades y característic
 
 ## 🔬 **PERSONAL_LAB (Personal de Laboratorio)**
 
-**Flujo de Trabajo Principal**: Recibir muestras → Procesar muestras → Generar informes → Firmar documentos
+**Flujo de Trabajo Principal**: Verificar email → Cargar firma → Recibir muestras → Procesar muestras → (opcional) Generar informes
+
+### Alta de cuenta
+
+- La cuenta la crea un **administrador** con el formulario unificado ([Gestionar usuarios](../user-guides/administrators/managing-users.md))
+- Debe **verificar el email** antes del primer login
+- Debe **cargar la firma digital** en el primer ingreso (aunque no elabore informes)
 
 ### Características Principales:
 
@@ -106,11 +112,14 @@ Esta página proporciona un resumen completo de las capacidades y característic
 ### Características Principales:
 
 #### 👥 **Gestión de Usuarios**
-- Crear, editar y gestionar cuentas de usuario
-- Asignar y cambiar roles de usuario
-- Activar/desactivar cuentas de usuario
-- Restablecer contraseñas de usuario
-- Gestionar permisos de usuario
+- Crear personal de laboratorio con el formulario unificado (`/accounts/lab-staff/create/`)
+- Enviar verificación de email automática al dar de alta
+- Opcional: precargar firma digital y permisos (`Puede crear informes`, acceso staff)
+- Gestionar cuentas legacy y veterinarios en Django Admin
+- Activar/desactivar cuentas y restablecer contraseñas
+- Ver logs de auditoría de altas y accesos
+
+Ver: [Gestionar usuarios](user-guides/administrators/managing-users.md)
 
 #### ⚙️ **Configuración del Sistema**
 - Configurar parámetros y configuraciones del sistema
