@@ -367,6 +367,19 @@ class DashboardViewsTest(TestCase):
         # Should have reception data
         self.assertIn("pending_reception_count", response.context)
 
+    def test_lab_staff_dashboard_avg_report_time_with_reports(self):
+        """Regression: avg TAT aggregation must return days, not timedelta."""
+        self.client.login(email="staff@example.com", password="testpass123")
+
+        response = self.client.get(reverse("pages:dashboard_lab_staff"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["can_create_reports"])
+        self.assertIn("avg_report_time", response.context)
+        self.assertIsInstance(
+            response.context["avg_report_time"], (int, float)
+        )
+
     def test_histopathologist_dashboard_permission_non_histopathologist(self):
         """Test that veterinarians are redirected to login page for dashboard."""
         self.client.login(email="vet@example.com", password="testpass123")

@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.db.models import Avg, Case, Count, F, IntegerField, Q, When
+from django.db.models import Avg, Count, Q
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -19,6 +19,10 @@ from pages.models import DashboardAnnouncement
 from pages.services.dashboard_announcement_service import (
     render_message_safe,
     warm_banner_cache,
+)
+from pages.tat_utils import (
+    report_tat_duration_expression,
+    tat_duration_to_days,
 )
 from protocols.models import Protocol, Report
 
@@ -263,18 +267,7 @@ class LabStaffDashboardView(LoginRequiredMixin, TemplateView):
                             updated_at__gte=month_start,
                         ),
                     ),
-                    avg_tat=Avg(
-                        Case(
-                            When(
-                                status=Report.Status.FINALIZED,
-                                protocol__reception_date__isnull=False,
-                                then=F("updated_at__date")
-                                - F("protocol__reception_date"),
-                            ),
-                            default=None,
-                            output_field=IntegerField(),
-                        )
-                    ),
+                    avg_tat=Avg(report_tat_duration_expression()),
                 )
 
                 # Get pending reports list
@@ -287,7 +280,9 @@ class LabStaffDashboardView(LoginRequiredMixin, TemplateView):
                 report_data = {
                     "pending_reports_count": stats["pending_count"] or 0,
                     "monthly_reports_count": stats["monthly_count"] or 0,
-                    "avg_report_time": round(stats["avg_tat"] or 0, 1),
+                    "avg_report_time": round(
+                        tat_duration_to_days(stats["avg_tat"]), 1
+                    ),
                     "pending_reports_list": list(pending_reports_list),
                 }
 

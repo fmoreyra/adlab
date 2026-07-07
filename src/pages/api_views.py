@@ -15,12 +15,16 @@ from typing import Dict, List
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.cache import cache
-from django.db.models import Count, Q
+from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import View
 
+from pages.tat_utils import (
+    report_tat_duration_expression_or_zero,
+    tat_duration_to_days,
+)
 from protocols.models import (
     Cassette,
     Protocol,
@@ -391,19 +395,11 @@ class DashboardTATView(
 
     def _calculate_tat_metrics(self) -> Dict:
         """Calculate TAT metrics for both analysis types - OPTIMIZED VERSION."""
-        from django.db.models import (
-            Avg,
-            Case,
-            Count,
-            F,
-            IntegerField,
-            Max,
-            Min,
-            When,
-        )
+        from django.db.models import Max, Min
 
         # Get completed reports from last 30 days
         thirty_days_ago = timezone.now() - timedelta(days=30)
+        tat_days_expr = report_tat_duration_expression_or_zero()
 
         # OPTIMIZED: Use database aggregation instead of Python loops
         tat_data = (
@@ -412,25 +408,19 @@ class DashboardTATView(
                 updated_at__gte=thirty_days_ago,
                 protocol__reception_date__isnull=False,
             )
-            .annotate(
-                tat_days=Case(
-                    When(
-                        protocol__reception_date__isnull=False,
-                        then=F("updated_at__date")
-                        - F("protocol__reception_date"),
-                    ),
-                    default=0,
-                    output_field=IntegerField(),
-                )
-            )
+            .annotate(tat_days=tat_days_expr)
             .values("protocol__analysis_type")
             .annotate(
                 count=Count("id"),
                 avg_tat=Avg("tat_days"),
                 min_tat=Min("tat_days"),
                 max_tat=Max("tat_days"),
-                within_target_7=Count("id", filter=Q(tat_days__lte=7)),
-                within_target_3=Count("id", filter=Q(tat_days__lte=3)),
+                within_target_7=Count(
+                    "id", filter=Q(tat_days__lte=timedelta(days=7))
+                ),
+                within_target_3=Count(
+                    "id", filter=Q(tat_days__lte=timedelta(days=3))
+                ),
             )
         )
 
@@ -473,10 +463,14 @@ class DashboardTATView(
             )
 
             result[result_key]["tat_promedio_dias"] = round(
-                item["avg_tat"] or 0, 1
+                tat_duration_to_days(item["avg_tat"]), 1
             )
-            result[result_key]["tat_minimo_dias"] = item["min_tat"] or 0
-            result[result_key]["tat_maximo_dias"] = item["max_tat"] or 0
+            result[result_key]["tat_minimo_dias"] = tat_duration_to_days(
+                item["min_tat"]
+            )
+            result[result_key]["tat_maximo_dias"] = tat_duration_to_days(
+                item["max_tat"]
+            )
             result[result_key]["dentro_objetivo"] = round(
                 (within_target_count / count) * 100 if count > 0 else 0
             )
@@ -490,23 +484,15 @@ class DashboardTATView(
                     protocol__reception_date__isnull=False,
                     protocol__analysis_type=analysis_type,
                 )
-                .annotate(
-                    tat_days=Case(
-                        When(
-                            protocol__reception_date__isnull=False,
-                            then=F("updated_at__date")
-                            - F("protocol__reception_date"),
-                        ),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                )
+                .annotate(tat_days=tat_days_expr)
                 .values_list("tat_days", flat=True)
                 .order_by("tat_days")
             )
 
             if median_reports:
-                median_list = list(median_reports)
+                median_list = [
+                    tat_duration_to_days(value) for value in median_reports
+                ]
                 n = len(median_list)
                 result[result_key]["tat_mediana_dias"] = (
                     median_list[n // 2] if n > 0 else 0
@@ -555,8 +541,6 @@ class DashboardProductivityView(
 
     def _calculate_productivity_metrics(self, periodo: str) -> Dict:
         """Calculate productivity metrics per histopathologist - OPTIMIZED VERSION."""
-        from django.db.models import Avg, Case, F, IntegerField, When
-
         now = timezone.now()
 
         # Calculate date range based on period
@@ -591,15 +575,7 @@ class DashboardProductivityView(
             .annotate(
                 informes_enviados=Count("id"),
                 tat_promedio_dias=Avg(
-                    Case(
-                        When(
-                            protocol__reception_date__isnull=False,
-                            then=F("updated_at__date")
-                            - F("protocol__reception_date"),
-                        ),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
+                    report_tat_duration_expression_or_zero()
                 ),
             )
             .order_by("-informes_enviados")
@@ -627,7 +603,7 @@ class DashboardProductivityView(
                         item["informes_enviados"] / weeks, 2
                     ),
                     "tat_promedio_dias": round(
-                        item["tat_promedio_dias"] or 0, 1
+                        tat_duration_to_days(item["tat_promedio_dias"]), 1
                     ),
                 }
             )
