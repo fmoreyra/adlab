@@ -2011,6 +2011,7 @@ class ProcessingViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Informe patológico")
         self.assertContains(response, "Elaborar informe")
+        self.assertNotContains(response, "Crear informe")
 
     def test_protocol_detail_shows_report_workflow_when_ready(self):
         """Protocol detail shows report workflow banner when ready."""

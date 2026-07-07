@@ -34,34 +34,6 @@
         </a>
         {% endif %}
 
-        {% if can_create_report %}
-        <a href="{% url 'protocols:report_create' protocol.pk %}"
-           class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
-            Crear informe
-        </a>
-        {% endif %}
-
-        {% if can_edit_report and latest_report %}
-        <a href="{% url 'protocols:report_edit' latest_report.pk %}"
-           class="inline-flex items-center px-4 py-2 border border-indigo-600 text-indigo-800 text-sm font-medium rounded-md hover:bg-indigo-100">
-            Editar borrador
-        </a>
-        {% endif %}
-
-        {% if can_view_report_detail and latest_report %}
-        <a href="{% url 'protocols:report_detail' latest_report.pk %}"
-           class="inline-flex items-center px-4 py-2 border border-indigo-600 text-indigo-800 text-sm font-medium rounded-md hover:bg-indigo-100">
-            Ver informe
-        </a>
-        {% endif %}
-
-        {% if can_send_report and latest_report %}
-        <a href="{% url 'protocols:report_send' latest_report.pk %}"
-           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
-            Enviar por email
-        </a>
-        {% endif %}
-
         {% if can_download_report_pdf and latest_report %}
         <a href="{% url 'protocols:report_pdf' latest_report.pk %}"
            target="_blank"
