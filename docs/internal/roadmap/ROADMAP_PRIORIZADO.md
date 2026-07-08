@@ -205,13 +205,13 @@ Prioridad operativa: entregables institucionales listos para uso oficial.
 
 Prioridad operativa: producción bajo dominio institucional antes de correos y ajustes finales de backend.
 
-> **Confirmado (Jul 2026):** el cambio de dominio sigue previsto y es prioritario una vez cerrados los ítems de informes que no dependen del formato (3.2, 3.3). Requiere DNS y acceso al servidor; no es solo un cambio de código.
+> **Cerrado (Jul 2026):** dominio **`patologiavetfcvunl.ar`** y SSL operativos en producción.
 
 ### 4.1 Configuración del entorno de producción
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Hecho (Jul 2026)
 - **Objetivo:** Desplegar bajo el dominio definitivo **`patologiavetfcvunl.ar`**.
-- **Alcance:**
+- **Implementado:**
   - `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, URLs absolutas en emails.
   - Configuración Nginx / reverse proxy.
   - Variables de entorno en servidor.
@@ -220,12 +220,11 @@ Prioridad operativa: producción bajo dominio institucional antes de correos y a
 
 ### 4.2 Certificados de seguridad (SSL)
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Hecho (Jul 2026)
 - **Objetivo:** HTTPS de punta a punta en el nuevo dominio.
-- **Alcance:**
-  - Obtener/renovar certificados (Let's Encrypt u otro proveedor institucional).
-  - Configurar renovación automática.
-  - Forzar redirección HTTP → HTTPS.
+- **Implementado:**
+  - Certificados y renovación automática.
+  - Redirección HTTP → HTTPS.
 - **Documentación relacionada:** [ssl-certificates.md](../deployment/ssl-certificates.md).
 - **Notas / PR:**
 
@@ -233,18 +232,23 @@ Prioridad operativa: producción bajo dominio institucional antes de correos y a
 
 ## 5. Infraestructura y Comunicaciones (Sistemas de Correo)
 
-Prioridad operativa: correo institucional operativo con verificación de usuarios validada.
+Prioridad operativa: correo operativo en producción; luego migrar a casilla institucional definitiva.
 
-### 5.1 Integración de cuenta Gmail institucional
+### 5.1 Integración de cuenta Gmail (arranque) + migración institucional (luego)
 
-- **Estado:** ⬜ Pendiente
-- **Objetivo:** Configurar casilla institucional (`anatomia.pato...`) para envío automatizado.
-- **Alcance:**
-  - App Password o OAuth2 según política de Google.
-  - Verificación en dos pasos y permisos de seguridad.
-  - Variables SMTP en producción (`EMAIL_HOST`, `EMAIL_HOST_USER`, etc.).
+- **Estado:** ⬜ Pendiente de configurar (credenciales en próxima reunión) / ⏸️ migración institucional diferida
+- **Decisión (Jul 2026):** por ahora se usará una **casilla Gmail** vía SMTP (App Password + 2FA) para desbloquear envíos reales. **No es la solución definitiva.**
+- **Arranque (próxima reunión — pedir):**
+  - Dirección de la casilla Gmail y App Password.
+  - Confirmación de 2FA activada.
+  - Variables SMTP en producción: `EMAIL_HOST=smtp.gmail.com`, `EMAIL_PORT=587`, `EMAIL_USE_TLS=true`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL`.
+- **Deuda técnica / riesgos a resolver luego:**
+  - Cuotas diarias bajas de Gmail (límites de envío).
+  - Deliverabilidad y reputación (From `@gmail.com` vs dominio institucional).
+  - Sin panel de bounces/complaints; frágil ante cambios de política Google.
+  - Migrar a casilla **institucional UNL** o SMTP autenticado en `patologiavetfcvunl.ar` (cambio principalmente de variables `EMAIL_*`; el código ya lo soporta).
 - **Documentación relacionada:** [email-setup.md](../configuration/email-setup.md), Step 13 en archivo histórico.
-- **Notas / PR:**
+- **Notas / PR:** Dejar explícito en producción que el SMTP Gmail es **provisorio**.
 
 ### 5.2 Flujo de verificación de usuarios (veterinarios externos)
 
@@ -255,7 +259,7 @@ Prioridad operativa: correo institucional operativo con verificación de usuario
   - Probar registro → email → activación → acceso completo.
   - Revisar mensajes y tiempos de expiración de token (24 h).
 - **Áreas probables del código:** `accounts/views.py`, `User.email_verified`, templates de verificación.
-- **Notas / PR:**
+- **Notas / PR:** Ejecutar esta validación **después** de tener SMTP Gmail operativo (5.1 arranque).
 
 ---
 
@@ -288,7 +292,7 @@ Prioridad operativa: correo institucional operativo con verificación de usuario
 ## Orden sugerido de implementación
 
 ```
-1 ✅ → 2 ✅ → 3.1 + 3.2 + 3.3 ✅ → 4 → 5 → (6.1 reactivar si la facultad lo pide)
+1 ✅ → 2 ✅ → 3 ✅ → 4 ✅ → 5.1 Gmail (arranque) → 5.2 → (luego: correo institucional) → (6.1 reactivar si la facultad lo pide)
 ```
 
 | # | Bloque | Ítems | Dependencias clave |
@@ -296,8 +300,8 @@ Prioridad operativa: correo institucional operativo con verificación de usuario
 | 1 | Veterinario / datos | 1.1–1.3 ✅, 1.4 menor | Ninguna crítica |
 | 2 | Laboratorio HP | 2.1 ✅, 2.2 ✅ | Implementado Jun–Jul 2026 |
 | 3 | Informes / PDF | 3.1, 3.2, 3.3 ✅ | Formato facultad aplicado Jul 2026 |
-| 4 | Dominio / SSL | 4.1, 4.2 | Servidor y DNS listos |
-| 5 | Correo / auth | 5.1, 5.2 | Dominio (4) recomendado para links en emails |
+| 4 | Dominio / SSL | 4.1 ✅, 4.2 ✅ | Cerrado Jul 2026 (`patologiavetfcvunl.ar`) |
+| 5 | Correo / auth | 5.1 Gmail provisorio → institucional luego; 5.2 | Credenciales Gmail en próxima reunión |
 | 6 | Finanzas / OT | 6.1 🚫 UI off | Modelos intactos |
 
 ---
@@ -318,6 +322,8 @@ Usar esta sección para anotar qué ítem se tomó en cada sesión.
 | Jul 2026 | Bloque 2 (verif. local) | 2.1 HP, 2.2 registro unificado, 2.3 observaciones CT probados OK |
 | Jul 2026 | Bloque 3 (verif. local) | 3.2 nombre PDF, 3.3 imágenes en PDF, envío al vet probados OK |
 | Jul 2026 | 3.1 | Formato institucional PDF (banners Word, layout HP/CT, RESULTADOS/OBSERVACIONES) |
+| Jul 2026 | 4.1, 4.2 | Dominio `patologiavetfcvunl.ar` + SSL cerrados en producción |
+| Jul 2026 | 5.1 (decisión) | Arranque con Gmail SMTP (provisorio); migración a casilla institucional diferida |
 
 ---
 
