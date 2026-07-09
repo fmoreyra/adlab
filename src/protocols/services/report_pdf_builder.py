@@ -127,6 +127,7 @@ def _build_animal_line(protocol: Protocol) -> str:
     parts = [
         protocol.species,
         protocol.breed,
+        protocol.animal_category,
         protocol.age,
         protocol.get_sex_display() if protocol.sex else "",
     ]
@@ -503,7 +504,9 @@ class ReportPDFBuilder:
                             )
                         )
 
-        report_images = report.images.order_by("order", "created_at")
+        report_images = report.images.filter(include_in_pdf=True).order_by(
+            "order", "created_at"
+        )
         if report_images.exists():
             elements.append(
                 Paragraph("Imágenes microscópicas", styles["subsection"])

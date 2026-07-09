@@ -75,6 +75,17 @@
         {{ img_form.description }}
     </div>
 
+    <div class="mb-3">
+        {{ img_form.include_in_pdf }}
+        <label class="text-sm text-gray-700"
+               for="{{ img_form.include_in_pdf.id_for_label }}">
+            {{ img_form.include_in_pdf.label }}
+        </label>
+        {% if img_form.include_in_pdf.help_text %}
+            <p class="mt-1 text-xs text-gray-500">{{ img_form.include_in_pdf.help_text }}</p>
+        {% endif %}
+    </div>
+
     {% if img_form.instance.pk %}
     <div class="mt-2">
         {{ img_form.DELETE }}

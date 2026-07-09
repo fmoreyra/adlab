@@ -1522,11 +1522,36 @@ class SampleRegistrationView(StaffRequiredMixin, View):
         try:
             cassette_rows = self._parse_cassette_rows(request)
             slide_rows = self._parse_slide_rows(request)
+            existing_slide_updates = self._parse_existing_slide_updates(
+                request, protocol
+            )
             self._validate_registration_rows(
-                protocol, cassette_rows, slide_rows
+                protocol,
+                cassette_rows,
+                slide_rows,
+                existing_slide_updates,
             )
 
             with transaction.atomic():
+                updated_slides = 0
+                for update in existing_slide_updates:
+                    slide = get_object_or_404(
+                        Slide,
+                        pk=update["slide_id"],
+                        protocol=protocol,
+                    )
+                    success, error = (
+                        self.processing_service.update_histopathology_slide(
+                            protocol,
+                            slide,
+                            update,
+                            request.user,
+                        )
+                    )
+                    if not success:
+                        raise ValueError(error)
+                    updated_slides += 1
+
                 created_cassettes = []
                 if cassette_rows:
                     success, created_cassettes, error = (
@@ -1574,6 +1599,11 @@ class SampleRegistrationView(StaffRequiredMixin, View):
                         raise ValueError(error)
 
             parts = []
+            if updated_slides:
+                parts.append(
+                    _("%(count)s portaobjetos actualizados")
+                    % {"count": updated_slides}
+                )
             if cassette_rows:
                 parts.append(
                     _("%(count)s cassettes") % {"count": len(cassette_rows)}
@@ -1703,14 +1733,60 @@ class SampleRegistrationView(StaffRequiredMixin, View):
         return rows
 
     @staticmethod
-    def _validate_registration_rows(protocol, cassette_rows, slide_rows):
+    def _parse_existing_slide_updates(request, protocol):
+        """Parse updates for existing histopathology slides from POST data."""
+        updates = []
+        for slide_id in request.POST.getlist("existing_slide_ids"):
+            try:
+                slide_pk = int(slide_id)
+            except (TypeError, ValueError):
+                continue
+
+            cassette_refs = request.POST.getlist(
+                f"existing_slide_{slide_pk}_cassettes"
+            )
+            cassette_ids = []
+            for ref in cassette_refs:
+                if ref.startswith("existing_"):
+                    try:
+                        cassette_ids.append(int(ref.split("_", 1)[1]))
+                    except (TypeError, ValueError):
+                        continue
+
+            updates.append(
+                {
+                    "slide_id": slide_pk,
+                    "cassette_ids": cassette_ids,
+                    "tecnica_coloracion": request.POST.get(
+                        f"existing_slide_{slide_pk}_coloracion",
+                        "Hematoxilina-Eosina",
+                    ),
+                    "observaciones": request.POST.get(
+                        f"existing_slide_{slide_pk}_observaciones",
+                        "",
+                    ),
+                }
+            )
+
+        if updates and not protocol.slides.filter(
+            pk__in=[item["slide_id"] for item in updates]
+        ).count() == len(updates):
+            raise ValueError(_("Uno o más portaobjetos no son válidos."))
+
+        return updates
+
+    @staticmethod
+    def _validate_registration_rows(
+        protocol, cassette_rows, slide_rows, existing_slide_updates=None
+    ):
         """Validate that POST includes meaningful registration data."""
+        existing_slide_updates = existing_slide_updates or []
         has_existing_cassettes = (
             hasattr(protocol, "histopathology_sample")
             and protocol.histopathology_sample.cassettes.exists()
         )
 
-        if not cassette_rows and not slide_rows:
+        if not cassette_rows and not slide_rows and not existing_slide_updates:
             raise ValueError(_("Debe registrar al menos un cassette o slide."))
 
         if not has_existing_cassettes and not cassette_rows:
@@ -2127,6 +2203,38 @@ class SlideUpdateQualityView(StaffRequiredMixin, View):
             messages.error(request, error_message)
 
         return redirect(protocol_detail_processing_url(slide.protocol))
+
+
+class SlideDeleteView(StaffRequiredMixin, View):
+    """Delete a histopathology slide with audit logging."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.processing_service = ProtocolProcessingService()
+
+    def post(self, request, *args, **kwargs):
+        """Delete slide if protocol is still in active processing."""
+        slide = get_object_or_404(
+            Slide.objects.select_related("protocol"),
+            pk=self.kwargs["slide_pk"],
+        )
+        protocol = slide.protocol
+
+        success, error_message = (
+            self.processing_service.delete_histopathology_slide(
+                protocol, slide, request.user
+            )
+        )
+
+        if success:
+            messages.success(
+                request,
+                _("Portaobjetos eliminado correctamente."),
+            )
+        else:
+            messages.error(request, error_message)
+
+        return redirect(sample_register_url(protocol))
 
 
 class ProtocolResubmitView(StaffRequiredMixin, FormView):

@@ -31,6 +31,7 @@ class ReportImageInline(admin.TabularInline):
         "magnification",
         "technique",
         "order",
+        "include_in_pdf",
     ]
     readonly_fields = []
 

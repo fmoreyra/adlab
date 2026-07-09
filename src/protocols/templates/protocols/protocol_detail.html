@@ -84,6 +84,12 @@
                                 <dd class="mt-1 text-sm text-gray-900">{{ protocol.breed }}</dd>
                             </div>
                         {% endif %}
+                        {% if protocol.animal_category %}
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Categoría del animal</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ protocol.animal_category }}</dd>
+                            </div>
+                        {% endif %}
                         {% if protocol.sex %}
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Sexo</dt>

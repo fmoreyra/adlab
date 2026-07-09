@@ -192,6 +192,11 @@ urlpatterns = [
         views.SlideUpdateQualityView.as_view(),
         name="slide_update_quality",
     ),
+    path(
+        "processing/slide/<int:slide_pk>/delete/",
+        views.SlideDeleteView.as_view(),
+        name="slide_delete",
+    ),
     # Reports
     path(
         "reports/pending/",

@@ -62,6 +62,19 @@ SELECT_CLASS = (
     "transition-colors duration-200 bg-white"
 )
 
+ANIMAL_CATEGORY_FIELD = forms.CharField(
+    label=_("Categoría del animal"),
+    max_length=100,
+    required=False,
+    widget=forms.TextInput(
+        attrs={
+            "class": INPUT_CLASS,
+            "placeholder": _("Ej: Mascota, Ganado, Deportivo"),
+        }
+    ),
+    help_text=_("Clasificación del animal (opcional)"),
+)
+
 
 class ProtocolAgeFieldsMixin:
     """Mixin for years + months age inputs composed into Protocol.age."""
@@ -314,6 +327,7 @@ class CytologyProtocolForm(ProtocolAgeBreedMixin, forms.Form):
             }
         ),
     )
+    animal_category = ANIMAL_CATEGORY_FIELD
     animal_identification = forms.CharField(
         label=_("Identificación del Animal"),
         max_length=200,
@@ -455,6 +469,7 @@ class CytologyProtocolForm(ProtocolAgeBreedMixin, forms.Form):
             veterinarian=veterinarian,
             species=self.cleaned_data["species"],
             breed=self.cleaned_data.get("breed", ""),
+            animal_category=self.cleaned_data.get("animal_category", ""),
             sex=self.cleaned_data.get("sex", ""),
             age=self.cleaned_data.get("age", ""),
             animal_identification=self.cleaned_data["animal_identification"],
@@ -510,6 +525,7 @@ class HistopathologyProtocolForm(ProtocolAgeBreedMixin, forms.Form):
             }
         ),
     )
+    animal_category = ANIMAL_CATEGORY_FIELD
     animal_identification = forms.CharField(
         label=_("Identificación del Animal"),
         max_length=200,
@@ -645,6 +661,7 @@ class HistopathologyProtocolForm(ProtocolAgeBreedMixin, forms.Form):
             veterinarian=veterinarian,
             species=self.cleaned_data["species"],
             breed=self.cleaned_data.get("breed", ""),
+            animal_category=self.cleaned_data.get("animal_category", ""),
             sex=self.cleaned_data.get("sex", ""),
             age=self.cleaned_data.get("age", ""),
             animal_identification=self.cleaned_data["animal_identification"],
@@ -692,6 +709,7 @@ class ProtocolEditForm(ProtocolAgeBreedMixin, forms.ModelForm):
         model = Protocol
         fields = [
             "species",
+            "animal_category",
             "sex",
             "animal_identification",
             "owner_last_name",
@@ -702,6 +720,12 @@ class ProtocolEditForm(ProtocolAgeBreedMixin, forms.ModelForm):
             "submission_date",
         ]
         widgets = {
+            "animal_category": forms.TextInput(
+                attrs={
+                    "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200",
+                    "placeholder": _("Ej: Mascota, Ganado, Deportivo"),
+                }
+            ),
             "sex": forms.Select(
                 attrs={
                     "class": "block w-full h-10 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"

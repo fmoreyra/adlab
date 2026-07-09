@@ -80,6 +80,15 @@
                         </div>
                     </div>
                     <div>
+                        <label for="{{ form.animal_category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            Categoría del animal
+                        </label>
+                        {{ form.animal_category }}
+                        {% if form.animal_category.help_text %}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.animal_category.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
                         <label for="{{ form.sex.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                             Sexo
                         </label>

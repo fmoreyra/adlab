@@ -177,6 +177,11 @@ def build_sample_registration_context(protocol):
         "existing_cassettes": existing_cassettes,
         "existing_slides": existing_slides,
         "is_append_mode": bool(existing_cassettes),
+        "can_edit_existing_slides": (
+            protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY
+            and protocol.status
+            in (Protocol.Status.RECEIVED, Protocol.Status.PROCESSING)
+        ),
         "protocol_number": protocol.protocol_number or "",
         "next_cassette_number": Cassette.next_sequence_number(
             protocol.histopathology_sample

@@ -258,6 +258,7 @@ class ReportImageForm(forms.ModelForm):
             "magnification",
             "technique",
             "order",
+            "include_in_pdf",
         ]
         widgets = {
             "cassette": forms.Select(attrs={"class": TAILWIND_INPUT_CLASS}),
@@ -288,6 +289,12 @@ class ReportImageForm(forms.ModelForm):
                 }
             ),
             "order": forms.NumberInput(attrs={"class": TAILWIND_INPUT_CLASS}),
+            "include_in_pdf": forms.CheckboxInput(
+                attrs={
+                    "class": "h-4 w-4 text-blue-600 focus:ring-blue-500 "
+                    "border-gray-300 rounded",
+                }
+            ),
         }
         labels = {
             "cassette": _("Cassette (opcional)"),
@@ -297,6 +304,7 @@ class ReportImageForm(forms.ModelForm):
             "magnification": _("Magnificación"),
             "technique": _("Técnica"),
             "order": _("Orden"),
+            "include_in_pdf": _("Incluir en PDF"),
         }
 
     def __init__(self, *args, report=None, **kwargs):
@@ -306,6 +314,12 @@ class ReportImageForm(forms.ModelForm):
         self.fields["order"].required = False
         if not self.instance.pk and not self.initial.get("order"):
             self.fields["order"].initial = 0
+        if (
+            not self.instance.pk
+            and "include_in_pdf" not in self.initial
+            and "include_in_pdf" in self.fields
+        ):
+            self.fields["include_in_pdf"].initial = True
 
         if report and report.protocol:
             protocol = report.protocol
@@ -454,6 +468,7 @@ ReportImageFormSet = inlineformset_factory(
         "magnification",
         "technique",
         "order",
+        "include_in_pdf",
     ],
 )
 

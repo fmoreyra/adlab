@@ -5,6 +5,7 @@ Protocol processing service for handling protocol reception and processing logic
 import logging
 from typing import Dict, List, Optional, Tuple
 
+from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -855,3 +856,170 @@ class ProtocolProcessingService:
             if slide.estado == Slide.Status.LISTO:
                 continue
             self.update_slide_stage(slide, "advance", user)
+
+    @staticmethod
+    def can_modify_histopathology_slides(protocol: Protocol) -> bool:
+        """Return whether HP slides can be edited or deleted."""
+        return (
+            protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY
+            and protocol.status
+            in (Protocol.Status.RECEIVED, Protocol.Status.PROCESSING)
+        )
+
+    @staticmethod
+    def _slide_referenced_in_finalized_report(slide: Slide) -> bool:
+        """Return whether a slide is linked to a finalized report image."""
+        from protocols.models import Report
+
+        return slide.report_images.filter(
+            report__status__in=(Report.Status.FINALIZED, Report.Status.SENT)
+        ).exists()
+
+    def update_histopathology_slide(
+        self,
+        protocol: Protocol,
+        slide: Slide,
+        slide_data: Dict,
+        user,
+    ) -> Tuple[bool, str]:
+        """
+        Update an existing histopathology slide and its cassette links.
+
+        Args:
+            protocol: Protocol instance
+            slide: Slide to update
+            slide_data: Dict with cassette_ids, tecnica_coloracion, observaciones
+            user: User performing the update
+
+        Returns:
+            Tuple[bool, str]: (success, error_message)
+        """
+        if not self.can_modify_histopathology_slides(protocol):
+            return (
+                False,
+                _("No se pueden modificar portaobjetos en este estado."),
+            )
+
+        if slide.protocol_id != protocol.pk:
+            return False, _("El portaobjetos no pertenece a este protocolo.")
+
+        cassette_ids = slide_data.get("cassette_ids") or []
+        if not cassette_ids:
+            return (
+                False,
+                _("Cada portaobjetos debe tener al menos un cassette."),
+            )
+
+        if not hasattr(protocol, "histopathology_sample"):
+            return (
+                False,
+                _("El protocolo no tiene muestra de histopatología."),
+            )
+
+        valid_cassette_ids = set(
+            protocol.histopathology_sample.cassettes.filter(
+                id__in=cassette_ids
+            ).values_list("id", flat=True)
+        )
+        if len(valid_cassette_ids) != len(set(cassette_ids)):
+            return False, _("Uno o más cassettes no son válidos.")
+
+        try:
+            coloracion = slide_data.get(
+                "tecnica_coloracion", "Hematoxilina-Eosina"
+            )
+            with transaction.atomic():
+                slide.tecnica_coloracion = coloracion
+                slide.observaciones = slide_data.get("observaciones", "")
+                slide.save(
+                    update_fields=[
+                        "tecnica_coloracion",
+                        "observaciones",
+                        "updated_at",
+                    ]
+                )
+
+                slide.cassette_slides.all().delete()
+                for cassette_id in cassette_ids:
+                    CassetteSlide.objects.create(
+                        cassette_id=cassette_id,
+                        slide=slide,
+                        posicion=CassetteSlide.Position.COMPLETO,
+                        coloracion=coloracion,
+                    )
+
+                ProcessingLog.log_action(
+                    protocol=protocol,
+                    etapa=ProcessingLog.Stage.MONTAJE,
+                    usuario=user,
+                    slide=slide,
+                    observaciones=_("Portaobjetos %(code)s actualizado")
+                    % {"code": slide.codigo_portaobjetos},
+                )
+
+            return True, ""
+
+        except Exception as exc:
+            logger.error(
+                "Error updating slide %s for protocol %s: %s",
+                slide.pk,
+                protocol.pk,
+                exc,
+            )
+            return False, str(exc)
+
+    def delete_histopathology_slide(
+        self,
+        protocol: Protocol,
+        slide: Slide,
+        user,
+    ) -> Tuple[bool, str]:
+        """
+        Delete a histopathology slide if allowed.
+
+        Args:
+            protocol: Protocol instance
+            slide: Slide to delete
+            user: User performing the deletion
+
+        Returns:
+            Tuple[bool, str]: (success, error_message)
+        """
+        if not self.can_modify_histopathology_slides(protocol):
+            return (
+                False,
+                _("No se pueden eliminar portaobjetos en este estado."),
+            )
+
+        if slide.protocol_id != protocol.pk:
+            return False, _("El portaobjetos no pertenece a este protocolo.")
+
+        if self._slide_referenced_in_finalized_report(slide):
+            return (
+                False,
+                _(
+                    "No se puede eliminar: el portaobjetos está referenciado "
+                    "en un informe finalizado."
+                ),
+            )
+
+        try:
+            code = slide.codigo_portaobjetos
+            slide.delete()
+            ProcessingLog.log_action(
+                protocol=protocol,
+                etapa=ProcessingLog.Stage.MONTAJE,
+                usuario=user,
+                observaciones=_("Portaobjetos %(code)s eliminado")
+                % {"code": code},
+            )
+            return True, ""
+
+        except Exception as exc:
+            logger.error(
+                "Error deleting slide %s for protocol %s: %s",
+                slide.pk,
+                protocol.pk,
+                exc,
+            )
+            return False, str(exc)

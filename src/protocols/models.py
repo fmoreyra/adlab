@@ -90,6 +90,14 @@ class Protocol(models.Model):
     # Animal/Patient data (no separate entity per design decision IV.3.3)
     species = models.CharField(_("especie"), max_length=100)
     breed = models.CharField(_("raza"), max_length=100, blank=True)
+    animal_category = models.CharField(
+        _("categoría del animal"),
+        max_length=100,
+        blank=True,
+        help_text=_(
+            "Clasificación o categoría del animal (ej. mascota, ganado)"
+        ),
+    )
     sex = models.CharField(
         _("sexo"),
         max_length=20,
@@ -2417,6 +2425,14 @@ class ReportImage(models.Model):
         _("orden"),
         default=0,
         help_text=_("Orden de presentación en el informe"),
+    )
+    include_in_pdf = models.BooleanField(
+        _("incluir en PDF"),
+        default=True,
+        help_text=_(
+            "Si está desmarcado, la imagen se conserva en el informe digital "
+            "pero no se imprime en el PDF enviado."
+        ),
     )
 
     created_at = models.DateTimeField(_("creado el"), auto_now_add=True)

@@ -169,6 +169,7 @@ class ProtocolAdmin(admin.ModelAdmin):
                 "fields": (
                     "species",
                     "breed",
+                    "animal_category",
                     "sex",
                     "age",
                     "animal_identification",
