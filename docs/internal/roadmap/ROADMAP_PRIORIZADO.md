@@ -289,20 +289,87 @@ Prioridad operativa: correo operativo en producción; luego migrar a casilla ins
 
 ---
 
+## 7. Fase piloto — Carga de protocolos por laboratorio
+
+Addenda acordada post-reunión (Jul 2026). Plan detallado: [PLAN_PUNTO_7_LAB_CARGA_PROTOCOLOS.md](PLAN_PUNTO_7_LAB_CARGA_PROTOCOLOS.md)
+
+Prioridad operativa: el personal de lab carga protocolos a nombre del MV comitente mientras los veterinarios externos no operan el sistema en el día a día.
+
+### 7.1 Carga delegada por personal de lab (MVP)
+
+- **Estado:** ⬜ Pendiente
+- **Objetivo:** Permitir a `PERSONAL_LAB` (y admin vía `is_lab_staff`) crear y enviar protocolos HP/CT **a nombre de un veterinario existente**.
+- **Decisiones clave:**
+  - Paso previo: **búsqueda de MV**; solo los con **email habilitado** (`User.email_verified=True`, `User.is_active=True`).
+  - Flujo **A:** borrador → enviar → recepcionar (igual que hoy).
+  - El MV **no usa** el sistema en piloto, pero **recibe informe por mail** (email verificado = canal de comunicación).
+  - **No** cerrar registro público de veterinarios por ahora.
+  - Rol histopatólogo: fuera de alcance funcional.
+- **Implementación prevista:**
+  - `Protocol.created_by` para auditoría.
+  - Vistas `/protocols/lab/create/…` (búsqueda MV → tipo → formulario reutilizado).
+  - Dashboard lab: acción **“Cargar protocolo”**.
+  - Acciones lab en borrador: editar / enviar.
+- **Dependencias:** SMTP (5.1) para verificación de MV e informes; MV precargados y verificados.
+- **Notas / PR:**
+
+---
+
+## 8. Categoría de animal (HP y CT)
+
+Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_10.md) §8.
+
+- **Estado:** ⬜ Pendiente
+- **Objetivo:** Nuevo campo **categoría de animal** en protocolos de citología e histopatología.
+- **v1:** campo **abierto** (texto libre); la facultad pasará después clasificación por raza.
+- **Áreas del código:** `Protocol`, formularios create/edit, detalle, PDF metadatos.
+- **Notas / PR:**
+
+---
+
+## 9. Editar / eliminar portaobjetos (solo HP)
+
+Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_10.md) §9.
+
+- **Estado:** ⬜ Pendiente
+- **Objetivo:** Corregir o borrar portaobjetos ya registrados en **histopatología** (hoy HP solo agrega).
+- **Citología:** **fuera de alcance** — slides fijos al crearse en recepción; sin editar ni eliminar después.
+- **Alcance:** personal de lab; estados `received` / `processing`; auditoría en `ProcessingLog`.
+- **Restricciones:** no eliminar slides referenciados en informe finalizado sin reglas claras.
+- **Notas / PR:**
+
+---
+
+## 10. Marcar imágenes para incluir en PDF del informe
+
+Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_10.md) §10.
+
+- **Estado:** ⬜ Pendiente
+- **Objetivo:** Booleano en `ReportImage` para elegir qué fotos micro/macro van al PDF (hoy se incluyen todas).
+- **Default:** `include_in_pdf=True` (sin cambio de comportamiento para informes actuales).
+- **Áreas del código:** `ReportImage`, `ReportImageForm`, `report_pdf_builder.py`, template edición informe.
+- **Notas / PR:**
+
+---
+
 ## Orden sugerido de implementación
 
 ```
-1 ✅ → 2 ✅ → 3 ✅ → 4 ✅ → 5.1 Gmail (arranque) → 5.2 → (luego: correo institucional) → (6.1 reactivar si la facultad lo pide)
+1 ✅ → 2 ✅ → 3 ✅ → 4 ✅ → 5.1 Gmail → 5.2 → 7 (piloto lab) → 8–10 (independientes) → (correo institucional) → (6.1 reactivar si la facultad lo pide)
 ```
 
 | # | Bloque | Ítems | Dependencias clave |
 |---|--------|-------|-------------------|
-| 1 | Veterinario / datos | 1.1–1.3 ✅, 1.4 menor | Ninguna crítica |
-| 2 | Laboratorio HP | 2.1 ✅, 2.2 ✅ | Implementado Jun–Jul 2026 |
+| 1 | Veterinario / datos | 1.1–1.3 ✅, 1.4 ✅ | Ninguna crítica |
+| 2 | Laboratorio HP | 2.1 ✅, 2.2 ✅, 2.3 ✅ | Implementado Jun–Jul 2026 |
 | 3 | Informes / PDF | 3.1, 3.2, 3.3 ✅ | Formato facultad aplicado Jul 2026 |
 | 4 | Dominio / SSL | 4.1 ✅, 4.2 ✅ | Cerrado Jul 2026 (`patologiavetfcvunl.ar`) |
 | 5 | Correo / auth | 5.1 Gmail provisorio → institucional luego; 5.2 | Credenciales Gmail en próxima reunión |
 | 6 | Finanzas / OT | 6.1 🚫 UI off | Modelos intactos |
+| 7 | Piloto lab — carga delegada | 7.1 ⬜ | 5.1 recomendado; MV con email verificado |
+| 8 | Categoría de animal | ⬜ | Independiente |
+| 9 | Portaobjetos edit/delete (solo HP) | ⬜ | CT excluido |
+| 10 | Imágenes en PDF (flag) | ⬜ | Independiente |
 
 ---
 
@@ -324,6 +391,8 @@ Usar esta sección para anotar qué ítem se tomó en cada sesión.
 | Jul 2026 | 3.1 | Formato institucional PDF (banners Word, layout HP/CT, RESULTADOS/OBSERVACIONES) |
 | Jul 2026 | 4.1, 4.2 | Dominio `patologiavetfcvunl.ar` + SSL cerrados en producción |
 | Jul 2026 | 5.1 (decisión) | Arranque con Gmail SMTP (provisorio); migración a casilla institucional diferida |
+| Jul 2026 | 7.1 (planificación) | Addenda post-reunión: carga de protocolos por lab; plan en PLAN_PUNTO_7 |
+| Jul 2026 | 8, 9, 10 (planificación) | Addenda: categoría animal, edit/delete portaobjetos, flag imágenes PDF; plan en PLAN_PUNTOS_8_9_10 |
 
 ---
 
