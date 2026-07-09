@@ -94,6 +94,19 @@ class BuildProtocolDetailActionContextTest(TestCase):
         self.assertTrue(context["show_lab_actions"])
         self.assertFalse(context["show_vet_actions"])
 
+    def test_staff_draft_protocol_can_manage(self):
+        """Lab staff see edit/submit actions on draft protocols."""
+        self.protocol.status = Protocol.Status.DRAFT
+        self.protocol.created_by = self.staff_user
+        self.protocol.save(update_fields=["status", "created_by"])
+
+        context = build_protocol_detail_action_context(
+            self.staff_user, self.protocol
+        )
+
+        self.assertTrue(context["can_lab_manage_draft"])
+        self.assertTrue(context["lab_created_protocol"])
+
     def test_veterinarian_owner_hides_vet_card(self):
         """Owning veterinarian hides redundant vet info card."""
         context = build_protocol_detail_action_context(

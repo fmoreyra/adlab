@@ -1,0 +1,123 @@
+{% extends "layouts/index.html" %}
+{% load static %}
+
+{% block title %}Cargar Protocolo - Personal de Laboratorio{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Cargar protocolo</h1>
+            <p class="mt-2 text-sm text-gray-600">
+                Seleccione el veterinario comitente o búsquelo por nombre, matrícula o email.
+                Solo aparecen veterinarios con email verificado.
+            </p>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <form method="get" class="space-y-4">
+                <div>
+                    <label for="{{ form.query.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.query.label }}
+                    </label>
+                    {{ form.query }}
+                    {% if form.query.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.query.help_text }}</p>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="submit"
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
+                        Buscar
+                    </button>
+                    {% if is_search %}
+                        <a href="{% url 'protocols:lab_protocol_search' %}"
+                           class="text-sm text-gray-600 hover:text-gray-800">
+                            Ver todos
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    {% if is_search %}
+                        Resultados de búsqueda
+                    {% else %}
+                        Veterinarios habilitados
+                    {% endif %}
+                </h2>
+                <span class="text-sm text-gray-500">{{ total_count }} en total</span>
+            </div>
+
+            {% if veterinarians %}
+                <ul class="divide-y divide-gray-200">
+                    {% for vet in veterinarians %}
+                        <li class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+                            <div>
+                                <p class="font-medium text-gray-900">{{ vet.get_full_name }}</p>
+                                <p class="text-sm text-gray-600">
+                                    Matrícula: {{ vet.license_number }}
+                                    · {{ vet.email }}
+                                </p>
+                            </div>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="veterinarian_id" value="{{ vet.pk }}">
+                                <button type="submit"
+                                        class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700">
+                                    Seleccionar
+                                </button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                {% if page_obj.has_other_pages %}
+                    <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                        <p class="text-sm text-gray-700">
+                            Mostrando {{ page_obj.start_index }}–{{ page_obj.end_index }} de {{ total_count }}
+                        </p>
+                        <nav class="flex gap-2">
+                            {% if page_obj.has_previous %}
+                                <a href="?{% if form.query.value %}query={{ form.query.value|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}"
+                                   class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Anterior
+                                </a>
+                            {% endif %}
+                            <span class="px-3 py-1.5 text-sm text-gray-500">
+                                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                            </span>
+                            {% if page_obj.has_next %}
+                                <a href="?{% if form.query.value %}query={{ form.query.value|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}"
+                                   class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Siguiente
+                                </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="px-6 py-8 text-center text-gray-500">
+                    {% if is_search %}
+                        <p>No se encontraron veterinarios habilitados con ese criterio.</p>
+                    {% else %}
+                        <p>No hay veterinarios habilitados en el sistema.</p>
+                    {% endif %}
+                    <p class="mt-2 text-sm">
+                        El veterinario debe registrarse y verificar su email antes de poder cargar protocolos a su nombre.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mt-8 text-center">
+            <a href="{% url 'pages:dashboard_lab_staff' %}" class="text-blue-600 hover:text-blue-800">
+                ← Volver al panel de laboratorio
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

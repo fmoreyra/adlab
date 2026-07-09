@@ -16,6 +16,7 @@ from accounts.report_access import (
     user_can_view_report_images,
     user_requires_report_signature,
 )
+from protocols.lab_protocol import is_lab_created_protocol
 from protocols.models import Cassette, Protocol, Report, Slide
 from protocols.services.protocol_service import ProtocolProcessingService
 
@@ -527,6 +528,11 @@ def build_protocol_detail_action_context(user, protocol, request=None):
     )
     can_print_reception_label = is_lab_staff and bool(protocol.protocol_number)
 
+    can_lab_manage_draft = (
+        is_lab_staff and protocol.status == Protocol.Status.DRAFT
+    )
+    lab_created_protocol = is_lab_created_protocol(protocol)
+
     public_detail_url = None
     if request is not None:
         public_detail_url = request.build_absolute_uri(
@@ -555,6 +561,8 @@ def build_protocol_detail_action_context(user, protocol, request=None):
         "can_resubmit_protocol": can_resubmit_protocol,
         "can_view_reception_detail": can_view_reception_detail,
         "can_print_reception_label": can_print_reception_label,
+        "can_lab_manage_draft": can_lab_manage_draft,
+        "lab_created_protocol": lab_created_protocol,
         "public_detail_url": public_detail_url,
         "hide_veterinarian_card": is_veterinarian and owns_protocol,
         "is_protocol_owner": owns_protocol,

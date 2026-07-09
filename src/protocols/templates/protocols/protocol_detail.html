@@ -16,8 +16,17 @@
                     <p class="mt-2 text-sm text-gray-600">
                         {{ protocol.get_analysis_type_display }} - Creado el {{ protocol.created_at|date:"d" }} de {{ protocol.created_at|date:"F" }} de {{ protocol.created_at|date:"Y" }}
                     </p>
+                    {% if lab_created_protocol %}
+                        <span class="inline-flex items-center mt-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                            Cargado por laboratorio
+                        </span>
+                    {% endif %}
                 </div>
                 {% if show_vet_actions and protocol.status == 'draft' %}
+                <p class="text-sm text-gray-500">
+                    Use las acciones del panel lateral para editar o enviar.
+                </p>
+                {% elif show_lab_actions and can_lab_manage_draft %}
                 <p class="text-sm text-gray-500">
                     Use las acciones del panel lateral para editar o enviar.
                 </p>

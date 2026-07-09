@@ -23,6 +23,27 @@ urlpatterns = [
         views.ProtocolCreateHistopathologyView.as_view(),
         name="protocol_create_histopathology",
     ),
+    # Lab-delegated protocol creation (pilot)
+    path(
+        "lab/create/",
+        views.LabProtocolVeterinarianSearchView.as_view(),
+        name="lab_protocol_search",
+    ),
+    path(
+        "lab/create/select-type/",
+        views.LabProtocolSelectTypeView.as_view(),
+        name="lab_protocol_select_type",
+    ),
+    path(
+        "lab/create/cytology/",
+        views.LabProtocolCreateCytologyView.as_view(),
+        name="lab_protocol_create_cytology",
+    ),
+    path(
+        "lab/create/histopathology/",
+        views.LabProtocolCreateHistopathologyView.as_view(),
+        name="lab_protocol_create_histopathology",
+    ),
     # Detail, edit, delete
     path(
         "<int:pk>/", views.ProtocolDetailView.as_view(), name="protocol_detail"

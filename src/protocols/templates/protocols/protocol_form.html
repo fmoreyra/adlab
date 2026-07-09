@@ -9,14 +9,30 @@
         <!-- Header -->
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900">
-                {% if analysis_type == 'cytology' %}
+                {% if is_lab_create %}
+                    {% if analysis_type == 'cytology' %}
+                        Nuevo Protocolo de Citología
+                    {% else %}
+                        Nuevo Protocolo de Histopatología
+                    {% endif %}
+                {% elif analysis_type == 'cytology' %}
                     Nuevo Protocolo de Citología
                 {% else %}
                     Nuevo Protocolo de Histopatología
                 {% endif %}
             </h1>
+            {% if is_lab_create and selected_veterinarian %}
+                <p class="mt-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 inline-block">
+                    Veterinario comitente: <strong>{{ selected_veterinarian.get_full_name }}</strong>
+                    ({{ selected_veterinarian.license_number }})
+                </p>
+            {% endif %}
             <p class="mt-2 text-sm text-gray-600">
-                Complete todos los campos requeridos para crear su protocolo. Puede guardarlo como borrador y enviarlo más tarde.
+                {% if is_lab_create %}
+                    Complete todos los campos requeridos. El protocolo quedará a nombre del veterinario seleccionado.
+                {% else %}
+                    Complete todos los campos requeridos para crear su protocolo. Puede guardarlo como borrador y enviarlo más tarde.
+                {% endif %}
             </p>
         </div>
 
@@ -194,9 +210,15 @@
 
             <!-- Form Actions -->
             <div class="flex items-center justify-between pt-6 border-t">
-                <a href="{% url 'protocols:protocol_list' %}" class="text-gray-600 hover:text-gray-800">
-                    ← Cancelar
-                </a>
+                {% if cancel_url %}
+                    <a href="{{ cancel_url }}" class="text-gray-600 hover:text-gray-800">
+                        ← Cancelar
+                    </a>
+                {% else %}
+                    <a href="{% url 'protocols:protocol_list' %}" class="text-gray-600 hover:text-gray-800">
+                        ← Cancelar
+                    </a>
+                {% endif %}
                 {% include 'components/ui/button.html' with text="Guardar como Borrador" type="submit" variant="primary" %}
             </div>
         </form>

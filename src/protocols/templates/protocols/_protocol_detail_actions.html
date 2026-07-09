@@ -110,6 +110,23 @@
                 Acciones de laboratorio
             </p>
 
+            {% if can_lab_manage_draft %}
+                {% if protocol.is_editable %}
+                    <a href="{% url 'protocols:protocol_edit' protocol.pk %}"
+                       class="block w-full px-4 py-2 text-center bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                        Editar protocolo
+                    </a>
+                {% endif %}
+
+                <form method="post" action="{% url 'protocols:protocol_submit' protocol.pk %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Enviar protocolo
+                    </button>
+                </form>
+            {% endif %}
+
             {% if can_receive_protocol %}
                 <a href="{% url 'protocols:reception_confirm' protocol.pk %}"
                    class="block w-full px-4 py-2 text-center bg-green-600 text-white rounded-md hover:bg-green-700">

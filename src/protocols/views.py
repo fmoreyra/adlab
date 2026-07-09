@@ -6,6 +6,7 @@ import qrcode
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db import transaction
 from django.db.models import Q
 from django.http import FileResponse
@@ -38,10 +39,18 @@ from protocols.choices import BREEDS_BY_SPECIES
 from protocols.forms import (
     CytologyProtocolForm,
     HistopathologyProtocolForm,
+    LabVeterinarianSearchForm,
     ProtocolEditForm,
     ProtocolResubmitForm,
     ReceptionForm,
     ReceptionPendingFilterForm,
+)
+from protocols.lab_protocol import (
+    clear_lab_protocol_veterinarian,
+    get_enabled_veterinarians_queryset,
+    get_lab_protocol_veterinarian,
+    search_enabled_veterinarians,
+    set_lab_protocol_veterinarian,
 )
 from protocols.models import (
     Cassette,
@@ -232,6 +241,7 @@ class ProtocolDetailView(ProtocolOwnerOrStaffMixin, DetailView):
         """Get protocol with related objects."""
         return Protocol.objects.select_related(
             "veterinarian__user",
+            "created_by",
             "cytology_sample",
             "histopathology_sample",
             "work_order",
@@ -382,6 +392,9 @@ def _add_protocol_breed_context(context):
     return context
 
 
+LAB_VET_SEARCH_PAGE_SIZE = 20
+
+
 class ProtocolCreateCytologyView(VeterinarianProfileRequiredMixin, CreateView):
     """
     Create a new cytology protocol.
@@ -463,6 +476,239 @@ class ProtocolCreateHistopathologyView(
         """Add analysis type to context."""
         context = super().get_context_data(**kwargs)
         context["analysis_type"] = "histopathology"
+        return _add_protocol_breed_context(context)
+
+
+class LabProtocolVeterinarianSessionMixin:
+    """
+    Require a verified veterinarian selected in session for lab create flow.
+    """
+
+    selected_veterinarian = None
+
+    def dispatch(self, request, *args, **kwargs):
+        """Redirect to search when no eligible veterinarian is in session."""
+        self.selected_veterinarian = get_lab_protocol_veterinarian(
+            request.session
+        )
+        if self.selected_veterinarian is None:
+            messages.warning(
+                request,
+                _("Debe seleccionar un veterinario comitente habilitado."),
+            )
+            return redirect("protocols:lab_protocol_search")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class LabProtocolVeterinarianSearchView(StaffRequiredMixin, View):
+    """
+    Search and select a verified veterinarian for delegated protocol creation.
+    """
+
+    template_name = "protocols/lab_protocol_veterinarian_search.html"
+
+    def get(self, request):
+        """Show search form and paginated veterinarian list."""
+        form = LabVeterinarianSearchForm(request.GET or None)
+        return render(
+            request, self.template_name, self._build_context(request, form)
+        )
+
+    def post(self, request):
+        """Select a veterinarian or run a new search."""
+        veterinarian_id = request.POST.get("veterinarian_id")
+        if veterinarian_id:
+            return self._select_veterinarian(request, veterinarian_id)
+
+        form = LabVeterinarianSearchForm(request.POST)
+        return render(
+            request, self.template_name, self._build_context(request, form)
+        )
+
+    def _build_context(self, request, form):
+        """Build template context with paginated veterinarian results."""
+        queryset = self._get_veterinarians_queryset(form)
+        paginator = Paginator(queryset, LAB_VET_SEARCH_PAGE_SIZE)
+        page_number = request.GET.get("page", 1)
+
+        try:
+            page_obj = paginator.page(page_number)
+        except PageNotAnInteger:
+            page_obj = paginator.page(1)
+        except EmptyPage:
+            page_obj = paginator.page(paginator.num_pages)
+
+        query = ""
+        if form.is_valid():
+            query = (form.cleaned_data.get("query") or "").strip()
+
+        return {
+            "form": form,
+            "page_obj": page_obj,
+            "veterinarians": page_obj.object_list,
+            "is_search": bool(query),
+            "total_count": paginator.count,
+        }
+
+    def _get_veterinarians_queryset(self, form):
+        """Return full or filtered enabled veterinarians queryset."""
+        if form.is_valid():
+            query = (form.cleaned_data.get("query") or "").strip()
+            if query:
+                return search_enabled_veterinarians(query)
+
+        return get_enabled_veterinarians_queryset()
+
+    def _select_veterinarian(self, request, veterinarian_id):
+        """Store selected veterinarian in session and continue flow."""
+        veterinarian = (
+            get_enabled_veterinarians_queryset()
+            .filter(pk=veterinarian_id)
+            .first()
+        )
+        if veterinarian is None:
+            messages.error(
+                request,
+                _(
+                    "El veterinario seleccionado no está habilitado. "
+                    "Debe tener email verificado."
+                ),
+            )
+            return redirect("protocols:lab_protocol_search")
+
+        set_lab_protocol_veterinarian(request.session, veterinarian)
+        return redirect("protocols:lab_protocol_select_type")
+
+
+class LabProtocolSelectTypeView(
+    StaffRequiredMixin, LabProtocolVeterinarianSessionMixin, TemplateView
+):
+    """
+    Select cytology or histopathology for lab-delegated protocol creation.
+    """
+
+    template_name = "protocols/lab_protocol_select_type.html"
+
+    def get_context_data(self, **kwargs):
+        """Add selected veterinarian to template context."""
+        context = super().get_context_data(**kwargs)
+        context["selected_veterinarian"] = self.selected_veterinarian
+        return context
+
+
+class LabProtocolCreateCytologyView(
+    StaffRequiredMixin, LabProtocolVeterinarianSessionMixin, CreateView
+):
+    """
+    Create a cytology protocol on behalf of a selected veterinarian.
+    """
+
+    form_class = CytologyProtocolForm
+    template_name = "protocols/protocol_form.html"
+
+    def get_form_kwargs(self):
+        """Get form kwargs, excluding instance for non-ModelForm."""
+        kwargs = super().get_form_kwargs()
+        kwargs.pop("instance", None)
+        return kwargs
+
+    def get_success_url(self):
+        """Redirect to protocol detail after successful creation."""
+        clear_lab_protocol_veterinarian(self.request.session)
+        return reverse(
+            "protocols:protocol_detail", kwargs={"pk": self.object.pk}
+        )
+
+    def form_valid(self, form):
+        """Save protocol for the selected veterinarian and audit creator."""
+        veterinarian = self.selected_veterinarian
+
+        self.object = form.save(veterinarian=veterinarian)
+        self.object.created_by = self.request.user
+        self.object.save(update_fields=["created_by"])
+
+        ProtocolStatusHistory.log_status_change(
+            protocol=self.object,
+            new_status=Protocol.Status.DRAFT,
+            changed_by=self.request.user,
+            description="Cargado por personal de laboratorio",
+        )
+
+        messages.success(
+            self.request,
+            _(
+                "Protocolo de citología creado para %(vet)s. "
+                "Puede enviarlo cuando esté listo."
+            )
+            % {"vet": veterinarian.get_full_name()},
+        )
+        return redirect(self.get_success_url())
+
+    def get_context_data(self, **kwargs):
+        """Add lab create context for the shared protocol form."""
+        context = super().get_context_data(**kwargs)
+        context["analysis_type"] = "cytology"
+        context["is_lab_create"] = True
+        context["selected_veterinarian"] = self.selected_veterinarian
+        context["cancel_url"] = reverse("protocols:lab_protocol_select_type")
+        return _add_protocol_breed_context(context)
+
+
+class LabProtocolCreateHistopathologyView(
+    StaffRequiredMixin, LabProtocolVeterinarianSessionMixin, CreateView
+):
+    """
+    Create a histopathology protocol on behalf of a selected veterinarian.
+    """
+
+    form_class = HistopathologyProtocolForm
+    template_name = "protocols/protocol_form.html"
+
+    def get_form_kwargs(self):
+        """Get form kwargs, excluding instance for non-ModelForm."""
+        kwargs = super().get_form_kwargs()
+        kwargs.pop("instance", None)
+        return kwargs
+
+    def get_success_url(self):
+        """Redirect to protocol detail after successful creation."""
+        clear_lab_protocol_veterinarian(self.request.session)
+        return reverse(
+            "protocols:protocol_detail", kwargs={"pk": self.object.pk}
+        )
+
+    def form_valid(self, form):
+        """Save protocol for the selected veterinarian and audit creator."""
+        veterinarian = self.selected_veterinarian
+
+        self.object = form.save(veterinarian=veterinarian)
+        self.object.created_by = self.request.user
+        self.object.save(update_fields=["created_by"])
+
+        ProtocolStatusHistory.log_status_change(
+            protocol=self.object,
+            new_status=Protocol.Status.DRAFT,
+            changed_by=self.request.user,
+            description="Cargado por personal de laboratorio",
+        )
+
+        messages.success(
+            self.request,
+            _(
+                "Protocolo de histopatología creado para %(vet)s. "
+                "Puede enviarlo cuando esté listo."
+            )
+            % {"vet": veterinarian.get_full_name()},
+        )
+        return redirect(self.get_success_url())
+
+    def get_context_data(self, **kwargs):
+        """Add lab create context for the shared protocol form."""
+        context = super().get_context_data(**kwargs)
+        context["analysis_type"] = "histopathology"
+        context["is_lab_create"] = True
+        context["selected_veterinarian"] = self.selected_veterinarian
+        context["cancel_url"] = reverse("protocols:lab_protocol_select_type")
         return _add_protocol_breed_context(context)
 
 
@@ -781,12 +1027,16 @@ class ProtocolSubmitView(ProtocolOwnerOrStaffMixin, View):
         try:
             protocol.submit()
 
-            # Log status change
+            if request.user.is_lab_staff:
+                description = "Protocolo enviado por personal de laboratorio"
+            else:
+                description = "Protocol submitted by veterinarian"
+
             ProtocolStatusHistory.log_status_change(
                 protocol=protocol,
                 new_status=Protocol.Status.SUBMITTED,
                 changed_by=request.user,
-                description="Protocol submitted by veterinarian",
+                description=description,
             )
 
             # In-app only: vet already sees success + temporary code on screen

@@ -1576,3 +1576,25 @@ class ReceptionHistoryFilterForm(forms.Form):
             }
         ),
     )
+
+
+class LabVeterinarianSearchForm(forms.Form):
+    """
+    Search form for selecting a veterinarian in lab protocol creation.
+    """
+
+    query = forms.CharField(
+        label=_("Buscar veterinario"),
+        required=False,
+        help_text=_(
+            "Nombre, apellido, matrícula o email. Solo veterinarios con "
+            "email verificado."
+        ),
+        widget=forms.TextInput(
+            attrs={
+                "class": INPUT_CLASS,
+                "placeholder": "Ej: Pérez, MP-12345, vet@example.com",
+                "autofocus": True,
+            }
+        ),
+    )

@@ -137,6 +137,17 @@ class Protocol(models.Model):
         verbose_name=_("recibido por"),
         help_text=_("Usuario que recepcionó la muestra"),
     )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="protocols_created",
+        verbose_name=_("creado por"),
+        help_text=_(
+            "Usuario que cargó el protocolo (p. ej. personal de laboratorio)"
+        ),
+    )
     status = models.CharField(
         _("estado"),
         max_length=20,
