@@ -1,6 +1,7 @@
 import secrets
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
@@ -310,6 +311,18 @@ class AuthAuditLog(models.Model):
             _("Email Verification Failed"),
         )
         USER_CREATED = "user_created", _("Usuario Creado")
+        VETERINARIAN_APPROVED = (
+            "veterinarian_approved",
+            _("Veterinario Habilitado"),
+        )
+        VETERINARIAN_DELETED = (
+            "veterinarian_deleted",
+            _("Veterinario Eliminado"),
+        )
+        VETERINARIAN_REACTIVATED = (
+            "veterinarian_reactivated",
+            _("Veterinario Reactivado"),
+        )
 
     user = models.ForeignKey(
         User,
@@ -711,6 +724,123 @@ class VeterinarianChangeLog(models.Model):
             new_value=str(new_value) if new_value else "",
             ip_address=ip_address,
         )
+
+
+class VeterinarianPendingApprovalSettings(models.Model):
+    """
+    Singleton row for the veterinarian pending-approval contact screen.
+
+    Edited by administrators; content is cached in Redis for reads.
+    """
+
+    SINGLETON_PK = 1
+    MAX_MESSAGE_LENGTH = 4000
+
+    title = models.CharField(
+        verbose_name="Título",
+        max_length=200,
+        default="Cuenta pendiente de habilitación",
+    )
+    message = models.TextField(
+        verbose_name="Mensaje",
+        blank=True,
+        default="",
+        help_text="Texto en Markdown (negrita, enlaces, listas).",
+    )
+    contact_phone = models.CharField(
+        verbose_name="Teléfono de contacto",
+        max_length=50,
+        blank=True,
+        default="",
+    )
+    contact_email = models.EmailField(
+        verbose_name="Email de contacto",
+        blank=True,
+        default="",
+    )
+    is_active = models.BooleanField(
+        verbose_name="Activo",
+        default=True,
+        help_text="Si está desactivado, se muestra un mensaje genérico.",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="vet_pending_settings_updated",
+        verbose_name="Actualizado por",
+    )
+    updated_at = models.DateTimeField(
+        verbose_name="Actualizado el",
+        auto_now=True,
+    )
+
+    class Meta:
+        verbose_name = "Pantalla pendiente de habilitación"
+        verbose_name_plural = "Pantallas pendiente de habilitación"
+
+    def __str__(self):
+        status = "activo" if self.is_active else "inactivo"
+        return f"Pantalla pendiente de habilitación ({status})"
+
+    @classmethod
+    def get_singleton(cls):
+        """Return the singleton settings row, creating it if needed."""
+        obj, _ = cls.objects.get_or_create(
+            pk=cls.SINGLETON_PK,
+            defaults={
+                "title": "Cuenta pendiente de habilitación",
+                "message": "",
+                "is_active": True,
+            },
+        )
+        return obj
+
+    @classmethod
+    def update_settings(
+        cls,
+        *,
+        title,
+        message,
+        contact_phone,
+        contact_email,
+        is_active,
+        user,
+    ):
+        """
+        Persist pending-approval screen settings.
+
+        Args:
+            title: Screen heading
+            message: Markdown body text
+            contact_phone: Lab contact phone
+            contact_email: Lab contact email
+            is_active: Whether custom content is shown
+            user: Admin performing the update
+
+        Returns:
+            VeterinarianPendingApprovalSettings: Updated singleton instance
+        """
+        obj = cls.get_singleton()
+        obj.title = title
+        obj.message = message
+        obj.contact_phone = contact_phone
+        obj.contact_email = contact_email
+        obj.is_active = is_active
+        obj.updated_by = user
+        obj.save(
+            update_fields=[
+                "title",
+                "message",
+                "contact_phone",
+                "contact_email",
+                "is_active",
+                "updated_by",
+                "updated_at",
+            ]
+        )
+        return obj
 
 
 class Histopathologist(models.Model):

@@ -25,6 +25,7 @@ class VeterinarianProfileRequiredMiddleware(MiddlewareMixin):
     """
 
     WHITELISTED_URLS = [
+        "/accounts/veterinarian/pending-approval/",
         "/accounts/veterinarian/complete-profile/",
         "/accounts/logout/",
         "/accounts/password-reset/",

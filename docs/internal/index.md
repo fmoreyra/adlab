@@ -49,6 +49,8 @@ This directory contains technical documentation for developers, DevOps engineers
 
 - [**REPORT_WORKFLOW_AND_SIGNATURE.md**](REPORT_WORKFLOW_AND_SIGNATURE.md) - Bloque de informe en protocolo/procesamiento, permiso `can_create_reports` y firma digital obligatoria para PDF
 - [**DASHBOARD_ANNOUNCEMENT.md**](DASHBOARD_ANNOUNCEMENT.md) - Banner de comunicación en dashboards (admin, Markdown, caché Redis, notificaciones in-app)
+- [**VETERINARIAN_APPROVAL_TESTING.md**](VETERINARIAN_APPROVAL_TESTING.md) - Prueba manual del punto 11 (habilitación de veterinarios)
+- [**roadmap/**](roadmap/) - Planificación FCV (puntos 1–12 del roadmap priorizado)
 - [**STEP_21_PRODUCTION_DEPLOYMENT.md**](STEP_21_PRODUCTION_DEPLOYMENT.md) - Notificaciones in-app y Sockudo en producción
 
 ### 📁 Archive

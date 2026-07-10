@@ -1611,8 +1611,8 @@ class LabVeterinarianSearchForm(forms.Form):
         label=_("Buscar veterinario"),
         required=False,
         help_text=_(
-            "Nombre, apellido, matrícula o email. Solo veterinarios con "
-            "email verificado."
+            "Nombre, apellido, matrícula o email. Solo veterinarios "
+            "habilitados por un administrador."
         ),
         widget=forms.TextInput(
             attrs={

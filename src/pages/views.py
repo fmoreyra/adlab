@@ -14,6 +14,9 @@ from django.utils import timezone
 from django.views.generic import FormView, TemplateView, View
 
 from accounts.mixins import AdminRequiredMixin
+from accounts.services.veterinarian_approval_service import (
+    get_pending_veterinarians_count,
+)
 from pages.forms import DashboardAnnouncementForm
 from pages.models import DashboardAnnouncement
 from pages.services.dashboard_announcement_service import (
@@ -423,6 +426,7 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
                 "active_users_count": active_users,
                 "avg_tat_days": avg_tat_days,
                 "recent_activities": recent_activities,
+                "pending_veterinarians_count": get_pending_veterinarians_count(),
             }
         )
 

@@ -7,10 +7,11 @@ El Sistema de Gestión de Laboratorio te ayuda a gestionar todo el proceso de an
 ## 🎯 ¿Para qué sirve este sistema?
 
 ### Si eres Veterinario
-- **Enviar muestras**: Puedes enviar protocolos con información de tus pacientes para análisis
+- **Registrarte y verificar email**: Alta en el sistema con confirmación por correo
+- **Esperar habilitación**: Un administrador debe aprobar tu cuenta antes de crear protocolos
+- **Enviar muestras**: Protocolos con información de tus pacientes para análisis (cuando estés habilitado)
 - **Seguir el progreso**: Ves en tiempo real cómo va el análisis de tus muestras
 - **Recibir informes**: Obtienes informes detallados por email cuando están listos
-- **Crear órdenes de trabajo**: Puedes crear órdenes de trabajo para servicios especiales
 
 ### Si eres Histopatólogo
 - **Analizar muestras**: Recibes muestras asignadas para análisis
@@ -30,6 +31,7 @@ El Sistema de Gestión de Laboratorio te ayuda a gestionar todo el proceso de an
 ## 🔄 ¿Cómo funciona el proceso?
 
 ### 1. El veterinario envía un protocolo
+- Debe tener cuenta **habilitada** por un administrador del laboratorio
 - Completa un formulario con información del paciente
 - Incluye detalles de la muestra y análisis solicitado
 - El sistema genera etiquetas para la muestra

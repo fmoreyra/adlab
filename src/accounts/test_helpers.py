@@ -85,6 +85,7 @@ def create_complete_veterinarian_user(
     username="vet",
     password="testpass123",
     email_verified=True,
+    is_verified=False,
     vet_kwargs=None,
     address_kwargs=None,
 ):
@@ -113,6 +114,9 @@ def create_complete_veterinarian_user(
     if vet_kwargs:
         vet_data.update(vet_kwargs)
     veterinarian = Veterinarian.objects.create(**vet_data)
+    if is_verified:
+        veterinarian.is_verified = True
+        veterinarian.save(update_fields=["is_verified"])
     ensure_veterinarian_profile_complete(
         veterinarian,
         cuil_cuit=vet_data.get("cuil_cuit", DEFAULT_CUIL_CUIT),

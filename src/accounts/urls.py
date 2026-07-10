@@ -1,5 +1,7 @@
 from django.urls import path
 
+from accounts.views_veterinarian_admin import VeterinarianPendingApprovalView
+
 from . import views
 
 app_name = "accounts"
@@ -70,6 +72,11 @@ urlpatterns = [
         "histopathologist/create/",
         views.redirect_create_histopathologist,
         name="create_histopathologist",
+    ),
+    path(
+        "veterinarian/pending-approval/",
+        VeterinarianPendingApprovalView.as_view(),
+        name="veterinarian_pending_approval",
     ),
     path(
         "lab-staff/create/",

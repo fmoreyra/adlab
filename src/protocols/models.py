@@ -2476,6 +2476,14 @@ class EmailLog(models.Model):
         REPORT_READY = "report_ready", _("Informe Listo")
         WORK_ORDER = "work_order", _("Orden de Trabajo")
         CUSTOM = "custom", _("Notificación Personalizada")
+        VETERINARIAN_APPROVED = (
+            "veterinarian_approved",
+            _("Veterinario Habilitado"),
+        )
+        VETERINARIAN_ACCOUNT_REMOVED = (
+            "veterinarian_account_removed",
+            _("Cuenta de Veterinario Eliminada"),
+        )
 
     class Status(models.TextChoices):
         QUEUED = "queued", _("En Cola")

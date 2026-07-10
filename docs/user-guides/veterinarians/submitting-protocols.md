@@ -14,6 +14,15 @@ Un protocolo es la información que envías al laboratorio cuando quieres que an
 
 ## 🚀 Cómo empezar
 
+### Requisito: cuenta habilitada por el laboratorio
+
+Después de registrarte y verificar tu email, un **administrador del laboratorio** debe habilitar tu cuenta antes de que puedas crear protocolos. Hasta entonces:
+
+- ✅ Puedes iniciar sesión, completar tu perfil y ver tus informes
+- ❌ No puedes crear protocolos de histopatología ni citología
+
+Si intentás crear un protocolo sin estar habilitado, verás una pantalla con instrucciones de contacto al laboratorio.
+
 ### Paso 1: Acceder al sistema
 1. **Abre tu navegador** y ve a la dirección del sistema
 2. **Inicia sesión** con tu email y contraseña

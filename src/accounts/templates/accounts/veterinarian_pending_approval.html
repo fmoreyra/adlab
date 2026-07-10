@@ -1,0 +1,83 @@
+{% extends "layouts/index.html" %}
+
+{% block title %}Pendiente de habilitación - AdLab{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="bg-amber-50 border-b border-amber-200 px-6 py-8 text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-4">
+                    <svg class="h-8 w-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">
+                    {% if screen.is_active and screen.title %}
+                        {{ screen.title }}
+                    {% else %}
+                        Cuenta pendiente de habilitación
+                    {% endif %}
+                </h1>
+                <p class="mt-2 text-gray-600">
+                    Hola, {{ veterinarian.get_full_name }}. Su perfil está completo, pero un administrador
+                    debe habilitar su cuenta antes de crear protocolos.
+                </p>
+            </div>
+
+            <div class="px-6 py-8">
+                {% if screen.is_active and screen.message_html %}
+                    <div class="prose prose-sm max-w-none text-gray-700 mb-8 pending-approval-content">
+                        {{ screen.message_html|safe }}
+                    </div>
+                {% else %}
+                    <p class="text-gray-700 mb-6">
+                        Comuníquese con el laboratorio para solicitar la habilitación de su cuenta.
+                        Indique su nombre completo, email registrado y matrícula profesional si la tiene.
+                    </p>
+                {% endif %}
+
+                {% if screen.contact_phone or screen.contact_email %}
+                    <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Contacto del laboratorio</h2>
+                        <ul class="space-y-2 text-gray-700">
+                            {% if screen.contact_phone %}
+                                <li>
+                                    <span class="font-medium">Teléfono:</span>
+                                    {{ screen.contact_phone }}
+                                </li>
+                            {% endif %}
+                            {% if screen.contact_email %}
+                                <li>
+                                    <span class="font-medium">Email:</span>
+                                    <a href="mailto:{{ screen.contact_email }}" class="text-purple-700 hover:text-purple-900">
+                                        {{ screen.contact_email }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-8 text-center space-y-2">
+            <a href="{% url 'pages:dashboard' %}" class="text-purple-700 hover:text-purple-900 font-medium">
+                ← Volver al panel
+            </a>
+            <p class="text-sm text-gray-500">
+                Puede editar su perfil mientras espera la habilitación.
+                <a href="{% url 'accounts:veterinarian_profile_detail' %}" class="text-purple-700 hover:text-purple-900">
+                    Ver mi perfil
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+<style>
+  .pending-approval-content p { margin-bottom: 0.75rem; }
+  .pending-approval-content ul { list-style: disc; margin-left: 1.25rem; margin-bottom: 0.75rem; }
+  .pending-approval-content a { text-decoration: underline; color: #7c3aed; }
+</style>
+{% endblock %}

@@ -23,6 +23,8 @@ Una muestra pasa por estas etapas principales:
 
 ## 🚀 Etapa 1: El veterinario envía el protocolo
 
+> **Nota (Jul 2026):** el veterinario debe tener cuenta **habilitada por un administrador** (`is_verified`) para crear protocolos online. En la fase piloto, el personal de lab también puede cargar protocolos a nombre del MV comitente (punto 7).
+
 ### ¿Qué hace el veterinario?
 1. **Inicia sesión** en el sistema
 2. **Llena el formulario** con información del paciente

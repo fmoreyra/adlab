@@ -297,21 +297,16 @@ Prioridad operativa: el personal de lab carga protocolos a nombre del MV comiten
 
 ### 7.1 Carga delegada por personal de lab (MVP)
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Hecho (Jul 2026)
 - **Objetivo:** Permitir a `PERSONAL_LAB` (y admin vía `is_lab_staff`) crear y enviar protocolos HP/CT **a nombre de un veterinario existente**.
-- **Decisiones clave:**
-  - Paso previo: **búsqueda de MV**; solo los con **email habilitado** (`User.email_verified=True`, `User.is_active=True`).
-  - Flujo **A:** borrador → enviar → recepcionar (igual que hoy).
-  - El MV **no usa** el sistema en piloto, pero **recibe informe por mail** (email verificado = canal de comunicación).
-  - **No** cerrar registro público de veterinarios por ahora.
-  - Rol histopatólogo: fuera de alcance funcional.
-- **Implementación prevista:**
-  - `Protocol.created_by` para auditoría.
-  - Vistas `/protocols/lab/create/…` (búsqueda MV → tipo → formulario reutilizado).
-  - Dashboard lab: acción **“Cargar protocolo”**.
-  - Acciones lab en borrador: editar / enviar.
-- **Dependencias:** SMTP (5.1) para verificación de MV e informes; MV precargados y verificados.
-- **Notas / PR:**
+- **Implementado:**
+  - `Protocol.created_by` — migración `0022`
+  - Vistas `/protocols/lab/create/…` (búsqueda MV → tipo → formulario reutilizado)
+  - Dashboard lab: acción **«Cargar protocolo»**
+  - Lab edita/envía borradores; historial «Cargado por personal de laboratorio»
+  - Tests: `protocols/test_lab_protocol_create.py`
+- **Filtro actual:** `User.email_verified=True`, `User.is_active=True`, **`Veterinarian.is_verified=True`** (punto 11, Jul 2026).
+- **Notas / PR:** Ver [PLAN_PUNTO_7_LAB_CARGA_PROTOCOLOS.md](PLAN_PUNTO_7_LAB_CARGA_PROTOCOLOS.md).
 
 ---
 
@@ -319,10 +314,12 @@ Prioridad operativa: el personal de lab carga protocolos a nombre del MV comiten
 
 Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_10.md) §8.
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Hecho (Jul 2026)
 - **Objetivo:** Nuevo campo **categoría de animal** en protocolos de citología e histopatología.
-- **v1:** campo **abierto** (texto libre); la facultad pasará después clasificación por raza.
-- **Áreas del código:** `Protocol`, formularios create/edit, detalle, PDF metadatos.
+- **Implementado:**
+  - `Protocol.animal_category` — texto libre; formularios create/edit, detalle, PDF (`_build_animal_line`)
+  - Migración `0023_animal_category_and_pdf_image_flag.py`
+  - Tests en `test_roadmap_items_8_9_10.py`
 - **Notas / PR:**
 
 ---
@@ -331,11 +328,13 @@ Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_
 
 Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_10.md) §9.
 
-- **Estado:** ⬜ Pendiente
-- **Objetivo:** Corregir o borrar portaobjetos ya registrados en **histopatología** (hoy HP solo agrega).
-- **Citología:** **fuera de alcance** — slides fijos al crearse en recepción; sin editar ni eliminar después.
-- **Alcance:** personal de lab; estados `received` / `processing`; auditoría en `ProcessingLog`.
-- **Restricciones:** no eliminar slides referenciados en informe finalizado sin reglas claras.
+- **Estado:** ✅ Hecho (Jul 2026)
+- **Objetivo:** Corregir o borrar portaobjetos ya registrados en **histopatología**.
+- **Implementado:**
+  - Edición de slides HP en `sample_register.html` (`can_edit_existing_slides`)
+  - `SlideDeleteView` + `delete_histopathology_slide()` con `ProcessingLog`
+  - Bloqueo si slide en informe finalizado; CT sin cambios
+  - Tests en `test_roadmap_items_8_9_10.py`
 - **Notas / PR:**
 
 ---
@@ -344,10 +343,54 @@ Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_
 
 Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_10.md) §10.
 
+- **Estado:** ✅ Hecho (Jul 2026)
+- **Objetivo:** Booleano en `ReportImage` para elegir qué fotos micro/macro van al PDF.
+- **Implementado:**
+  - `ReportImage.include_in_pdf` — `default=True`
+  - Checkbox en formset de edición; PDF filtra `include_in_pdf=True`
+  - Migración `0023`; tests en `test_roadmap_items_8_9_10.py`
+- **Notas / PR:**
+
+---
+
+## 11. Habilitación de veterinarios (registro abierto, operación controlada)
+
+Addenda post-reunión (Jul 2026). Plan detallado: [PLAN_PUNTOS_11_12.md](PLAN_PUNTOS_11_12.md) §11.
+
+Prioridad operativa: cerrar el gap entre **registro público** y **veterinarios habilitados** para crear protocolos y aparecer en la búsqueda del lab (punto 7).
+
+### 11.1 Gate `is_verified` + pantalla de contacto
+
+- **Estado:** ✅ Hecho (Jul 2026)
+- **Objetivo:** `Veterinarian.is_verified` bloquea creación HP/CT y búsqueda lab; MV pendiente ve pantalla de contacto administrable (patrón banner).
+- **Implementado:**
+  - `VeterinarianApprovedMixin` en vistas de creación HP/CT
+  - Pantalla `/accounts/veterinarian/pending-approval/` + singleton `VeterinarianPendingApprovalSettings`
+  - Filtro punto 7: `is_verified=True` en `lab_protocol.py`
+- **Notas / PR:** Ver [VETERINARIAN_APPROVAL_TESTING.md](../VETERINARIAN_APPROVAL_TESTING.md)
+
+### 11.2 Panel admin — Gestión de veterinarios
+
+- **Estado:** ✅ Hecho (Jul 2026)
+- **Objetivo:** Vista `/dashboard/admin/veterinarians/` (no Django Admin): buscador con **Habilitar** y **Eliminar** (soft delete); emails en ambos casos.
+- **Implementado:**
+  - `VeterinarianApprovalService` (approve, delete, reactivate)
+  - Emails + `AuthAuditLog` + contador pendientes en panel admin
+  - Soft delete: sin protocolos → anonimizar; con protocolos → solo desactivar
+- **Notas / PR:** Guía operativa en [managing-users.md](../../user-guides/administrators/managing-users.md)
+
+---
+
+## 12. Protección de endpoints públicos (rate limit + CAPTCHA)
+
+Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_11_12.md](PLAN_PUNTOS_11_12.md) §12.
+
 - **Estado:** ⬜ Pendiente
-- **Objetivo:** Booleano en `ReportImage` para elegir qué fotos micro/macro van al PDF (hoy se incluyen todas).
-- **Default:** `include_in_pdf=True` (sin cambio de comportamiento para informes actuales).
-- **Áreas del código:** `ReportImage`, `ReportImageForm`, `report_pdf_builder.py`, template edición informe.
+- **Objetivo:** Reducir abuso en registro, login, reset y reenvío de verificación.
+- **Alcance v1:**
+  - Rate limiting por IP (Redis): login, register, password-reset, resend-verification
+  - Cloudflare Turnstile en **registro** (no en todos los forms)
+- **Complementa** el punto 11 (menos basura en cola admin).
 - **Notas / PR:**
 
 ---
@@ -355,7 +398,7 @@ Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_
 ## Orden sugerido de implementación
 
 ```
-1 ✅ → 2 ✅ → 3 ✅ → 4 ✅ → 5.1 Gmail → 5.2 → 7 (piloto lab) → 8–10 (independientes) → (correo institucional) → (6.1 reactivar si la facultad lo pide)
+1 ✅ → 2 ✅ → 3 ✅ → 4 ✅ → 5.1 Gmail → 5.2 → 7 ✅ → 8–10 ✅ → 11 ✅ → 12 → (correo institucional) → (6.1 reactivar si la facultad lo pide)
 ```
 
 | # | Bloque | Ítems | Dependencias clave |
@@ -366,10 +409,12 @@ Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_
 | 4 | Dominio / SSL | 4.1 ✅, 4.2 ✅ | Cerrado Jul 2026 (`patologiavetfcvunl.ar`) |
 | 5 | Correo / auth | 5.1 Gmail provisorio → institucional luego; 5.2 | Credenciales Gmail en próxima reunión |
 | 6 | Finanzas / OT | 6.1 🚫 UI off | Modelos intactos |
-| 7 | Piloto lab — carga delegada | 7.1 ⬜ | 5.1 recomendado; MV con email verificado |
-| 8 | Categoría de animal | ⬜ | Independiente |
-| 9 | Portaobjetos edit/delete (solo HP) | ⬜ | CT excluido |
-| 10 | Imágenes en PDF (flag) | ⬜ | Independiente |
+| 7 | Piloto lab — carga delegada | 7.1 ✅ | Filtro `is_verified` ✅ (punto 11) |
+| 8 | Categoría de animal | ✅ | `0023` |
+| 9 | Portaobjetos edit/delete (solo HP) | ✅ | CT excluido |
+| 10 | Imágenes en PDF (flag) | ✅ | `include_in_pdf` |
+| 11 | Habilitación MV | 11.1–11.2 ✅ | 5.1 recomendado para emails |
+| 12 | Rate limit + CAPTCHA | ⬜ | Independiente; complementa 11 |
 
 ---
 
@@ -393,11 +438,18 @@ Usar esta sección para anotar qué ítem se tomó en cada sesión.
 | Jul 2026 | 5.1 (decisión) | Arranque con Gmail SMTP (provisorio); migración a casilla institucional diferida |
 | Jul 2026 | 7.1 (planificación) | Addenda post-reunión: carga de protocolos por lab; plan en PLAN_PUNTO_7 |
 | Jul 2026 | 8, 9, 10 (planificación) | Addenda: categoría animal, edit/delete portaobjetos, flag imágenes PDF; plan en PLAN_PUNTOS_8_9_10 |
+| Jul 2026 | 7.1, 8, 9, 10 | Implementación: carga delegada lab, `animal_category`, edit/delete slides HP, `include_in_pdf`; tests `test_lab_protocol_create`, `test_roadmap_items_8_9_10` |
+| Jul 2026 | 11, 12 (planificación) | Habilitación MV (gate `is_verified`, panel admin, soft delete) + rate limit/CAPTCHA; plan en PLAN_PUNTOS_11_12 |
+| Jul 2026 | 11 | Implementación: gate `VeterinarianApprovedMixin`, panel `/dashboard/admin/veterinarians/`, pantalla contacto, soft delete, filtro lab `is_verified`; tests `test_veterinarian_approval` |
 
 ---
 
 ## Referencias
 
+- [PLAN_PUNTO_7_LAB_CARGA_PROTOCOLOS.md](PLAN_PUNTO_7_LAB_CARGA_PROTOCOLOS.md) — punto 7 (carga delegada lab)
+- [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_10.md) — puntos 8–10
+- [PLAN_PUNTOS_11_12.md](PLAN_PUNTOS_11_12.md) — puntos 11–12 (habilitación MV y seguridad auth)
+- [VETERINARIAN_APPROVAL_TESTING.md](../VETERINARIAN_APPROVAL_TESTING.md) — prueba manual punto 11
 - [IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) — estado general del sistema
 - [CLAUDE.md](../../../CLAUDE.md) — arquitectura y comandos de desarrollo
 - [REPORT_WORKFLOW_AND_SIGNATURE.md](../REPORT_WORKFLOW_AND_SIGNATURE.md) — flujo de informes

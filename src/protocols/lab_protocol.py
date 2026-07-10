@@ -13,12 +13,13 @@ def get_enabled_veterinarians_queryset():
     """
     Return veterinarians eligible for lab-delegated protocol creation.
 
-    Requires verified email and active user account.
+    Requires verified email, active user account, and admin approval.
     """
     return (
         Veterinarian.objects.filter(
             user__is_active=True,
             user__email_verified=True,
+            is_verified=True,
         )
         .exclude(email="")
         .select_related("user")

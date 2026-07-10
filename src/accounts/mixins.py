@@ -294,6 +294,54 @@ class ProtocolOwnerOrStaffMixin(LoginRequiredMixin, UserPassesTestMixin):
         )
 
 
+class VeterinarianApprovedMixin(LoginRequiredMixin):
+    """
+    Mixin that requires a complete and admin-approved veterinarian profile.
+
+    Used for protocol creation views. Incomplete profiles redirect to
+    profile completion; unapproved profiles redirect to the pending screen.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        """Enforce profile completion and admin approval before access."""
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+
+        if not request.user.is_veterinarian:
+            return self.handle_no_permission()
+
+        try:
+            veterinarian = request.user.veterinarian_profile
+        except Exception:
+            return redirect("accounts:complete_profile")
+
+        if not veterinarian.is_profile_complete_for_access():
+            return redirect("accounts:complete_profile")
+
+        if not veterinarian.is_verified:
+            return redirect("accounts:veterinarian_pending_approval")
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def handle_no_permission(self):
+        """Handle permission denied for non-veterinarian users."""
+        from django.contrib import messages
+        from django.http import HttpResponseForbidden
+        from django.template.loader import render_to_string
+
+        messages.error(
+            self.request,
+            _("Esta sección es solo para veterinarios."),
+        )
+        return HttpResponseForbidden(
+            render_to_string(
+                "403.html",
+                {"user": self.request.user},
+                request=self.request,
+            )
+        )
+
+
 class VeterinarianProfileRequiredMixin(
     LoginRequiredMixin, UserPassesTestMixin
 ):

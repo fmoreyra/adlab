@@ -106,8 +106,56 @@ Los veterinarios se registran solos:
 1. Página pública **Registrarse** (`/accounts/register/`)
 2. Completan datos profesionales y verifican el email
 3. Completan el perfil veterinario en el primer acceso si falta información
+4. **Un administrador debe habilitar la cuenta** antes de que puedan crear protocolos
 
-El administrador puede revisar o editar cuentas en Django Admin → Usuarios / Veterinarios.
+Hasta la habilitación, el veterinario puede iniciar sesión, completar su perfil y ver sus informes, pero **no puede crear protocolos** de histopatología ni citología.
+
+---
+
+## Habilitar veterinarios
+
+### Dónde acceder
+
+1. Iniciar sesión como **administrador**
+2. Ir al **Panel de Administración** (`/dashboard/admin/`)
+3. Elegir **Veterinarios** (tarjeta con contador de pendientes) o **Habilitar Veterinarios** en Gestión de Usuarios
+
+También puede abrirse directamente: `/dashboard/admin/veterinarians/`
+
+### Filtros disponibles
+
+| Filtro | Descripción |
+|--------|-------------|
+| **Pendientes** (default) | Email verificado, perfil activo, sin habilitación admin |
+| Habilitados | Cuentas aprobadas por un administrador |
+| Inactivos | Cuentas desactivadas |
+| Todos | Sin filtro de estado |
+
+Búsqueda por nombre, apellido, email, matrícula o CUIL.
+
+### Acciones
+
+| Acción | Efecto |
+|--------|--------|
+| **Habilitar** | Marca la cuenta como aprobada; envía email al veterinario |
+| **Eliminar** | Desactiva la cuenta; si no tiene protocolos, libera el email para nuevo registro |
+| **Reactivar** | Restaura cuentas inactivas sin anonimizar (p. ej. eliminadas por error) |
+
+Al eliminar, debe confirmar con el checkbox «Entiendo que no se puede deshacer».
+
+### Pantalla de contacto para pendientes
+
+Los veterinarios no habilitados ven una pantalla de contacto al intentar crear un protocolo. El administrador puede editar el contenido en:
+
+`/dashboard/admin/veterinarian-pending/`
+
+Incluye título, mensaje (Markdown), teléfono y email de contacto del laboratorio.
+
+### Relación con carga delegada (personal de lab)
+
+En la búsqueda de veterinarios para cargar protocolos a nombre de un MV, solo aparecen cuentas **habilitadas** (`is_verified=True`), además de email verificado y cuenta activa.
+
+El administrador puede revisar cuentas también en Django Admin → Veterinarios (acciones bulk para soporte técnico).
 
 ---
 
@@ -163,7 +211,13 @@ Todas las altas y envíos de verificación quedan en **AuthAuditLog** con IP y a
 
 ## Referencias técnicas (desarrolladores)
 
-- Vista: `CreateLaboratoryStaffView` — ruta `accounts:create_laboratory_staff`
+- Vista alta lab staff: `CreateLaboratoryStaffView` — ruta `accounts:create_laboratory_staff`
+- Panel habilitación MV: `/dashboard/admin/veterinarians/` — `AdminVeterinarianManagementView`
+- Pantalla contacto pendientes: `/dashboard/admin/veterinarian-pending/`
+- Servicio: `VeterinarianApprovalService` — `src/accounts/services/veterinarian_approval_service.py`
+- Mixin gate protocolos: `VeterinarianApprovedMixin` — `src/accounts/mixins.py`
+- Filtro búsqueda lab: `get_enabled_veterinarians_queryset()` — `src/protocols/lab_protocol.py`
+- Prueba manual: [VETERINARIAN_APPROVAL_TESTING.md](../../internal/VETERINARIAN_APPROVAL_TESTING.md)
 - Formulario: `LaboratoryStaffCreationForm`
 - Middleware: `LabStaffSignatureRequiredMiddleware`
 - Documentación interna: [Informes, permisos y firma](../../internal/REPORT_WORKFLOW_AND_SIGNATURE.md)

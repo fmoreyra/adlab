@@ -30,8 +30,7 @@ from reportlab.pdfgen import canvas
 from accounts.mixins import (
     ProtocolOwnerOrStaffMixin,
     StaffRequiredMixin,
-    VeterinarianProfileRequiredMixin,
-    VeterinarianRequiredMixin,
+    VeterinarianApprovedMixin,
     user_can_view_protocol_processing,
 )
 from accounts.models import Veterinarian
@@ -395,7 +394,7 @@ def _add_protocol_breed_context(context):
 LAB_VET_SEARCH_PAGE_SIZE = 20
 
 
-class ProtocolCreateCytologyView(VeterinarianProfileRequiredMixin, CreateView):
+class ProtocolCreateCytologyView(VeterinarianApprovedMixin, CreateView):
     """
     Create a new cytology protocol.
     """
@@ -436,9 +435,7 @@ class ProtocolCreateCytologyView(VeterinarianProfileRequiredMixin, CreateView):
         return _add_protocol_breed_context(context)
 
 
-class ProtocolCreateHistopathologyView(
-    VeterinarianProfileRequiredMixin, CreateView
-):
+class ProtocolCreateHistopathologyView(VeterinarianApprovedMixin, CreateView):
     """
     Create a new histopathology protocol.
     """
@@ -571,7 +568,8 @@ class LabProtocolVeterinarianSearchView(StaffRequiredMixin, View):
                 request,
                 _(
                     "El veterinario seleccionado no está habilitado. "
-                    "Debe tener email verificado."
+                    "Debe tener email verificado y estar aprobado por "
+                    "un administrador."
                 ),
             )
             return redirect("protocols:lab_protocol_search")
@@ -1954,7 +1952,7 @@ class ReceptionConfirmView(StaffRequiredMixin, FormView):
         return redirect(self.get_success_url())
 
 
-class ProtocolSelectTypeView(VeterinarianRequiredMixin, TemplateView):
+class ProtocolSelectTypeView(VeterinarianApprovedMixin, TemplateView):
     """
     Show a page to select the type of protocol to create.
     """

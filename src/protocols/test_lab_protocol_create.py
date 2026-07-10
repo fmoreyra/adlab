@@ -37,6 +37,7 @@ class LabProtocolCreateFlowTest(TestCase):
                 email="verified@example.com",
                 username="verified",
                 email_verified=True,
+                is_verified=True,
                 vet_kwargs={
                     "first_name": "Ana",
                     "last_name": "García",

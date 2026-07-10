@@ -10,7 +10,7 @@
             <h1 class="text-3xl font-bold text-gray-900">Cargar protocolo</h1>
             <p class="mt-2 text-sm text-gray-600">
                 Seleccione el veterinario comitente o búsquelo por nombre, matrícula o email.
-                Solo aparecen veterinarios con email verificado.
+                Solo aparecen veterinarios habilitados por un administrador.
             </p>
         </div>
 
@@ -107,7 +107,7 @@
                         <p>No hay veterinarios habilitados en el sistema.</p>
                     {% endif %}
                     <p class="mt-2 text-sm">
-                        El veterinario debe registrarse y verificar su email antes de poder cargar protocolos a su nombre.
+                        El veterinario debe registrarse, verificar su email y ser habilitado por un administrador.
                     </p>
                 </div>
             {% endif %}

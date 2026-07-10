@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Su cuenta fue habilitada - AdLab</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+        <h2 style="color: #7c3aed; margin-top: 0;">Cuenta habilitada</h2>
+
+        <p>Hola {{ veterinarian.get_full_name }},</p>
+
+        <p>Su cuenta de veterinario en el Sistema de Laboratorio de Anatomía Patológica AdLab fue <strong>habilitada</strong> por el administrador del laboratorio.</p>
+
+        <p>Ya puede crear protocolos de histopatología y citología, y aparecerá en la búsqueda del personal de laboratorio.</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ login_url }}"
+               style="display: inline-block; background-color: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                Iniciar sesión
+            </a>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+
+        <p style="font-size: 12px; color: #6b7280;">
+            Este es un mensaje automático del Sistema de Laboratorio de Anatomía Patológica AdLab.<br>
+            Por favor no responda a este email.
+        </p>
+    </div>
+</body>
+</html>

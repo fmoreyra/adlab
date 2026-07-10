@@ -2,8 +2,10 @@
 
 Addenda acordada **post-reunión** (Jul 2026). Complementa [ROADMAP_PRIORIZADO.md](ROADMAP_PRIORIZADO.md).
 
-**Estado general del bloque:** ⬜ Pendiente  
+**Estado general del bloque:** ✅ Hecho (Jul 2026)  
 **Última revisión:** Julio 2026
+
+> **Nota (punto 11):** el filtro de búsqueda lab exige también `Veterinarian.is_verified=True` (implementado Jul 2026). Ver [PLAN_PUNTOS_11_12.md](PLAN_PUNTOS_11_12.md) y [VETERINARIAN_APPROVAL_TESTING.md](../VETERINARIAN_APPROVAL_TESTING.md).
 
 > Otros pedidos de la misma reunión (categoría animal, portaobjetos, imágenes PDF) están en [PLAN_PUNTOS_8_9_10.md](PLAN_PUNTOS_8_9_10.md) como **puntos 8, 9 y 10** del roadmap.
 
@@ -27,7 +29,7 @@ El veterinario comitente:
 
 | Ítem | Complejidad | Estimación | Estado |
 |------|-------------|------------|--------|
-| 7.1 Carga delegada por lab (MVP) | Media–Alta | 2–4 días | ⬜ Pendiente |
+| 7.1 Carga delegada por lab (MVP) | Media–Alta | 2–4 días | ✅ Hecho |
 
 **Orden sugerido:** 7.1 como PR único o 7.1a (búsqueda + create) + 7.1b (acciones lab en detalle).
 
@@ -39,7 +41,7 @@ El veterinario comitente:
 |------|----------|
 | Veterinario comitente | **Debe existir** antes de cargar el protocolo; no alta rápida desde lab en v1 |
 | Paso previo | **Búsqueda** de veterinarios existentes (nombre, apellido, matrícula, email) |
-| Email habilitado | MV con **`User.email_verified=True`** y **`User.is_active=True`** (completó link de verificación) |
+| Email habilitado | MV con **`User.email_verified=True`**, **`User.is_active=True`** y **`Veterinarian.is_verified=True`** (habilitado por admin) |
 | Flujo de estados | **Opción A:** borrador → enviar → recepcionar (igual que hoy; el lab hace los pasos iniciales) |
 | Rol histopatólogo | **Fuera de alcance** funcional (legacy en código; no diseñar para ese rol) |
 | Quién puede cargar | **`PERSONAL_LAB`**; **admin** también vía `User.is_lab_staff` (patrón actual del sistema) |
@@ -66,13 +68,24 @@ El veterinario comitente:
 | Recepcionar | ❌ | ✅ |
 | Procesar / informar | ❌ | ✅ |
 
-Cada `Protocol` tiene FK obligatorio a `Veterinarian`. **No existe** `created_by` para auditar quién cargó el caso.
+Cada `Protocol` tiene FK obligatorio a `Veterinarian`. **`Protocol.created_by`** audita quién del lab cargó el caso (migración `0022`).
 
-Vistas actuales bloqueadas para lab: `ProtocolCreateCytologyView`, `ProtocolCreateHistopathologyView`, `ProtocolSelectTypeView`.
+Vistas de creación delegada: `/protocols/lab/create/…` (`LabProtocolVeterinarianSearchView`, etc.).
 
 ---
 
-## 7.1 Carga delegada por lab — ⬜ Pendiente
+## 7.1 Carga delegada por lab — ✅ Hecho (Jul 2026)
+
+### Implementado
+
+- `Protocol.created_by` (FK `User`, null=True) — migración `0022_protocol_created_by.py`
+- `protocols/lab_protocol.py` — búsqueda y sesión de MV seleccionado
+- Vistas: `LabProtocolVeterinarianSearchView`, `LabProtocolSelectTypeView`, `LabProtocolCreateCytologyView`, `LabProtocolCreateHistopathologyView`
+- Rutas `/protocols/lab/create/…`
+- Dashboard lab: acción **«Cargar protocolo»** (`dashboard_lab_staff.html`)
+- Lab puede editar/enviar borradores (`ProtocolOwnerOrStaffMixin`); historial con descripción «Cargado por personal de laboratorio»
+- Tests: `protocols/test_lab_protocol_create.py`
+- Filtro: `user__is_active=True`, `user__email_verified=True`, `is_verified=True`
 
 ### Flujo UX objetivo
 
@@ -80,7 +93,7 @@ Vistas actuales bloqueadas para lab: `ProtocolCreateCytologyView`, `ProtocolCrea
 Panel de Laboratorio
   └─ [Cargar protocolo]
        └─ Buscar veterinario comitente *
-            └─ Solo MV con email verificado (habilitado)
+            └─ Solo MV habilitados por admin (email verificado + is_verified)
        └─ Elegir tipo (HP / CT)
        └─ Formulario actual (mismos campos que el MV)
             └─ [Guardar borrador]

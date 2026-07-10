@@ -1,5 +1,9 @@
 from django.urls import path
 
+from accounts.views_veterinarian_admin import (
+    AdminVeterinarianManagementView,
+    VeterinarianPendingApprovalSettingsEditView,
+)
 from pages import views
 from protocols import notification_views
 
@@ -47,5 +51,15 @@ urlpatterns = [
         "dashboard/admin/announcement/",
         views.DashboardAnnouncementEditView.as_view(),
         name="dashboard_announcement_edit",
+    ),
+    path(
+        "dashboard/admin/veterinarians/",
+        AdminVeterinarianManagementView.as_view(),
+        name="admin_veterinarian_management",
+    ),
+    path(
+        "dashboard/admin/veterinarian-pending/",
+        VeterinarianPendingApprovalSettingsEditView.as_view(),
+        name="veterinarian_pending_settings_edit",
     ),
 ]
