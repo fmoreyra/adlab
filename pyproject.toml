@@ -13,7 +13,7 @@ dependencies = [
   "mkdocs==1.6.0",
   "mkdocs-material==9.5.40",
   "pillow>=12.2.0",
-  "psycopg==3.2.10",
+  "psycopg==3.3.4",
   "psutil>=6.0.0",
   "pymdown-extensions>=10.21.3",
   "qrcode==8.0",
