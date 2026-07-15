@@ -167,10 +167,7 @@ class ResendVerificationRateLimitTests(TestCase):
 class TurnstileRegistrationTests(TestCase):
     """Turnstile validation tests for registration."""
 
-    @patch(
-        "accounts.services.turnstile_service.verify_turnstile_token",
-        return_value=False,
-    )
+    @patch("accounts.forms.verify_turnstile_token", return_value=False)
     def test_register_rejects_invalid_turnstile_token(self, _mock_verify):
         """Registration fails when Turnstile token is invalid."""
         response = self.client.post(
@@ -186,10 +183,7 @@ class TurnstileRegistrationTests(TestCase):
             "Verificación de seguridad no completada",
         )
 
-    @patch(
-        "accounts.services.turnstile_service.verify_turnstile_token",
-        return_value=True,
-    )
+    @patch("accounts.forms.verify_turnstile_token", return_value=True)
     @patch(
         "accounts.services.auth_service.AuthenticationService.send_verification_email",
         return_value=True,
@@ -200,7 +194,10 @@ class TurnstileRegistrationTests(TestCase):
         """Registration succeeds when Turnstile token is valid."""
         response = self.client.post(
             reverse("accounts:register"),
-            _registration_payload(),
+            {
+                **_registration_payload(),
+                "cf-turnstile-response": "valid-test-token",
+            },
         )
         self.assertEqual(response.status_code, 302)
         self.assertTrue(

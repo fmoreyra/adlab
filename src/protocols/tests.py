@@ -562,6 +562,7 @@ class ProtocolViewsTest(TestCase):
             license_number="MP-12345-PROTOCOLS",
             phone="+54 341 1234567",
             email="vet@example.com",
+            is_verified=True,
         )
         ensure_veterinarian_profile_complete(self.veterinarian)
         self.client.login(email="vet@example.com", password="testpass123")

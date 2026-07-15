@@ -66,6 +66,9 @@ class RateLimitedFormMixin:
         """Return form error when POST rate limit exceeded."""
         if getattr(request, "limited", False):
             messages.error(request, self.rate_limit_message)
+            # CreateView.get_context_data expects self.object (normally set in post).
+            if not hasattr(self, "object"):
+                self.object = None
             return self.form_invalid(self.get_form())
         return super().post(request, *args, **kwargs)
 
@@ -73,5 +76,7 @@ class RateLimitedFormMixin:
         """Return form page when GET rate limit exceeded (no side effects)."""
         if getattr(request, "limited", False):
             messages.error(request, self.rate_limit_message)
+            if not hasattr(self, "object"):
+                self.object = None
             return self.render_to_response(self.get_context_data())
         return super().get(request, *args, **kwargs)

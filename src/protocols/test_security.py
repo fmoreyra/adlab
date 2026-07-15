@@ -90,6 +90,7 @@ class SecurityTest(TestCase):
             cuil_cuit="20-11111111-1",
             phone="+54 341 1234567",
             email="vet@example.com",
+            is_verified=True,
         )
         self.veterinarian2 = Veterinarian.objects.create(
             user=self.vet_user2,
@@ -99,6 +100,7 @@ class SecurityTest(TestCase):
             cuil_cuit="20-22222222-2",
             phone="+54 341 7654321",
             email="vet2@example.com",
+            is_verified=True,
         )
         for vet in (self.veterinarian, self.veterinarian2):
             Address.objects.create(
@@ -640,24 +642,26 @@ class SecurityTest(TestCase):
 
     def test_csrf_protection_in_protocol_creation(self):
         """Test CSRF protection in protocol creation."""
-        # Login as vet_user
-        self.client.login(email="vet@example.com", password="testpass123")
+        csrf_client = Client(enforce_csrf_checks=True)
+        self.assertTrue(
+            csrf_client.login(email="vet@example.com", password="testpass123")
+        )
 
-        # Try to create protocol without CSRF token
-        response = self.client.post(
+        # POST without CSRF token must be rejected.
+        response = csrf_client.post(
             reverse("protocols:protocol_create_cytology"),
             {
-                "analysis_type": Protocol.AnalysisType.CYTOLOGY,
                 "species": "Canino",
                 "animal_identification": "Test",
                 "presumptive_diagnosis": "Test diagnosis",
+                "submission_date": "2026-01-15",
+                "technique_used": "Punción (PAAF)",
+                "sampling_site": "Linfonódulo",
+                "number_of_slides": 1,
             },
         )
 
-        # Should be forbidden due to CSRF protection or form validation
-        self.assertIn(
-            response.status_code, [403, 200]
-        )  # 200 if form validation fails
+        self.assertEqual(response.status_code, 403)
 
     def test_directory_traversal_protection_in_file_uploads(self):
         """Test protection against directory traversal in file uploads."""
