@@ -34,6 +34,7 @@ from reportlab.platypus import (
 from protocols.models import Protocol, Slide
 from protocols.services.pdf_exceptions import PDFGenerationError
 from protocols.services.report_image_service import ReportImageService
+from protocols.services.report_pdf_fonts import register_report_fonts
 
 logger = logging.getLogger(__name__)
 
@@ -61,9 +62,13 @@ SPANISH_MONTHS = (
 )
 
 PAGE_WIDTH, PAGE_HEIGHT = A4
-LEFT_MARGIN = 72
-RIGHT_MARGIN = 72
-TOP_MARGIN = 1.15 * inch
+# Match renovated Word page margins (720 twips = 0.5 in).
+LEFT_MARGIN = 0.5 * inch
+RIGHT_MARGIN = 0.5 * inch
+# Banners sit closer to the page edge than body text (legacy PDF look).
+BANNER_SIDE_MARGIN = 0.2 * inch
+# Leave a small marked gap between the header rule and the lab title.
+TOP_MARGIN = 1.22 * inch
 BOTTOM_MARGIN = 0.85 * inch
 
 
@@ -185,8 +190,12 @@ def build_report_context(report) -> ReportPDFContext:
     is_hp = protocol.analysis_type == Protocol.AnalysisType.HISTOPATHOLOGY
     title_prefix = "INFORME HISTOPATOLÓGICO" if is_hp else "INFORME CITOLÓGICO"
     report_title = f"{title_prefix} Nº {format_report_title_number(protocol)}"
-    location_year_line = f"{LABORATORY_LOCATION}, de {report.report_date.year}"
-    submission_date_line = f"Fecha de remisión: {format_date_long_spanish(protocol.submission_date)}"
+    # Faculty template uses the report issue / finalization date here.
+    location_year_line = f"{LABORATORY_LOCATION}, {format_date_long_spanish(report.report_date)}"
+    submission_date_line = (
+        f"Fecha de remisión: "
+        f"{format_date_long_spanish(protocol.submission_date)}"
+    )
 
     owner_name = protocol.get_owner_full_name()
     owner_line = f"Propietario: {owner_name}" if owner_name else None
@@ -218,19 +227,18 @@ def build_report_context(report) -> ReportPDFContext:
 
 
 def _resolve_banner_path(static_path: str) -> Optional[str]:
-    """Locate a banner image via staticfiles or the repo assets tree."""
-    found = finders.find(static_path)
-    if found:
-        return found
-
+    """Locate a banner image via repo assets (dev) or staticfiles."""
+    # Prefer versioned assets in the repo so local volume mounts win over
+    # the image-baked /public copy used by STATICFILES_DIRS in Docker.
     repo_path = (
-        Path(__file__).resolve().parents[3]
-        / "assets"
-        / "static"
-        / static_path.replace("images/", "images/")
+        Path(__file__).resolve().parents[3] / "assets" / "static" / static_path
     )
     if repo_path.is_file():
         return str(repo_path)
+
+    found = finders.find(static_path)
+    if found:
+        return found
 
     logger.warning("Report PDF banner not found: %s", static_path)
     return None
@@ -239,6 +247,37 @@ def _resolve_banner_path(static_path: str) -> Optional[str]:
 def _paragraph_text(text: str) -> str:
     """Escape plain text for ReportLab Paragraph markup."""
     return escape(text).replace("\n", "<br/>")
+
+
+def _labeled_meta_markup(label: str, value: str) -> str:
+    """
+    Build ReportLab markup with a bold label and regular value.
+
+    Args:
+        label: Field title without trailing colon
+        value: Field body text
+
+    Returns:
+        str: Escaped Paragraph markup
+    """
+    return f"<b>{escape(label)}:</b> {_paragraph_text(value)}"
+
+
+def _meta_line_markup(line: str) -> str:
+    """
+    Bold the label before the first ``: `` in a metadata line.
+
+    Args:
+        line: Plain ``Label: value`` text, or a full sentence without a label
+
+    Returns:
+        str: Escaped Paragraph markup
+    """
+    if ": " not in line:
+        return _paragraph_text(line)
+
+    label, value = line.split(": ", 1)
+    return _labeled_meta_markup(label, value)
 
 
 class ReportPDFBuilder:
@@ -252,13 +291,14 @@ class ReportPDFBuilder:
         self._styles = self._build_styles()
 
     def _build_styles(self):
-        """Create paragraph styles matching the faculty template."""
+        """Create paragraph styles matching the faculty Calibri template."""
+        font_regular, font_bold = register_report_fonts()
         base = getSampleStyleSheet()
         return {
             "lab_title": ParagraphStyle(
                 "LabTitle",
                 parent=base["Normal"],
-                fontName="Helvetica-Bold",
+                fontName=font_bold,
                 fontSize=14,
                 alignment=TA_CENTER,
                 spaceAfter=4,
@@ -266,7 +306,7 @@ class ReportPDFBuilder:
             "report_title": ParagraphStyle(
                 "ReportTitle",
                 parent=base["Normal"],
-                fontName="Helvetica-Bold",
+                fontName=font_bold,
                 fontSize=14,
                 alignment=TA_CENTER,
                 spaceAfter=12,
@@ -274,21 +314,21 @@ class ReportPDFBuilder:
             "meta_bold": ParagraphStyle(
                 "MetaBold",
                 parent=base["Normal"],
-                fontName="Helvetica-Bold",
+                fontName=font_bold,
                 fontSize=12,
                 spaceAfter=6,
             ),
             "meta": ParagraphStyle(
                 "Meta",
                 parent=base["Normal"],
-                fontName="Helvetica",
+                fontName=font_regular,
                 fontSize=12,
                 spaceAfter=6,
             ),
             "section": ParagraphStyle(
                 "Section",
                 parent=base["Normal"],
-                fontName="Helvetica-Bold",
+                fontName=font_bold,
                 fontSize=12,
                 spaceBefore=8,
                 spaceAfter=6,
@@ -296,7 +336,7 @@ class ReportPDFBuilder:
             "subsection": ParagraphStyle(
                 "Subsection",
                 parent=base["Normal"],
-                fontName="Helvetica-Bold",
+                fontName=font_bold,
                 fontSize=11,
                 spaceBefore=6,
                 spaceAfter=4,
@@ -304,21 +344,21 @@ class ReportPDFBuilder:
             "body": ParagraphStyle(
                 "Body",
                 parent=base["Normal"],
-                fontName="Helvetica",
+                fontName=font_regular,
                 fontSize=12,
                 spaceAfter=8,
             ),
             "diagnosis": ParagraphStyle(
                 "Diagnosis",
                 parent=base["Normal"],
-                fontName="Helvetica-Bold",
+                fontName=font_bold,
                 fontSize=12,
                 spaceAfter=10,
             ),
             "caption": ParagraphStyle(
                 "Caption",
                 parent=base["Normal"],
-                fontName="Helvetica",
+                fontName=font_regular,
                 fontSize=9,
                 textColor=colors.HexColor("#555555"),
                 spaceAfter=12,
@@ -326,7 +366,7 @@ class ReportPDFBuilder:
             "signature": ParagraphStyle(
                 "Signature",
                 parent=base["Normal"],
-                fontName="Helvetica-Bold",
+                fontName=font_bold,
                 fontSize=12,
                 alignment=TA_RIGHT,
                 spaceAfter=2,
@@ -367,21 +407,21 @@ class ReportPDFBuilder:
     def _draw_page_decorations(self, canvas, doc) -> None:
         """Render header and footer banners on every page."""
         canvas.saveState()
-        usable_width = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN
+        banner_width = PAGE_WIDTH - (2 * BANNER_SIDE_MARGIN)
 
         if self.header_path:
             try:
                 reader = ImageReader(self.header_path)
                 img_width, img_height = reader.getSize()
-                scale = usable_width / img_width
+                scale = banner_width / img_width
                 header_height = img_height * scale
-                header_y = PAGE_HEIGHT - header_height - 12
+                header_y = PAGE_HEIGHT - header_height - 8
                 self._draw_banner(
                     canvas,
                     self.header_path,
                     header_y,
-                    usable_width,
-                    LEFT_MARGIN,
+                    banner_width,
+                    BANNER_SIDE_MARGIN,
                 )
             except Exception as exc:
                 logger.warning("Could not render header banner: %s", exc)
@@ -391,9 +431,9 @@ class ReportPDFBuilder:
                 self._draw_banner(
                     canvas,
                     self.footer_path,
-                    18,
-                    usable_width,
-                    LEFT_MARGIN,
+                    14,
+                    banner_width,
+                    BANNER_SIDE_MARGIN,
                 )
             except Exception as exc:
                 logger.warning("Could not render footer banner: %s", exc)
@@ -403,6 +443,8 @@ class ReportPDFBuilder:
     def _append_metadata_lines(self, elements: List) -> None:
         """Add institutional header and metadata block."""
         styles = self._styles
+        # Extra breathing room under the banner rule (complements TOP_MARGIN).
+        elements.append(Spacer(1, 6))
         elements.append(
             Paragraph(_paragraph_text(LABORATORY_NAME), styles["lab_title"])
         )
@@ -419,14 +461,8 @@ class ReportPDFBuilder:
                 styles["report_title"],
             )
         )
-        elements.append(
-            Paragraph(
-                _paragraph_text(self.context.submission_date_line),
-                styles["meta_bold"],
-            )
-        )
-
-        optional_lines = [
+        metadata_lines = [
+            self.context.submission_date_line,
             self.context.material_line,
             self.context.animal_line,
             self.context.owner_line,
@@ -434,10 +470,10 @@ class ReportPDFBuilder:
             self.context.preservation_line,
             self.context.staining_line,
         ]
-        for line in optional_lines:
+        for line in metadata_lines:
             if line:
                 elements.append(
-                    Paragraph(_paragraph_text(line), styles["meta"])
+                    Paragraph(_meta_line_markup(line), styles["meta"])
                 )
 
         elements.append(Spacer(1, 0.1 * inch))
@@ -608,9 +644,10 @@ class ReportPDFBuilder:
                     sig_data = img_file.read()
                 sig_buffer = io.BytesIO(sig_data)
                 sig_image = Image(sig_buffer, width=2 * inch, height=1 * inch)
+                content_width = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN
                 sig_table = Table(
                     [[sig_image]],
-                    colWidths=[6.5 * inch],
+                    colWidths=[content_width],
                 )
                 sig_table.setStyle(
                     TableStyle(

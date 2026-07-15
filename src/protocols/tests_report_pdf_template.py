@@ -5,7 +5,7 @@ Tests for institutional report PDF template (roadmap 3.1).
 from datetime import date
 from io import BytesIO
 
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from PIL import Image as PILImage
 
 from accounts.models import LaboratoryStaff, User, Veterinarian
@@ -23,6 +23,11 @@ from protocols.services.report_pdf_builder import (
     LABORATORY_NAME,
     build_report_context,
     format_date_long_spanish,
+)
+from protocols.services.report_pdf_fonts import (
+    FONT_BOLD,
+    FONT_REGULAR,
+    register_report_fonts,
 )
 
 
@@ -42,6 +47,16 @@ def _assert_valid_pdf(test_case, pdf_buffer, pdf_hash) -> None:
     test_case.assertGreater(len(payload), 1000)
     test_case.assertTrue(payload.startswith(b"%PDF"))
     test_case.assertEqual(len(pdf_hash), 64)
+
+
+class ReportPDFFontTests(SimpleTestCase):
+    """Unit tests for Carlito font registration."""
+
+    def test_register_report_fonts_returns_carlito(self):
+        """Carlito TTF assets register successfully for ReportLab."""
+        regular, bold = register_report_fonts()
+        self.assertEqual(regular, FONT_REGULAR)
+        self.assertEqual(bold, FONT_BOLD)
 
 
 class ReportPDFContextTests(TestCase):
@@ -103,7 +118,9 @@ class ReportPDFContextTests(TestCase):
         self.assertIn(
             "INFORME HISTOPATOLÓGICO Nº HP 25/587", context.report_title
         )
-        self.assertEqual(context.location_year_line, "Esperanza, de 2025")
+        self.assertEqual(
+            context.location_year_line, "Esperanza, 10 de junio de 2025"
+        )
         self.assertIn("9 de junio de 2025", context.submission_date_line)
         self.assertIn("Pool de muestras", context.material_line)
         self.assertIn("Órganos fijados", context.preservation_line)
