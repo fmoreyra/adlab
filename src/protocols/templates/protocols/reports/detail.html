@@ -28,10 +28,11 @@
             Cargar firma →
         </a>
     </div>
-    {% elif can_manage_report and not report_signer_ready %}
+    {% elif can_manage_report and report.status != 'draft' and not report_signer_ready %}
     <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-        El profesional asignado al informe no tiene firma digital cargada.
-        Asigne otro responsable al editar el informe o solicite que cargue su firma.
+        Este informe no tiene un profesional firmante con firma digital.
+        Use <span class="font-semibold">Generar PDF</span> para asignarse como
+        firmante y regenerar el archivo (necesario para que el veterinario pueda descargarlo).
     </div>
     {% endif %}
 
@@ -63,11 +64,16 @@
         </a>
         {% endif %}
         
-        {% if report.status != 'draft' and report_signer_ready and not needs_report_signature %}
+        {% if report.status != 'draft' and not needs_report_signature and report_signer_ready %}
         <a href="{% url 'protocols:report_pdf' report.pk %}" 
            target="_blank"
            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
             Ver PDF
+        </a>
+        {% elif report.status != 'draft' and not needs_report_signature %}
+        <a href="{% url 'protocols:report_pdf' report.pk %}"
+           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+            Generar PDF
         </a>
         {% endif %}
     </div>

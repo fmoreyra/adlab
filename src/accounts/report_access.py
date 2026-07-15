@@ -183,10 +183,18 @@ def lab_staff_signature_required_message():
 
 
 def report_signer_missing_message():
-    """User-facing message when a report has no assigned signer."""
+    """User-facing message when a report has no assigned signer (lab staff)."""
     return _(
-        "El informe no tiene un profesional asignado. Edite el informe o "
-        "contacte al administrador."
+        "El informe no tiene un profesional asignado. Genere el PDF como "
+        "firmante o contacte al administrador."
+    )
+
+
+def report_pdf_unavailable_for_owner_message():
+    """User-facing message when a veterinarian cannot obtain the PDF yet."""
+    return _(
+        "El PDF del informe no está disponible todavía. "
+        "Por favor contacte al laboratorio para que lo regenere."
     )
 
 

@@ -4796,6 +4796,77 @@ class ReportViewsTest(TestCase):
         mock_storage.open.assert_called_once_with("reports/rebuilt.pdf", "rb")
 
     @patch("protocols.views_reports.default_storage")
+    @patch(
+        "protocols.services.pdf_service.PDFGenerationService.persist_report_pdf"
+    )
+    def test_report_pdf_repairs_orphaned_signer_for_lab_staff(
+        self, mock_persist_pdf, mock_storage
+    ):
+        """Lab staff generating PDF assigns themselves when signer is missing."""
+
+        def _persist(report):
+            report.pdf_path = "reports/repaired.pdf"
+            report.pdf_hash = "c" * 64
+            report.save(update_fields=["pdf_path", "pdf_hash"])
+            return report.pdf_path, report.pdf_hash
+
+        self.finalized_report.laboratory_staff = None
+        self.finalized_report.pdf_path = ""
+        self.finalized_report.save(
+            update_fields=["laboratory_staff", "pdf_path"]
+        )
+        mock_storage.exists.return_value = True
+        mock_storage.open.return_value = BytesIO(b"%PDF-1.4 repaired")
+        mock_persist_pdf.side_effect = _persist
+
+        self.client.login(email="histo@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:report_pdf", kwargs={"pk": self.finalized_report.pk}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.finalized_report.refresh_from_db()
+        self.assertEqual(
+            self.finalized_report.laboratory_staff_id, self.laboratory_staff.pk
+        )
+        mock_persist_pdf.assert_called_once()
+
+    def test_report_pdf_unavailable_message_for_vet_without_signer(self):
+        """Veterinarian gets a clear message when PDF cannot be rebuilt yet."""
+        self.finalized_report.laboratory_staff = None
+        self.finalized_report.pdf_path = ""
+        self.finalized_report.save(
+            update_fields=["laboratory_staff", "pdf_path"]
+        )
+
+        self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:report_pdf", kwargs={"pk": self.finalized_report.pk}
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse(
+                "protocols:report_detail",
+                kwargs={"pk": self.finalized_report.pk},
+            ),
+        )
+        messages_list = [
+            str(message) for message in response.wsgi_request._messages
+        ]
+        self.assertTrue(
+            any(
+                "contacte al laboratorio" in message
+                for message in messages_list
+            )
+        )
+
+    @patch("protocols.views_reports.default_storage")
     def test_report_pdf_view_permission_histopathologist_required(
         self, mock_storage
     ):

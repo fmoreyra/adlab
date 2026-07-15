@@ -30,6 +30,7 @@ from accounts.mixins import (
 from accounts.report_access import (
     get_report_finalizer_staff,
     get_report_signature_redirect_url,
+    report_pdf_unavailable_for_owner_message,
     report_signature_required_message,
     report_signer_missing_message,
     report_signer_signature_missing_message,
@@ -52,6 +53,45 @@ from protocols.services.pdf_service import (
 from protocols.services.report_service import ReportGenerationService
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_report_signer_for_pdf(report, user):
+    """
+    Ensure the report has a signable professional for PDF rebuild.
+
+    For orphaned finalized/sent reports (no laboratory_staff), assigns the
+    current lab staff user when they have a digital signature.
+
+    Args:
+        report: Report instance to repair.
+        user: Authenticated lab staff attempting PDF generation.
+
+    Returns:
+        bool: True when the report has a signer with signature.
+    """
+    if report.signer_has_signature():
+        return True
+
+    if not user.is_authenticated or not user.is_lab_staff:
+        return False
+
+    if user_requires_report_signature(user):
+        return False
+
+    finalizer_staff = get_report_finalizer_staff(user)
+    if not finalizer_staff or not finalizer_staff.has_signature():
+        return False
+
+    if report.laboratory_staff_id != finalizer_staff.pk:
+        report.laboratory_staff = finalizer_staff
+        report.save(update_fields=["laboratory_staff"])
+        logger.info(
+            "Assigned laboratory_staff=%s as signer on report=%s for PDF repair",
+            finalizer_staff.pk,
+            report.pk,
+        )
+
+    return report.signer_has_signature()
 
 
 def _protocol_uses_cassette_observations(protocol: Protocol) -> bool:
@@ -625,12 +665,18 @@ class ReportPDFView(View):
                 content_type="application/pdf",
             )
 
-        if not report.get_signer():
-            messages.error(request, report_signer_missing_message())
-            return redirect("protocols:report_detail", pk=report.pk)
-
-        if not report.signer_has_signature():
-            messages.error(request, report_signer_signature_missing_message())
+        # Repair orphaned reports when lab/admin regenerates the PDF.
+        if not _ensure_report_signer_for_pdf(report, request.user):
+            if request.user.is_veterinarian:
+                messages.error(
+                    request, report_pdf_unavailable_for_owner_message()
+                )
+            elif not report.get_signer():
+                messages.error(request, report_signer_missing_message())
+            else:
+                messages.error(
+                    request, report_signer_signature_missing_message()
+                )
             return redirect("protocols:report_detail", pk=report.pk)
 
         try:
