@@ -34,9 +34,16 @@ Sin firma, el sistema **no permite**:
 - Entrar a la cola de informes pendientes
 - Crear o editar informes
 - Finalizar un informe
+- **Enviar** el informe por email al veterinario
 - Descargar o ver el PDF
 
+El control se hace **antes** de esas pantallas (redirección a cargar firma), no después de intentar el envío o generar el PDF.
+
 Esto evita errores y garantiza que todo informe salga firmado profesionalmente.
+
+### ¿Y el administrador?
+
+El rol **admin** también debe cargar firma digital **antes** de finalizar o enviar un informe. La primera vez que intente esa acción, el sistema lo lleva a `/accounts/lab-staff/signature/` (crea el perfil de personal de lab si hace falta) y recién después permite continuar.
 
 ---
 
@@ -89,9 +96,9 @@ Al **crear** un informe, seleccionás el **personal responsable** en el formular
 
 | Mensaje | Significado | Qué hacer |
 |---------|-------------|-----------|
-| *Debe cargar su firma digital antes de elaborar…* | Tu usuario no tiene imagen de firma | Subir firma en el enlace del aviso |
+| *Debe cargar su firma digital antes de elaborar, finalizar, enviar…* | Tu usuario no tiene imagen de firma | Subir firma en el enlace del aviso (válido también para admin) |
 | *El personal seleccionado debe tener firma digital cargada* | Elegiste otro responsable sin firma | Que esa persona cargue la firma o elegite otro |
-| *El profesional asignado al informe no tiene firma digital* | El informe apunta a alguien sin firma | Editar informe y cambiar responsable, o pedir que cargue firma |
+| *El profesional asignado al informe no tiene firma digital* | El informe apunta a alguien sin firma | No se puede enviar hasta que el firmante cargue firma o se reasigne al finalizar de nuevo |
 | *La elaboración de informes requiere el permiso «Puede crear informes»* | Tu perfil no tiene el permiso | Pedir al administrador que lo active en admin |
 
 ---

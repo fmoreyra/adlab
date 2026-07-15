@@ -14,7 +14,7 @@ This document provides the current implementation status of all steps in the AdL
 | 03 | Protocol Submission | ✅ Complete | Cytology/histopathology protocols, temporary codes |
 | 04 | Sample Reception | ✅ Complete | Protocol numbering, condition assessment, label generation |
 | 05 | Sample Processing & Tracking | ✅ Complete | Cassette/slide registration, processing logs |
-| 06 | Report Generation & PDF Creation | ✅ Complete | Report workflow UI on protocol/processing; mandatory digital signature (`/accounts/lab-staff/signature/`); `can_create_reports` gate; see [REPORT_WORKFLOW_AND_SIGNATURE.md](REPORT_WORKFLOW_AND_SIGNATURE.md) |
+| 06 | Report Generation & PDF Creation | ✅ Complete | Report workflow UI; firma obligatoria **antes** de crear/finalizar/**enviar**/PDF (incluye admin); `can_create_reports` gate; see [REPORT_WORKFLOW_AND_SIGNATURE.md](REPORT_WORKFLOW_AND_SIGNATURE.md) |
 | 07 | Work Order Management | ✅ Complete | Billing, pricing catalog, payment tracking |
 | 08 | Email Notifications | ✅ Complete | Celery-based email system, notification preferences |
 | 09 | Visual Management Dashboard | ✅ Complete | Role-specific dashboards, real-time statistics |

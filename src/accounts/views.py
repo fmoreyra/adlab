@@ -53,10 +53,7 @@ from .rate_limit import (
     ratelimit_post,
 )
 from .redirect_utils import resolve_safe_redirect
-from .report_access import (
-    get_or_create_laboratory_staff_profile,
-    user_requires_lab_staff_signature,
-)
+from .report_access import get_or_create_laboratory_staff_profile
 from .services.auth_service import AuthenticationService
 from .services.turnstile_service import get_turnstile_site_key
 
@@ -478,9 +475,11 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
 
     def get(self, request, *args, **kwargs):
         """Skip form when signature already exists unless forced."""
-        if not user_requires_lab_staff_signature(
-            request.user
-        ) and not request.GET.get("force"):
+        # Check the profile image directly: admins are exempted from the
+        # onboarding middleware helper but still need this form when unsigned.
+        if self.lab_staff_profile.has_signature() and not request.GET.get(
+            "force"
+        ):
             messages.info(request, _("Su firma digital ya está cargada."))
             return redirect(self.get_success_url())
 

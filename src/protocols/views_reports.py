@@ -3,6 +3,7 @@ Views for report generation and management.
 """
 
 import logging
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.core.files.storage import default_storage
@@ -661,14 +662,27 @@ class ReportSendView(
         self.email_service = EmailNotificationService()
 
     def dispatch(self, request, *args, **kwargs):
-        """Check if report can be sent before processing the request."""
+        """Require signature and a signed report before showing the send form."""
+        if not request.user.is_authenticated:
+            return redirect("accounts:login")
+
+        # Enforce BEFORE any send UI or email side effects (includes admin).
+        if user_requires_report_signature(request.user):
+            messages.error(request, report_signature_required_message())
+            signature_url = get_report_signature_redirect_url()
+            query = urlencode({"next": request.get_full_path()})
+            return redirect(f"{signature_url}?{query}")
+
         report = self.get_report()
 
-        # Check if report is finalized - only finalized reports can be sent
         if report.status != Report.Status.FINALIZED:
             messages.error(
                 request, _("Solo se pueden enviar informes finalizados.")
             )
+            return redirect("protocols:report_detail", pk=report.pk)
+
+        if not report.signer_has_signature():
+            messages.error(request, report_signer_signature_missing_message())
             return redirect("protocols:report_detail", pk=report.pk)
 
         return super().dispatch(request, *args, **kwargs)
@@ -691,12 +705,25 @@ class ReportSendView(
 
     def form_valid(self, form):
         """Send the report using service with early returns."""
+        # Re-check before side effects (defense in depth; dispatch already gates).
+        if user_requires_report_signature(self.request.user):
+            messages.error(self.request, report_signature_required_message())
+            signature_url = get_report_signature_redirect_url()
+            query = urlencode({"next": self.request.get_full_path()})
+            return redirect(f"{signature_url}?{query}")
+
         report = self.get_report()
 
         # Early return for status validation
         if report.status != Report.Status.FINALIZED:
             messages.error(
                 self.request, _("Solo se pueden enviar informes finalizados.")
+            )
+            return redirect("protocols:report_detail", pk=report.pk)
+
+        if not report.signer_has_signature():
+            messages.error(
+                self.request, report_signer_signature_missing_message()
             )
             return redirect("protocols:report_detail", pk=report.pk)
 

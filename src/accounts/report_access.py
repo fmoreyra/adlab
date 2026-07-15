@@ -58,7 +58,7 @@ def get_or_create_laboratory_staff_profile(user):
     Return LaboratoryStaff for signature upload, creating from legacy data if needed.
 
     Args:
-        user: Authenticated lab staff user.
+        user: Authenticated lab staff or admin user.
 
     Returns:
         LaboratoryStaff or None if no profile source exists.
@@ -70,20 +70,39 @@ def get_or_create_laboratory_staff_profile(user):
     try:
         histo = user.histopathologist_profile
     except Histopathologist.DoesNotExist:
-        return None
+        histo = None
 
-    return LaboratoryStaff.objects.create(
-        user=user,
-        first_name=histo.first_name,
-        last_name=histo.last_name,
-        license_number=histo.license_number or "",
-        position=histo.position,
-        specialty=histo.specialty,
-        phone_number=histo.phone_number,
-        signature_image=histo.signature_image,
-        can_create_reports=True,
-        is_active=histo.is_active,
-    )
+    if histo:
+        return LaboratoryStaff.objects.create(
+            user=user,
+            first_name=histo.first_name,
+            last_name=histo.last_name,
+            license_number=histo.license_number or "",
+            position=histo.position,
+            specialty=histo.specialty,
+            phone_number=histo.phone_number,
+            signature_image=histo.signature_image,
+            can_create_reports=True,
+            is_active=histo.is_active,
+        )
+
+    # Admins may send/finalize reports without a prior LabStaff row; create one
+    # so they can upload a signature before those actions.
+    if user.is_admin_user:
+        first_name = (user.first_name or "").strip() or user.email.split("@")[
+            0
+        ]
+        last_name = (user.last_name or "").strip() or "Administrador"
+        return LaboratoryStaff.objects.create(
+            user=user,
+            first_name=first_name,
+            last_name=last_name,
+            license_number="",
+            can_create_reports=True,
+            is_active=True,
+        )
+
+    return None
 
 
 def user_requires_lab_staff_signature(user):
@@ -118,14 +137,23 @@ def user_requires_report_signature(user):
     """
     Return whether the user must upload a signature before report work.
 
-    Only applies to lab staff with report creation permission.
+    Applies to lab staff with report permission and to admins (who can send
+    or finalize reports via staff access). Missing LaboratoryStaff profile
+    or missing signature image both require the upload step.
     """
+    if not user.is_authenticated or not user.is_lab_staff:
+        return False
+
     profile = get_laboratory_staff_for_reports(user)
     if not profile:
         profile = get_lab_staff_profile_for_signature(user)
 
-    if not user.is_authenticated or not user.is_lab_staff:
-        return False
+    # Admins may reach send/finalize without can_create_reports; still require
+    # a signable profile so the PDF workflow never proceeds unsigned.
+    if user.is_admin_user:
+        if not profile:
+            return True
+        return not profile.has_signature()
 
     if not profile or not _profile_can_create_reports(profile):
         return False
@@ -141,8 +169,8 @@ def get_report_signature_redirect_url():
 def report_signature_required_message():
     """User-facing message when a digital signature is missing."""
     return _(
-        "Debe cargar su firma digital antes de elaborar, finalizar o "
-        "descargar informes patológicos."
+        "Debe cargar su firma digital antes de elaborar, finalizar, enviar "
+        "o descargar informes patológicos."
     )
 
 

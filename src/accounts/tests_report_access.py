@@ -10,7 +10,11 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import LaboratoryStaff, Veterinarian
-from accounts.report_access import user_requires_report_signature
+from accounts.report_access import (
+    get_or_create_laboratory_staff_profile,
+    user_requires_report_signature,
+)
+from accounts.test_helpers import create_test_signature_file
 from protocols.models import Protocol, Report
 from protocols.services.pdf_service import (
     PDFGenerationError,
@@ -122,3 +126,53 @@ class ReportSignatureAccessTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.lab_staff.refresh_from_db()
         self.assertTrue(self.lab_staff.has_signature())
+
+    def test_admin_requires_report_signature_without_profile(self):
+        """Admins must upload a signature before report send/finalize work."""
+        admin_user = User.objects.create_user(
+            email="admin@example.com",
+            username="admin@example.com",
+            password="testpass123",
+            role=User.Role.ADMIN,
+            email_verified=True,
+            is_staff=True,
+        )
+        self.assertTrue(user_requires_report_signature(admin_user))
+
+        profile = get_or_create_laboratory_staff_profile(admin_user)
+        self.assertIsNotNone(profile)
+        self.assertFalse(profile.has_signature())
+        self.assertTrue(user_requires_report_signature(admin_user))
+
+        profile.signature_image = create_test_signature_file("admin_sig.png")
+        profile.save()
+        self.assertFalse(user_requires_report_signature(admin_user))
+
+    def test_admin_send_redirects_to_signature_before_form(self):
+        """Send view redirects admin without signature before showing the form."""
+        User.objects.create_user(
+            email="admin-send@example.com",
+            username="admin-send@example.com",
+            password="testpass123",
+            role=User.Role.ADMIN,
+            email_verified=True,
+            is_staff=True,
+        )
+        self.lab_staff.signature_image = create_test_signature_file(
+            "signer_sig.png"
+        )
+        self.lab_staff.save()
+        self.assertTrue(self.report.signer_has_signature())
+
+        self.client.login(
+            email="admin-send@example.com", password="testpass123"
+        )
+        response = self.client.get(
+            reverse("protocols:report_send", kwargs={"pk": self.report.pk})
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            response.url.startswith(reverse("accounts:lab_staff_signature"))
+        )
+        self.assertIn("next=", response.url)

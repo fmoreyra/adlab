@@ -388,6 +388,7 @@ def build_protocol_report_action_context(user, protocol):
         and report_actions_enabled
         and latest_report is not None
         and latest_report.status == Report.Status.FINALIZED
+        and latest_report.signer_has_signature()
     )
     can_view_report_detail = bool(
         is_lab_staff and report_actions_enabled and latest_report is not None

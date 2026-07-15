@@ -15,10 +15,12 @@ Commits de referencia:
 |------|----------------|
 | **Rol** | `personal_lab` o `histopatologo` (y admin como lab staff) acceden a recepción/procesamiento |
 | **Permiso** | `LaboratoryStaff.can_create_reports` («Puede crear informes») habilita el flujo de informes |
-| **Firma** | `LaboratoryStaff.signature_image` obligatoria antes de crear, finalizar o generar PDF |
-| **Responsable del informe** | FK `Report.laboratory_staff` (profesional que firma el PDF) |
+| **Firma** | `LaboratoryStaff.signature_image` obligatoria **antes** de crear, finalizar, **enviar** o generar PDF |
+| **Responsable del informe** | FK `Report.laboratory_staff` (profesional que firma el PDF; se asigna a quien finaliza) |
 
 El rol **no** implica automáticamente informes ni firma: el admin configura perfil + permisos en Django Admin.
+
+**Admin:** también debe tener firma digital cargada antes de enviar un informe. Si aún no tiene fila `LaboratoryStaff`, el sistema la crea al abrir `/accounts/lab-staff/signature/` y exige la imagen **antes** de mostrar el formulario de envío (no después del email).
 
 ---
 
@@ -97,14 +99,24 @@ Tests locales: `make test-with-sqlite ARGS="protocols.tests_report_images protoc
 - `ReportFinalizeView`
 - `ReportSendView`
 
-`ReportPDFView` valida firma del usuario lab staff en `dispatch` y del **firmante asignado** al informe en `get`.
+Además, `ReportSendView.dispatch` (y `form_valid`) vuelven a exigir, **antes** de cualquier envío:
+
+1. Firma del usuario actual (`user_requires_report_signature`, incluye **admin**)
+2. Informe finalizado
+3. Firmante del informe con firma (`report.signer_has_signature()`)
+
+Si falta la firma del usuario, redirige a `/accounts/lab-staff/signature/?next=…` (no se muestra el formulario de email).
+
+`ReportPDFView` valida firma del usuario lab staff en `dispatch` y del **firmante asignado** al informe en `get` (con serve desde storage si el PDF ya está persistido).
 
 ### Helpers
 
 `src/accounts/report_access.py`:
 
 - `get_laboratory_staff_for_reports(user)` — consulta directa a `LaboratoryStaff` (evita conflictos con properties de `User`)
-- `user_requires_report_signature(user)` — `True` si puede crear informes pero no tiene imagen de firma
+- `get_or_create_laboratory_staff_profile(user)` — crea perfil desde histopatólogo legacy o stub para **admin**
+- `get_report_finalizer_staff(user)` — perfil que se asigna como firmante al finalizar
+- `user_requires_report_signature(user)` — `True` si lab con permiso de informes (o admin) no tiene imagen de firma
 - Mensajes en español para UI y redirects
 
 ### PDF (`pdf_service.py`)
@@ -127,13 +139,14 @@ La property ahora resuelve con `LaboratoryStaff.objects.filter(user=self).first(
 
 ## Matriz de permisos (referencia rápida)
 
-| Usuario | Recepción / procesamiento | Ver bloque informe | Crear/editar informe | PDF / finalizar |
-|---------|---------------------------|--------------------|----------------------|-----------------|
-| Vet dueño | No | No (ve sus informes finalizados) | No | Sí si informe finalizado y firmante OK |
+| Usuario | Recepción / procesamiento | Ver bloque informe | Crear/editar / enviar | PDF / finalizar |
+|---------|---------------------------|--------------------|------------------------|-----------------|
+| Vet dueño | No | No (ve sus informes finalizados) | No | Descarga si finalizado (+ PDF o firmante OK) |
 | Lab sin `can_create_reports` | Sí | Mensaje gris (permiso) | No | No |
-| Lab con permiso, sin firma | Sí | Aviso «Cargar firma» | Redirect a firma | Redirect / error |
+| Lab con permiso, sin firma | Sí | Aviso «Cargar firma» | Redirect a firma **antes** de la acción | Redirect / error |
 | Lab con permiso y firma | Sí | Bloque completo | Sí | Sí |
-| Admin | Según perfil `LaboratoryStaff` | Igual que lab | Igual que lab | Igual que lab |
+| Admin sin firma | Sí (sin onboarding middleware) | Depende del perfil | **Redirect a firma antes de enviar/finalizar** | Redirect a firma |
+| Admin con firma | Sí | Igual que lab con perfil | Sí | Sí |
 
 **Órdenes de trabajo:** siguen requiriendo `User.is_staff=True` además del rol; no dependen de la firma de informes.
 
