@@ -4746,8 +4746,19 @@ class ReportViewsTest(TestCase):
         )  # Redirects to report detail for already finalized reports
 
     @patch("protocols.views_reports.default_storage")
-    def test_report_pdf_view_get(self, mock_storage):
-        """Serve the persisted PDF when it exists in storage."""
+    @patch(
+        "protocols.services.pdf_service.PDFGenerationService.persist_report_pdf"
+    )
+    def test_report_pdf_view_get(self, mock_persist_pdf, mock_storage):
+        """Ver PDF always regenerates and then serves the persisted file."""
+
+        def _persist(report):
+            report.pdf_path = "reports/regenerated.pdf"
+            report.pdf_hash = "a" * 64
+            report.save(update_fields=["pdf_path", "pdf_hash"])
+            return report.pdf_path, report.pdf_hash
+
+        mock_persist_pdf.side_effect = _persist
         mock_storage.exists.return_value = True
         mock_storage.open.return_value = BytesIO(b"%PDF-1.4 fake content")
 
@@ -4761,8 +4772,9 @@ class ReportViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
+        mock_persist_pdf.assert_called_once()
         mock_storage.open.assert_called_once_with(
-            self.finalized_report.pdf_path, "rb"
+            "reports/regenerated.pdf", "rb"
         )
 
     @patch("protocols.views_reports.default_storage")
@@ -4780,7 +4792,7 @@ class ReportViewsTest(TestCase):
             report.save(update_fields=["pdf_path", "pdf_hash"])
             return report.pdf_path, report.pdf_hash
 
-        mock_storage.exists.side_effect = [False, True]
+        mock_storage.exists.return_value = True
         mock_storage.open.return_value = BytesIO(b"%PDF-1.4 rebuilt")
         mock_persist_pdf.side_effect = _persist
 

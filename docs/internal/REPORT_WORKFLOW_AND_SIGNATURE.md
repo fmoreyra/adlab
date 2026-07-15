@@ -99,7 +99,7 @@ Tests locales: `make test-with-sqlite ARGS="protocols.tests_report_images protoc
 - **Formulario:** `LaboratoryStaffSignatureForm` (`src/accounts/forms.py`)
 - Acceso UI: panel lab (**Herramientas de Laboratorio** → Firma Digital) y Perfil → «Gestionar firma»
 - La vista **siempre** muestra el formulario (permitir reemplazo). Preview de la firma actual vía `accounts:lab_staff_signature_file` (proxy Django).
-- Campo **texto bajo la firma** (`signature_affiliation_text`): texto **completo** bajo la imagen en el PDF (nombre/matrícula/afiliación). Lab/admin regeneran el PDF al descargar; al guardar la firma se invalidan PDFs previos del firmante.
+- Campo **texto bajo la firma** (`signature_affiliation_text`): texto **completo** bajo la imagen en el PDF (nombre/matrícula/afiliación). **Ver PDF** siempre regenera el informe (no sirve un cache de S3); al guardar la firma también se invalidan PDFs previos del firmante.
 
 ### Redirección automática
 

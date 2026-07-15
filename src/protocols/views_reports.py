@@ -649,7 +649,7 @@ class ReportPDFView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        """Serve persisted PDF, or regenerate and persist if missing."""
+        """Regenerate the PDF on every view/download and persist to storage."""
         report = get_object_or_404(Report, pk=self.kwargs["pk"])
 
         if report.status == Report.Status.DRAFT:
@@ -661,23 +661,7 @@ class ReportPDFView(View):
 
         filename = report.generate_pdf_filename()
 
-        # Veterinarians get the stored snapshot (stable after send).
-        # Lab staff/admin always regenerate so signature/caption edits appear.
-        serve_cached_pdf = (
-            report.pdf_path
-            and default_storage.exists(report.pdf_path)
-            and request.user.is_veterinarian
-            and not request.user.is_admin_user
-        )
-        if serve_cached_pdf:
-            return FileResponse(
-                default_storage.open(report.pdf_path, "rb"),
-                as_attachment=True,
-                filename=filename,
-                content_type="application/pdf",
-            )
-
-        # Repair orphaned reports when lab/admin regenerates the PDF.
+        # Repair orphaned reports when regenerating the PDF.
         if not _ensure_report_signer_for_pdf(report, request.user):
             if request.user.is_veterinarian:
                 messages.error(
@@ -692,7 +676,6 @@ class ReportPDFView(View):
             return redirect("protocols:report_detail", pk=report.pk)
 
         try:
-            # Rebuild once and persist so the next download is a cheap serve.
             self.pdf_service.persist_report_pdf(report)
             report.refresh_from_db(fields=["pdf_path", "pdf_hash"])
         except PDFGenerationError as exc:

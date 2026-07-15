@@ -110,7 +110,7 @@ Laboratorio de Anatomía Patológica
 Facultad de Ciencias Veterinarias
 ```
 
-Tras guardar, descargá el PDF **como personal de laboratorio** (se regenera). El veterinario sigue recibiendo el PDF almacenado hasta que se regenere/reenvíe.
+Tras guardar, descargá el PDF con **Ver PDF** (siempre se regenera al abrirlo).
 
 ---
 
