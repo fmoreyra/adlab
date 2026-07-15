@@ -20,7 +20,7 @@
         {% for img in report_images %}
         <article class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:border-indigo-300 transition">
             <a href="{% url 'protocols:protocol_report_image_detail' protocol.pk img.pk %}">
-                <img src="{{ img.image.url }}"
+                <img src="{{ img.get_file_url }}"
                      alt="{% if img.description %}{{ img.description }}{% else %}Imagen microscópica{% endif %}"
                      class="w-full h-48 object-contain bg-gray-50">
             </a>

@@ -53,12 +53,22 @@ El rol **no** implica automáticamente informes ni firma: el admin configura per
 - Visualización desde **detalle de protocolo** (preview + enlace a galería) y desde **informe** / acciones laterales.
 - Permisos: personal de lab ve imágenes en borrador; veterinario solo en informes `finalized` / `sent` de sus protocolos.
 
-URLs:
+#### Proxy Django (obligatorio en producción)
+
+Garage **no** está expuesto como dominio público. Nunca usar `image.url` en templates: con `USE_S3_STORAGE` eso genera URLs internas del estilo `http://garage:3900/adlab-media/...` que el navegador no puede abrir.
+
+El archivo se sirve **solo** vía proxy autenticado:
 
 | Ruta | Nombre |
 |------|--------|
 | `/protocols/<pk>/informe/imagenes/` | `protocols:protocol_report_images` |
 | `/protocols/<pk>/informe/imagenes/<image_pk>/` | `protocols:protocol_report_image_detail` |
+| `/protocols/<pk>/informe/imagenes/<image_pk>/archivo/` | `protocols:protocol_report_image_file` |
+
+- Vista: `ProtocolReportImageFileView` (`views_reports.py`)
+- Helper de URL: `ReportImage.get_file_url()` (usar en templates en lugar de `image.url`)
+- Autorización: `user_can_view_report_images` (owner vet + lab staff + admin)
+- El PDF ya usa el mismo patrón (`FileResponse` + `default_storage.open`)
 
 Tests locales: `make test-with-sqlite ARGS="protocols.tests_report_images protocols.tests_protocol_detail_context"`.
 

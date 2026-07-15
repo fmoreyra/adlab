@@ -2454,6 +2454,22 @@ class ReportImage(models.Model):
             return f"{self.report} - {self.slide.codigo_portaobjetos} - Imagen"
         return f"{self.report} - Imagen"
 
+    def get_file_url(self):
+        """
+        Return the permission-gated Django URL for this microscopy image.
+
+        Never expose storage backend URLs (e.g. Garage) to the browser.
+        """
+        from django.urls import reverse
+
+        return reverse(
+            "protocols:protocol_report_image_file",
+            kwargs={
+                "pk": self.report.protocol_id,
+                "image_pk": self.pk,
+            },
+        )
+
     def delete(self, *args, **kwargs):
         """Remove stored file when the database row is deleted."""
         from protocols.services.report_image_service import ReportImageService

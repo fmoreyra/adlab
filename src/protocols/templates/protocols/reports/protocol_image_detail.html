@@ -33,8 +33,8 @@
 
     <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
         <div class="bg-gray-50 p-4 flex justify-center">
-            <a href="{{ report_image.image.url }}" target="_blank" rel="noopener noreferrer">
-                <img src="{{ report_image.image.url }}"
+            <a href="{{ report_image.get_file_url }}" target="_blank" rel="noopener noreferrer">
+                <img src="{{ report_image.get_file_url }}"
                      alt="{% if report_image.description %}{{ report_image.description }}{% else %}Imagen microscópica{% endif %}"
                      class="max-w-full max-h-[70vh] object-contain rounded">
             </a>
@@ -76,7 +76,7 @@
     </div>
 
     <div class="mt-6 flex flex-wrap gap-3">
-        <a href="{{ report_image.image.url }}"
+        <a href="{{ report_image.get_file_url }}"
            target="_blank"
            rel="noopener noreferrer"
            class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">

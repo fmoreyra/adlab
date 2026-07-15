@@ -59,6 +59,11 @@ urlpatterns = [
         name="protocol_report_image_detail",
     ),
     path(
+        "<int:pk>/informe/imagenes/<int:image_pk>/archivo/",
+        views_reports.ProtocolReportImageFileView.as_view(),
+        name="protocol_report_image_file",
+    ),
+    path(
         "public/<uuid:external_id>/",
         views.ProtocolPublicDetailView.as_view(),
         name="protocol_public_detail",

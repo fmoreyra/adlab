@@ -3,9 +3,13 @@ Views for report generation and management.
 """
 
 import logging
+import mimetypes
+import os
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.http import FileResponse, Http404
@@ -982,6 +986,55 @@ class ProtocolReportImageDetailView(ProtocolOwnerOrStaffMixin, DetailView):
             }
         )
         return context
+
+
+class ProtocolReportImageFileView(LoginRequiredMixin, View):
+    """
+    Permission-gated file proxy for microscopy images.
+
+    Streams bytes from default storage (local disk or Garage/S3). The browser
+    never receives a Garage endpoint URL — required because Garage is internal.
+    """
+
+    def get(self, request, *args, **kwargs):
+        """Serve the image if the user may view report images for this protocol."""
+        protocol = get_object_or_404(Protocol, pk=kwargs["pk"])
+        report_image = get_object_or_404(
+            ReportImage.objects.select_related(
+                "report",
+                "report__protocol",
+                "report__protocol__veterinarian",
+            ),
+            pk=kwargs["image_pk"],
+            report__protocol_id=protocol.pk,
+        )
+        report = report_image.report
+
+        if not user_can_view_report_images(request.user, protocol, report):
+            raise PermissionDenied(
+                _("No tiene permisos para ver las imágenes de este informe.")
+            )
+
+        if not report_image.image or not report_image.image.name:
+            raise Http404(_("Imagen no encontrada."))
+
+        storage_name = report_image.image.name
+        if not default_storage.exists(storage_name):
+            raise Http404(_("Imagen no encontrada en el almacenamiento."))
+
+        content_type, _encoding = mimetypes.guess_type(storage_name)
+        if not content_type:
+            content_type = "application/octet-stream"
+
+        filename = os.path.basename(storage_name)
+        response = FileResponse(
+            default_storage.open(storage_name, "rb"),
+            as_attachment=False,
+            filename=filename,
+            content_type=content_type,
+        )
+        response["Cache-Control"] = "private, max-age=300"
+        return response
 
 
 def generate_report_pdf(report):

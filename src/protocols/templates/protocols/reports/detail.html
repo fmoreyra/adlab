@@ -198,8 +198,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {% for img in report.images.all %}
             <div class="border border-gray-200 rounded-lg p-3">
-                <a href="{{ img.image.url }}" target="_blank" rel="noopener noreferrer">
-                    <img src="{{ img.image.url }}"
+                <a href="{{ img.get_file_url }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ img.get_file_url }}"
                          alt="{% if img.description %}{{ img.description }}{% else %}Imagen microscópica{% endif %}"
                          class="w-full max-h-64 object-contain rounded mb-2">
                 </a>

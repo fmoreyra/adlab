@@ -620,6 +620,77 @@ class ProtocolReportImagesViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Detalle de imagen")
 
+    def test_image_file_proxy_served_to_owner_veterinarian(self):
+        """Owner vet receives image bytes via Django proxy, not storage URL."""
+        self.client.login(email="vetgal@example.com", password="testpass123")
+        url = reverse(
+            "protocols:protocol_report_image_file",
+            kwargs={"pk": self.protocol.pk, "image_pk": self.report_image.pk},
+        )
+        self.assertEqual(self.report_image.get_file_url(), url)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response["Content-Type"].startswith("image/"))
+        self.assertGreater(len(b"".join(response.streaming_content)), 50)
+
+    def test_image_file_proxy_denied_for_other_veterinarian(self):
+        """Another veterinarian cannot fetch the image file."""
+        other_user = User.objects.create_user(
+            email="othervet@example.com",
+            username="othervet",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+            email_verified=True,
+        )
+        from accounts.models import Address
+
+        other_vet = Veterinarian.objects.create(
+            user=other_user,
+            last_name="Other",
+            first_name="Vet",
+            license_number="VET-OTHER",
+            cuil_cuit="20-22222222-2",
+            phone="+54 341 5550001",
+            email="othervet@example.com",
+        )
+        Address.objects.create(
+            veterinarian=other_vet,
+            province="Santa Fe",
+            locality="Rosario",
+            street="Mitre",
+            number="2",
+        )
+        self.client.login(email="othervet@example.com", password="testpass123")
+        url = reverse(
+            "protocols:protocol_report_image_file",
+            kwargs={"pk": self.protocol.pk, "image_pk": self.report_image.pk},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_image_file_proxy_denied_for_draft_to_veterinarian(self):
+        """Veterinarian cannot fetch images of a draft report."""
+        self.report.status = Report.Status.DRAFT
+        self.report.save(update_fields=["status"])
+        self.client.login(email="vetgal@example.com", password="testpass123")
+        url = reverse(
+            "protocols:protocol_report_image_file",
+            kwargs={"pk": self.protocol.pk, "image_pk": self.report_image.pk},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_image_file_proxy_requires_login(self):
+        """Anonymous users are redirected to login."""
+        url = reverse(
+            "protocols:protocol_report_image_file",
+            kwargs={"pk": self.protocol.pk, "image_pk": self.report_image.pk},
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login", response.url)
+
 
 class ReportFinalizePdfTests(TestCase):
     """Finalize persists PDF with microscopy images to storage."""

@@ -8,7 +8,7 @@
 
     {% if img_form.instance.pk and img_form.instance.image %}
     <div class="mb-3">
-        <img src="{{ img_form.instance.image.url }}"
+        <img src="{{ img_form.instance.get_file_url }}"
              alt="Imagen microscópica"
              class="max-h-40 rounded border border-gray-300 object-contain">
     </div>

@@ -203,6 +203,7 @@ adlab-backups/
 **Decided:**
 - **Static files and assets** remain served by WhiteNoise (CSS, JS, collected static). Only **media files** (signatures, report PDFs, and any other user-generated or app-generated content) use Garage/S3.
 - **File access: Django as proxy.** Garage stays internal (private bucket, not exposed to the internet). Django checks permissions and streams files from Garage to the browser. The browser never talks to Garage directly. This ensures full access control on every download and is appropriate for the sensitive medical/legal documents stored (reports, signatures). Presigned URLs are not used.
+  - **Implemented for report PDFs** (`ReportPDFView`) and **microscopy images** (`ProtocolReportImageFileView` / `ReportImage.get_file_url()`). Templates must not use `image.url` when storage is Garage — that yields unreachable `http://garage:3900/...` URLs.
 
 **Not yet decided (to be decided at implementation time):**
 
