@@ -21,7 +21,7 @@ dependencies = [
   "reportlab==4.2.5",
   "ruff==0.14.0",
   "sentry-sdk>=2.0.0",
-  "setuptools==80.9.0",
+  "setuptools==83.0.0",
   "whitenoise==6.11.0",
   "safety>=3.8.1",
   "django-storages[s3]==1.14.6",
