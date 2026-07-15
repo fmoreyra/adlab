@@ -2,6 +2,7 @@ import unittest
 import uuid
 from datetime import date
 from decimal import Decimal
+from io import BytesIO
 from unittest.mock import mock_open, patch
 
 from django.conf import settings
@@ -4553,10 +4554,60 @@ class ReportViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @patch("protocols.emails.queue_email")
-    def test_report_finalize_view_post(self, mock_queue_email):
-        """Test POST request to finalize report."""
-        mock_queue_email.return_value = None
+    def test_veterinarian_sees_download_pdf_on_finalized_report_detail(self):
+        """Owner sees Descargar PDF when the assigned signer has a signature."""
+        self.client.login(email="vet@example.com", password="testpass123")
+
+        response = self.client.get(
+            reverse(
+                "protocols:report_detail",
+                kwargs={"pk": self.finalized_report.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["is_report_owner"])
+        self.assertFalse(response.context["can_manage_report"])
+        self.assertTrue(self.finalized_report.signer_has_signature())
+        self.assertTrue(response.context["can_download_report_pdf"])
+        self.assertContains(response, "Descargar PDF")
+        self.assertContains(
+            response,
+            reverse(
+                "protocols:report_pdf",
+                kwargs={"pk": self.finalized_report.pk},
+            ),
+        )
+
+    def test_veterinarian_download_pdf_uses_persisted_path_without_signature(
+        self,
+    ):
+        """Owner can download when pdf_path exists even without live signature."""
+        self.finalized_report.laboratory_staff.signature_image = None
+        self.finalized_report.laboratory_staff.save(
+            update_fields=["signature_image"]
+        )
+        self.assertFalse(self.finalized_report.signer_has_signature())
+        self.assertTrue(self.finalized_report.pdf_path)
+
+        self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:report_detail",
+                kwargs={"pk": self.finalized_report.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["can_download_report_pdf"])
+        self.assertContains(response, "Descargar PDF")
+
+    @patch(
+        "protocols.services.pdf_service.PDFGenerationService.persist_report_pdf"
+    )
+    def test_report_finalize_view_post(self, mock_persist_pdf):
+        """Finalize binds the current lab staff as signer and persists PDF."""
+        mock_persist_pdf.return_value = ("reports/1/test.pdf", "a" * 64)
 
         self.client.login(email="histo@example.com", password="testpass123")
 
@@ -4575,10 +4626,49 @@ class ReportViewsTest(TestCase):
             ),
         )
 
-        # Check report was finalized
         self.draft_report.refresh_from_db()
         self.assertEqual(self.draft_report.status, Report.Status.FINALIZED)
+        self.assertEqual(
+            self.draft_report.laboratory_staff_id, self.laboratory_staff.pk
+        )
+        mock_persist_pdf.assert_called_once()
         self.assertIsNotNone(self.draft_report.updated_at)
+
+    @patch(
+        "protocols.services.pdf_service.PDFGenerationService.persist_report_pdf"
+    )
+    def test_report_finalize_binds_signer_to_finalizer(self, mock_persist_pdf):
+        """Finalizing overwrites laboratory_staff with the acting lab user."""
+        from accounts.models import LaboratoryStaff
+
+        other_staff = LaboratoryStaff.objects.create(
+            user=self.staff_user,
+            first_name="Otro",
+            last_name="Staff",
+            license_number="LAB-OTHER-001",
+            can_create_reports=True,
+            is_active=True,
+            signature_image=create_test_signature_file("other_sig.png"),
+        )
+        self.draft_report.laboratory_staff = other_staff
+        self.draft_report.save(update_fields=["laboratory_staff"])
+        mock_persist_pdf.return_value = ("reports/1.pdf", "hash")
+
+        self.client.login(email="histo@example.com", password="testpass123")
+        response = self.client.post(
+            reverse(
+                "protocols:report_finalize",
+                kwargs={"pk": self.draft_report.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.draft_report.refresh_from_db()
+        self.assertEqual(self.draft_report.status, Report.Status.FINALIZED)
+        self.assertEqual(
+            self.draft_report.laboratory_staff_id, self.laboratory_staff.pk
+        )
+        mock_persist_pdf.assert_called_once()
 
     def test_report_finalize_view_permission_histopathologist_required(self):
         """Test that only histopathologists can finalize reports."""
@@ -4630,12 +4720,11 @@ class ReportViewsTest(TestCase):
             response.status_code, 302
         )  # Redirects to report detail for already finalized reports
 
-    @patch("os.path.exists")
-    @patch("builtins.open")
-    def test_report_pdf_view_get(self, mock_open, mock_exists):
-        """Test GET request to report PDF view."""
-        mock_exists.return_value = True
-        mock_open.return_value.__enter__.return_value = b"fake pdf content"
+    @patch("protocols.views_reports.default_storage")
+    def test_report_pdf_view_get(self, mock_storage):
+        """Serve the persisted PDF when it exists in storage."""
+        mock_storage.exists.return_value = True
+        mock_storage.open.return_value = BytesIO(b"%PDF-1.4 fake content")
 
         self.client.login(email="histo@example.com", password="testpass123")
 
@@ -4647,15 +4736,47 @@ class ReportViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
+        mock_storage.open.assert_called_once_with(
+            self.finalized_report.pdf_path, "rb"
+        )
 
-    @patch("os.path.exists")
-    @patch("builtins.open")
-    def test_report_pdf_view_permission_histopathologist_required(
-        self, mock_open, mock_exists
+    @patch("protocols.views_reports.default_storage")
+    @patch(
+        "protocols.services.pdf_service.PDFGenerationService.persist_report_pdf"
+    )
+    def test_report_pdf_view_rebuilds_when_storage_missing(
+        self, mock_persist_pdf, mock_storage
     ):
-        """Test that histopathologists and report owners can generate report PDFs."""
-        mock_exists.return_value = True
-        mock_open.return_value.__enter__.return_value = b"fake pdf content"
+        """Missing storage file regenerates once and serves the persisted path."""
+
+        def _persist(report):
+            report.pdf_path = "reports/rebuilt.pdf"
+            report.pdf_hash = "b" * 64
+            report.save(update_fields=["pdf_path", "pdf_hash"])
+            return report.pdf_path, report.pdf_hash
+
+        mock_storage.exists.side_effect = [False, True]
+        mock_storage.open.return_value = BytesIO(b"%PDF-1.4 rebuilt")
+        mock_persist_pdf.side_effect = _persist
+
+        self.client.login(email="histo@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:report_pdf", kwargs={"pk": self.finalized_report.pk}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        mock_persist_pdf.assert_called_once()
+        mock_storage.open.assert_called_once_with("reports/rebuilt.pdf", "rb")
+
+    @patch("protocols.views_reports.default_storage")
+    def test_report_pdf_view_permission_histopathologist_required(
+        self, mock_storage
+    ):
+        """Histopathologists and report owners can download report PDFs."""
+        mock_storage.exists.return_value = True
+        mock_storage.open.return_value = BytesIO(b"%PDF-1.4 fake content")
 
         # Test with vet user (should be allowed - they own the report)
         self.client.login(email="vet@example.com", password="testpass123")

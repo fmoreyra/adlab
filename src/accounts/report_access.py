@@ -20,6 +20,20 @@ def get_laboratory_staff_for_reports(user):
     return LaboratoryStaff.objects.filter(user=user).first()
 
 
+def get_report_finalizer_staff(user):
+    """
+    Return the LaboratoryStaff profile that will sign/finalize a report.
+
+    Prefers an existing LaboratoryStaff row; falls back to creating one
+    from legacy Histopathologist data when needed.
+    """
+    profile = get_laboratory_staff_for_reports(user)
+    if profile:
+        return profile
+
+    return get_or_create_laboratory_staff_profile(user)
+
+
 def get_lab_staff_profile_for_signature(user):
     """
     Return the active lab staff profile used for signature checks.

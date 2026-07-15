@@ -153,6 +153,7 @@ class BuildProtocolDetailActionContextTest(TestCase):
         """Owner sees report actions when a finalized report exists."""
         report = Report.objects.create(
             protocol=self.protocol,
+            laboratory_staff=self.laboratory_staff,
             veterinarian=self.veterinarian,
             diagnosis="OK",
             status=Report.Status.FINALIZED,

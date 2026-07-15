@@ -5,6 +5,7 @@ Views for report generation and management.
 import logging
 
 from django.contrib import messages
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -26,6 +27,7 @@ from accounts.mixins import (
     VeterinarianRequiredMixin,
 )
 from accounts.report_access import (
+    get_report_finalizer_staff,
     get_report_signature_redirect_url,
     report_signature_required_message,
     report_signer_missing_message,
@@ -490,11 +492,18 @@ class ReportDetailView(DetailView):
             get_report_signature_redirect_url()
         )
         context["report_signer_ready"] = report.signer_has_signature()
+        # Prefer the PDF persisted at finalize; regeneration is only fallback.
+        is_ready_for_download = report.status in (
+            Report.Status.FINALIZED,
+            Report.Status.SENT,
+        )
+        can_serve_or_rebuild_pdf = bool(report.pdf_path) or (
+            report.signer_has_signature()
+        )
         context["can_download_report_pdf"] = (
-            report.status != Report.Status.DRAFT
-            and bool(report.pdf_path)
+            is_ready_for_download
+            and can_serve_or_rebuild_pdf
             and (user.is_lab_staff or is_report_owner)
-            and report.signer_has_signature()
         )
         context["protocol"] = report.protocol
         return context
@@ -508,7 +517,7 @@ class ReportFinalizeView(
     """
 
     def post(self, request, *args, **kwargs):
-        """Finalize the report."""
+        """Finalize the report with the current lab staff as signer."""
         report = get_object_or_404(Report, pk=self.kwargs["pk"])
 
         if report.status != Report.Status.DRAFT:
@@ -517,13 +526,19 @@ class ReportFinalizeView(
             )
             return redirect("protocols:report_detail", pk=report.pk)
 
-        if not report.get_signer():
+        finalizer_staff = get_report_finalizer_staff(request.user)
+        if not finalizer_staff:
             messages.error(request, report_signer_missing_message())
             return redirect("protocols:report_edit", pk=report.pk)
 
-        if not report.signer_has_signature():
-            messages.error(request, report_signer_signature_missing_message())
-            return redirect("protocols:report_detail", pk=report.pk)
+        if not finalizer_staff.has_signature():
+            messages.error(request, report_signature_required_message())
+            return redirect(get_report_signature_redirect_url())
+
+        # The PDF signer is the lab staff member who finalizes the report.
+        if report.laboratory_staff_id != finalizer_staff.pk:
+            report.laboratory_staff = finalizer_staff
+            report.save(update_fields=["laboratory_staff"])
 
         pdf_service = PDFGenerationService()
         try:
@@ -579,7 +594,7 @@ class ReportPDFView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        """Generate and return PDF report using service."""
+        """Serve persisted PDF, or regenerate and persist if missing."""
         report = get_object_or_404(Report, pk=self.kwargs["pk"])
 
         if report.status == Report.Status.DRAFT:
@@ -588,6 +603,16 @@ class ReportPDFView(View):
                 _("No se puede generar PDF de un informe en borrador."),
             )
             return redirect("protocols:report_detail", pk=report.pk)
+
+        filename = report.generate_pdf_filename()
+
+        if report.pdf_path and default_storage.exists(report.pdf_path):
+            return FileResponse(
+                default_storage.open(report.pdf_path, "rb"),
+                as_attachment=True,
+                filename=filename,
+                content_type="application/pdf",
+            )
 
         if not report.get_signer():
             messages.error(request, report_signer_missing_message())
@@ -598,14 +623,22 @@ class ReportPDFView(View):
             return redirect("protocols:report_detail", pk=report.pk)
 
         try:
-            pdf_buffer, pdf_hash = self.pdf_service.generate_report_pdf(report)
+            # Rebuild once and persist so the next download is a cheap serve.
+            self.pdf_service.persist_report_pdf(report)
+            report.refresh_from_db(fields=["pdf_path", "pdf_hash"])
         except PDFGenerationError as exc:
             messages.error(request, str(exc))
             return redirect("protocols:report_detail", pk=report.pk)
 
-        filename = report.generate_pdf_filename()
+        if not report.pdf_path or not default_storage.exists(report.pdf_path):
+            messages.error(
+                request,
+                _("No se pudo generar el PDF del informe."),
+            )
+            return redirect("protocols:report_detail", pk=report.pk)
+
         return FileResponse(
-            pdf_buffer,
+            default_storage.open(report.pdf_path, "rb"),
             as_attachment=True,
             filename=filename,
             content_type="application/pdf",
