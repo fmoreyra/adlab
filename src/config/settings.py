@@ -379,6 +379,14 @@ else:
 # but SMTP may enforce a lower effective limit; use EMAIL_DAILY_LIMIT to tune.
 EMAIL_DAILY_LIMIT = int(os.getenv("EMAIL_DAILY_LIMIT", "500"))
 
+# Rate limiting (django-ratelimit) — public auth endpoints
+RATELIMIT_ENABLE = bool(strtobool(os.getenv("RATELIMIT_ENABLE", "true")))
+RATELIMIT_USE_CACHE = "default"
+
+# Cloudflare Turnstile — registration CAPTCHA (optional in dev)
+TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "")
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "")
+
 # Security settings for production
 # https://docs.djangoproject.com/en/5.2/ref/settings/#security
 if not DEBUG:

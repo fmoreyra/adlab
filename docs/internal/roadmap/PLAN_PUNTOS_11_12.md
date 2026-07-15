@@ -274,7 +274,7 @@ Implementación sugerida: `django-ratelimit` o `limit_req` en Nginx.
 
 Respuesta al exceder: HTTP 429 o mensaje en formulario (español).
 
-**Estado actual:** documentado como pendiente en `production-checklist.md`; **no implementado** en código.
+**Estado:** ✅ Implementado (`accounts/rate_limit.py`, vistas en `accounts/views.py`).
 
 ### 12.2 CAPTCHA (registro)
 
@@ -290,17 +290,21 @@ Variables de entorno: `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` (o equivalent
 
 Login y password reset: añadir CAPTCHA solo si el rate limit no alcanza (fase 2).
 
+**Estado:** ✅ Implementado (`turnstile_service.py`, `VeterinarianRegistrationForm`, `register.html`).
+
 ### 12.3 Tests previstos
 
-- Rate limit: N+1 requests → 429 o error de formulario
-- Registro con token Turnstile inválido → rechazado
-- Registro con token válido (mock) → flujo normal
+- Rate limit: N+1 requests → 429 o error de formulario ✅
+- Registro con token Turnstile inválido → rechazado ✅
+- Registro con token válido (mock) → flujo normal ✅
+
+Implementados en `accounts/test_public_endpoint_protection.py`.
 
 ### 12.4 Documentación
 
-- `docs/internal/configuration/` — variables Turnstile y límites
-- Actualizar `production-checklist.md` — marcar ítem cuando esté hecho
-- Referencia cruzada con punto 11
+- `docs/internal/configuration/public-endpoint-protection.md` — variables Turnstile y límites ✅
+- Actualizar `production-checklist.md` — marcar ítem cuando esté hecho ✅
+- Referencia cruzada con punto 11 ✅
 
 ---
 

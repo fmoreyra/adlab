@@ -12,6 +12,8 @@ from .models import (
     User,
     Veterinarian,
 )
+from .services.auth_service import AuthenticationService
+from .services.turnstile_service import verify_turnstile_token
 
 
 class ResendVerificationEmailForm(forms.Form):
@@ -211,11 +213,29 @@ class VeterinarianRegistrationForm(UserCreationForm):
         model = User
         fields = ("email", "first_name", "last_name", "password1", "password2")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, request=None, **kwargs):
+        self.request = request
         super().__init__(*args, **kwargs)
         # Remove username field as we use email
         if "username" in self.fields:
             del self.fields["username"]
+
+    def clean(self):
+        """Validate Turnstile token when configured."""
+        cleaned_data = super().clean()
+        if not self.request:
+            return cleaned_data
+
+        token = self.data.get("cf-turnstile-response", "")
+        remote_ip = AuthenticationService()._get_client_ip(self.request)
+        if not verify_turnstile_token(token, remote_ip):
+            raise ValidationError(
+                _(
+                    "Verificación de seguridad no completada. "
+                    "Intente de nuevo."
+                )
+            )
+        return cleaned_data
 
     def clean_email(self):
         """Validate email is unique."""

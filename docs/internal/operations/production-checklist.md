@@ -63,25 +63,27 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 ## ⚠️ High Priority Issues
 
-### 2. Email Rate Limiting Missing
+### 2. Email Rate Limiting ✅ Implemented
 
-**Affected Steps**: 01.1  
-**Current Status**: No rate limiting on email resend  
-**Production Impact**: MEDIUM - Potential abuse/spam
+**Affected Steps**: 01.1, 12  
+**Current Status**: Rate limiting on public auth endpoints (Jul 2026)  
+**Production Impact**: LOW when `RATELIMIT_ENABLE=true` and Redis available
 
-**Issue**: 
-- Users can request unlimited email verification resends
-- No protection against email flooding
-- Could be used for spam or DoS attacks
+**Implementation**:
+- Login: 10/min per IP
+- Register: 3/h per IP
+- Password reset: 3/h per IP
+- Resend verification: 3/h per IP and per email
+- Cloudflare Turnstile on registration (optional in dev)
 
-**Required Actions**:
-- [ ] Implement rate limiting for email verification resends
-- [ ] Suggested: 3 attempts per hour per email address
-- [ ] Add cooldown period (e.g., 5 minutes between requests)
-- [ ] Log excessive resend attempts for monitoring
-- [ ] Consider CAPTCHA for repeated attempts
+**Documentation**: [public-endpoint-protection.md](../configuration/public-endpoint-protection.md)
 
-**Suggested Implementation**:
+**Remaining (optional)**:
+- [ ] Configure Turnstile keys in production `.env`
+- [ ] Monitor rate limit hits in logs/Sentry
+- [ ] Nginx-level rate limiting as defense in depth (optional)
+
+**Legacy suggested implementation** (superseded):
 ```python
 # In settings.py
 EMAIL_VERIFICATION_RATE_LIMIT = '3/hour'  # 3 requests per hour

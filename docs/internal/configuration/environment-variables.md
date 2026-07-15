@@ -602,10 +602,33 @@ Before deploying to production, verify:
 - Set `UID` and `GID` to match your user (`id` command)
 - Rebuild: `docker compose down && docker compose up --build`
 
+## Public Endpoint Protection
+
+See [Public Endpoint Protection](./public-endpoint-protection.md) for full details.
+
+### RATELIMIT_ENABLE
+
+Enable django-ratelimit on public auth endpoints.
+
+```bash
+RATELIMIT_ENABLE=true   # default
+RATELIMIT_ENABLE=false  # disable (debug only)
+```
+
+### TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY
+
+Cloudflare Turnstile keys for veterinarian registration. Leave empty in development to bypass CAPTCHA.
+
+```bash
+TURNSTILE_SITE_KEY=0x...
+TURNSTILE_SECRET_KEY=0x...
+```
+
 ## Related Documentation
 
 - [Email Setup Guide](./email-setup.md) - Detailed email configuration
 - [Security Audit](./security-audit.md) - Security best practices
+- [Public Endpoint Protection](./public-endpoint-protection.md) - Rate limit and Turnstile
 - [Production Deployment](../deployment/production-deployment.md) - Production setup
 
 ---

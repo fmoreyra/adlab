@@ -385,20 +385,20 @@ Prioridad operativa: cerrar el gap entre **registro público** y **veterinarios 
 
 Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_11_12.md](PLAN_PUNTOS_11_12.md) §12.
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Implementado (Jul 2026)
 - **Objetivo:** Reducir abuso en registro, login, reset y reenvío de verificación.
 - **Alcance v1:**
   - Rate limiting por IP (Redis): login, register, password-reset, resend-verification
   - Cloudflare Turnstile en **registro** (no en todos los forms)
 - **Complementa** el punto 11 (menos basura en cola admin).
-- **Notas / PR:**
+- **Notas / PR:** Ver [public-endpoint-protection.md](../configuration/public-endpoint-protection.md)
 
 ---
 
 ## Orden sugerido de implementación
 
 ```
-1 ✅ → 2 ✅ → 3 ✅ → 4 ✅ → 5.1 Gmail → 5.2 → 7 ✅ → 8–10 ✅ → 11 ✅ → 12 → (correo institucional) → (6.1 reactivar si la facultad lo pide)
+1 ✅ → 2 ✅ → 3 ✅ → 4 ✅ → 5.1 Gmail → 5.2 → 7 ✅ → 8–10 ✅ → 11 ✅ → 12 ✅ → (correo institucional) → (6.1 reactivar si la facultad lo pide)
 ```
 
 | # | Bloque | Ítems | Dependencias clave |
@@ -414,7 +414,7 @@ Addenda post-reunión (Jul 2026). Plan: [PLAN_PUNTOS_11_12.md](PLAN_PUNTOS_11_12
 | 9 | Portaobjetos edit/delete (solo HP) | ✅ | CT excluido |
 | 10 | Imágenes en PDF (flag) | ✅ | `include_in_pdf` |
 | 11 | Habilitación MV | 11.1–11.2 ✅ | 5.1 recomendado para emails |
-| 12 | Rate limit + CAPTCHA | ⬜ | Independiente; complementa 11 |
+| 12 | Rate limit + CAPTCHA | ✅ | Independiente; complementa 11 |
 
 ---
 

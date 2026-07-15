@@ -19,6 +19,11 @@ Security checklist and hardening guide for production deployments.
 
 **When to use**: Before production launch, security reviews
 
+### [Public Endpoint Protection](./public-endpoint-protection.md)
+Rate limiting and Cloudflare Turnstile for login, registration, and password reset.
+
+**When to use**: Production deployment, abuse prevention setup
+
 ### [Python Dependencies (uv)](../PYTHON_DEPENDENCIES.md)
 How to add Python packages (`pyproject.toml` + `uv.lock`), rebuild Docker, and audit runtime deps.
 

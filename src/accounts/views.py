@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import (
@@ -20,6 +21,7 @@ from django.views.generic import (
     UpdateView,
     View,
 )
+from django_ratelimit.decorators import ratelimit
 
 from .forms import (
     LaboratoryStaffCreationForm,
@@ -42,12 +44,21 @@ from .models import (
     Veterinarian,
     VeterinarianChangeLog,
 )
+from .rate_limit import (
+    LOGIN_RATE,
+    PASSWORD_RESET_RATE,
+    REGISTER_RATE,
+    RESEND_VERIFICATION_RATE,
+    RateLimitedFormMixin,
+    ratelimit_post,
+)
 from .redirect_utils import resolve_safe_redirect
 from .report_access import (
     get_or_create_laboratory_staff_profile,
     user_requires_lab_staff_signature,
 )
 from .services.auth_service import AuthenticationService
+from .services.turnstile_service import get_turnstile_site_key
 
 # =============================================================================
 # HELPER FUNCTIONS (REMOVED - REPLACED BY SERVICE CLASSES)
@@ -63,7 +74,8 @@ from .services.auth_service import AuthenticationService
 # =============================================================================
 
 
-class LoginView(FormView):
+@ratelimit_post(key="ip", rate=LOGIN_RATE)
+class LoginView(RateLimitedFormMixin, FormView):
     """
     User login view with service integration and early returns.
     """
@@ -71,6 +83,10 @@ class LoginView(FormView):
     form_class = UserLoginForm
     template_name = "accounts/login.html"
     success_url = "/dashboard/"
+    rate_limit_message = _(
+        "Demasiados intentos de inicio de sesión. "
+        "Por favor espere unos minutos e intente de nuevo."
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -130,7 +146,8 @@ class HistopathologistLoginView(LoginView):
     template_name = "accounts/histopathologist_login.html"
 
 
-class RegisterView(CreateView):
+@ratelimit_post(key="ip", rate=REGISTER_RATE)
+class RegisterView(RateLimitedFormMixin, CreateView):
     """
     User registration view.
     """
@@ -139,6 +156,22 @@ class RegisterView(CreateView):
     form_class = VeterinarianRegistrationForm
     template_name = "accounts/register.html"
     success_url = "/accounts/login/"
+    rate_limit_message = _(
+        "Demasiados intentos de registro. "
+        "Por favor espere e intente de nuevo más tarde."
+    )
+
+    def get_form_kwargs(self):
+        """Pass request to registration form for Turnstile validation."""
+        kwargs = super().get_form_kwargs()
+        kwargs["request"] = self.request
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        """Expose Turnstile site key when configured."""
+        context = super().get_context_data(**kwargs)
+        context["turnstile_site_key"] = get_turnstile_site_key()
+        return context
 
     def form_valid(self, form):
         """Process valid registration form."""
@@ -258,7 +291,8 @@ def redirect_create_histopathologist(request):
     return redirect("accounts:create_laboratory_staff", permanent=True)
 
 
-class PasswordResetRequestView(FormView):
+@ratelimit_post(key="ip", rate=PASSWORD_RESET_RATE)
+class PasswordResetRequestView(RateLimitedFormMixin, FormView):
     """
     Password reset request view.
     """
@@ -266,6 +300,10 @@ class PasswordResetRequestView(FormView):
     form_class = PasswordResetRequestForm
     template_name = "accounts/password_reset_request.html"
     success_url = "/accounts/login/"
+    rate_limit_message = _(
+        "Demasiados intentos de restablecimiento de contraseña. "
+        "Por favor espere e intente de nuevo más tarde."
+    )
 
     def form_valid(self, form):
         """Process valid password reset request."""
@@ -544,7 +582,22 @@ class VerifyEmailView(View):
             return redirect("accounts:login")
 
 
-class ResendVerificationView(FormView):
+@method_decorator(
+    ratelimit(
+        key="ip", rate=RESEND_VERIFICATION_RATE, method="POST", block=False
+    ),
+    name="post",
+)
+@method_decorator(
+    ratelimit(
+        key="post:email",
+        rate=RESEND_VERIFICATION_RATE,
+        method="POST",
+        block=False,
+    ),
+    name="post",
+)
+class ResendVerificationView(RateLimitedFormMixin, FormView):
     """
     Resend email verification view.
     """
@@ -552,6 +605,10 @@ class ResendVerificationView(FormView):
     form_class = ResendVerificationEmailForm
     template_name = "accounts/resend_verification.html"
     success_url = "/accounts/login/"
+    rate_limit_message = _(
+        "Demasiados intentos de reenvío de verificación. "
+        "Por favor espere e intente de nuevo más tarde."
+    )
 
     def get(self, request, *args, **kwargs):
         """Handle GET request."""

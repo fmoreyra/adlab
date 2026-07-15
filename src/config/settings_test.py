@@ -53,6 +53,11 @@ CACHES = {
     }
 }
 
+# Disable rate limiting and Turnstile in the default test suite
+RATELIMIT_ENABLE = False
+TURNSTILE_SITE_KEY = ""
+TURNSTILE_SECRET_KEY = ""
+
 # Use database sessions for tests (cache backend doesn't work with DummyCache)
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
