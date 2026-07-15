@@ -47,23 +47,25 @@ El rol **admin** también debe cargar firma digital **antes** de finalizar o env
 
 ---
 
-## Cómo cargar la firma
+## Cómo cargar o actualizar la firma
 
 ### Paso 1: Acceder al formulario
 
-El sistema te redirige automáticamente cuando intentás elaborar un informe sin firma.
+Desde el **panel de laboratorio** → **Herramientas de Laboratorio** → **Firma Digital → Gestionar firma**.
 
-También podés ir directamente a:
+También desde **Perfil** (menú superior) → **Gestionar firma**, o directamente:
 
-**Menú / URL:** `/accounts/lab-staff/signature/`
+**URL:** `/accounts/lab-staff/signature/`
+
+Si aún no tiene firma, el sistema también lo redirige automáticamente al intentar elaborar informes o al primer ingreso.
 
 _[Espacio para captura: pantalla «Firma digital» con selector de archivo]_
 
 ### Paso 2: Subir la imagen
 
 1. Elegí un archivo **PNG** o **JPG** con fondo claro (recomendado: firma escaneada o exportada)
-2. Hacé clic en **Guardar firma**
-3. Verás el mensaje: *«Firma digital guardada. Ya puede elaborar y firmar informes.»*
+2. Hacé clic en **Guardar firma** (o **Actualizar firma** si ya había una)
+3. Verás el mensaje: *«Firma digital guardada. Ya puede continuar con su trabajo.»*
 
 ### Paso 3: Continuar el flujo de informe
 
@@ -86,9 +88,11 @@ Al **crear** un informe, seleccionás el **personal responsable** en el formular
 
 ## Actualizar o reemplazar la firma
 
-1. Abrí de nuevo `/accounts/lab-staff/signature/?force=1`
-2. Subí la nueva imagen
+1. Abrí `/accounts/lab-staff/signature/` (panel → Firma Digital, o Perfil → Gestionar firma)
+2. Subí la nueva imagen y confirmá con **Actualizar firma**
 3. Los **nuevos** PDFs usarán la firma actualizada (los ya enviados no se modifican solos)
+
+Ya no hace falta el parámetro `?force=1`: la pantalla siempre permite reemplazar la firma.
 
 ---
 

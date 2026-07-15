@@ -473,18 +473,6 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
 
         return reverse_lazy("pages:dashboard")
 
-    def get(self, request, *args, **kwargs):
-        """Skip form when signature already exists unless forced."""
-        # Check the profile image directly: admins are exempted from the
-        # onboarding middleware helper but still need this form when unsigned.
-        if self.lab_staff_profile.has_signature() and not request.GET.get(
-            "force"
-        ):
-            messages.info(request, _("Su firma digital ya está cargada."))
-            return redirect(self.get_success_url())
-
-        return super().get(request, *args, **kwargs)
-
     def get_form_kwargs(self):
         """Bind the form to the current user's laboratory staff profile."""
         kwargs = super().get_form_kwargs()
@@ -492,9 +480,10 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
         return kwargs
 
     def get_context_data(self, **kwargs):
-        """Expose profile in template for optional preview text."""
+        """Expose profile in template for current signature state."""
         context = super().get_context_data(**kwargs)
         context["object"] = self.lab_staff_profile
+        context["has_signature"] = self.lab_staff_profile.has_signature()
         return context
 
     def form_valid(self, form):

@@ -8,7 +8,11 @@
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">Firma digital</h1>
             <p class="text-lg text-gray-600">
+                {% if has_signature %}
+                Puede reemplazar la firma actual cuando lo necesite. Es obligatoria para elaborar, finalizar y descargar informes.
+                {% else %}
                 Es obligatoria para elaborar, finalizar y descargar informes patológicos.
+                {% endif %}
             </p>
         </div>
 
@@ -23,6 +27,12 @@
                 {% endif %}
 
                 <div class="space-y-4">
+                    {% if has_signature %}
+                    <div class="rounded-lg bg-blue-50 border border-blue-100 p-4 text-sm text-blue-800">
+                        Ya tiene una firma digital cargada. Elija un archivo nuevo abajo para reemplazarla.
+                    </div>
+                    {% endif %}
+
                     <label for="{{ form.signature_image.id_for_label }}" class="block text-sm font-medium text-gray-700">
                         {{ form.signature_image.label }}
                     </label>
@@ -33,18 +43,12 @@
                     {% if form.signature_image.errors %}
                     <p class="text-sm text-red-600">{{ form.signature_image.errors.0 }}</p>
                     {% endif %}
-
-                    {% if object.signature_image %}
-                    <p class="text-sm text-gray-600">
-                        Ya tiene una firma cargada. Suba un archivo nuevo solo si desea reemplazarla.
-                    </p>
-                    {% endif %}
                 </div>
 
                 <div class="mt-8 flex flex-wrap gap-3">
                     <button type="submit"
                             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                        Guardar firma
+                        {% if has_signature %}Actualizar firma{% else %}Guardar firma{% endif %}
                     </button>
                     <a href="{% url 'pages:dashboard' %}"
                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">

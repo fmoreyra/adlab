@@ -310,6 +310,8 @@ class DashboardViewsTest(TestCase):
         self.assertIn("processing_count", response.context)
         self.assertIn("today_received_count", response.context)
         self.assertIn("processing_queue", response.context)
+        self.assertContains(response, reverse("accounts:lab_staff_signature"))
+        self.assertContains(response, "Gestionar firma")
 
     def test_lab_staff_dashboard_statistics(self):
         """Test that lab staff dashboard shows correct statistics."""

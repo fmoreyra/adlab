@@ -161,6 +161,23 @@
                         </div>
                     </div>
                 </div>
+
+                {% if user.is_lab_staff %}
+                <div class="px-8 py-6 bg-indigo-50 border-t border-indigo-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">Firma digital</h2>
+                            <p class="text-sm text-gray-600 mt-1">
+                                Cargue o actualice la firma usada en los informes patológicos.
+                            </p>
+                        </div>
+                        <a href="{% url 'accounts:lab_staff_signature' %}"
+                           class="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700">
+                            Gestionar firma
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
                 
                 <!-- Action Buttons -->
                 <div class="px-8 py-6 bg-white">

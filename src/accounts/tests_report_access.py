@@ -127,6 +127,37 @@ class ReportSignatureAccessTest(TestCase):
         self.lab_staff.refresh_from_db()
         self.assertTrue(self.lab_staff.has_signature())
 
+    def test_lab_staff_can_open_signature_page_when_already_uploaded(self):
+        """Staff with an existing signature can still open the edit form."""
+        self.lab_staff.signature_image = create_test_signature_file("old.png")
+        self.lab_staff.save()
+        self.client.login(email="lab@example.com", password="testpass123")
+
+        response = self.client.get(reverse("accounts:lab_staff_signature"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Actualizar firma")
+        self.assertContains(response, "Ya tiene una firma digital cargada")
+
+    def test_lab_staff_can_replace_existing_signature(self):
+        """POST replaces a previously stored signature image."""
+        self.lab_staff.signature_image = create_test_signature_file("old.png")
+        self.lab_staff.save()
+        old_name = self.lab_staff.signature_image.name
+        self.client.login(email="lab@example.com", password="testpass123")
+
+        new_image = SimpleUploadedFile(
+            "new_sig.png", MINIMAL_PNG, content_type="image/png"
+        )
+        response = self.client.post(
+            reverse("accounts:lab_staff_signature"),
+            {"signature_image": new_image},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, 302)
+        self.lab_staff.refresh_from_db()
+        self.assertTrue(self.lab_staff.has_signature())
+        self.assertNotEqual(self.lab_staff.signature_image.name, old_name)
+
     def test_admin_requires_report_signature_without_profile(self):
         """Admins must upload a signature before report send/finalize work."""
         admin_user = User.objects.create_user(

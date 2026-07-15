@@ -248,20 +248,7 @@
                 <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
                     <div class="flex items-center justify-center mb-4 text-indigo-600">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" dM12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-2">Firma Digital</h3>
-                    <p class="text-gray-600 text-sm mb-4">Gestionar firma digital</p>
-                    <a href="{% url 'accounts:profile' %}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
-                        Mi Perfil
-                    </a>
-                </div>
-                
-                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
-                    <div class="flex items-center justify-center mb-4 text-indigo-600">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" dM9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
                     </div>
                     <h3 class="text-lg font-bold text-gray-800 mb-2">Estadísticas</h3>
@@ -278,6 +265,19 @@
         <div class="mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Herramientas de Laboratorio</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-center justify-center mb-4 text-blue-600">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Firma Digital</h3>
+                    <p class="text-gray-600 text-sm mb-4">Cargar o actualizar su firma digital</p>
+                    <a href="{% url 'accounts:lab_staff_signature' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150">
+                        Gestionar firma
+                    </a>
+                </div>
+
                 <div class="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-shadow duration-200">
                     <div class="flex items-center justify-center mb-4 text-blue-600">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">

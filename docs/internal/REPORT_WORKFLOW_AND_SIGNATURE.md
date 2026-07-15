@@ -91,12 +91,14 @@ Tests locales: `make test-with-sqlite ARGS="protocols.tests_report_images protoc
 
 ## Firma digital obligatoria
 
-### URL de carga
+### URL de carga / edición
 
 - **Ruta:** `/accounts/lab-staff/signature/`
 - **Nombre:** `accounts:lab_staff_signature`
 - **Vista:** `LabStaffSignatureView` (`src/accounts/views.py`)
 - **Formulario:** `LaboratoryStaffSignatureForm` (`src/accounts/forms.py`)
+- Acceso UI: panel lab (**Herramientas de Laboratorio** → Firma Digital) y Perfil → «Gestionar firma»
+- La vista **siempre** muestra el formulario (permitir reemplazo). No redirige si ya hay firma.
 
 ### Redirección automática
 
