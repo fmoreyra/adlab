@@ -26,6 +26,15 @@ def migrate_histopathologist_to_laboratory_staff(histopathologist):
         position=histopathologist.position,
         specialty=histopathologist.specialty,
         signature_image=histopathologist.signature_image,
+        signature_affiliation_text=getattr(
+            histopathologist,
+            "signature_affiliation_text",
+            "",
+        )
+        or (
+            "Laboratorio de Anatomía Patológica\n"
+            "Facultad de Ciencias Veterinarias"
+        ),
         phone_number=histopathologist.phone_number,
         can_create_reports=True,
         is_active=histopathologist.is_active,

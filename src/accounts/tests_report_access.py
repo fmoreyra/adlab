@@ -136,7 +136,46 @@ class ReportSignatureAccessTest(TestCase):
         response = self.client.get(reverse("accounts:lab_staff_signature"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Actualizar firma")
-        self.assertContains(response, "Ya tiene una firma digital cargada")
+        self.assertContains(response, "Firma actual")
+        self.assertContains(
+            response, reverse("accounts:lab_staff_signature_file")
+        )
+        self.assertContains(response, "Texto bajo la firma")
+
+    def test_lab_staff_signature_preview_proxy(self):
+        """Existing signature is served through the Django proxy."""
+        self.lab_staff.signature_image = create_test_signature_file("old.png")
+        self.lab_staff.save()
+        self.client.login(email="lab@example.com", password="testpass123")
+
+        response = self.client.get(
+            reverse("accounts:lab_staff_signature_file")
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response["Content-Type"].startswith("image/"))
+        self.assertGreater(len(b"".join(response.streaming_content)), 20)
+
+    def test_lab_staff_can_update_affiliation_text_without_new_image(self):
+        """Affiliation text can be saved while keeping the current image."""
+        self.lab_staff.signature_image = create_test_signature_file("old.png")
+        self.lab_staff.save()
+        old_name = self.lab_staff.signature_image.name
+        self.client.login(email="lab@example.com", password="testpass123")
+
+        response = self.client.post(
+            reverse("accounts:lab_staff_signature"),
+            {
+                "signature_affiliation_text": (
+                    "Servicio de Patología\nHospital Escuela"
+                ),
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.lab_staff.refresh_from_db()
+        self.assertEqual(self.lab_staff.signature_image.name, old_name)
+        self.assertIn(
+            "Hospital Escuela", self.lab_staff.signature_affiliation_text
+        )
 
     def test_lab_staff_can_replace_existing_signature(self):
         """POST replaces a previously stored signature image."""
@@ -150,7 +189,13 @@ class ReportSignatureAccessTest(TestCase):
         )
         response = self.client.post(
             reverse("accounts:lab_staff_signature"),
-            {"signature_image": new_image},
+            {
+                "signature_image": new_image,
+                "signature_affiliation_text": (
+                    "Laboratorio de Anatomía Patológica\n"
+                    "Facultad de Ciencias Veterinarias"
+                ),
+            },
             format="multipart",
         )
         self.assertEqual(response.status_code, 302)

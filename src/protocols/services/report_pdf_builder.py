@@ -42,6 +42,9 @@ LABORATORY_NAME = "LABORATORIO DE ANATOMÍA PATOLÓGICA"
 LABORATORY_LOCATION = "Esperanza"
 INSTITUTION_LINE_1 = "Laboratorio de Anatomía Patológica"
 INSTITUTION_LINE_2 = "Facultad de Ciencias Veterinarias"
+DEFAULT_SIGNATURE_AFFILIATION_TEXT = (
+    f"{INSTITUTION_LINE_1}\n{INSTITUTION_LINE_2}"
+)
 
 HEADER_BANNER_STATIC = "images/reports/header_banner.png"
 FOOTER_BANNER_STATIC = "images/reports/footer_banner.png"
@@ -70,6 +73,19 @@ BANNER_SIDE_MARGIN = 0.2 * inch
 # Leave a small marked gap between the header rule and the lab title.
 TOP_MARGIN = 1.22 * inch
 BOTTOM_MARGIN = 0.85 * inch
+
+
+def _signature_affiliation_lines(signer) -> List[str]:
+    """
+    Resolve free-text lines shown under the signature image in the PDF.
+
+    Uses LaboratoryStaff/Histopathologist.signature_affiliation_text when set;
+    otherwise falls back to the historical institutional lines.
+    """
+    text = (getattr(signer, "signature_affiliation_text", None) or "").strip()
+    if text:
+        return [line.strip() for line in text.splitlines() if line.strip()]
+    return [INSTITUTION_LINE_1, INSTITUTION_LINE_2]
 
 
 @dataclass(frozen=True)
@@ -664,9 +680,9 @@ class ReportPDFBuilder:
         signature_lines = [signer.get_formal_name()]
         if signer.license_number:
             signature_lines.append(f"Mat. {signer.license_number}")
-        if signer.position:
+        if getattr(signer, "position", None):
             signature_lines.append(signer.position)
-        signature_lines.extend([INSTITUTION_LINE_1, INSTITUTION_LINE_2])
+        signature_lines.extend(_signature_affiliation_lines(signer))
 
         for line in signature_lines:
             elements.append(

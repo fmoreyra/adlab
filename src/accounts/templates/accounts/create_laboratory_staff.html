@@ -181,7 +181,7 @@
     <div class="bg-gray-50 p-4 rounded-lg">
         <h4 class="text-md font-medium text-gray-800 mb-4">Firma Digital</h4>
 
-        <div>
+        <div class="mb-4">
             <label for="{{ form.signature_image.id_for_label }}" class="block text-sm font-medium text-gray-700">
                 Imagen de Firma
             </label>
@@ -191,6 +191,19 @@
             {% endif %}
             {% if form.signature_image.help_text %}
                 <p class="mt-1 text-xs text-gray-500">{{ form.signature_image.help_text }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.signature_affiliation_text.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                {{ form.signature_affiliation_text.label }}
+            </label>
+            <div class="mt-1">{{ form.signature_affiliation_text }}</div>
+            {% if form.signature_affiliation_text.errors %}
+                <p class="mt-2 text-sm text-red-600">{{ form.signature_affiliation_text.errors.0 }}</p>
+            {% endif %}
+            {% if form.signature_affiliation_text.help_text %}
+                <p class="mt-1 text-xs text-gray-500">{{ form.signature_affiliation_text.help_text }}</p>
             {% endif %}
         </div>
     </div>

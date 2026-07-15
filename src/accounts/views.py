@@ -1,3 +1,5 @@
+import mimetypes
+import os
 import secrets
 from datetime import timedelta
 
@@ -5,7 +7,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
+from django.core.files.storage import default_storage
 from django.core.mail import send_mail
+from django.http import FileResponse, Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
@@ -494,6 +499,43 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
             _("Firma digital guardada. Ya puede continuar con su trabajo."),
         )
         return super().form_valid(form)
+
+
+class LabStaffSignatureFileView(LoginRequiredMixin, View):
+    """
+    Permission-gated proxy for the current user's digital signature image.
+
+    Keeps Garage/S3 internal; only the authenticated owner (lab staff/admin
+    with a LaboratoryStaff profile) can view their own signature.
+    """
+
+    def get(self, request, *args, **kwargs):
+        """Stream the caller's stored signature image."""
+        if not request.user.is_lab_staff:
+            raise PermissionDenied(
+                _("Solo el personal de laboratorio puede ver esta firma.")
+            )
+
+        profile = get_or_create_laboratory_staff_profile(request.user)
+        if not profile or not profile.signature_image:
+            raise Http404(_("Firma no encontrada."))
+
+        storage_name = profile.signature_image.name
+        if not storage_name or not default_storage.exists(storage_name):
+            raise Http404(_("Firma no encontrada en el almacenamiento."))
+
+        content_type, _encoding = mimetypes.guess_type(storage_name)
+        if not content_type:
+            content_type = "application/octet-stream"
+
+        response = FileResponse(
+            default_storage.open(storage_name, "rb"),
+            as_attachment=False,
+            filename=os.path.basename(storage_name),
+            content_type=content_type,
+        )
+        response["Cache-Control"] = "private, max-age=60"
+        return response
 
 
 class ProfileView(LoginRequiredMixin, UpdateView):

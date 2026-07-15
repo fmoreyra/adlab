@@ -82,6 +82,15 @@ def get_or_create_laboratory_staff_profile(user):
             specialty=histo.specialty,
             phone_number=histo.phone_number,
             signature_image=histo.signature_image,
+            signature_affiliation_text=getattr(
+                histo,
+                "signature_affiliation_text",
+                "",
+            )
+            or (
+                "Laboratorio de Anatomía Patológica\n"
+                "Facultad de Ciencias Veterinarias"
+            ),
             can_create_reports=True,
             is_active=histo.is_active,
         )

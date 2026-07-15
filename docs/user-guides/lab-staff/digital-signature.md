@@ -89,10 +89,30 @@ Al **crear** un informe, seleccionás el **personal responsable** en el formular
 ## Actualizar o reemplazar la firma
 
 1. Abrí `/accounts/lab-staff/signature/` (panel → Firma Digital, o Perfil → Gestionar firma)
-2. Subí la nueva imagen y confirmá con **Actualizar firma**
-3. Los **nuevos** PDFs usarán la firma actualizada (los ya enviados no se modifican solos)
+2. Verás la **firma actual** en pantalla (si ya había una)
+3. Opcional: subí una nueva imagen
+4. Editá el **texto bajo la firma** (afiliación institucional que aparece en el PDF)
+5. Confirmá con **Actualizar firma**
 
-Ya no hace falta el parámetro `?force=1`: la pantalla siempre permite reemplazar la firma.
+Los **nuevos** PDFs usarán la firma y el texto actualizados (los ya enviados no se modifican solos).
+
+### Texto bajo la firma
+
+Campo libre de varias líneas. Se imprime en el PDF a la derecha, debajo de:
+
+1. Imagen de la firma  
+2. Dr./Dra. + nombre  
+3. Matrícula (y cargo, si está cargado)
+
+**Uso:** identifica la afiliación institucional o área del firmante.  
+**Ejemplo:**
+
+```text
+Laboratorio de Anatomía Patológica
+Facultad de Ciencias Veterinarias
+```
+
+Si lo dejás vacío, el PDF usa ese ejemplo por defecto.
 
 ---
 

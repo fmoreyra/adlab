@@ -46,6 +46,11 @@ urlpatterns = [
         views.LabStaffSignatureView.as_view(),
         name="lab_staff_signature",
     ),
+    path(
+        "lab-staff/signature/archivo/",
+        views.LabStaffSignatureFileView.as_view(),
+        name="lab_staff_signature_file",
+    ),
     # Veterinarian Profile
     path(
         "veterinarian/complete-profile/",

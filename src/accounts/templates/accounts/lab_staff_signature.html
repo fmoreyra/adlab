@@ -9,9 +9,9 @@
             <h1 class="text-3xl font-bold text-gray-900 mb-2">Firma digital</h1>
             <p class="text-lg text-gray-600">
                 {% if has_signature %}
-                Puede reemplazar la firma actual cuando lo necesite. Es obligatoria para elaborar, finalizar y descargar informes.
+                Puede actualizar la imagen y el texto institucional cuando lo necesite. Ambos se usan juntos en el PDF del informe.
                 {% else %}
-                Es obligatoria para elaborar, finalizar y descargar informes patológicos.
+                La imagen de firma y el texto bajo ella son obligatorios para elaborar, finalizar y descargar informes patológicos.
                 {% endif %}
             </p>
         </div>
@@ -26,23 +26,52 @@
                 </div>
                 {% endif %}
 
-                <div class="space-y-4">
+                <div class="space-y-6">
                     {% if has_signature %}
-                    <div class="rounded-lg bg-blue-50 border border-blue-100 p-4 text-sm text-blue-800">
-                        Ya tiene una firma digital cargada. Elija un archivo nuevo abajo para reemplazarla.
+                    <div>
+                        <p class="block text-sm font-medium text-gray-700 mb-2">Firma actual</p>
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 flex justify-center">
+                            <img src="{% url 'accounts:lab_staff_signature_file' %}"
+                                 alt="Firma digital actual"
+                                 class="max-h-32 max-w-full object-contain">
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Elija un archivo nuevo abajo solo si desea reemplazarla.
+                        </p>
                     </div>
                     {% endif %}
 
-                    <label for="{{ form.signature_image.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                        {{ form.signature_image.label }}
-                    </label>
-                    {{ form.signature_image }}
-                    {% if form.signature_image.help_text %}
-                    <p class="text-sm text-gray-500">{{ form.signature_image.help_text }}</p>
-                    {% endif %}
-                    {% if form.signature_image.errors %}
-                    <p class="text-sm text-red-600">{{ form.signature_image.errors.0 }}</p>
-                    {% endif %}
+                    <div>
+                        <label for="{{ form.signature_image.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.signature_image.label }}
+                            {% if not has_signature %}<span class="text-red-600">*</span>{% endif %}
+                        </label>
+                        {{ form.signature_image }}
+                        {% if form.signature_image.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.signature_image.help_text }}</p>
+                        {% endif %}
+                        {% if form.signature_image.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.signature_image.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.signature_affiliation_text.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ form.signature_affiliation_text.label }}
+                        </label>
+                        {{ form.signature_affiliation_text }}
+                        {% if form.signature_affiliation_text.help_text %}
+                        <p class="mt-1 text-sm text-gray-500 whitespace-pre-line">{{ form.signature_affiliation_text.help_text }}</p>
+                        {% endif %}
+                        {% if form.signature_affiliation_text.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.signature_affiliation_text.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-2 text-xs text-gray-500">
+                            Uso: bloque de firma a la derecha del PDF (debajo de Dr./Dra., matrícula y cargo).
+                            Representa su afiliación institucional o área. Ejemplo:
+                            «Laboratorio de Anatomía Patológica» / «Facultad de Ciencias Veterinarias».
+                        </p>
+                    </div>
                 </div>
 
                 <div class="mt-8 flex flex-wrap gap-3">

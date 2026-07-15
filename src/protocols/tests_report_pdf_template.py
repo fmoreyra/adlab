@@ -21,6 +21,7 @@ from protocols.services.pdf_service import PDFGenerationService
 from protocols.services.report_pdf_builder import (
     INSTITUTION_LINE_2,
     LABORATORY_NAME,
+    _signature_affiliation_lines,
     build_report_context,
     format_date_long_spanish,
 )
@@ -329,3 +330,31 @@ class InstitutionalReportPDFTests(TestCase):
 
         with self.assertRaises(PDFGenerationError):
             PDFGenerationService().generate_report_pdf(report)
+
+    def test_signature_affiliation_lines_use_custom_text(self):
+        """Free-text affiliation under the signature overrides defaults."""
+        self.laboratory_staff.signature_affiliation_text = (
+            "Área de Diagnóstico\nEspecialidad Patología"
+        )
+        self.laboratory_staff.save(
+            update_fields=["signature_affiliation_text"]
+        )
+        lines = _signature_affiliation_lines(self.laboratory_staff)
+        self.assertEqual(
+            lines,
+            ["Área de Diagnóstico", "Especialidad Patología"],
+        )
+
+        pdf_buffer, pdf_hash = PDFGenerationService().generate_report_pdf(
+            self.hp_report
+        )
+        _assert_valid_pdf(self, pdf_buffer, pdf_hash)
+
+    def test_signature_affiliation_lines_fallback(self):
+        """Empty affiliation falls back to institutional defaults."""
+        self.laboratory_staff.signature_affiliation_text = ""
+        self.laboratory_staff.save(
+            update_fields=["signature_affiliation_text"]
+        )
+        lines = _signature_affiliation_lines(self.laboratory_staff)
+        self.assertEqual(lines[1], INSTITUTION_LINE_2)

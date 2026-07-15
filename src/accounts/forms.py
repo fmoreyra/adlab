@@ -394,6 +394,32 @@ class LaboratoryStaffCreationForm(forms.Form):
             "en su primer ingreso."
         ),
     )
+    signature_affiliation_text = forms.CharField(
+        label=_("Texto bajo la firma"),
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "class": (
+                    "block w-full rounded-md border-gray-300 shadow-sm "
+                    "focus:border-blue-500 focus:ring-blue-500"
+                ),
+                "rows": 3,
+                "placeholder": (
+                    "Laboratorio de Anatomía Patológica\n"
+                    "Facultad de Ciencias Veterinarias"
+                ),
+            }
+        ),
+        help_text=_(
+            "Texto libre del PDF debajo del nombre/matrícula en el bloque de "
+            "firma. Una línea por renglón. Ejemplo: Laboratorio de Anatomía "
+            "Patológica / Facultad de Ciencias Veterinarias."
+        ),
+        initial=(
+            "Laboratorio de Anatomía Patológica\n"
+            "Facultad de Ciencias Veterinarias"
+        ),
+    )
     can_create_reports = forms.BooleanField(
         label=_("Puede crear informes"),
         required=False,
@@ -479,6 +505,14 @@ class LaboratoryStaffCreationForm(forms.Form):
             specialty=self.cleaned_data.get("specialty", ""),
             phone_number=self.cleaned_data.get("phone_number", ""),
             signature_image=self.cleaned_data.get("signature_image"),
+            signature_affiliation_text=self.cleaned_data.get(
+                "signature_affiliation_text",
+                "",
+            )
+            or (
+                "Laboratorio de Anatomía Patológica\n"
+                "Facultad de Ciencias Veterinarias"
+            ),
             can_create_reports=self.cleaned_data.get(
                 "can_create_reports", False
             ),
@@ -1404,14 +1438,22 @@ class LaboratoryStaffSignatureForm(forms.ModelForm):
 
     class Meta:
         model = LaboratoryStaff
-        fields = ["signature_image"]
+        fields = ["signature_image", "signature_affiliation_text"]
         labels = {
             "signature_image": _("Firma digital"),
+            "signature_affiliation_text": _("Texto bajo la firma"),
         }
         help_texts = {
             "signature_image": _(
                 "Imagen de su firma (PNG o JPG). Es obligatoria para "
                 "completar su incorporación al laboratorio."
+            ),
+            "signature_affiliation_text": _(
+                "Aparece en el PDF del informe debajo de su nombre y matrícula "
+                "(bloque de firma a la derecha). Una línea por renglón. "
+                "Ejemplo:\n"
+                "Laboratorio de Anatomía Patológica\n"
+                "Facultad de Ciencias Veterinarias"
             ),
         }
         widgets = {
@@ -1426,21 +1468,35 @@ class LaboratoryStaffSignatureForm(forms.ModelForm):
                     "accept": "image/*",
                 }
             ),
+            "signature_affiliation_text": forms.Textarea(
+                attrs={
+                    "class": (
+                        "mt-1 block w-full rounded-md border-gray-300 "
+                        "shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    ),
+                    "rows": 3,
+                    "placeholder": (
+                        "Laboratorio de Anatomía Patológica\n"
+                        "Facultad de Ciencias Veterinarias"
+                    ),
+                }
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.instance.signature_image:
             self.fields["signature_image"].required = True
+        self.fields["signature_affiliation_text"].required = False
 
     def clean_signature_image(self):
-        """Require a signature when none is stored yet."""
+        """Require a signature when none is stored yet; keep current otherwise."""
         signature = self.cleaned_data.get("signature_image")
         if signature:
             return signature
 
         if self.instance.signature_image:
-            return signature
+            return self.instance.signature_image
 
         raise ValidationError(
             _("Debe cargar una imagen de firma para continuar.")

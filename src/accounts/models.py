@@ -899,6 +899,20 @@ class Histopathologist(models.Model):
         null=True,
         help_text=_("Imagen de la firma para incluir en informes"),
     )
+    signature_affiliation_text = models.TextField(
+        _("texto bajo la firma"),
+        blank=True,
+        default=(
+            "Laboratorio de Anatomía Patológica\n"
+            "Facultad de Ciencias Veterinarias"
+        ),
+        help_text=_(
+            "Texto libre que aparece en el PDF del informe debajo del nombre "
+            "y la matrícula, junto a la imagen de la firma. Una línea por "
+            "renglón. Ejemplo: Laboratorio de Anatomía Patológica / "
+            "Facultad de Ciencias Veterinarias."
+        ),
+    )
     phone_number = models.CharField(
         _("teléfono"),
         max_length=20,
@@ -993,6 +1007,21 @@ class LaboratoryStaff(models.Model):
         blank=True,
         null=True,
         help_text=_("Imagen de la firma para incluir en informes"),
+    )
+    signature_affiliation_text = models.TextField(
+        _("texto bajo la firma"),
+        blank=True,
+        default=(
+            "Laboratorio de Anatomía Patológica\n"
+            "Facultad de Ciencias Veterinarias"
+        ),
+        help_text=_(
+            "Texto libre que aparece en el PDF del informe debajo del nombre "
+            "y la matrícula, junto a la imagen de la firma. Una línea por "
+            "renglón. Ejemplo:\n"
+            "Laboratorio de Anatomía Patológica\n"
+            "Facultad de Ciencias Veterinarias"
+        ),
     )
     phone_number = models.CharField(
         _("teléfono"),

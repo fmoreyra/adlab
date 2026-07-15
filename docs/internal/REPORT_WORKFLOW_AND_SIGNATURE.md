@@ -98,7 +98,8 @@ Tests locales: `make test-with-sqlite ARGS="protocols.tests_report_images protoc
 - **Vista:** `LabStaffSignatureView` (`src/accounts/views.py`)
 - **Formulario:** `LaboratoryStaffSignatureForm` (`src/accounts/forms.py`)
 - Acceso UI: panel lab (**Herramientas de Laboratorio** → Firma Digital) y Perfil → «Gestionar firma»
-- La vista **siempre** muestra el formulario (permitir reemplazo). No redirige si ya hay firma.
+- La vista **siempre** muestra el formulario (permitir reemplazo). Preview de la firma actual vía `accounts:lab_staff_signature_file` (proxy Django).
+- Campo **texto bajo la firma** (`signature_affiliation_text`): libre, multi-línea; se imprime en el PDF del informe junto a la imagen. Editable en la misma pantalla, alta de lab staff y Admin.
 
 ### Redirección automática
 

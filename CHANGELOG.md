@@ -10,6 +10,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - Proxy Django para imágenes de informe (`protocol_report_image_file`): el navegador no habla con Garage; se enforzan permisos de vet dueño / lab / admin
+- Texto libre bajo la firma (`signature_affiliation_text`) editable por el personal de lab e incluido en el PDF del informe
+- Preview de la firma actual en `/accounts/lab-staff/signature/` (proxy `lab_staff_signature_file`)
 - `setuptools` Python dependency since Docker recently removed this from the official Python image
 
 ### Changed

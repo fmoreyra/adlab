@@ -694,7 +694,12 @@ class LaboratoryStaffAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "signature_image",
+                    "signature_affiliation_text",
                     "has_signature_display",
+                ),
+                "description": _(
+                    "La imagen y el texto institucional aparecen juntos "
+                    "en el bloque de firma del PDF del informe."
                 ),
             },
         ),
@@ -790,7 +795,12 @@ class HistopathologistAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "signature_image",
+                    "signature_affiliation_text",
                     "has_signature_display",
+                ),
+                "description": _(
+                    "La imagen y el texto institucional aparecen juntos "
+                    "en el bloque de firma del PDF del informe."
                 ),
             },
         ),
