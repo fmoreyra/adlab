@@ -35,6 +35,8 @@ This directory contains technical documentation for developers, DevOps engineers
   - SSL/TLS setup
   - Gunicorn and Nginx configuration
   - Environment-specific configurations
+  - Memory-safe `collectstatic` / docs build (one-off containers; optional
+    `DEPLOY_NO_CACHE=1` for a full image rebuild without Docker layer cache)
 
 ### 🔧 Operations
 

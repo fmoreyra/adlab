@@ -99,13 +99,6 @@ start_garage() {
   exit 1
 }
 
-start_app_services() {
-  log_step "Starting application services (web, worker, beat)..."
-
-  # shellcheck disable=SC2086
-  docker compose $COMPOSE_FILES up -d web worker beat
-}
-
 start_proxy() {
   log_step "Starting reverse proxy (nginx) and SSL renewal (certbot)..."
 
@@ -142,8 +135,13 @@ pull_changes() {
 # Build images
 build_images() {
   log_step "Building Docker images..."
+  local no_cache_args=()
+  if [[ "${DEPLOY_NO_CACHE:-}" == "1" ]]; then
+    log_info "DEPLOY_NO_CACHE=1 — building without Docker layer cache"
+    no_cache_args=(--no-cache)
+  fi
   # shellcheck disable=SC2086
-  docker compose $COMPOSE_FILES build
+  docker compose $COMPOSE_FILES build "${no_cache_args[@]}"
   log_success "Images built successfully"
 }
 
@@ -151,7 +149,12 @@ build_images() {
 build_documentation() {
   log_step "Building documentation..."
 
-  if make docs-build; then
+  # One-off container (same rationale as collect_static): MkDocs can peak
+  # well above 500MB and must not compete with Gunicorn in the web cgroup.
+  # Writes directly into STATIC_ROOT so nginx serves /static/docs/.
+  # shellcheck disable=SC2086
+  if docker compose $COMPOSE_FILES run --rm --no-deps web \
+    bash -c "cd /app && mkdocs build -d public_collected/docs --clean && cp -r public_collected/docs /public_collected/"; then
     log_success "Documentation built successfully"
   else
     log_warning "Documentation build failed; continuing deployment"
@@ -164,7 +167,7 @@ run_migrations() {
   log_step "Running migrations..."
 
   # Run migrate in a one-off web container so we don't require web to be up.
-  # This must run before start_app_services so Celery beat doesn't query
+  # This must run before app services start so Celery beat doesn't query
   # ServerStatsSnapshot before the table exists.
   # shellcheck disable=SC2086
   if ! docker compose $COMPOSE_FILES run --rm web python3 manage.py migrate --no-input; then
@@ -192,27 +195,32 @@ collect_static() {
     exit 1
   fi
 
-  # Rebuild manifest and collected files from the image's static sources (repair
-  # references like images/logo-unl-fcv.png). The web container was started from
-  # the image we just built, so /public in the container includes app images from
-  # assets/static/images/. Ensure those files are committed so the image build has them.
-  make manage ARGS="collectstatic --no-input --clear"
+  # Rebuild WhiteNoise manifest from the image's static sources (repairs
+  # references like images/logo-unl-fcv.png). Use a one-off container — never
+  # `exec` into the running web service — so collectstatic does not share the
+  # web cgroup with Gunicorn. Sharing caused intermittent exit 137 (SIGKILL /
+  # OOM) right after "post-processed", especially on small VPSs when
+  # public_collected still held a large MkDocs tree from the previous deploy.
+  # shellcheck disable=SC2086
+  if ! docker compose $COMPOSE_FILES run --rm --no-deps web \
+    python3 manage.py collectstatic --no-input --clear; then
+    log_error "collectstatic failed (exit 137 usually means the host ran out of memory)"
+    exit 1
+  fi
   log_success "Static files collected successfully"
 }
 
-# Restart app services (web, worker, beat)
+# Start (or recreate) app services with a fresh WhiteNoise manifest in mind
 restart_services() {
-  log_step "Restarting application services..."
+  log_step "Starting application services..."
 
-  # Force-recreate app services so that Gunicorn/WhiteNoise re-reads the
-  # freshly generated staticfiles.json manifest.  A plain "up -d" skips
-  # containers whose image + config haven't changed, leaving the process
-  # running with a stale (or empty) cached manifest from before
-  # collect_static ran.
+  # Force-recreate so Gunicorn/WhiteNoise read the freshly generated
+  # staticfiles.json (written to the public_collected volume above). A plain
+  # "up -d" can skip containers whose image+config look unchanged.
   # shellcheck disable=SC2086
   docker compose $COMPOSE_FILES up -d --force-recreate web worker beat
 
-  log_success "Application services restarted"
+  log_success "Application services started"
 }
 
 # Verify all services are healthy (must run after nginx is up)
@@ -249,7 +257,10 @@ main() {
   pull_changes
   build_images
   run_migrations
-  start_app_services
+  # Free RAM on redeploys before WhiteNoise/MkDocs peaks (avoids host OOM /
+  # exit 137). Brief app downtime; nginx stays up until start_proxy recreates it.
+  # shellcheck disable=SC2086
+  docker compose $COMPOSE_FILES stop web worker beat 2>/dev/null || true
   collect_static
   build_documentation
   restart_services

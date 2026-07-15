@@ -256,14 +256,20 @@ The deployment script performs these steps in order:
 2. 🗄️ **Start infrastructure** — Bring up Postgres and Redis so backup and migrations can run (idempotent if already up).
 3. 💾 **Backup** — Create a database dump in `./backups` (fails if DB is unreachable).
 4. 📥 **Pull** — Fetch and pull latest from `origin/main` (skips if already up to date).
-5. 🏗️ **Build** — Build Docker images for web, worker, and beat. The Dockerfile runs `collectstatic` during image build (case-insensitive DEBUG check), so the image always contains a valid WhiteNoise manifest.
-6. 🚀 **Start app services** — Start web, worker, and beat so migrations and collectstatic can run inside the web container. Nginx is NOT started yet, so no external traffic reaches the app while the manifest is being rebuilt.
-7. 🔄 **Migrations** — Run `migrate --check` then `migrate --no-input` (fails on migration errors).
-8. 📦 **Collect static** — Run `collectstatic --no-input --clear` to rebuild the WhiteNoise manifest from the image's static sources (repairs references like `images/logo-unl-fcv.png`). Output is persisted to the host via the volume mount at `/public_collected` (matching `STATIC_ROOT`).
-9. 📚 **Build documentation** — Run `make docs-build` in the web container to write MkDocs output into `public_collected/docs/` (continues on failure with a warning).
-10. 🌐 **Start proxy** — Start nginx so the app is reachable via HTTPS. By this point migrations, static files, and documentation are all ready.
-11. 🔁 **Recreate app services** — Run `docker compose up -d web worker beat` so containers use the current production config (e.g. **web has no published port 8000**; all traffic must go through nginx).
+5. 🏗️ **Build** — Build Docker images for web, worker, and beat. The Dockerfile runs `collectstatic` during image build (case-insensitive DEBUG check), so the image always contains a valid WhiteNoise manifest. Set `DEPLOY_NO_CACHE=1` to force `docker compose build --no-cache` (useful when reproducing memory-sensitive deploy issues).
+6. 🔄 **Migrations** — Run `migrate --no-input` then `migrate --check` in a one-off web container (fails on migration errors). App services are not started yet.
+7. ⏸️ **Stop app services** — Stop web, worker, and beat if they are running, so the next steps do not compete with Gunicorn/Celery for RAM (avoids intermittent exit 137 / OOM on small VPSs).
+8. 📦 **Collect static** — Run `collectstatic --no-input --clear` in a **one-off** container (`docker compose run --rm`), never via `exec` into a live web container. Output is persisted to the host via the volume mount at `/public_collected` (matching `STATIC_ROOT`).
+9. 📚 **Build documentation** — Run MkDocs in a one-off container and write output into `public_collected/docs/` (continues on failure with a warning).
+10. 🔁 **Start app services** — `docker compose up -d --force-recreate web worker beat` so Gunicorn/WhiteNoise read the fresh `staticfiles.json` manifest.
+11. 🌐 **Start proxy** — Start (or force-recreate) nginx and certbot so the app is reachable via HTTPS.
 12. ✅ **Health check** — Poll `http://localhost/up` until success or timeout; exit with error if services do not become healthy.
+
+To force a full image rebuild without Docker layer cache (e.g. to re-test deploy memory pressure):
+
+```bash
+DEPLOY_NO_CACHE=1 ./bin/deploy-production.sh
+```
 
 ### Monitor Deployment
 
