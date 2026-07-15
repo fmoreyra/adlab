@@ -479,13 +479,19 @@ class ReportDetailView(DetailView):
         report = self.object
 
         is_report_owner = False
-        if hasattr(user, "veterinarian_profile"):
-            is_report_owner = (
-                user.veterinarian_profile.pk == report.veterinarian_id
-            )
+        if user.is_veterinarian:
+            try:
+                is_report_owner = (
+                    user.veterinarian_profile.pk == report.veterinarian_id
+                )
+            except Exception:
+                is_report_owner = False
 
         context["is_report_owner"] = is_report_owner
-        context["can_manage_report"] = user.is_lab_staff
+        # Vets never manage reports; keep this false even if flags overlap.
+        context["can_manage_report"] = (
+            user.is_lab_staff and not is_report_owner
+        )
         context["needs_report_signature"] = user_requires_report_signature(
             user
         )
@@ -493,20 +499,24 @@ class ReportDetailView(DetailView):
             get_report_signature_redirect_url()
         )
         context["report_signer_ready"] = report.signer_has_signature()
-        # Prefer the PDF persisted at finalize; regeneration is only fallback.
+        # Owner: always offer download once the report is released to them.
+        # Lab staff still need a serveable/rebuildable PDF.
         is_ready_for_download = report.status in (
             Report.Status.FINALIZED,
             Report.Status.SENT,
         )
-        can_serve_or_rebuild_pdf = bool(report.pdf_path) or (
-            report.signer_has_signature()
-        )
-        context["can_download_report_pdf"] = (
-            is_ready_for_download
-            and can_serve_or_rebuild_pdf
-            and (user.is_lab_staff or is_report_owner)
-        )
+        if is_report_owner:
+            context["can_download_report_pdf"] = is_ready_for_download
+        elif user.is_lab_staff:
+            context["can_download_report_pdf"] = is_ready_for_download and (
+                bool(report.pdf_path) or report.signer_has_signature()
+            )
+        else:
+            context["can_download_report_pdf"] = False
         context["protocol"] = report.protocol
+        context["title"] = _("Informe %(protocol)s") % {
+            "protocol": report.protocol.protocol_number or report.pk
+        }
         return context
 
 

@@ -505,11 +505,9 @@ def build_protocol_detail_action_context(user, protocol, request=None):
             Report.Status.FINALIZED,
             Report.Status.SENT,
         )
-        # Persisted path is enough; signer is only needed as rebuild fallback.
-        can_download_report_pdf = can_view_report_detail and (
-            bool(latest_report.pdf_path)
-            or latest_report.signer_has_signature()
-        )
+        # Owner download CTA does not depend on storage/signer readiness;
+        # ReportPDFView serves or rebuilds (and surfaces errors if needed).
+        can_download_report_pdf = can_view_report_detail
         show_report_workflow = False
 
     processing_readiness = None

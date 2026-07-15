@@ -4603,6 +4603,30 @@ class ReportViewsTest(TestCase):
         self.assertTrue(response.context["can_download_report_pdf"])
         self.assertContains(response, "Descargar PDF")
 
+    def test_veterinarian_sees_download_on_sent_report_without_pdf_path(self):
+        """Released reports show Descargar PDF even without stored pdf_path."""
+        self.finalized_report.status = Report.Status.SENT
+        self.finalized_report.pdf_path = ""
+        self.finalized_report.laboratory_staff = None
+        self.finalized_report.save(
+            update_fields=["status", "pdf_path", "laboratory_staff"]
+        )
+        self.assertFalse(self.finalized_report.signer_has_signature())
+
+        self.client.login(email="vet@example.com", password="testpass123")
+        response = self.client.get(
+            reverse(
+                "protocols:report_detail",
+                kwargs={"pk": self.finalized_report.pk},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["is_report_owner"])
+        self.assertFalse(response.context["can_manage_report"])
+        self.assertTrue(response.context["can_download_report_pdf"])
+        self.assertContains(response, "Descargar PDF")
+
     @patch(
         "protocols.services.pdf_service.PDFGenerationService.persist_report_pdf"
     )

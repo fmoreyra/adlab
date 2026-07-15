@@ -170,6 +170,25 @@ class BuildProtocolDetailActionContextTest(TestCase):
         self.assertTrue(context["can_view_report_detail"])
         self.assertTrue(context["can_download_report_pdf"])
 
+    def test_veterinarian_download_flag_without_pdf_path_or_signer(self):
+        """Owner download CTA stays available for sent reports missing PDF metadata."""
+        report = Report.objects.create(
+            protocol=self.protocol,
+            veterinarian=self.veterinarian,
+            diagnosis="OK",
+            status=Report.Status.SENT,
+            pdf_path="",
+        )
+        self.protocol.status = Protocol.Status.REPORT_SENT
+        self.protocol.save(update_fields=["status"])
+
+        context = build_protocol_detail_action_context(
+            self.vet_user, self.protocol
+        )
+
+        self.assertEqual(context["latest_report"].pk, report.pk)
+        self.assertTrue(context["can_download_report_pdf"])
+
     def test_protocol_detail_includes_report_images_context(self):
         """Staff with images on draft report can preview and open gallery."""
         from io import BytesIO
