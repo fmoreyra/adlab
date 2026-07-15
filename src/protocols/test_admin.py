@@ -188,6 +188,17 @@ class ProtocolsAdminTest(TestCase):
         response = self.client.get("/admin/")
         self.assertEqual(response.status_code, 200)
 
+    def test_report_admin_is_registered(self):
+        """Report admin lives in admin_reports.py and must be imported."""
+        from django.contrib import admin
+
+        from protocols.models import Report
+
+        self.assertIn(Report, admin.site._registry)
+        self.client.login(email="admin@example.com", password="testpass123")
+        response = self.client.get("/admin/protocols/report/")
+        self.assertEqual(response.status_code, 200)
+
     # ============================================================================
     # PROTOCOL ADMIN TESTS
     # ============================================================================

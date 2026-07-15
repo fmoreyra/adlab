@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html, mark_safe
 from django.utils.translation import gettext_lazy as _
 
+import protocols.admin_reports  # noqa: F401 — registers Report admin
 from protocols.emails import (
     queue_email,
     send_sample_reception_notification,
