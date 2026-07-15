@@ -79,13 +79,39 @@ def _signature_affiliation_lines(signer) -> List[str]:
     """
     Resolve free-text lines shown under the signature image in the PDF.
 
-    Uses LaboratoryStaff/Histopathologist.signature_affiliation_text when set;
-    otherwise falls back to the historical institutional lines.
+    The stored free-text field is the full caption (name, license, affiliation,
+    etc.). When empty, fall back to a historical default block.
     """
     text = (getattr(signer, "signature_affiliation_text", None) or "").strip()
     if text:
         return [line.strip() for line in text.splitlines() if line.strip()]
-    return [INSTITUTION_LINE_1, INSTITUTION_LINE_2]
+
+    lines = []
+    formal_name = getattr(signer, "get_formal_name", None)
+    if callable(formal_name):
+        lines.append(formal_name())
+    license_number = getattr(signer, "license_number", None)
+    if license_number:
+        lines.append(f"Mat. {license_number}")
+    lines.extend([INSTITUTION_LINE_1, INSTITUTION_LINE_2])
+    return lines
+
+
+def build_default_signature_affiliation_text(signer) -> str:
+    """
+    Build a starter caption for the free-text signature field.
+
+    Args:
+        signer: LaboratoryStaff or Histopathologist instance
+
+    Returns:
+        str: Multi-line default caption
+    """
+    lines = [signer.get_formal_name()]
+    if signer.license_number:
+        lines.append(f"Mat. {signer.license_number}")
+    lines.extend([INSTITUTION_LINE_1, INSTITUTION_LINE_2])
+    return "\n".join(lines)
 
 
 @dataclass(frozen=True)
@@ -677,12 +703,7 @@ class ReportPDFBuilder:
             except Exception as exc:
                 logger.warning("Could not load signature image: %s", exc)
 
-        signature_lines = [signer.get_formal_name()]
-        if signer.license_number:
-            signature_lines.append(f"Mat. {signer.license_number}")
-        if getattr(signer, "position", None):
-            signature_lines.append(signer.position)
-        signature_lines.extend(_signature_affiliation_lines(signer))
+        signature_lines = _signature_affiliation_lines(signer)
 
         for line in signature_lines:
             elements.append(

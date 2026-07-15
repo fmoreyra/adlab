@@ -332,9 +332,11 @@ class InstitutionalReportPDFTests(TestCase):
             PDFGenerationService().generate_report_pdf(report)
 
     def test_signature_affiliation_lines_use_custom_text(self):
-        """Free-text affiliation under the signature overrides defaults."""
+        """Free-text affiliation under the signature is the full caption."""
         self.laboratory_staff.signature_affiliation_text = (
-            "Área de Diagnóstico\nEspecialidad Patología"
+            "Médico Veterinario Juan Perez\n"
+            "MV 1122334455\n"
+            "Servicio de Diagnóstico"
         )
         self.laboratory_staff.save(
             update_fields=["signature_affiliation_text"]
@@ -342,8 +344,14 @@ class InstitutionalReportPDFTests(TestCase):
         lines = _signature_affiliation_lines(self.laboratory_staff)
         self.assertEqual(
             lines,
-            ["Área de Diagnóstico", "Especialidad Patología"],
+            [
+                "Médico Veterinario Juan Perez",
+                "MV 1122334455",
+                "Servicio de Diagnóstico",
+            ],
         )
+        # Auto name/mat must not be prepended on top of the free text.
+        self.assertNotIn(self.laboratory_staff.get_formal_name(), lines)
 
         pdf_buffer, pdf_hash = PDFGenerationService().generate_report_pdf(
             self.hp_report
@@ -351,10 +359,12 @@ class InstitutionalReportPDFTests(TestCase):
         _assert_valid_pdf(self, pdf_buffer, pdf_hash)
 
     def test_signature_affiliation_lines_fallback(self):
-        """Empty affiliation falls back to institutional defaults."""
+        """Empty affiliation falls back to name, license and institution."""
         self.laboratory_staff.signature_affiliation_text = ""
         self.laboratory_staff.save(
             update_fields=["signature_affiliation_text"]
         )
         lines = _signature_affiliation_lines(self.laboratory_staff)
-        self.assertEqual(lines[1], INSTITUTION_LINE_2)
+        self.assertEqual(lines[0], self.laboratory_staff.get_formal_name())
+        self.assertTrue(lines[1].startswith("Mat."))
+        self.assertEqual(lines[-1], INSTITUTION_LINE_2)

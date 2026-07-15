@@ -21,6 +21,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- El texto bajo la firma en el PDF ahora es solo el campo libre (sin anteponer Dr./Dra./Mat.); lab/admin regeneran el PDF al descargar tras editar la firma
 - Personal de laboratorio puede editar/reemplazar su firma digital desde el panel y el perfil (antes redirigía a Mi Perfil o bloqueaba si ya había firma)
 - Completar perfil de veterinario: matrícula vacía se guarda como `NULL` (evita `UniqueViolation` en Postgres) y DNI se marca como obligatorio en UI
 - Creación de `CassetteSlide` al registrar slides: campo `posicion` (antes se enviaba `position` y fallaba silenciosamente)

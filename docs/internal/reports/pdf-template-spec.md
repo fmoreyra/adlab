@@ -44,9 +44,10 @@ Referencia institucional: Word renovado de la facultad
    regular
 6. **RESULTADOS:** macro, micro, cassettes (HP), imágenes, diagnóstico
 7. **OBSERVACIONES:** comentarios, recomendaciones
-8. Firma digital (derecha): imagen + nombre + matrícula + **texto libre de afiliación**
-   (`LaboratoryStaff.signature_affiliation_text`, una línea por renglón; por defecto
-   «Laboratorio de Anatomía Patológica» / «Facultad de Ciencias Veterinarias»)
+8. Firma digital (derecha): imagen + **texto libre completo**
+   (`LaboratoryStaff.signature_affiliation_text`, una línea por renglón; incluye
+   nombre/matrícula/afiliación que configure el firmante). Si está vacío, fallback
+   a Dr./Dra. + Mat. + líneas institucionales por defecto.
 9. Banner de pie (dirección / teléfono)
 
 ## Mapeo de campos

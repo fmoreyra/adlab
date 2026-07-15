@@ -411,9 +411,11 @@ class LaboratoryStaffCreationForm(forms.Form):
             }
         ),
         help_text=_(
-            "Texto libre del PDF debajo del nombre/matrícula en el bloque de "
-            "firma. Una línea por renglón. Ejemplo: Laboratorio de Anatomía "
-            "Patológica / Facultad de Ciencias Veterinarias."
+            "Texto completo bajo la imagen de la firma en el PDF "
+            "(nombre, matrícula, afiliación). Una línea por renglón. "
+            "Ejemplo: Dr./Dra. Nombre / Mat. MP-XXXXX / "
+            "Laboratorio de Anatomía Patológica / "
+            "Facultad de Ciencias Veterinarias."
         ),
         initial=(
             "Laboratorio de Anatomía Patológica\n"
@@ -1449,9 +1451,11 @@ class LaboratoryStaffSignatureForm(forms.ModelForm):
                 "completar su incorporación al laboratorio."
             ),
             "signature_affiliation_text": _(
-                "Aparece en el PDF del informe debajo de su nombre y matrícula "
-                "(bloque de firma a la derecha). Una línea por renglón. "
-                "Ejemplo:\n"
+                "Texto completo bajo la imagen de la firma en el PDF "
+                "(reemplaza nombre, matrícula y afiliación). Una línea por "
+                "renglón. Ejemplo:\n"
+                "Dr./Dra. Facundo Moreyra\n"
+                "Mat. MP-12345\n"
                 "Laboratorio de Anatomía Patológica\n"
                 "Facultad de Ciencias Veterinarias"
             ),
@@ -1474,8 +1478,10 @@ class LaboratoryStaffSignatureForm(forms.ModelForm):
                         "mt-1 block w-full rounded-md border-gray-300 "
                         "shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     ),
-                    "rows": 3,
+                    "rows": 5,
                     "placeholder": (
+                        "Dr./Dra. Nombre Apellido\n"
+                        "Mat. MP-12345\n"
                         "Laboratorio de Anatomía Patológica\n"
                         "Facultad de Ciencias Veterinarias"
                     ),

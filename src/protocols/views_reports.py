@@ -661,7 +661,15 @@ class ReportPDFView(View):
 
         filename = report.generate_pdf_filename()
 
-        if report.pdf_path and default_storage.exists(report.pdf_path):
+        # Veterinarians get the stored snapshot (stable after send).
+        # Lab staff/admin always regenerate so signature/caption edits appear.
+        serve_cached_pdf = (
+            report.pdf_path
+            and default_storage.exists(report.pdf_path)
+            and request.user.is_veterinarian
+            and not request.user.is_admin_user
+        )
+        if serve_cached_pdf:
             return FileResponse(
                 default_storage.open(report.pdf_path, "rb"),
                 as_attachment=True,

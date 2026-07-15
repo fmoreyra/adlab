@@ -1,3 +1,4 @@
+import contextlib
 import mimetypes
 import os
 import secrets
@@ -479,9 +480,24 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
         return reverse_lazy("pages:dashboard")
 
     def get_form_kwargs(self):
-        """Bind the form to the current user's laboratory staff profile."""
+        """Bind form to the profile; expand short default caption for editing."""
         kwargs = super().get_form_kwargs()
-        kwargs["instance"] = self.lab_staff_profile
+        profile = self.lab_staff_profile
+        short_default = (
+            "Laboratorio de Anatomía Patológica\n"
+            "Facultad de Ciencias Veterinarias"
+        )
+        current = (profile.signature_affiliation_text or "").strip()
+        if not current or current == short_default:
+            from protocols.services.report_pdf_builder import (
+                build_default_signature_affiliation_text,
+            )
+
+            # In-memory only until the user saves; improves first edit UX.
+            profile.signature_affiliation_text = (
+                build_default_signature_affiliation_text(profile)
+            )
+        kwargs["instance"] = profile
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -492,13 +508,34 @@ class LabStaffSignatureView(LoginRequiredMixin, FormView):
         return context
 
     def form_valid(self, form):
-        """Save signature and confirm success."""
+        """Save signature/caption and invalidate stored report PDFs for this signer."""
         form.save()
+        self._invalidate_signer_report_pdfs(self.lab_staff_profile)
         messages.success(
             self.request,
-            _("Firma digital guardada. Ya puede continuar con su trabajo."),
+            _(
+                "Firma digital guardada. Descargue nuevamente el PDF del "
+                "informe (como personal de laboratorio) para ver los cambios."
+            ),
         )
         return super().form_valid(form)
+
+    def _invalidate_signer_report_pdfs(self, profile):
+        """Clear persisted PDFs so the next lab download regenerates them."""
+        from django.core.files.storage import default_storage
+
+        from protocols.models import Report
+
+        reports = Report.objects.filter(laboratory_staff=profile).exclude(
+            pdf_path=""
+        )
+        for report in reports.iterator():
+            if report.pdf_path and default_storage.exists(report.pdf_path):
+                with contextlib.suppress(Exception):
+                    default_storage.delete(report.pdf_path)
+            report.pdf_path = ""
+            report.pdf_hash = ""
+            report.save(update_fields=["pdf_path", "pdf_hash"])
 
 
 class LabStaffSignatureFileView(LoginRequiredMixin, View):

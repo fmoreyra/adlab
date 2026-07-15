@@ -907,10 +907,13 @@ class Histopathologist(models.Model):
             "Facultad de Ciencias Veterinarias"
         ),
         help_text=_(
-            "Texto libre que aparece en el PDF del informe debajo del nombre "
-            "y la matrícula, junto a la imagen de la firma. Una línea por "
-            "renglón. Ejemplo: Laboratorio de Anatomía Patológica / "
-            "Facultad de Ciencias Veterinarias."
+            "Texto completo que aparece en el PDF debajo de la imagen de la "
+            "firma (nombre, matrícula, afiliación, etc.). Una línea por "
+            "renglón. Ejemplo:\n"
+            "Dr./Dra. Facundo Moreyra\n"
+            "Mat. MP-12345\n"
+            "Laboratorio de Anatomía Patológica\n"
+            "Facultad de Ciencias Veterinarias"
         ),
     )
     phone_number = models.CharField(
@@ -1016,9 +1019,11 @@ class LaboratoryStaff(models.Model):
             "Facultad de Ciencias Veterinarias"
         ),
         help_text=_(
-            "Texto libre que aparece en el PDF del informe debajo del nombre "
-            "y la matrícula, junto a la imagen de la firma. Una línea por "
+            "Texto completo que aparece en el PDF debajo de la imagen de la "
+            "firma (nombre, matrícula, afiliación, etc.). Una línea por "
             "renglón. Ejemplo:\n"
+            "Dr./Dra. Facundo Moreyra\n"
+            "Mat. MP-12345\n"
             "Laboratorio de Anatomía Patológica\n"
             "Facultad de Ciencias Veterinarias"
         ),

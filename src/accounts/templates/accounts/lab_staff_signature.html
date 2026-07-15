@@ -67,9 +67,13 @@
                         <p class="mt-1 text-sm text-red-600">{{ form.signature_affiliation_text.errors.0 }}</p>
                         {% endif %}
                         <p class="mt-2 text-xs text-gray-500">
-                            Uso: bloque de firma a la derecha del PDF (debajo de Dr./Dra., matrícula y cargo).
-                            Representa su afiliación institucional o área. Ejemplo:
-                            «Laboratorio de Anatomía Patológica» / «Facultad de Ciencias Veterinarias».
+                            Este campo es <span class="font-medium">todo</span> el texto bajo la
+                            imagen de la firma en el PDF (nombre, matrícula, afiliación, etc.).
+                            Una línea = un renglón. Ejemplo:
+                            «Dr./Dra. Juan Pérez» / «Mat. MP-12345» /
+                            «Laboratorio de Anatomía Patológica» /
+                            «Facultad de Ciencias Veterinarias».
+                            Después de guardar, descargue de nuevo el PDF como personal de laboratorio.
                         </p>
                     </div>
                 </div>

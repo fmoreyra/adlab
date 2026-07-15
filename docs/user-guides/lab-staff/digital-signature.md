@@ -98,21 +98,19 @@ Los **nuevos** PDFs usarán la firma y el texto actualizados (los ya enviados no
 
 ### Texto bajo la firma
 
-Campo libre de varias líneas. Se imprime en el PDF a la derecha, debajo de:
+Campo libre de varias líneas. Es **todo** el texto impreso bajo la imagen de la firma (ya no se agregan automáticamente nombre ni matrícula).
 
-1. Imagen de la firma  
-2. Dr./Dra. + nombre  
-3. Matrícula (y cargo, si está cargado)
-
-**Uso:** identifica la afiliación institucional o área del firmante.  
+**Uso:** identifica al firmante y su afiliación en el PDF.  
 **Ejemplo:**
 
 ```text
+Dr./Dra. Facundo Moreyra
+Mat. MP-12345
 Laboratorio de Anatomía Patológica
 Facultad de Ciencias Veterinarias
 ```
 
-Si lo dejás vacío, el PDF usa ese ejemplo por defecto.
+Tras guardar, descargá el PDF **como personal de laboratorio** (se regenera). El veterinario sigue recibiendo el PDF almacenado hasta que se regenere/reenvíe.
 
 ---
 
