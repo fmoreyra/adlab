@@ -65,7 +65,7 @@
                         <!-- DNI -->
                         <div>
                             <label for="{{ vet_form.dni.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ vet_form.dni.label }}
+                                {{ vet_form.dni.label }} <span class="text-red-600">*</span>
                             </label>
                             {{ vet_form.dni }}
                             {% if vet_form.dni.help_text %}

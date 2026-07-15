@@ -9,6 +9,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Proxy Django para imágenes de informe (`protocol_report_image_file`): el navegador no habla con Garage; se enforzan permisos de vet dueño / lab / admin
 - `setuptools` Python dependency since Docker recently removed this from the official Python image
 
 ### Changed
@@ -18,6 +19,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- Completar perfil de veterinario: matrícula vacía se guarda como `NULL` (evita `UniqueViolation` en Postgres) y DNI se marca como obligatorio en UI
 - Creación de `CassetteSlide` al registrar slides: campo `posicion` (antes se enviaba `position` y fallaba silenciosamente)
 - `./run pip3 [...]` to run any Pip command
 - `./run yarn [...]` to run any Yarn command

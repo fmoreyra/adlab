@@ -661,15 +661,20 @@ class VeterinarianProfileForm(forms.ModelForm):
             "phone": _("Argentine format: +54 XXX XXXXXXX"),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Model allows blank, but business rules require DNI
+        self.fields["dni"].required = True
+
     def clean_license_number(self):
         """Validate license number format (optional)."""
         license_number = (
             self.cleaned_data.get("license_number", "").strip().upper()
         )
 
-        # If empty, return empty (field is now optional)
+        # Store NULL instead of "" so unique constraint allows many unset values
         if not license_number:
-            return license_number
+            return None
 
         # Validate format (MP-XXXXX or similar provincial patterns)
         # Accept various provincial prefixes followed by numbers
@@ -865,7 +870,7 @@ class VeterinarianProfileCompleteForm(forms.Form):
     dni = forms.CharField(
         label=_("DNI"),
         max_length=20,
-        required=False,
+        required=True,
         widget=forms.TextInput(
             attrs={
                 "class": "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
@@ -999,9 +1004,9 @@ class VeterinarianProfileCompleteForm(forms.Form):
             self.cleaned_data.get("license_number", "").strip().upper()
         )
 
-        # If empty, return empty (field is now optional)
+        # Store NULL instead of "" so unique constraint allows many unset values
         if not license_number:
-            return license_number
+            return None
 
         # Validate format (MP-XXXXX or similar provincial patterns)
         pattern = r"^[A-Z]{2,3}-\d{4,6}$"
@@ -1073,8 +1078,8 @@ class VeterinarianProfileCompleteForm(forms.Form):
             user=self.user,
             first_name=self.cleaned_data["first_name"],
             last_name=self.cleaned_data["last_name"],
-            license_number=self.cleaned_data.get("license_number", ""),
-            dni=self.cleaned_data.get("dni", ""),
+            license_number=self.cleaned_data.get("license_number") or None,
+            dni=self.cleaned_data.get("dni") or None,
             cuil_cuit=self.cleaned_data["cuil_cuit"],
             phone=self.cleaned_data["phone"],
             email=self.user.email,
@@ -1264,6 +1269,8 @@ class VeterinarianProfileEditForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Model allows blank, but business rules require DNI
+        self.fields["dni"].required = True
 
         # Initialize address fields with current values
         if self.instance and self.instance.pk:
@@ -1287,9 +1294,9 @@ class VeterinarianProfileEditForm(forms.ModelForm):
             self.cleaned_data.get("license_number", "").strip().upper()
         )
 
-        # If empty, return empty (field is now optional)
+        # Store NULL instead of "" so unique constraint allows many unset values
         if not license_number:
-            return license_number
+            return None
 
         # Validate format (MP-XXXXX or similar provincial patterns)
         # Accept various provincial prefixes followed by numbers
@@ -1302,6 +1309,18 @@ class VeterinarianProfileEditForm(forms.ModelForm):
             )
 
         return license_number
+
+    def clean_dni(self):
+        """Validate DNI format (mandatory)."""
+        dni = self.cleaned_data.get("dni", "").strip()
+
+        if not dni:
+            raise ValidationError(_("DNI is required"))
+
+        if not re.match(r"^\d{7,8}$", dni):
+            raise ValidationError(_("DNI must contain 7-8 digits"))
+
+        return dni
 
     def clean_cuil_cuit(self):
         """Validate CUIL/CUIT format."""

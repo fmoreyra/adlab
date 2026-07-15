@@ -479,6 +479,14 @@ class Veterinarian(models.Model):
         """Return the full name in 'First Last' format."""
         return f"{self.first_name} {self.last_name}".strip()
 
+    def save(self, *args, **kwargs):
+        """Normalize empty unique optional fields to NULL before save."""
+        if self.license_number == "":
+            self.license_number = None
+        if self.dni == "":
+            self.dni = None
+        return super().save(*args, **kwargs)
+
     def verify(self, verified_by_user, notes=""):
         """
         Mark veterinarian as verified.

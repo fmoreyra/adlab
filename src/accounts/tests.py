@@ -1281,8 +1281,75 @@ class CompleteProfileViewTest(TestCase):
             response.request["PATH_INFO"],
             reverse("pages:dashboard"),
         )
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.veterinarian_profile.license_number)
         self.assertTrue(
             self.user.veterinarian_profile.is_profile_complete_for_access()
+        )
+
+    def test_multiple_profiles_without_license_number(self):
+        """Empty license must be stored as NULL to avoid unique collisions."""
+        self.client.login(username="vet@example.com", password="testpass123")
+
+        data = {
+            "first_name": "Juan",
+            "last_name": "Pérez",
+            "license_number": "",
+            "dni": "12345678",
+            "cuil_cuit": "20-12345678-9",
+            "phone": "+54 342 1234567",
+            "province": "Santa Fe",
+            "locality": "Esperanza",
+            "street": "San Martín",
+            "number": "1234",
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 302)
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.veterinarian_profile.license_number)
+
+        second_user = User.objects.create_user(
+            email="vet2@example.com",
+            username="vetuser2",
+            password="testpass123",
+            role=User.Role.VETERINARIO,
+        )
+        second_user.email_verified = True
+        second_user.save()
+        self.client.login(username="vet2@example.com", password="testpass123")
+
+        data_second = {
+            **data,
+            "dni": "87654321",
+            "cuil_cuit": "20-87654321-9",
+        }
+        response = self.client.post(self.url, data_second)
+        self.assertEqual(response.status_code, 302)
+        second_user.refresh_from_db()
+        self.assertIsNone(second_user.veterinarian_profile.license_number)
+
+    def test_complete_profile_dni_required(self):
+        """DNI is required when completing profile."""
+        self.client.login(username="vet@example.com", password="testpass123")
+
+        data = {
+            "first_name": "Juan",
+            "last_name": "Pérez",
+            "license_number": "",
+            "dni": "",
+            "cuil_cuit": "20-12345678-9",
+            "phone": "+54 342 1234567",
+            "province": "Santa Fe",
+            "locality": "Esperanza",
+            "street": "San Martín",
+            "number": "1234",
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(
+            response.context["form"],
+            "dni",
+            "This field is required.",
         )
 
 
