@@ -20,7 +20,7 @@ services:
   # performed by the certbot container are picked up automatically.
   # `nginx -s reload` is zero-downtime and idempotent.
   nginx:
-    image: nginx:1.25-alpine
+    image: nginx:1.30.6-alpine
     container_name: laboratory-nginx
     restart: unless-stopped
     ports:
