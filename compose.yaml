@@ -161,7 +161,8 @@ services:
     environment:
       RUST_LOG: "garage=info"
     healthcheck:
-      test: ["CMD", "garage", "status"]
+      # Image entrypoint is /garage; that binary is not on PATH.
+      test: ["CMD", "/garage", "status"]
       interval: "30s"
       timeout: "10s"
       retries: 3

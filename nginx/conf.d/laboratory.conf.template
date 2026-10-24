@@ -16,6 +16,26 @@ server {
         root /var/www/certbot;
     }
 
+    # Keep the health probe on HTTP. wget follows a 301 to HTTPS and
+    # then rejects the certificate, which is not issued for localhost.
+    location = /up {
+        proxy_pass http://django_app/up;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        access_log off;
+    }
+
+    location = /up/ {
+        proxy_pass http://django_app/up/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        access_log off;
+    }
+
     # Redirect all other traffic to HTTPS
     location / {
         return 301 https://$host$request_uri;
